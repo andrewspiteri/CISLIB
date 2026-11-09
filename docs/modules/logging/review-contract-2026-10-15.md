@@ -1,6 +1,6 @@
 # Logging review corrections — 15 October 2026
 
-This is the current unpublished behavior addendum for the supplied [static review](../../../planning/logging/reviews/2026-10-15/source-review.md). It supersedes contradictory earlier development descriptions. The review inspected a partial source archive; its proposals are input to this corrective task, not evidence of executed tests or authority to resume the roadmap. Source plans, historical receipts and published baselines remain unchanged. The roadmap remains paused at WP07-S02-T01.
+This current unpublished behavior addendum preserves the accepted file, scope, rendering, deadline and queue corrections. It supersedes contradictory earlier implementation narratives. Historical reviews and campaign receipts are retired; current development follows README and current decisions.
 
 ## Existing decisions retained
 
@@ -76,4 +76,4 @@ QueueCapacity limits buffered records per output, not bytes. Allow one additiona
 | Default 1,024 × 64 KiB | 64 MiB |
 | Maximum 65,536 × 16 MiB | 1 TiB |
 
-The selected ranges remain independent, with explicit deployment guidance rather than a new arbitrary cross-option restriction. Choose an entry cap for realistic events and a queue capacity for the expected burst and memory budget; size each enabled output independently. For example, a 16 MiB payload budget at 64 KiB per entry allows 256 buffered records for one representation, before reserving extra memory for human bytes, in-flight work and producers. Large caps combined with large capacities require deliberate application sizing. See the [review receipt](../../../planning/logging/reviews/2026-10-15/README.md) for measured allocations/retention and their limits.
+The selected ranges remain independent, with explicit deployment guidance rather than a new arbitrary cross-option restriction. Choose an entry cap for realistic events and a queue capacity for the expected burst and memory budget; size each enabled output independently. For example, a 16 MiB payload budget at 64 KiB per entry allows 256 buffered records for one representation, before reserving extra memory for human bytes, in-flight work and producers. Large caps combined with large capacities require deliberate application sizing.

@@ -7,7 +7,7 @@ using System.Text;
 using System.Text.Json.Nodes;
 using CIS.Healthcheck;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using MutationChildren = CIS.Verification.HealthcheckMutationChildren.HealthcheckMutationChildSupport;
+using MutationChildren = CIS.Tests.IntegrationTests.Healthcheck.Reporting.MutationChildFixture;
 
 namespace CIS.Tests.IntegrationTests.Healthcheck.Reporting;
 
@@ -22,13 +22,12 @@ public sealed partial class HealthcheckPipeTransportTests
             Console.WriteLine("Windows native pipe security-descriptor pin lifetime is inapplicable on this platform.");
             return;
         }
-        Process child = Process.Start(TransportTestSupport.StartInfo("healthcheck-http-host", "CIS.Healthcheck.HttpFixture", ["pipe-pin-release"]))!;
+        Process child = TransportTestSupport.StartProcess("healthcheck-http-host", "CIS.Healthcheck.HttpFixture", ["pipe-pin-release"]);
         try
         {
-            MutationChildren.ObserveStarted(child);
             Task<string> stdout = child.StandardOutput.ReadToEndAsync(), stderr = child.StandardError.ReadToEndAsync();
             try { await child.WaitForExitAsync().WaitAsync(TransportTestSupport.Limit); }
-            catch (TimeoutException) { MutationChildren.MarkTimeout(child, "pipe-pin-release-observation"); throw; }
+            catch (TimeoutException) { throw; }
             string output = await stdout, error = await stderr;
             Assert.AreEqual(0, child.ExitCode, error);
             Assert.AreEqual("", error, "The resource observation must finish without a child error.");
@@ -55,13 +54,12 @@ public sealed partial class HealthcheckPipeTransportTests
             {
                 if (!child.HasExited)
                 {
-                    MutationChildren.MarkForcedStop(child, "pipe-pin-release-cleanup");
                     child.Kill(entireProcessTree: true);
                 }
                 await child.WaitForExitAsync().WaitAsync(TransportTestSupport.Limit);
             }
-            catch (TimeoutException) { MutationChildren.MarkTimeout(child, "pipe-pin-release-stop"); throw; }
-            finally { try { MutationChildren.CompleteLifecycle(child); } finally { child.Dispose(); } }
+            catch (TimeoutException) { throw; }
+            finally { try { MutationChildren.Release(child.StartInfo); } finally { child.Dispose(); } }
         }
     }
 

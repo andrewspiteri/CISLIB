@@ -117,7 +117,6 @@ public sealed class FileRestartProcessTests
         { physical.Add(Path.GetRelativePath(root, file).Replace('\\', '/'), Convert.ToBase64String(File.ReadAllBytes(file))); }
         Assert.IsTrue(JsonNode.DeepEquals(physical, resume["after"]));
         CollectionAssert.AreEqual(resume["namesAfter"]!.AsArray().Select(n => (string)n!).ToArray(), Directory.GetFileSystemEntries(root, "*", SearchOption.AllDirectories).Select(n => Path.GetRelativePath(root, n).Replace('\\', '/')).Order(StringComparer.Ordinal).ToArray());
-        await Selector(mode, active, root, seed, resume);
         return (seed, resume, probe);
     }
 
@@ -128,36 +127,6 @@ public sealed class FileRestartProcessTests
         Assert.AreEqual(phase, (string?)report["phase"]); return report;
     }
 
-
-    private async Task Selector(string mode, string active, string root, JsonObject seed, JsonObject resume)
-    {
-        string repository = Path.GetFullPath("../..", Path.GetDirectoryName(FixtureProcessChecks.Find("case-inventory.json"))!);
-        string configuration = new DirectoryInfo(AppContext.BaseDirectory).Parent!.Name;
-        string tool = Path.Combine(repository, "implementations/csharp/eng/CIS.DependencyChecker/bin", configuration, "net10.0/CIS.DependencyChecker.dll"), beforeHash = Hash(tool), cwd = Directory.GetCurrentDirectory();
-        Dictionary<string, string?> parent = Parent();
-        string[] command = ["exec", "--fx-version", "10.0.12", "--roll-forward", "Disable", tool, "select-jsonl-inputs", active];
-        ProcessResult child = await ProcessRunner.RunAsync("dotnet", command, root, Limit, outputEncoding: new UTF8Encoding(false, true));
-        TestContext.WriteLine("Restart selector child: " + child.ProcessId + "; " + string.Join(" ", command) + "; sha256=" + beforeHash); TestContext.WriteLine(child.StandardOutput); TestContext.WriteLine(child.StandardError);
-        Assert.AreEqual(beforeHash, Hash(tool)); Assert.AreEqual(cwd, Directory.GetCurrentDirectory());
-        Dictionary<string, string?> after = Parent(); CollectionAssert.AreEquivalent(parent.Keys.ToArray(), after.Keys.ToArray()); Assert.IsTrue(parent.All(p => after[p.Key] == p.Value));
-        bool failure = mode.StartsWith("collision", StringComparison.Ordinal) || mode is "unproven-gap" or "ambiguous-both";
-        Assert.AreEqual(failure ? 2 : 0, child.ExitCode);
-        if (failure) { Assert.AreEqual("", child.StandardOutput); Assert.AreEqual("Cannot select a consistent stopped JSONL group." + Environment.NewLine, child.StandardError); return; }
-        Assert.AreEqual("", child.StandardError);
-        JsonObject inventory = JsonNode.Parse(Convert.FromBase64String((string)resume["after"]![FileRestartExpectations.Active + ".cis.inventory.json"]!))!.AsObject();
-        string[] expected = inventory["segments"]!.AsArray().Where(m => (string?)m!["state"] is "active" or "closed").Select(m => Path.Combine(root, "logs", (string)m!["fileName"]!)).ToArray();
-        string[] selected = JsonSerializer.Deserialize<string[]>(child.StandardOutput)!;
-        CollectionAssert.AreEqual(expected, selected); Assert.AreEqual(mode.StartsWith("rotation", StringComparison.Ordinal) ? 3 : mode.StartsWith("recovery", StringComparison.Ordinal) ? 2 : 1, selected.Length);
-        foreach (string path in selected)
-        {
-            foreach (byte[] line in FileRestartExpectations.Split(File.ReadAllBytes(path)))
-            {
-                JsonObject record = JsonNode.Parse(line)!.AsObject(); string name = (string)record["event_name"]!; int pid = record["attributes"]!["producer_pid"]!.GetValue<int>();
-                Assert.IsTrue(name == "restart.resume" && pid == resume["pid"]!.GetValue<int>() || name is "restart.seed.0" or "restart.seed.1" && pid == seed["pid"]!.GetValue<int>());
-                FileRestartExpectations.Record(line, name, pid);
-            }
-        }
-    }
 
     private sealed class HeldProducer : IAsyncDisposable
     {

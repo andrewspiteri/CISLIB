@@ -104,27 +104,9 @@ in-process copy. This is not a Visual Studio qualification claim.
 Run from `implementations/csharp`:
 
 ```powershell
-dotnet build tests/fixtures/TypeManager/Host/Host.csproj -c Release -m:1
-pwsh -NoProfile -File eng/verify-type-manager-inventory.ps1
-dotnet test tests/CIS.Core.ArchitectureTests/CIS.Core.ArchitectureTests.csproj -c Release --filter FullyQualifiedName~TypeManagerBoundaryTests
+dotnet build tests/fixtures/TypeManager/Host/Host.csproj -c Release
+dotnet test tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj -c Release --filter FullyQualifiedName~TypeManager
+dotnet pack src/CIS.Core/CIS.Core.csproj -c Release -o ../../.artifacts/packages
 ```
 
-The inventory regression script restores during dependency removal/readdition and
-requires the normal configured NuGet access. It writes evidence only under the
-chosen output root (default `.artifacts/type-manager/inventory`) and normal fixture
-build output directories. It leaves the fixture in its original reference state.
-
-To check an exact locally packed Core artifact in clean package consumers, run
-the C# `type-manager-package` command in `eng/CIS.DependencyChecker` from the language root with `--repo-root ../..`,
-`--package <Core.nupkg>`, `--dependency-cache <NuGet-global-packages-directory>`,
-`--rid-package <CIS.TypeManager.RidFixture.1.0.0.nupkg>` and an empty `--output-root`.
-The RID fixture is produced by
-the C# `type-manager-inventory` command in `eng/CIS.DependencyChecker`; it is test input only. See the checker README for native fixture arguments and Console/Web SDK settings.
-The package verifier copies the exact package and approved Microsoft dependency
-archives into a private feed and uses a fresh package cache. Run it under each
-supported OS with the pinned SDK. Its JSON report records hashes and individual
-outcomes, and logs are retained under the output root. It covers first restore,
-unchanged incremental/no-restore builds, default folder publish, cross-RID assets,
-parallel solution builds, cached offline restore, central versions, disabled
-integration and unsupported deployment settings. It does not establish Visual
-Studio support or complete the six-family release gate.
+Use a local NuGet feed containing that package for a package consumer, then run its ordinary `dotnet restore`, `dotnet build` and `dotnet publish` commands on the claimed platform. A source-reference build does not establish exact-package delivery or release qualification. Native package consumers and meaningful SDK lifecycle tests preserve those product obligations; the old inventory/package verifier command protocol is retired.

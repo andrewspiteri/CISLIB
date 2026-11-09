@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json.Nodes;
 using CIS.Healthcheck;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using MutationChildren = CIS.Verification.HealthcheckMutationChildren.HealthcheckMutationChildSupport;
+using MutationChildren = CIS.Tests.IntegrationTests.Healthcheck.Reporting.MutationChildFixture;
 
 namespace CIS.Tests.IntegrationTests.Healthcheck.Reporting;
 
@@ -25,8 +25,7 @@ public sealed partial class HealthcheckProbeProcessTests
         internal Probe(IEnumerable<string> arguments, bool captureExit = false)
         {
             this.captureExit = captureExit;
-            child = Process.Start(TransportTestSupport.StartInfo("healthcheck-probe", "CisHealthProbe", arguments))!;
-            MutationChildren.ObserveStarted(child);
+            child = TransportTestSupport.StartProcess("healthcheck-probe", "CisHealthProbe", arguments);
             stdout = child.StandardOutput.ReadToEndAsync(); stderr = child.StandardError.ReadToEndAsync();
         }
         internal async Task<(int Exit, string Output, string Error)> Finish()
@@ -34,7 +33,7 @@ public sealed partial class HealthcheckProbeProcessTests
             Task exiting = child.WaitForExitAsync();
             if (captureExit) { observedExit = exiting; }
             try { await exiting.WaitAsync(TransportTestSupport.Limit); }
-            catch (TimeoutException) { MutationChildren.MarkTimeout(child, "probe-finish"); throw; }
+            catch (TimeoutException) { throw; }
             string output = await stdout, error = await stderr;
             Assert.IsTrue(error.Length <= 1024, "CLI error text remains bounded.");
             Assert.IsFalse(output.StartsWith('\uFEFF'));
@@ -58,8 +57,6 @@ public sealed partial class HealthcheckProbeProcessTests
             catch (TimeoutException error)
             {
                 Add(error);
-                try { MutationChildren.MarkTimeout(child, "probe-cleanup-exit"); }
-                catch (Exception markerError) { Add(markerError); }
             }
             catch (Exception error) { Add(error); }
             if (!exited)
@@ -69,8 +66,6 @@ public sealed partial class HealthcheckProbeProcessTests
                 catch (Exception error) { Add(error); }
                 if (needsStop)
                 {
-                    try { MutationChildren.MarkForcedStop(child, "cleanup"); }
-                    catch (Exception error) { Add(error); }
                     try { child.Kill(entireProcessTree: true); }
                     catch (Exception error) { Add(error); }
                 }
@@ -86,11 +81,9 @@ public sealed partial class HealthcheckProbeProcessTests
             catch (TimeoutException error)
             {
                 Add(error);
-                try { MutationChildren.MarkTimeout(child, "probe-cleanup-output"); }
-                catch (Exception markerError) { Add(markerError); }
             }
             catch (Exception error) { Add(error); }
-            try { MutationChildren.CompleteLifecycle(child); }
+            try { MutationChildren.Release(child.StartInfo); }
             catch (Exception error) { Add(error); }
             try { child.Dispose(); }
             catch (Exception error) { Add(error); }

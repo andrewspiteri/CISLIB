@@ -1,10 +1,10 @@
 # Healthcheck shared contract catalog
 
-**ID:** HC-CONTRACT · **Revision:** 0.2 · **Status:** HC00 working contract, unpublished; compilation evidence is in baseline.json.
+**ID:** HC-CONTRACT · **Revision:** 0.2 · **Status:** HC00 working contract, unpublished; historical HC00 compilation evidence is retired in Git history.
 
-HC00 reconciles this catalog with the current user direction and source. `CIS.Healthcheck.AspNetCore` is a namespace/folder inside `CIS.Core`, which now explicitly references `Microsoft.AspNetCore.App`; no adapter package is introduced. The [foundation surface](foundation-surface.md) fixes concrete signatures omitted by the original proposal. The actual C# contracts and language-neutral schemas are hashed in [baseline.json](baseline.json). The original v0.1 attachment is preserved under sources/.
+HC00 reconciles this catalog with the current user direction and source. `CIS.Healthcheck.AspNetCore` is a namespace/folder inside `CIS.Core`, which now explicitly references `Microsoft.AspNetCore.App`; no adapter package is introduced. The shipping C# contracts provide concrete signatures. Native compatibility fixtures directly preserve the necessary API/configuration/wire expectations; the original HC00 receipt is retired in Git history. The original v0.1 attachment is preserved under sources/.
 
-This is the shared input for implementation, test authoring, and documentation. Existing source R requirements remain binding. API spellings and new choices below are proposed Technical Intent decisions. HC00 reconciles existing APIs and compiles the agreed surface **before dispatch**; it may not leave each worker to choose a different shape.
+This is the shared input for implementation, test authoring, and documentation. Existing source R requirements remain binding. API spellings and new choices below are proposed Technical Intent decisions. The original pilot dispatch rules are historical. Current development preserves the agreed shape through native product tests.
 
 Use namespace `CIS.Healthcheck` unless otherwise stated. Standard library types mean the repository's pinned net10.0 target. Do not introduce new runtime NuGets for these contracts. Public interface/enum/DTO declarations are real shipping code in the foundation. Missing service behavior is represented only by the explicitly nonshipping compile-only facade. No throwing service stub enters Core.
 
@@ -385,10 +385,8 @@ Use current `CoreConfigurationException` and immutable issues after checking the
 
 Public null arguments use ArgumentNullException; invalid direct scalar/enum input uses ArgumentException/ArgumentOutOfRangeException; withdrawn handles use ObjectDisposedException; stopping lifecycle uses InvalidOperationException. Capacity uses a proposed `HealthcheckCapacityException` with immutable `Limit` and stable Code `Healthcheck.MonitorCapacity`. Configured collector/binding combinations fail atomically. Internal stale/retired results use dispositions, not new monitor failures.
 
-## C10. Contract freeze receipt
+## C10. Contract changes and qualification
 
-HC00 records one receipt containing source BRD hash, this catalog revision/hash, applicable standards commit, verified source API revision, approved package/namespace identities, compiled reference evidence, schema/fixture hashes, and the concrete ownership manifest. Every active task pins that receipt.
+A changed member, default or wire rule requires an explicit compatibility assessment and updated meaningful affected native tests. Preserve one coordinated product contract; a private task or generated receipt cannot independently change accepted behavior.
 
-A changed member/default/wire rule is a contract change even if it edits a different file from the consuming worker. The contract owner updates the canonical artifact once, records the changed IDs C01..C09 and acceptance cases, and has affected workers acknowledge the new revision. No silent worker-local fork. No indefinite lock on a contract that an experiment has disproved.
-
-HC00 supplies compiled contract declarations and a nonshipping reference consumer. Only the specific native foundation cases in the receipt are runtime-tested; reference facade bodies are never executed. This is a working development contract, not a published API or complete Healthcheck acceptance.
+Current native tests compare the actual shipping API, configuration and wire behavior with the retained development fixtures. These are unpublished commitments, not released history or complete Healthcheck acceptance. The old HC00 preparation receipt and per-task pinning protocol are retired; original tracked material remains in Git history. Current commands and release gaps live in README and current decisions.

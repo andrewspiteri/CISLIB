@@ -2,7 +2,7 @@
 
 Public `CoreLogRuntime.Create` and `TryCreate` overloads use the rotating frontend followed by the existing backend. The caller performs early threshold/state checks and owned capture, including an approved legacy factory/provider formatter at most once on the caller. The frontend receives an already-created immutable occurrence. Backend filtering, encoding/rendering, routing, duplicate suppression and writer work remain on the separate consumer.
 
-The [19 October feature record](../../../planning/logging/priority-spool/README.md), [BRD](../../../planning/logging/priority-spool/brd-v1.2.md) and [design](../../../planning/logging/priority-spool/design-v0.2.md) supersede the former full-rejection and incoming-prefix rules. Earlier source plans and receipts remain historical evidence.
+The [BRD](../../../planning/logging/priority-spool/brd-v1.2.md) and [design](../../../planning/logging/priority-spool/design-v0.2.md) supersede the former full-rejection and incoming-prefix rules. Earlier source plans remain reference material; historical campaign receipts are retired.
 
 ## Publication and configuration
 

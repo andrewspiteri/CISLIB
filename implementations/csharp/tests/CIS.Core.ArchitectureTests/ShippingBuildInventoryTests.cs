@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Text.Json;
@@ -39,7 +40,7 @@ public sealed class ShippingBuildInventoryTests
             language = language.Parent;
         }
         Assert.IsNotNull(language);
-        string helper = Path.Combine(language.FullName, "eng/CIS.TypeManager.Build/bin/Release/net10.0/CIS.TypeManager.Build.dll");
+        string helper = Path.Combine(language.FullName, "eng/CIS.TypeManager.Build/bin/" + typeof(CoreLogRuntime).Assembly.GetCustomAttribute<AssemblyConfigurationAttribute>()!.Configuration + "/net10.0/CIS.TypeManager.Build.dll");
         Assert.IsTrue(File.Exists(helper));
         string project = Path.Combine(directory.Path, "Inventory.proj");
         new XDocument(new XElement("Project",

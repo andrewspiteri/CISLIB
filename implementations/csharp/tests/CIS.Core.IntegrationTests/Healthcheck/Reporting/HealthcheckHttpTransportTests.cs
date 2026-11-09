@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using MutationChildren = CIS.Verification.HealthcheckMutationChildren.HealthcheckMutationChildSupport;
+using MutationChildren = CIS.Tests.IntegrationTests.Healthcheck.Reporting.MutationChildFixture;
 
 namespace CIS.Tests.IntegrationTests.Healthcheck.Reporting;
 
@@ -759,8 +759,7 @@ public sealed partial class HealthcheckHttpTransportTests
         internal string? PipeName { get; private set; }
         private Host(string mode)
         {
-            child = Process.Start(TransportTestSupport.StartInfo("healthcheck-http-host", "CIS.Healthcheck.HttpFixture", [mode]))!;
-            MutationChildren.ObserveStarted(child);
+            child = TransportTestSupport.StartProcess("healthcheck-http-host", "CIS.Healthcheck.HttpFixture", [mode]);
             stderr = child.StandardError.ReadToEndAsync();
         }
         internal static async Task<Host> Start(string mode = "normal")
@@ -800,13 +799,13 @@ public sealed partial class HealthcheckHttpTransportTests
         {
             try { return await operation(); }
             catch (OperationCanceledException error) when (error.InnerException is TimeoutException)
-            { MutationChildren.MarkTimeout(child, "http-request"); throw; }
+            { throw; }
         }
         private async Task<JsonObject> Read()
         {
             string? line;
             try { line = await child.StandardOutput.ReadLineAsync().WaitAsync(TransportTestSupport.Limit); }
-            catch (TimeoutException) { MutationChildren.MarkTimeout(child, "host-read"); throw; }
+            catch (TimeoutException) { throw; }
             Assert.IsNotNull(line, "HTTP host ended before its observation.");
             return JsonNode.Parse(line)!.AsObject();
         }
@@ -823,19 +822,18 @@ public sealed partial class HealthcheckHttpTransportTests
                 Assert.AreEqual(0, child.ExitCode);
                 Assert.AreEqual("", await stderr.WaitAsync(TransportTestSupport.Limit));
             }
-            catch (TimeoutException) { MutationChildren.MarkTimeout(child, "host-stop"); throw; }
+            catch (TimeoutException) { throw; }
             finally
             {
                 try
                 {
                     if (!child.HasExited)
                     {
-                        MutationChildren.MarkForcedStop(child, "cleanup");
                         child.Kill(entireProcessTree: true);
                         await child.WaitForExitAsync();
                     }
                 }
-                finally { try { MutationChildren.CompleteLifecycle(child); } finally { child.Dispose(); } }
+                finally { try { MutationChildren.Release(child.StartInfo); } finally { child.Dispose(); } }
             }
         }
     }

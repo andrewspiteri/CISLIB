@@ -50,7 +50,7 @@ internal static class TransportTestSupport
         }
     }
 
-    internal static ProcessStartInfo StartInfo(string subdirectory, string assembly, IEnumerable<string> arguments)
+    internal static Process StartProcess(string subdirectory, string assembly, IEnumerable<string> arguments)
     {
         string path = Path.Combine(AppContext.BaseDirectory, subdirectory, assembly + ".dll");
         Assert.IsTrue(File.Exists(path), "The real fixture must be built and copied: " + path);
@@ -64,9 +64,10 @@ internal static class TransportTestSupport
             StandardOutputEncoding = new UTF8Encoding(false, true),
             StandardErrorEncoding = new UTF8Encoding(false, true),
         };
-        path = CIS.Verification.HealthcheckMutationChildren.HealthcheckMutationChildSupport.Prepare(path, start);
+        path = MutationChildFixture.Prepare(path, start);
         foreach (string argument in new[] { "exec", "--fx-version", "10.0.12", "--roll-forward", "Disable", path }.Concat(arguments)) { start.ArgumentList.Add(argument); }
-        return start;
+        try { return Process.Start(start) ?? throw new InvalidOperationException("Cannot start the transport fixture."); }
+        catch { MutationChildFixture.Release(start); throw; }
     }
 
     internal static async Task<byte[]> ReadFrameAsync(Stream stream, CancellationToken cancellation = default)

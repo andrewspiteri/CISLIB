@@ -44,7 +44,7 @@ Keep the Unix endpoint's temporary directory short and writable in both
 processes. In the Ubuntu qualification run, a long `TMPDIR` produced a
 135-byte socket path and the runtime rejected it against its reported
 108-byte limit; a short shared root allowed all 61 baseline cases to pass.
-See the [retained diagnosis](../../../planning/healthcheck/evidence/HC12/capture-runtime-followup-2026-10-25/current194-closure.md).
+See the retained diagnosis.
 
 The .NET pipe APIs are cross-platform. On Linux, this transport uses a Unix domain socket; the Windows native ACL code runs only in the Windows branch. Kubernetes can run the matching probe as an exec command inside the application container, or use the HTTP routes above. See [Microsoft's Linux implementation note](https://learn.microsoft.com/en-us/dotnet/standard/io/how-to-use-named-pipes-for-network-interprocess-communication).
 
@@ -62,7 +62,7 @@ await server.StopAsync();
 
 The service and server should receive the same resolved options. Construction opens no endpoint. Disabled `StartAsync` opens none. Repeated start while running is idempotent; stopping is terminal. Stop closes admission and awaits actual active handlers. Caller cancellation cancels only the wait. Client capacity and one total per-connection timeout bound active work without making snapshot/state commits wait for clients.
 
-Only local clients are supported. On Windows the server creates a protected owner ACL and sets `PIPE_REJECT_REMOTE_CLIENTS`; it does not rely on the BCL `CurrentUserOnly` server constructor to reject remote clients. Executed Windows evidence covers a local exchange and inspection of the owner ACL; remote-client, alternate-user and elevated-identity rejection lanes remain pending. On Unix the BCL `CurrentUserOnly` option checks peer UID, while socket mode follows the process umask; 0600 is not promised. Actual Ubuntu 24.04.4/.NET 10.0.12 packaged processes exercised owner/nobody/owner probes with exits 0/2/0 at modes 0755 and 0777. The denied attempt captured no health, and subsequent owner traffic succeeded. These ordinary-user results do not establish privileged-root denial or arbitrary container/filesystem behavior. See the [qualification receipt](../../../planning/healthcheck/evidence/HC12/qualification-next/receipt.json), [endpoint implementation](../../../implementations/csharp/src/CIS.Core/Healthcheck/Pipes/HealthPipeEndpoint.cs), [pinned Unix runtime source](https://raw.githubusercontent.com/dotnet/runtime/v10.0.12/src/libraries/System.IO.Pipes/src/System/IO/Pipes/NamedPipeServerStream.Unix.cs) and [Microsoft's PipeOptions contract](https://learn.microsoft.com/en-us/dotnet/api/system.io.pipes.pipeoptions?view=net-10.0). Run the server and exec probe in the intended same identity and endpoint filesystem context; a shared group or socket chmod does not replace that requirement. A process with access to the local endpoint can request details whenever `DetailsEnabled` is true; the HTTP authorization predicate does not apply to IPC.
+Only local clients are supported. On Windows the server creates a protected owner ACL and sets `PIPE_REJECT_REMOTE_CLIENTS`; it does not rely on the BCL `CurrentUserOnly` server constructor to reject remote clients. On Unix the BCL `CurrentUserOnly` option checks peer UID, while socket mode follows the process umask; 0600 is not promised. Actual platform and identity-specific qualification is separate; privileged-root denial and arbitrary container/filesystem behavior are not advertised. See [endpoint implementation](../../../implementations/csharp/src/CIS.Core/Healthcheck/Pipes/HealthPipeEndpoint.cs) and the [current release gaps](../../../planning/decisions.md). Run the server and exec probe in the intended same identity and endpoint filesystem context; a shared group or socket chmod does not replace that requirement. A process with access to the local endpoint can request details whenever `DetailsEnabled` is true; the HTTP authorization predicate does not apply to IPC.
 
 The current matching tool is the nonpackable development executable `CisHealthProbe`; a `cis-health-probe` command has not been published. First change from the repository root into the C# implementation directory so `global.json` selects the pinned SDK:
 
@@ -87,44 +87,12 @@ The protocol is four-byte unsigned little-endian payload length followed by UTF-
 
 ## Native transport verification
 
-The ordinary behavioral matrices invoke the shipping methods in the test
-process. `HealthcheckHttpTransportTests` builds `UseCisHealthcheck` into an
-`ApplicationBuilder`, invokes its `RequestDelegate` with `DefaultHttpContext`,
-and observes the actual response stream. Its fixture adapts HTTP containers;
-route selection, authorization, status, formatting and cancellation still run
-inside Core. `HealthProbeClientTransportTests` invokes the existing internal
-`HealthProbeClient.RunAsync` with caller-owned output/error streams. Its wire
-tests use real OS pipes and belong to the explicit component suite.
+Native HTTP tests invoke the shipping `RequestDelegate`; pipe/client tests use actual OS endpoints. Selected real Kestrel/probe process controls preserve listener, executable, shutdown and ownership boundaries. In-process tests do not prove mutation activation inside a child: the actual child must load the mutated product when that claim is made.
 
-| Previous expensive obligation | Maintained test and execution boundary |
-| --- | --- |
-| HTTP case/trailing-slash/query matching, reserved errors, method allowance, disabled details and business isolation | Existing `HealthcheckHttpTransportTests` matrices through the shipping RequestDelegate. The real Kestrel known-view control also checks actual listener/header behavior. |
-| Healthy/unhealthy/readiness, startup/stopping, complete HEAD decisions, bounded reporting/authorization errors and one-snapshot coherence | Same HTTP assertions and inputs through the in-process pipeline; no host process per mode/data row. |
-| Request cancellation, authorization/source cancellation, actual body write completion/failure and later-request isolation | Direct cancellation/body-stream tests plus `ClientCancellationOfAuthorizationDoesNotAffectLaterHealthOrBusiness` against a real Kestrel process. |
-| HTTP/pipe detached snapshot equality | `ActualHttpAndPipePublishTheExactSameDetachedSnapshot` invokes the shipping HTTP pipeline and a real `HealthPipeServer` against the same frozen source. Pipe framing still crosses the OS endpoint. |
-| Probe CLI argument rejection, numeric boundaries, malformed/fragmented DTOs, frame limits and one total timeout | `HealthProbeClientTransportTests`, preserving the complete independent wire DTO, exact stdout/stderr/exit assertions and OS I/O. `HealthProbeArgumentClassificationBoundaryTests` retains the cheap pre-canceled argument boundary cases. |
-| Probe executable entrypoint, health/readiness/details exits 0/1/2, disabled details, default view, stdout/stderr and natural child shutdown | `HealthcheckProbeProcessTests` retains the nine selected-view process rows, one default-view process row and one invalid-argument entrypoint control. |
-| Endpoint ACL/identity isolation, connection/server lifetime, shutdown and resource settlement | Existing `HealthcheckPipeTransportTests` and the retained process/lifetime controls. Windows and Linux execution remain separate qualification lanes. |
-
-Each direct test keeps its 15-second failure watchdog; the probe total-budget
-case deliberately spends about one second to distinguish a single deadline
-from per-read resets. Run the transport component/regression selection with a
-two-minute budget after build, and report any overrun rather than increasing
-that budget implicitly. Extended forced-GC, identity/container and package
-qualification remain explicitly selected work with their own recorded budgets.
-
-Prospective grouped mutation must include the direct probe class in its selected
-test project. Those cases prove mutation of shipping logic in their test host.
-The retained real Kestrel/probe controls supply the bounded child boundary where
-child activation is required: retain the existing source/session/selector and
-terminal lifecycle audit for those actual launches. A direct test pass does not
-establish mutation inside a child, and a child running unchanged copied Core
-does not supply mutation credit. Historical report and proof interpretations
-remain tied to their original candidate and test inputs.
-
+Keep the direct tests' existing watchdogs and the recorded two-minute post-build transport-selection budget when that measurement is explicitly performed. Report an overrun without silently increasing it. Identity/container, extended stress and exact-package qualification require their actual selected environment and separate scoped evidence. The [current decisions](../../../planning/decisions.md) record open release and external integration obligations.
 ## Kubernetes fragments
 
-These are deployment examples. The [25 October Linux container check](../../../planning/healthcheck/evidence/HC12/linux-container-2026-10-25/README.md) exercised the real matching probe with a non-root host in one .NET 10.0.12 container; it did not execute Kubernetes or qualify a published application image. Publish the app and probe from the same verified candidate, include the ASP.NET Core runtime, and verify identity/permissions in the actual image before rollout. Configure supervisor periods, startup allowance and restart policy explicitly. Kubernetes supports HTTP and exec probes; it has no native named-pipe probe field. A startup probe suppresses liveness/readiness probes until startup succeeds. See [Kubernetes probe behavior](https://kubernetes.io/docs/concepts/workloads/pods/probes/).
+These are deployment examples. The 25 October Linux container check exercised the real matching probe with a non-root host in one .NET 10.0.12 container; it did not execute Kubernetes or qualify a published application image. Publish the app and probe from the same verified candidate, include the ASP.NET Core runtime, and verify identity/permissions in the actual image before rollout. Configure supervisor periods, startup allowance and restart policy explicitly. Kubernetes supports HTTP and exec probes; it has no native named-pipe probe field. A startup probe suppresses liveness/readiness probes until startup succeeds. See [Kubernetes probe behavior](https://kubernetes.io/docs/concepts/workloads/pods/probes/).
 
 HTTP container fragment (choose a listener reachable from the kubelet):
 

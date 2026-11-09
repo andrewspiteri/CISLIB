@@ -57,4 +57,4 @@ The existing ring, P01 replacement, captured-batch flush and shared stop coordin
 
 Recompiling direct interpolated arguments selects the handler overloads, including their invariant culture and generated `message_template` metadata. Expression trees cannot contain handler conversions; explicitly convert an interpolated argument to `string` to select the existing ordinary-message overload. That form retains ordinary string formatting and emits no generated template metadata.
 
-See the [portable behavior record](../../../contracts/logging/v1/interpolation-contract.json), [acceptance bindings](../../../conformance/logging/interpolation-acceptance.json) and [execution record](../../../planning/logging/template-api/README.md).
+See the [portable behavior record](../../../contracts/logging/v1/interpolation-contract.json), acceptance bindings and execution record.

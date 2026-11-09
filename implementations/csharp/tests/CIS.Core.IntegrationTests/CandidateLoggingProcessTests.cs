@@ -14,8 +14,10 @@ public sealed class CandidateLoggingProcessTests
     [ClassInitialize]
     public static async Task Initialize(TestContext context)
     {
-        fixture = await CandidatePackageFixture.Prepare(); context.WriteLine("Exact package consumer evidence: " + fixture.Root);
+        fixture = await CandidatePackageFixture.Prepare(); context.WriteLine("Exact package consumer fixture: " + fixture.Root);
     }
+    [ClassCleanup]
+    public static void Cleanup() => fixture?.Dispose();
     private static JsonObject Output(JsonObject report, string name, string section = "diagnostics") => report[section]!["outputs"]!.AsArray().Single(o => (string?)o!["outputName"] == name)!.AsObject();
     private static long Count(JsonObject value, string key) => value[key]!.GetValue<long>();
     private static string PathFor(string root) => Path.Combine(root, "Ω-🙂.log");

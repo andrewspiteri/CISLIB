@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
@@ -31,7 +32,7 @@ internal sealed class ShippingBuildInventoryFixture : IDisposable
         DirectoryInfo? at = new(AppContext.BaseDirectory);
         while (at is not null && !File.Exists(Path.Combine(at.FullName, "CisLib.slnx"))) { at = at.Parent; }
         language = at?.FullName ?? throw new DirectoryNotFoundException("Build inside the maintained C# checkout.");
-        helper = Path.Combine(language, "eng/CIS.TypeManager.Build/bin/Release/net10.0/CIS.TypeManager.Build.dll");
+        helper = Path.Combine(language, "eng/CIS.TypeManager.Build/bin/" + typeof(CoreLogRuntime).Assembly.GetCustomAttribute<AssemblyConfigurationAttribute>()!.Configuration + "/net10.0/CIS.TypeManager.Build.dll");
         Assert.IsTrue(File.Exists(helper), "Build the real shipping inventory helper before native task qualification.");
         directory = new TemporaryDirectory();
     }

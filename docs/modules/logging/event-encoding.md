@@ -10,6 +10,6 @@ Measurement stops at the selected byte budget. Oversized source strings are neve
 
 The [shared cases](../../../conformance/logging/event-encoding-cases.json) and focused C# tests cover actual encoding. They use controlled metadata and clock facts and real activity/scope capture. Public runtime admission, human rendering, output delivery and full S04 qualification remain later work; this encoder does not implement those components.
 
-Complete capture/encoding story qualification is described in [WP04-S04-T05](event-qualification.md). Runtime/output integration remains subsequent work.
+Complete capture/encoding story qualification is described in WP04-S04-T05. Runtime/output integration remains subsequent work.
 
-The actual runtime-owned JSONL reuse and physical-line qualification are described in [WP05-S01-T01](jsonl-output-reuse.md).
+The actual runtime-owned JSONL reuse and physical-line qualification are described in WP05-S01-T01.

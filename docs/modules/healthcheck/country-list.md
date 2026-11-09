@@ -2,7 +2,7 @@
 
 The [CountryList source](../../../implementations/csharp/examples/healthcheck/CountryList/Program.cs) is an application-owned startup and shutdown composition using the real Core service, binder, collector runner and reporting adapters. It uses a deterministic local data source in place of an application's remote data client. The project references Core source for development. It must not be advertised as an exact-package reference example until compiled and executed against that exact verified package.
 
-Authoring status: source and usage authored; coordinator compilation, self-test execution and business/native evidence are recorded separately in [HC11 evidence](../../../planning/healthcheck/evidence/HC11). An example command is not a claimed execution result.
+Authoring status: source and usage authored; coordinator compilation, self-test execution and business/native evidence are recorded separately in HC11 evidence. An example command is not a claimed execution result.
 
 First change from the repository root into the C# implementation directory so `global.json` selects the pinned SDK:
 

@@ -7,10 +7,20 @@
   <ItemGroup>
     <ProjectReference Include="../../src/CIS.Core/CIS.Core.csproj" />
     <ProjectReference Include="../CIS.Core.TestSupport/CIS.Core.TestSupport.csproj" />
+    <Reference Include="Microsoft.NET.StringTools">
+      <HintPath>$(MSBuildBinPath)/Microsoft.NET.StringTools.dll</HintPath>
+    </Reference>
   </ItemGroup>
-  <Import Project="../VerificationSuites.props" />
   <ItemGroup>
-    <Compile Remove="@(VerificationArchitectureSource)" MatchOnMetadata="FullPath" MatchOnMetadataOptions="PathLike" />
     <Compile Remove="Publications/**/*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../eng/CIS.TypeManager.Build/CIS.TypeManager.Build.csproj" />
+    <Reference Include="Microsoft.Build.Framework">
+      <HintPath>$(MSBuildBinPath)/Microsoft.Build.Framework.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Build.Utilities.Core">
+      <HintPath>$(MSBuildBinPath)/Microsoft.Build.Utilities.Core.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>

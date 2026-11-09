@@ -13,15 +13,16 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CIS.Tests.IntegrationTests;
 
 // One fresh local feed/cache/build per test-class run; the consumer has no ProjectReference or friend access.
-internal sealed class CandidatePackageFixture
+internal sealed class CandidatePackageFixture : IDisposable
 {
     internal static readonly TimeSpan Guard = TimeSpan.FromSeconds(30);
-    internal string Root { get; }
+    private readonly TemporaryDirectory directory = new();
+    internal string Root => directory.Path;
     internal string Host => Path.Combine(Root, "app", "bin", "Release", "net10.0", "CIS.Logging.CandidateConsumer.dll");
     internal readonly Dictionary<string, string> AssemblyHashes = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> assemblyPaths = new(StringComparer.Ordinal);
     private int nextChild;
-    private CandidatePackageFixture(string repository) => Root = Path.Combine(repository, ".artifacts", "csharp", "candidate-consumers", Guid.NewGuid().ToString("N"));
+    private CandidatePackageFixture() { }
     internal static string Repository()
     {
         for (DirectoryInfo? at = new(AppContext.BaseDirectory); at is not null; at = at.Parent)
@@ -43,25 +44,30 @@ internal sealed class CandidatePackageFixture
     }
     internal static async Task<CandidatePackageFixture> Prepare()
     {
+        var fixture = new CandidatePackageFixture();
+        try
+        {
+            await fixture.Initialize();
+            return fixture;
+        }
+        catch { fixture.Dispose(); throw; }
+    }
+    private async Task Initialize()
+    {
         string repository = Repository(), language = Path.Combine(repository, "implementations/csharp");
-        var fixture = new CandidatePackageFixture(repository);
+        var fixture = this;
         Directory.CreateDirectory(Path.Combine(fixture.Root, "feed")); Directory.CreateDirectory(Path.Combine(fixture.Root, "app"));
         string core = typeof(CoreLogRuntime).Assembly.Location;
         string version = FileVersionInfo.GetVersionInfo(core).ProductVersion!.Split('+')[0];
-        string package;
-        // Test Explorer normally builds Debug. Give that development run its own package;
-        // checkpoint/release runs still consume and verify the previously selected Release package.
-        if (typeof(CoreLogRuntime).Assembly.GetCustomAttributes(typeof(System.Reflection.AssemblyConfigurationAttribute), false)
-            .Cast<System.Reflection.AssemblyConfigurationAttribute>().Single().Configuration == "Debug")
-        {
-            string feed = Path.Combine(fixture.Root, "feed");
-            ProcessResult packed = await ProcessRunner.RunAsync("dotnet", ["pack", "src/CIS.Core/CIS.Core.csproj", "-c", "Debug", "--no-build", "--no-restore", "-o", feed],
-                language, TimeSpan.FromSeconds(90), Variables(fixture.Root));
-            File.WriteAllText(Path.Combine(fixture.Root, "pack.log"), packed.StandardOutput + packed.StandardError);
-            Assert.AreEqual(0, packed.ExitCode, packed.StandardOutput + packed.StandardError);
-            package = Path.Combine(feed, "CIS.Core." + version + ".nupkg");
-        }
-        else { package = VerificationCheckpoint.Package(repository); }
+        string configuration = typeof(CoreLogRuntime).Assembly
+            .GetCustomAttributes(typeof(System.Reflection.AssemblyConfigurationAttribute), false)
+            .Cast<System.Reflection.AssemblyConfigurationAttribute>().Single().Configuration;
+        string feed = Path.Combine(fixture.Root, "feed");
+        ProcessResult packed = await ProcessRunner.RunAsync("dotnet",
+            ["pack", "src/CIS.Core/CIS.Core.csproj", "-c", configuration, "--no-build", "--no-restore", "-o", feed],
+            language, TimeSpan.FromSeconds(90), Variables(fixture.Root));
+        Assert.AreEqual(0, packed.ExitCode, packed.StandardOutput + packed.StandardError);
+        string package = Path.Combine(feed, "CIS.Core." + version + ".nupkg");
         using (ZipArchive zip = ZipFile.OpenRead(package))
         {
             using Stream dll = zip.GetEntry("lib/net10.0/CIS.Core.dll")!.Open();
@@ -139,8 +145,8 @@ internal sealed class CandidatePackageFixture
             ["assemblyPaths"] = new JsonObject(fixture.assemblyPaths.Select(pair => new KeyValuePair<string, JsonNode?>(pair.Key, JsonValue.Create(pair.Value)))),
             ["assemblyHashes"] = new JsonObject(fixture.AssemblyHashes.Select(pair => new KeyValuePair<string, JsonNode?>(pair.Key, JsonValue.Create(pair.Value))))
         }.ToJsonString());
-        return fixture;
     }
+    public void Dispose() => directory.Dispose();
     internal static Dictionary<string, string?> Variables(string cwd, IReadOnlyDictionary<string, string?>? overrides = null)
     {
         var env = Environment.GetEnvironmentVariables().Keys.Cast<string>().Where(k => k.StartsWith("CORE_", StringComparison.OrdinalIgnoreCase) || k is "DD_SERVICE" or "DD_ENV" or "DD_VERSION")

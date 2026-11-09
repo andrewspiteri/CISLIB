@@ -1,15 +1,14 @@
 # Healthcheck
 
-`CIS.Healthcheck` records application-owned health facts in the single `CIS.Core` assembly. A service creates monitor handles, captures immutable snapshots, and records explicit startup/stopping facts. Reading a snapshot or transport endpoint never invokes a collector or changes health.
-
-The current C# candidate targets `net10.0` and includes the approved `Microsoft.AspNetCore.App` framework reference. HTTP integration is in `CIS.Healthcheck.AspNetCore`; it is not a separate adapter package. The development example uses a source project reference. Exact-package example qualification, both claimed platform lanes, release coverage/mutation/compatibility evidence, and publication remain separate work.
+`CIS.Healthcheck` records application-owned health facts in the single `CIS.Core` assembly. Services create monitor handles, capture immutable snapshots and record explicit startup/stopping facts. Snapshot and transport reads do not invoke collectors or change health.
 
 | Guide | Content |
 | --- | --- |
-| [Usage and options](usage.md) | Monitor policies, snapshots, configuration precedence, defaults, and errors. |
-| [Collection and lifetime](lifetime.md) | Weak handle retention, actual owner leases, explicit collection activation, binding, and shutdown. |
-| [HTTP, local pipe, and deployment](transports.md) | Reserved routes, details authorization, matching probe, permissions, and Kubernetes fragments. |
-| [CountryList example](country-list.md) | Explicit application startup, retained failed startup, cached data and refresh separation, and development execution. |
-| [Current candidate acceptance](current-acceptance.md) | One prepared candidate, bounded regression, reused coverage/package inputs, platform boundaries and separate release obligations. |
+| [Usage](usage.md) | Monitor policies, snapshots, configuration precedence, defaults and errors |
+| [Collection and lifetime](lifetime.md) | Weak retention, owner leases, activation, binding and shutdown |
+| [Transports](transports.md) | HTTP, local pipe, matching probe, permissions and deployment boundaries |
+| [CountryList](country-list.md) | Application-owned startup, cache/refresh separation and owner drain |
 
-The working contract is [the Healthcheck contract catalog](../../../planning/healthcheck/contract-catalog.md), with task-specific internal revisions recorded in [HC02](../../../planning/healthcheck/evidence/HC02/contract-amendment.md) and [HC06](../../../planning/healthcheck/evidence/HC06/contract-amendment.md). The [preserved definition](../../../planning/healthcheck/sources/CIS_Healthcheck_Library_Definition_v0_1.md) supplies the complete acceptance scope; it does not prove implemented or executed behavior. Check each task's receipts in [Healthcheck evidence](../../../planning/healthcheck/evidence) for exact executed candidates and boundaries.
+The working [technical intent](../../../planning/healthcheck/technical-intent.md), [catalog](../../../planning/healthcheck/contract-catalog.md), [collection addendum](../../../planning/healthcheck/collection-contract-amendment.md), [execution addendum](../../../planning/healthcheck/execution-contract-amendment.md) and [registration diagnostics](../../../planning/healthcheck/registration-diagnostic-amendment.md) preserve accepted behavior. The [source definition](../../../planning/healthcheck/sources/CIS_Healthcheck_Library_Definition_v0_1.md) specifies the full acceptance scope.
+
+HTTP uses the user-approved `Microsoft.AspNetCore.App` framework inside Core. The CountryList example uses explicit source references. Actual external Heartbeat/startup integration and current complete platform/package/coverage/mutation release qualification remain pending. Historical campaign receipts are retired and establish no current acceptance claim. Use the native commands in [README](../../../README.md) and the [current gap record](../../../planning/decisions.md).

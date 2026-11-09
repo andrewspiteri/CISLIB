@@ -1,6 +1,6 @@
-# ConsoleHuman example host
+# Environment configuration example
 
-This initial console application targets .NET 10 and references the local Core project. It builds and exits successfully, identifying that logging functionality is pending.
+This small .NET 10 console consumer uses a source reference to `CIS.Core`. It exercises the selected static `EnvironmentOptions`, caller-owned environment kind, logging option preparation and immutable event metadata, then prints the resulting facts. It does not yet demonstrate logging output or runtime ownership.
 
 From `implementations/csharp`:
 
@@ -8,4 +8,4 @@ From `implementations/csharp`:
 dotnet run --project examples/logging/ConsoleHuman -c Release
 ```
 
-Once the logging module exists, this application will initialize identity/configuration, own one logging runtime, run a contextual operation, demonstrate a controlled failure and inspect its final stop result. The release example will consume an exact verified Core package instead of the development project reference.
+Core requires the approved .NET and ASP.NET shared frameworks. The planned complete logging example must own a runtime, contextual operation and shutdown observations; a release example must consume the exact tested package. Those acceptance requirements remain pending, rather than being credited by this configuration demonstration. See [current decisions](../../../../../planning/decisions.md).

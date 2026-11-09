@@ -1,12 +1,5 @@
-# Healthcheck compatibility inputs
+# Healthcheck compatibility fixtures
 
-The [initial candidate](initial-candidate/README.md) records the unpublished HC00
-working contract and exercises it against the actual current `CIS.Core` candidate.
-It adds no row to the [publication ledger](../publications/ledger.json).
-The ledger currently has no publication history. Passing these tests establishes
-the selected current API/configuration/wire obligations; it does not establish
-source or unchanged-binary replay of a released Healthcheck consumer.
+`initial-candidate/` contains the accepted development API/configuration fixtures. `hc00-originals/` retains only the specific original report schema and fixture inventory needed alongside the amended current wire contract. Native tests directly select the necessary schema/configuration/wire examples and expected hashes.
 
-Keep these initial inputs and the original HC00 schema/fixtures unchanged. A real
-publication needs its own exact package, provenance, public API and unchanged
-consumer records under the existing permanent compatibility policy.
+These are development compatibility fixtures, not published package history or current release evidence. The old HC00 receipt and historical path-map/document-byte custody protocol are retired; tracked original material is available through ordinary Git history. Run the native CompatibilityTests project through the ordinary C# solution.

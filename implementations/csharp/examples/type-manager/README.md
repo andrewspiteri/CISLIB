@@ -11,8 +11,7 @@ dotnet run --project examples/type-manager/Console/Console.csproj
 dotnet run --project examples/type-manager/Web/Web.csproj -- --urls http://127.0.0.1:5080
 ```
 
-The console requires only the .NET shared framework. The Web example also needs
-the ASP.NET Core shared framework. Neither adds a runtime dependency to Core.
+Both examples require the .NET and ASP.NET Core shared frameworks because the single `CIS.Core` package includes the approved Healthcheck framework reference. The Web example also uses ASP.NET directly.
 
 Both hosts explicitly supply their own assembly, await `TypeManager.CreateAsync`,
 print the completed preparation report, and show each candidate's type and defining
@@ -57,18 +56,12 @@ error and do not require a DI logger. Republish that disposable output to repair
 Supported output is framework-dependent, untrimmed .NET 10 on Windows x64 and Linux
 x64 with conventional build output or folder publication. Single-file, trimming,
 Native AOT and self-contained publication are explicitly rejected by enabled
-inventory integration (see the [package profile checks](../../../../planning/type-manager/evidence/package-delivery/README.md)). This example does not add support for runtime plugins or
+inventory integration (see the package profile checks). This example does not add support for runtime plugins or
 custom assembly load contexts.
 
-## Exact-package variant and verification
+## Package consumers
 
-These checked-in projects use explicit source references for repository development.
-The example verifier creates a second, isolated variant from the identical sample
-source: it replaces only the Core project reference and source target import with
-the optional SDK in the supplied exact `CIS.Core` package. It uses a private local
-feed/cache, verifies Core bytes in consumer outputs and verifies helper bytes in
-the private package cache. It also checks that the helper is absent from deployment.
-For a package consumer, the relevant project shape is:
+Checked-in projects use explicit source references for repository development. A package consumer uses the optional SDK from a local feed containing the exact packed `CIS.Core` version:
 
 ```xml
 <Project Sdk="Microsoft.NET.Sdk">
@@ -78,40 +71,11 @@ For a package consumer, the relevant project shape is:
     <TargetFramework>net10.0</TargetFramework>
     <CisTypeManagerEnabled>true</CisTypeManagerEnabled>
   </PropertyGroup>
-  <!-- Keep the sample Contracts/Unused references; do not add a second Core reference. -->
 </Project>
 ```
 
-Use `Microsoft.NET.Sdk.Web` for the Web host. The development package is supplied
-through a local feed; these instructions do not claim it is published. The SDK
-`<Sdk Version>` must equal the exact `CIS.Core` package version; do not add a separate
-Core `PackageReference`. The private build helper is not a runtime
-dependency or deployed application file.
+Use `Microsoft.NET.Sdk.Web` for the Web host. Keep the sample Contracts/Unused references, remove the source Core reference/target import, and do not add a second Core PackageReference. The SDK version must equal the package version; the helper is a build asset and must not appear in runtime deployment. Run ordinary native restore/build/publish and execute the resulting consumer on its actual platform. This is not a published-package or complete release claim.
 
-From the repository root, with the pinned SDK available:
+The sample `--verify` mode loads the separate matching test assembly from `tests/fixtures/TypeManager/ExampleLate` after preparation to demonstrate fixed catalog/query membership. It is not plugin support and is not a runtime dependency.
 
-```powershell
-dotnet run --project implementations/csharp/eng/CIS.DependencyChecker -c Debug -- type-manager-examples --repo-root . --package <exact-CIS.Core.nupkg> --dependency-cache <nuget-packages-directory> --output-root <empty-output-directory>
-```
-
-The dependency cache must contain the two runtime dependency archives from
-`eng/runtime-dependencies.json` and all seven SDK runtime/host pack archives from
-`eng/toolchain.json` → `frameworkDownloads.packages`, at their exact listed versions.
-Both Windows and Ubuntu need all nine archives because these examples restore both
-supported RIDs. The verifier copies them to its private offline feed and records
-hashes; it does not fetch missing packages. See the [native verification guide](../../eng/CIS.DependencyChecker/README.md#type-manager-examples).
-
-The verifier runs Debug/Release builds, Release folder publish and publish without
-building, for both hosts in source and package mode. Each layout runs in a fresh
-process and gets separate missing-manifest, malformed-manifest and missing-library
-controls. The Web Release build output in each lane also serves two real HTTP
-requests, proving distinct scoped consumers reuse the prepared manager and cached
-query. Its `--verify`
-sample mode loads a separate, matching test assembly after preparation and checks
-that catalog membership and both cached and previously uncached queries stay fixed.
-This intentionally demonstrates exclusion of later assemblies, not plugin support.
-That assembly lives under `tests/fixtures/TypeManager/ExampleLate` and is not a host
-project dependency. Test instrumentation is not added to Core.
-
-See the [Configuration boundary](../../../../docs/modules/type-management/configuration-boundary.md)
-for what a later consumer can do with these results.
+See the [Configuration boundary](../../../../docs/modules/type-management/configuration-boundary.md) for later consumers of these results and [current release gaps](../../../../planning/decisions.md).

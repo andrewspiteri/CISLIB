@@ -4,7 +4,7 @@
 **Status:** HC00 working baseline selected by the user; unpublished.  
 **Implementation baseline:** `5f36bbcb6fb26c1818c868bfb06ad701895bef1b` (clean at HC00 start).
 
-The user's current direction approves the proposed configuration/contracts and parallel pilot, and permits ASP.NET in the existing Core library. HTTP integration therefore belongs to `CIS.Core/Healthcheck/AspNetCore`, namespace `CIS.Healthcheck.AspNetCore`, with an explicit `Microsoft.AspNetCore.App` framework reference. This supersedes every separate optional ASP.NET adapter/package proposal below. Core consumers now require that shared framework. Core retains its two approved runtime NuGets with package pruning disabled for this project; this avoids an unrelated dependency migration. No runtime Healthcheck behavior is certified by HC00 reference compilation. See [decisions](decisions.md), [contract catalog](contract-catalog.md), and [baseline receipt](baseline.json).
+The user's current direction approves the proposed configuration/contracts and parallel pilot, and permits ASP.NET in the existing Core library. HTTP integration therefore belongs to `CIS.Core/Healthcheck/AspNetCore`, namespace `CIS.Healthcheck.AspNetCore`, with an explicit `Microsoft.AspNetCore.App` framework reference. This supersedes every separate optional ASP.NET adapter/package proposal below. Core consumers now require that shared framework. Core retains its two approved runtime NuGets with package pruning disabled for this project; this avoids an unrelated dependency migration. No runtime Healthcheck behavior is certified by HC00 reference compilation. See [decisions](decisions.md), [contract catalog](contract-catalog.md). The original HC00 receipt is retired in Git history; current native compatibility fixtures are under `compatibility/csharp/healthcheck`.
 
 ## 1. Objective and authority
 
@@ -14,7 +14,7 @@ The acceptance target is the preserved Healthcheck v0.1 definition, not a reduce
 
 Authority order is: current explicit user decisions; current applicable repository amendments; the source definition's requirements; reviewed Technical Intent and contract catalog; task assignments. Historical specifications remain unchanged for provenance. A conflict between authorities is recorded at HC00, not silently resolved by a worker.
 
-The [Contract Catalog](contract-catalog.md) owns exact shared shapes and default values. The [Task Plan](task-plan.md) owns write assignments and dependencies. This document owns the implementation design. Do not maintain parallel competing copies of these decisions in task prose.
+The [Contract Catalog](contract-catalog.md) owns exact shared shapes and default values. This document preserves the accepted implementation design. Historical pilot assignments and dispatch instructions below are inactive; current work follows README and the cleanup disposition.
 
 ### 1.1 Baseline reconciliation
 
@@ -47,14 +47,14 @@ implementations/csharp/src/CIS.Core/Healthcheck/   public C# types and implement
 implementations/csharp/tests/CIS.Core.*Tests/      existing native test families
 implementations/csharp/tests/CIS.Core.BusinessCases/
 docs/modules/healthcheck/                         consumer documentation
-planning/healthcheck/                             plan, ownership, decisions, evidence
+planning/healthcheck/                             requirements, contracts, decisions
 ```
 
 HTTP integration lives at `implementations/csharp/src/CIS.Core/Healthcheck/AspNetCore/`, namespace `CIS.Healthcheck.AspNetCore`, inside the user-selected single `CIS.Core` package. It uses the approved `Microsoft.AspNetCore.App` framework reference. Policy/state code remains independent of HTTP types by implementation boundary; assembly independence from ASP.NET is no longer required.
 
 The BCL-only pipe runtime and shared report formatter stay under Core's Healthcheck folder. A non-core executable at `implementations/csharp/tools/CisHealthProbe/` hosts the matching client. Keep application lifecycle glue in examples/host integrations, not in the registry.
 
-Use existing UnitTests, IntegrationTests, ArchitectureTests, CompatibilityTests, BusinessCases, and TestSupport projects. Do not introduce a separate production package or test project per policy or workstream. HC00 adds only two nonshipping compiler projects. Actual HTTP fixture, probe and example projects are bounded shared-file transactions in HC04, HC05 and HC11 respectively, when their implementation is authored.
+Use existing UnitTests, IntegrationTests, ArchitectureTests, CompatibilityTests, BusinessCases, and TestSupport projects. Do not introduce a separate production package or test project per policy or workstream. The implemented probe and application fixtures are ordinary explicit projects; removed compiler-only scaffolding does not define a current product dependency.
 
 SDK-style projects normally include C# files by glob; confirm the evaluated project before relying on that behavior. Adding an ordinary source file should not require every worker to edit the project. No global using file, shared assembly attribute, build target, or central registry is an unowned exception to file ownership.[P1]
 
@@ -209,23 +209,15 @@ Errors distinguish invalid arguments, invalid configuration, stopping state, dis
 
 ## 13. Verification and definition of completion
 
-All source HC-AT-01 through HC-AT-59 are mapped in the traceability document. Maintain unit, integration, mutation, architecture, backward compatibility, and business-case obligations. Do not invent a historical release if publication history is empty; qualify initial frozen fixtures and mark historical replay not yet applicable with evidence.
+The preserved source definitions and acceptance traceability specify HC-AT-01 through HC-AT-59. Maintain unit, integration, mutation, architecture, backward compatibility, and business-case obligations. Do not invent a historical release if publication history is empty; qualify initial frozen fixtures and mark historical replay not yet applicable with evidence.
 
 Native C# tests exercise actual implementation. Independent test authors use the contract's expected results, not private production helpers to calculate the answer. A compile-only reference surface may unblock authoring, but must be nonshipping and cannot produce runtime pass evidence. Test doubles isolate dependencies; combined proofs must use the real component at the claimed boundary.
 
 Use deterministic TimeProvider-based clocks and controllable leases/collectors, not arbitrary sleep-based race assertions. Exercise disposal-before-invocation, direct-success-versus-old-error, duplicate outcomes, full/corrupt frames, saturation, malformed metrics, and slow clients. Mutation must challenge the important invariants, not simply count mutants.
 
-Use existing `eng/test.ps1` for focused development and `eng/verify.ps1` at coherent checkpoints. Reread current gate prerequisites/pins at dispatch. Do not run the entire comprehensive suite after each small edit, weaken release gates, or create Python substitutes for native C# tests/utilities.[R5]
+Use native `dotnet build` and focused `dotnet test` on the projects in the ordinary C# solution; README is the current operating entry point. Full release obligations remain separate. Do not weaken accepted release requirements or create script substitutes for native C# product tests.
 
 A task has separate authoring, implemented, locally verified, integrated, and accepted states. Empty/skipped/stale test results are not success. An external integration case stays pending until run against its real component. The pilot can reach useful module milestones without claiming all cross-module or release obligations have passed.
-
-## 14. Parallelization design and pilot limits
-
-The serial part is the reviewed behavioral/API/schema baseline and the small shared build foundation. The mutable registry/policy core has one implementation owner. The runner, binding, serializer, HTTP adapter, pipe implementation, test families, and documentation have different write sets and depend on the catalog.
-
-Readers use pinned worktrees/baseline revisions. Shared build/solution/NuGet changes use the coordinator's transactional queue; do not lock the whole repository for an agent's feature. A contract change has semantic impact even if no file overlaps: revise it once and invalidate only affected task assumptions/evidence.
-
-This is a hypothesis about reducing avoidable rework and waiting, not proof that more agents are always faster. Measure total design-to-accepted time, integration queue time, shared-file queue time, contract changes after dispatch, rework, verification cost, and human intervention. A single Healthcheck pilot gives operational evidence but cannot by itself establish a causal speedup over a different feature.
 
 ## References
 
