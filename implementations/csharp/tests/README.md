@@ -11,10 +11,17 @@ The ordinary [CisLib.slnx](../CisLib.slnx) contains five MSTest/VSTest families 
 | BusinessCases | Meaningful application/developer/operator stories |
 | TestSupport | Deterministic clocks, signals, owned temporary directories and bounded child execution with drained output/cleanup |
 
-Run from `implementations/csharp`, with the pinned SDK 10.0.401 and .NET/ASP.NET runtime 10.0.12 installed:
+Run from `implementations/csharp`, with the pinned SDK 10.0.401 and .NET/ASP.NET runtime 10.0.12 installed. After restoring and building the solution as shown in the [repository README](../../../README.md), run ordinary regression with this selection:
 
 ```powershell
-dotnet test CisLib.slnx -c Release
+dotnet test CisLib.slnx -c Release --no-build --no-restore --filter "TestCategory!=PerformanceObservation&TestCategory!=ExtendedStress"
+```
+
+This excludes performance observations and extended stress tests. An unfiltered solution run or IDE Run All includes those categories; performance/stress and full release qualification remain separate open work.
+
+For focused edits, keep the native incremental build and select the affected behavior:
+
+```powershell
 dotnet test tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj -c Release --filter FullyQualifiedName~Severity
 dotnet test tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj -c Release --filter FullyQualifiedName~Healthcheck
 ```

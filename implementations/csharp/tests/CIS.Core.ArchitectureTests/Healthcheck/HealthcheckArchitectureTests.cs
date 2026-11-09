@@ -62,6 +62,28 @@ public sealed class HealthcheckArchitectureTests
             }
         }
     }
+
+    [TestMethod]
+    public void ImplementationDependenciesPreservePolicyAndTransportOwnership()
+    {
+        Type[] types = typeof(HealthcheckService).Assembly.GetTypes()
+            .Where(type => type.Namespace?.StartsWith("CIS.Healthcheck", StringComparison.Ordinal) == true).ToArray();
+        Assert.IsNotEmpty(types);
+        foreach (Type type in types) { HealthcheckImplementationBoundary.Assert(type); }
+    }
+
+    [TestMethod]
+    public void ImplementationBoundaryRejectsHttpUseInsideAPrivatePolicyMethod()
+    {
+        Type fixture = typeof(global::CIS.Healthcheck.Internal.ForbiddenHttpPolicyFixture);
+        Assert.IsTrue(fixture.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
+            .All(method => method.ReturnType == typeof(bool) && method.GetParameters().Length == 0));
+        InvalidOperationException error = Assert.ThrowsExactly<InvalidOperationException>(() => HealthcheckImplementationBoundary.Assert(fixture));
+        StringAssert.Contains(error.Message, "HTTP dependency");
+        StringAssert.Contains(error.Message, "ReadScheme");
+        StringAssert.Contains(error.Message, "Microsoft.AspNetCore.Http.HttpRequest");
+    }
+
     private static bool BorrowsMutableOrLiveState(Type type)
     {
         Type[] owners = [typeof(HealthcheckService), typeof(HealthCollectorRunner), typeof(HealthExecutionBinder),

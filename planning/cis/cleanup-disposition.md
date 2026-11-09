@@ -23,10 +23,12 @@ Run from `implementations/csharp` with SDK 10.0.401 and runtime/ASP.NET framewor
 dotnet tool restore --configfile eng/Tools.NuGet.config
 dotnet restore CisLib.slnx --locked-mode
 dotnet build CisLib.slnx -c Release --no-restore
-dotnet test CisLib.slnx -c Release --no-build --no-restore
+dotnet test CisLib.slnx -c Release --no-build --no-restore --filter "TestCategory!=PerformanceObservation&TestCategory!=ExtendedStress"
 dotnet test tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj -c Release --filter FullyQualifiedName~Healthcheck
 dotnet pack src/CIS.Core/CIS.Core.csproj -c Release -o ../../.artifacts/packages
 ```
+
+The ordinary regression command excludes `PerformanceObservation` and `ExtendedStress`. An unfiltered solution run or IDE Run All includes those extended categories. Performance/stress and full release qualification remain separate open work.
 
 Native coverage and mutation configuration live under `implementations/csharp/verification/`; these optional release operations are not prerequisites for a focused edit. No whole-library coverage/mutation, release campaign or benchmark sweep is part of this cleanup.
 
@@ -99,3 +101,22 @@ The retained [current decisions](../decisions.md) preserve coverage 95% line/90%
 No cleanup exception remains blocked. The untracked-output access restriction was resolved by explicit user authorization; significant user chat exports remain preserved. The open product/acceptance work above remains separate from completed cleanup.
 
 The next CIS task should connect to the ordinary solution/projects and native commands, package build assets, retained behavioral tests and current obligations. It should not recreate retired command names, receipts, archive protocols or recovery campaigns, and should not implement another module as part of adoption.
+
+## Cleanup closure — 9 November 2026
+
+Follow-up to reviewed commit `6772ae960e893d469ad679facd711b55d0e4a605`: restored the accepted Healthcheck implementation dependency boundary from technical intent section 3. A local native reflection/IL assertion checks private members, signatures, attributes, method bodies and generated nested types. It preserves policy/state independence from HTTP, policy/transport ownership direction and the related infrastructure restrictions. The existing public-surface and immutable-snapshot checks remain. One compact compiled fixture has a harmless public API and a private `HttpRequest` cast/getter call; the same assertion rejects it at `ReadScheme`. No shipping source, dependency, project or runtime pin changed.
+
+README, native test guidance and the native command block above now consistently document ordinary regression with `TestCategory!=PerformanceObservation&TestCategory!=ExtendedStress`; unfiltered solution runs and IDE Run All include the extended categories. Purpose-specific focused, coverage and mutation examples retain their scopes.
+
+Exact focused commands executed from `implementations/csharp`:
+
+```powershell
+dotnet build tests/CIS.Core.ArchitectureTests/CIS.Core.ArchitectureTests.csproj -c Release --no-restore --nologo -m:1 -p:UseSharedCompilation=false -v:minimal
+dotnet test tests/CIS.Core.ArchitectureTests/CIS.Core.ArchitectureTests.csproj -c Release --no-build --no-restore --filter 'FullyQualifiedName~CIS.Tests.ArchitectureTests.Healthcheck.HealthcheckArchitectureTests' --logger trx --results-directory ../../.artifacts/cleanup-tests/closure-healthcheck-native --nologo -v:minimal
+```
+
+Final affected-project build: **PASS, zero warnings/errors**. Focused tests: **4 PASS, zero failed/skipped**, covering actual Core's implementation boundary, the private-body rejection fixture, public surface and immutable snapshots. Compatible restored assets and unchanged dependencies were reused; no restore was needed. The only retained native result for this follow-up is its TRX under `.artifacts/cleanup-tests/closure-healthcheck-native`; the negative fixture is inspected without invocation or temporary output. Scoped whitespace, ordinary-command consistency, relevant links and independent local review passed.
+
+The earlier solution build, pack and **7,961-case** results above remain historical evidence with their original scope; they were **not rerun** for this correction. No whole-suite run, coverage/mutation campaign, benchmark or platform qualification was added.
+
+**Cleanup is complete; CIS adoption is next.** Release/performance obligations remain separately open. Neither CIS adoption nor the separate CIS proportionality amendment is implemented here, and no new prerequisite or recovery campaign is introduced.

@@ -11,8 +11,10 @@ cd implementations/csharp
 dotnet tool restore --configfile eng/Tools.NuGet.config
 dotnet restore CisLib.slnx --locked-mode
 dotnet build CisLib.slnx -c Release --no-restore
-dotnet test CisLib.slnx -c Release --no-build --no-restore
+dotnet test CisLib.slnx -c Release --no-build --no-restore --filter "TestCategory!=PerformanceObservation&TestCategory!=ExtendedStress"
 ```
+
+This ordinary regression selection excludes performance observations and extended stress tests. An unfiltered solution run or IDE Run All includes those categories; performance/stress and full release qualification remain separate open work.
 
 Open the same solution in the IDE. To run a focused test selection:
 
