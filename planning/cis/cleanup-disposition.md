@@ -526,6 +526,8 @@ Native receipts are retained under ignored `.cis/local/adoption-continuation/brd
 
 ## Technical intent approved — paired solution bundle decision
 
+This checkpoint's paired bundle decision was subsequently authorized and recorded in [Paired solution bundle approved](#paired-solution-bundle-approved--no-ui-direction-decision).
+
 The user explicitly approved the exact technical intent at `6407f3a3ca7b2ff9933ef5af116b73273e5a1561`, file SHA-256 `dd13a7bc1a52d82663e7113ac09be5ad65f1f3654d84eadc07412b345e9f4138`, as **Andrew Spiteri** with the exact reason above. The verified CIS host checked that hash and valid/current native validation immediately before running:
 
 ```text
@@ -553,6 +555,38 @@ After those refinements and graph refresh, final bundle validation again reports
 
 The technical questionnaire is current with 13 resolved and three unanswered projections (`TI-Q-006`, `TI-Q-012`, `TI-Q-015`). Those are extraction limitations for already accepted data-store, operational and AI scope; they do not create new product decisions or invalidate this supported whole-document technical baseline. `TI-Q-002` is legitimately **Derived / accepted-document / Current**, with null human answer identity/time and retained source evidence. Its recorded answer contains prose rather than the exact scalar consumed by the later no-UI matcher. Preserve that accepted-document record. After the solution bundle is approved, the supported UI questionnaire may transcribe the already-approved **No user-facing UI** fact with accurate attribution and an explicit reference to this technical-intent approval; do not claim that such a transcription is automatic UI derivation or a new human decision. No repeated UI-scope question or fabricated answer is needed.
 
-The specific remaining decision is one approval of the exact overall design and component sheet together as **Andrew Spiteri**. Proposed recorded reason: “Approve this CISLIB overall solution design and component sheet as one canonical bundle preserving the accepted business and technical baselines.” Before applying a decision, recheck both reviewed raw file hashes and current bundle validation; let `solution-design approve` compute and record the actual shared bundle digest. No solution-bundle approval is recorded yet.
+The specific remaining decision at this checkpoint was one approval of the exact overall design and component sheet together as **Andrew Spiteri**, with proposed reason: “Approve this CISLIB overall solution design and component sheet as one canonical bundle preserving the accepted business and technical baselines.” The user subsequently authorized that exact decision, which was applied below after checking both reviewed file hashes and current validation. CIS computed the actual shared bundle digest.
 
 Actual operation, validation and questionnaire JSON is retained under ignored `.cis/local/adoption-continuation/ti-approved-solution-intake/`. No UI-direction approval, canonical change/task/plan, controller delegation, work allocation, CISLIB build/test, native TRX admission or settlement was created. The prepared unit profile remains unchanged at SHA-256 `1c36079948f05414698317527c72591140f2b46cdffa17cfb0f6e86d4fed02e4`; the proposed time/attempt/storage terms remain ungranted and unchanged.
+
+## Paired solution bundle approved — no-UI direction decision
+
+The user explicitly approved both exact files at `3eabd7f1bd17611bf329a3f31b464fb3559c0e14` as **Andrew Spiteri**, with the exact reason above. The verified CIS host checked the design SHA-256 `1fc6356bc9585d2387e8d3d66c65188da35ad50bde6cf14fc2c538713c688101`, component-sheet SHA-256 `471f97cb1db49c8cda897728b731446c2435f6e34afa4d705ca5693b81b13a7d` and valid/current native bundle validation immediately before running:
+
+```text
+cis solution-design approve --reviewer "Andrew Spiteri" --reason "Approve this CISLIB overall solution design and component sheet as one canonical bundle preserving the accepted business and technical baselines." --workspace . --format json
+cis graph build --repo . --format json
+cis solution-design status --workspace . --format json
+cis ui-direction questions init --workspace . --format json
+```
+
+CIS returned `approved`, `applied=true`, exit 0, no errors/warnings. Both files are **Active, valid and current** with the same reviewer, reason, approval time `2026-11-10T13:57:26.2851268+00:00` and shared approved bundle digest `sha256:bb80fa7b9d396ec39a5ade1b76267044a7845f2f60625a934f2802c27ac08161`. UI intake binds the native normalized solution source version `semantic-v1:0e7bfb36f4adfc4380abccde1d2acb97de9f16016df4cf35cb776d4ebfd65a42`; it is a different digest contract from the bundle's approval digest.
+
+The accepted technical intent explicitly states **No user-facing UI** under Frontend technology. The actual human approved that source at `6407f3a3ca7b2ff9933ef5af116b73273e5a1561`, reviewed file SHA-256 `dd13a7bc1a52d82663e7113ac09be5ad65f1f3654d84eadc07412b345e9f4138`; its recorded approval digest remains `sha256:6d31eb9fb1effa30260edd940f99eba1c27c87512f30ceee847ab5269890b1c5`. The paired solution's accepted authored notes retain the same scope.
+
+Native UI initialization did not automatically derive that exact scalar from the technical questionnaire's longer prose. To carry the already-approved fact through the supported UI questionnaire without re-asking it or altering its accepted-document source record, Codex ran:
+
+```text
+cis ui-direction questions answer UI-Q-001 --answer "No user-facing UI" --actor "Andrew Spiteri (approved technical intent; transcribed by Codex)" --workspace . --format json
+cis ui-direction init --workspace . --format json
+```
+
+The scope operation returned `answered`, exit 0, current/complete, `uiRequired=false`, **one recorded answer** and zero remaining applicable questions. The other eleven visual questions remain unanswered and inapplicable; no subjective visual direction was invented. Native provenance is `human` / `confirmed`, with explicit transcription attribution and timestamp `2026-11-10T13:59:42.4444631+00:00`; this timestamp records transcription of the existing approved decision. Native `Evidence` is empty, so the precise source-approval link is retained in this paragraph rather than presented as automatic UI derivation. The technical questionnaire and its **Derived / accepted-document / Current** `TI-Q-002` record remain unchanged, verified against Git.
+
+The no-UI initializer returned `initialized`, `applied=true`, exit 0, **valid/current, Ready for Approval**, no errors/warnings. The exact review payload is `docs/design/ui-direction.md`, raw SHA-256 `63d25fbe901cd0e91cb8a5bccd8cfdaf4f97439478beed040280108f4464db6d`. It has `visual_ui: false`, the actual solution source version above, questionnaire digest `sha256:06a86b85cec31985522b0d52d4c45bfd6f6cfa9b2ba85c0c94e0a810dd7d9e0f`, and `not-applicable` guideline/framework digests. Approval fields remain null. It creates no screen, visual profile, design guideline or graphical product surface. Independent review recomputed the exact source bindings and found no artifact-field blocker.
+
+After graph refresh, final UI validation again reports current/valid, Ready for Approval and zero errors/warnings; the paired solution remains Active/current/valid. Strict documentation validation passes for **57 entries/documents**. Strict workspace graph validation still exits **5** for the same 43 metadata warnings, with zero structural errors and fresh graph `sha256:9364f8bc286fc53f805f3fcca5079427ba7639c01148270880b24256daef857c`. This remains a separate unpassed strict graph gate, not a native execution or release qualification result.
+
+The specific remaining decision is approval of this exact no-visual-UI applicability record as **Andrew Spiteri**. Proposed recorded reason: “Approve this no-visual-UI applicability record for the accepted CISLIB business, technical and solution baselines.” This is canonical record approval; the existing no-UI product fact is already accepted. Recheck the reviewed file hash and current validation immediately before `ui-direction approve`; let CIS compute the actual approval digest. No UI-direction approval is recorded yet.
+
+Native operation and validation JSON is retained under ignored `.cis/local/adoption-continuation/solution-approved-ui-intake/`. There is still no canonical change/task/plan, controller delegation, finite work allocation, CISLIB build/test, admitted native TRX or settlement. The bounded demonstration and proposed time/attempt/storage allowance remain unchanged and open.

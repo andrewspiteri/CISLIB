@@ -1,19 +1,19 @@
 ---
 title: "cislib Component Sheet"
 type: component-sheet
-status: Review Required
+status: Active
 scope: Workspace
 owner: Product owner and architecture maintainers
-last_reviewed: null
+last_reviewed: 2026-11-10
 review_cadence: on approved business, technical, component, or integration change
 cis:
   stable_id: cislib:reference:component-sheet
   solution_design_schema: 1
   technical_intent_hash: semantic-v1:90692b384b0041bb71ed8ae26100042726f34453dc27ead65f89fad14b52695c
-  approved_by: null
-  approved_at: null
-  approval_reason: null
-  approved_bundle_hash: null
+  approved_by: "Andrew Spiteri"
+  approved_at: "2026-11-10T13:57:26.2851268\u002B00:00"
+  approval_reason: "Approve this CISLIB overall solution design and component sheet as one canonical bundle preserving the accepted business and technical baselines."
+  approved_bundle_hash: "sha256:bb80fa7b9d396ec39a5ade1b76267044a7845f2f60625a934f2802c27ac08161"
 ---
 
 # cislib Component Sheet
