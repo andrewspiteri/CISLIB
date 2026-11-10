@@ -123,6 +123,8 @@ The earlier solution build, pack and **7,961-case** results above remain histori
 
 ## Minimal CIS adoption preparation — 9 November 2026
 
+Historical checkpoint: the implementation and host status below are superseded by [current correction delivery and continuation](#cis-corrections-delivered--current-continuation-checkpoint).
+
 **Prepared, but step 1 is blocked and not complete.** CISLIB baseline is `2f5100ff6a14938b4dca4fe0d99c62c044993876`. CIS was rebuilt from the clean reviewed `1eab89f68c635513a20bca8aa1a7ce6ae02cb8e5` source; the actual host reports `0.3.0+1eab89f68c635513a20bca8aa1a7ce6ae02cb8e5` and SHA-256 `e2cd83872c92bd41e38cd36a81dd006edfe154be57ef604552255bd2d3ec3cf9`. That host, rather than an executable guessed from PATH, was used below. Its build passed with zero warnings/errors. CISLIB's SDK 10.0.401 and .NET/ASP.NET 10.0.12 pins are unchanged.
 
 Minimal import was reviewed and applied with its actual input-bound hash `sha256:8f1fecce294d1c6257c9b66364d844511e406e56b0ff71974e836a60e5e4ac38` and supported `--merge-edits`. The existing `cis` ecosystem, `cislib` authority/product/repository, `docs` root, owned participation and `none` relationship are preserved. Runtime profiles, scoped import guidance, catalogue/navigation and five native suite bindings were added. The bindings were corrected to the C# working directory, Release and actual TRX paths, and remain configured/unverified. No fixture/example became a new shipping module.
@@ -176,9 +178,13 @@ Strict `cis agent evidence validate` returns warnings (exit 5) because the chang
 
 ## Adoption continuation decision package — 10 November 2026
 
+Historical preparation checkpoint at `4bf684c8`; read [current correction delivery and continuation](#cis-corrections-delivered--current-continuation-checkpoint) for the delivered capabilities and remaining decisions. The downstream product drafts and allocation below remain unapproved unless a later record explicitly changes their status.
+
 **Prepared for a specific decision; minimal adoption remains open.** “Step 1” in the earlier record means the whole minimal-adoption demonstration, not the first decision below. The accepted minimal import is retained. This continuation prepares real product-baseline content, downstream design/no-UI content, one bounded native-verification task and finite allocation terms. None of the proposals supplies human approval, canonical task identity, accounting authority or a passing native result. The controller's current command evidence and reviewer/build-host findings accompany this section.
 
 ### Checkpoint A: complete entry route
+
+This table records the prior entry route. Its accounting/task capability gaps are now corrected; see [current delivery](#cis-corrections-delivered--current-continuation-checkpoint). Product approval and actual allocation are separate outstanding requirements.
 
 Existing source requirements and current explicit decisions remain authoritative. Registering their product-level mapping is a new canonical governance action; source acceptance is not a current CIS approval record. The actual CIS source remains reviewed `1eab89f68c635513a20bca8aa1a7ce6ae02cb8e5` and CISLIB preparation starts from `f05b02c0c4967bfee2aabb1f4140709923ad5d3a`.
 
@@ -333,7 +339,9 @@ No visual UI is the only proposed UI decision. No additional brand/layout/access
 
 The current input schema already supports finite time/attempts/reserves, task flags, authority decision/storage references, controllers, historical-unknown acknowledgment and finite `storage` roots/cleanup controllers. It rejects unknown fields. Native admission includes declared writable roots so build growth is counted as well as the TRX. The actual payload can be finalized only with real canonical IDs/authority; no draft marker or proposed opt-in property is inserted into live accounting JSON. The supplied Ubuntu `/data` is ephemeral but is not a registered Windows-authority storage root or an allocation.
 
-### Bounded CIS correction proposal — two independently decidable parts, NOT IMPLEMENTED
+### Historical CIS correction proposal — two parts, not implemented at this checkpoint
+
+This is the specification that was subsequently authorized and implemented; the current delivery record below supersedes its implementation-status statements.
 
 **Part A — accounting entry:** extend the existing allocation boundary with explicit authorized accounting-only first use (a proposed name such as `--adopt-accounting` is not delivered CLI syntax). This is a new public CIS option: wire it in `AgentModule.Work.cs` and the `AgentService.AllocateWork` entry check in `AgentService.WorkControl.cs`. Retain original-authority actor/reason/decision provenance and explicit acknowledgment of the authority-wide effect. Resolve the real canonical owner/approved plan/dispositioned impacts and finite storage/time through existing checks. Reuse `AgentWorkLedger.Allocate` and its existing locked ledger/adoption/lock writes and interrupted-write recovery behavior; add only necessary explicit-intent provenance, without a second store or a new cross-file atomicity claim. Reject reset of corrupt/missing adopted state or historical governed-run references. Existing revisions, consumption, reservations, attempts, reserves, history, inherited parents and independent holds remain binding.
 
@@ -347,6 +355,8 @@ The current input schema already supports finite time/attempts/reserves, task fl
 
 ### Exact staged decisions and subsequent operations
 
+Historical staging sequence: Parts A and B were subsequently authorized. Do not request their implementation authorization again; use the current remaining-decision record below.
+
 1. Review the actual supplied BRD registration and its source assessment. Record the human's chosen assessment and rationale through `brd sources assess` with the current token, then validate. Only when ready, request approval of that exact canonical mapping through `brd approve --reviewer <actual-human> --reason <actual-decision>`; existing source acceptance does not approve it automatically. Rebuild graph as required.
 2. Reconcile the supplied TI against that actual accepted BRD; preserve interpreted source facts and resolve only reported necessary new choices with the real human identity/decision. Validate and approve the exact current TI. This approval cannot precede its final upstream-bound payload.
 3. Initialize/refine the native solution/component bundle from the accepted TI, incorporating the substantive content above and actual identities; validate both and obtain one exact whole-bundle approval. Draft approval now cannot cover a later unknown hash-bound bundle.
@@ -358,7 +368,7 @@ The current input schema already supports finite time/attempts/reserves, task fl
 
 ### Actual continuation evidence and remaining first decision
 
-The verified host remains `0.3.0+1eab89f68c635513a20bca8aa1a7ce6ae02cb8e5`, SHA-256 `e2cd83872c92bd41e38cd36a81dd006edfe154be57ef604552255bd2d3ec3cf9`; its source is clean at that revision. No host rebuild was necessary. CISLIB started clean at the reviewed pushed `f05b02c0` and retains the same minimal import, workspace/repository identity, product source, assertions, packages and native toolchain. There is no inherited `CIS_WORK_*` context or canonical change/task.
+At this prior checkpoint, the verified host was `0.3.0+1eab89f68c635513a20bca8aa1a7ce6ae02cb8e5`, SHA-256 `e2cd83872c92bd41e38cd36a81dd006edfe154be57ef604552255bd2d3ec3cf9`; its source was clean at that revision. No host rebuild was necessary for that checkpoint. CISLIB started clean at the reviewed pushed `f05b02c0` and retained the same minimal import, workspace/repository identity, product source, assertions, packages and native toolchain. There was no inherited `CIS_WORK_*` context or canonical change/task.
 
 These supported operations were actually applied; `cis` is the verified invocation in README:
 
@@ -385,7 +395,7 @@ Both document selections returned `loaded`, `applied=true`, no errors. BRD recon
 
 The TI is a **selected, substantive working draft**, not an imported/current canonical TI. Its explicit component ownership table is source content, not assigned managed identities. Ordinary `technical-intent init` needs the accepted BRD and can then supply actual scope/schema/baseline/approval metadata. The coordinator's review-only `definition prepare --page technical` can import drafts earlier, but also invokes preparation across fifteen observed-reference families and can include placeholder-only dictionaries. That broader inventory preparation is unnecessary for this supplied-document mapping and was not run; no empty dictionaries or visual artifacts were published. Full TI/module/questionnaire/baseline validation remains conditional, not passed by generic document validation.
 
-The missing first-use capability is confirmed at the actual [allocation entry](https://github.com/andrewspiteri/CIS/blob/1eab89f68c635513a20bca8aa1a7ce6ae02cb8e5/src/Cis.Modules.Agent/AgentService.WorkControl.cs#L12-L23); the distinct task gap is in [ad-hoc plan construction](https://github.com/andrewspiteri/CIS/blob/1eab89f68c635513a20bca8aa1a7ce6ae02cb8e5/src/Cis.Modules.Plan/PlanningService.cs#L64-L114). No allocation or known-rejected change creation was retried. Do not present the proposed accounting option as installed syntax or use a feature pack merely to manufacture an owner.
+The prior first-use gap was confirmed at the reviewed [allocation entry](https://github.com/andrewspiteri/CIS/blob/1eab89f68c635513a20bca8aa1a7ce6ae02cb8e5/src/Cis.Modules.Agent/AgentService.WorkControl.cs#L12-L23); the distinct task gap was in [ad-hoc plan construction](https://github.com/andrewspiteri/CIS/blob/1eab89f68c635513a20bca8aa1a7ce6ae02cb8e5/src/Cis.Modules.Plan/PlanningService.cs#L64-L114). Neither rejected operation was retried at that checkpoint. Both capabilities are now implemented as recorded below; a feature pack is unnecessary merely to manufacture an owner.
 
 Ubuntu readiness was inspected over the authorized LAN connection without transferring a repository or running a build/test. `/data` had zero available bytes; installed SDK/runtime were `10.0.301` / `10.0.9`, rather than CISLIB's `10.0.401` / `10.0.12`. The user explicitly permits deleting `/data` contents when required. No cleanup or installation was needed while native execution remains blocked, so neither was performed. Future required builds may use a bounded disposable `/data` directory after exact toolchain provisioning; raw remote output is outside this Windows authority's supported accounting and cannot substitute for the governed local demonstration. Credentials and connection details are not retained here.
 
@@ -411,7 +421,7 @@ The initial mixed private-input review request was rejected before transmission.
 | Build-helper requirement link | Corrected the TI/component mapping to `CIS-BR-004/008` (inventory and release verification), and named the existing helper in BR-004. Examples/fixtures remain BR-007. |
 | Class selection versus expected method count | Inspected the actual source: one MSTest method, DataRows false/true. Kept the compatible local class filter unchanged, documented it exactly, and made 2/0/0 explicitly an expected acceptance target. A descendant must recheck class membership. |
 | No-UI draft text versus authority | Clarified that a draft line grants no questionnaire/approval authority. Preserved actual CIS-supported human or accepted-document provenance; `TechnicalIntentQuestionnaireService.Assessment.cs` recognizes both. The suggested requirement to repeat every accepted-document fact as a direct human questionnaire answer was not adopted. No UI answer or approval was fabricated. |
-| Correction scope/touch points | Made accounting entry and ad-hoc task materialization independently decidable parts of one compact proposal. Named the new public CLI surface and service/planning touch points, separated focused validation, and reused existing locked accounting writes/recovery instead of claiming new cross-file atomicity. Neither part is implemented. |
+| Correction scope/touch points | Made accounting entry and ad-hoc task materialization independently decidable parts of one compact proposal. Named the new public CLI surface and service/planning touch points, separated focused validation, and reused existing locked accounting writes/recovery instead of claiming new cross-file atomicity. Neither part was implemented at that historical review checkpoint; both are delivered below. |
 | TI review metadata | Set `last_reviewed: null`; this preparation and model review do not imply human acceptance. |
 
 Also changed S08 to cite the retained handoff rather than relying on an unavailable attachment. The BRD's one native discovered-source row does not cover all S01–S08 mappings: the exact consolidated text must be reviewed against its linked accepted inputs before canonical approval. Source acceptance is preserved; canonical registration is a distinct decision.
@@ -419,3 +429,44 @@ Also changed S08 to cite the retained handoff rather than relying on an unavaila
 Claude's scope was the four published documents, not a fresh inspection of module source, native reports, tool binaries, measurements or CIS implementation. Source-aware Codex checks supplied those narrower factual checks where reported. Its usage metadata is a provider observation, not settled CIS work accounting. No model review supplies human product/plan/impact/UI/allocation approval or a native test result.
 
 After these edits, strict documentation validation still passes for 52 entries/documents, the refreshed graph is fresh with zero diagnostics, and BRD validation still has no content issues and only the same two human source-review errors. Read-only incremental plan/status still reports one pending unit batch and zero executed/reused batches; the native profile is unchanged. The separate unfamiliar reader rechecked its three specific wording findings and found them resolved, with no new material contradiction. No build, test, approval, allocation or native settlement was added by review.
+
+## CIS corrections delivered — current continuation checkpoint
+
+**Parts A and B are implemented; CISLIB's governed demonstration remains open.** This record supersedes the earlier capability/host stopping points, while preserving their historical evidence. The existing allocation proposal above is unchanged and remains a proposal.
+
+CIS branch: `codex/minimal-accounting-ad-hoc-tasks-2026-11-10`. Part A is [fa38a103](https://github.com/andrewspiteri/CIS/commit/fa38a103a125eaecef2d720de83a176df9520ae9); Part B is [440b5b96](https://github.com/andrewspiteri/CIS/commit/440b5b96f057ce34337bd1ec4a4d82481ea912b6), with bounded review corrections in [30ebacaf](https://github.com/andrewspiteri/CIS/commit/30ebacafcc0e97e2f62ac3da64eca1a7fa91d75c). All three commits are pushed; neither repository was merged or released.
+
+Part A changed `AgentModule.Work.cs`, `AgentService.WorkControl.cs`, `AgentWorkAccountingAdoptionTests.cs`, the work manual and agent-execution skill. Part B changed `PlanningService.cs`, its ad hoc partial, `AdHocPlanningTests.cs`, `FeatureRetirementPreflightTests.cs`, the plan-build manual and bounded-planning skill. Existing task contracts, catalogue and ledger stores remain the canonical machinery.
+
+- **Accounting entry:** `cis agent work allocate <change> --input <allocation.json> --actor <actual-authority> --reason <actual-decision> --adopt-accounting --repo <authority> --format json` is now supported. Explicit first use requires a real eligible canonical owner and finite storage/time/attempt authority. Existing accounting, history, reservations, inherited ownership and independent holds remain binding; sibling work needs its own capacity. This adopts accounting without enabling engineering-quality policy.
+- **Ad hoc tasks:** `cis plan build <change> --repo <authority> --format json` now materializes catalogue-linked task documents without a feature pack. Impact-bound identities persist across added/reordered/retired work; retired IDs and catalogue history are not recycled. Existing authored contracts survive rebuilds; changed impact scope, invalid bindings/documents and unsafe paths hold for reconciliation. Ordinary validation/approval checks apply; approved plans remain protected.
+
+| CIS verification | Actual evidence and limit |
+| --- | --- |
+| Focused corrections | Part A: 28 passed. Final Part B/re-import batch: 22 passed, zero failed/skipped (20 ad hoc cases, one new retirement-preflight case, one existing re-import case). Release builds and scoped whitespace checks passed. |
+| Agent regression | Initial 416-case run: 411 passed and 5 infrastructure failures. Short-temp run: 415 passed and 1 remaining failure; that case subsequently passed using the real PowerShell executable. These are scoped observations, not an all-green full-suite run. |
+| Planning compatibility | 71 passed / 1 failed of 72. A production-baseline control restoring all changed production files to `1eab89f` with the unchanged existing test host reproduced the feature-import failure; a separate story control passed. This does not turn the failed current run into a pass. |
+| Broader Delivery attempt | Timed out at 300 seconds without a TRX. A story-provenance failure was observed and has not been confirmed against baseline; no complete Delivery-suite pass is claimed. |
+| Applicable configuration gates | Strict docs: 530; skills: 53; no-model skill audit: 8 pairs, zero issues; test bindings: 3 suites; standards: 13 standards / 98 rules — passed. |
+
+These were direct native checks whose actual TRXs were inspected, not `cis test reconcile` results. That API cannot import these executions outside a workflow; no CIS workflow run ID or settlement was fabricated. CIS correction work does not consume or grant CISLIB's proposed demonstration allowance.
+
+The final native focused report is `review-followup-focused.trx`, SHA-256 `ab75d0f67ab08d288c58f9fbcd04d33e73dc3ee9465d11faa81582cbe8fa62d7`. Strict `agent evidence validate` returns exit 5 with the single warning that a workflow `test reconcile` result/run ID is absent. The direct native results remain useful, but do not satisfy that workflow-evidence gate; no complete workflow or release readiness is claimed.
+
+The actual commands were Release `dotnet build` on Agent.Tests and Delivery.Tests, then `dotnet test --no-build --no-restore` with the focused `WorkAccountingAdoption_`, `AdHocPlanBuild_` and `PlanReimport_` filters. Broader filters/results are preserved separately, including failures and the timeout. Genuine TRXs, command logs and source/report SHA-256 manifests are retained in the CIS checkout under ignored `.cis/local/accounting-task-corrections/`; they are ordinary native evidence, not CIS-accounted runs. The disposable CIS verification copy had no graph generation; its graph-status error is retained, and no graph-qualified workflow claim is made.
+
+Claude reviewed only the publicly accessible CIS diff from `1eab89f` to `440b5b96`, using `claude-opus-5-5` with tools, customizations, MCP and persistence disabled. The advisory output is retained locally (SHA-256 `57860f4d51639bc5670ece22bb19ad6cd1f46819a9bce83f04fd2939a69c90a1`). Source-aware review added the prerequisite hold, unproved-legacy-basis hold and feature-retirement preflight; partial writes now report their actual hold and preservation requirement. Legacy approved row-only plans remain held by ordinary document validation and the approved-plan rewrite restriction; they never supplied an executable canonical owner. Historical feature rendering already includes task-type versions, and existing ledger loading enforces finite storage and incomplete-state holds, so those hypothetical bypass findings required no weaker validation. No cross-file rollback or automatic legacy migration is promised.
+
+The corrected host was built on Ubuntu with SDK `10.0.403`, delivered as 257 portable files / 82,598,013 bytes and verified on Windows. Its version at this checkpoint is `0.3.0+30ebacafcc0e97e2f62ac3da64eca1a7fa91d75c`; verified host SHA-256 is `37d798df581db6f6c4c6bec0f061e9c52041e2435826d58a378d12dbc5cff1a2`, and its Plan module SHA-256 is `4f072d6dc2ec41cc379d2c47e6ceeefd0a7fd4804f583d38596bb96d0953bab3`. This is a CIS producer toolchain, not a retargeting of CISLIB's SDK `10.0.401` or .NET/ASP.NET `10.0.12` pins. Further calls must use the corrected verified host, not the old `1eab89f` executable.
+
+With that host, CISLIB BRD status is current and still has only the two source-assessment/rationale errors for `BRD-SRC-77aaeee8b0d1`. The actual source is `planning/logging/priority-spool/brd-v1.2.md`, SHA-256 `1cb6b678d7ea252075ca6cb90a0125df33557c31fb956cf9357475ce5fa36477`. Its current review token remains `sha256:562990f0eeb1796c9324efc0a3aca525250840bb677b0681241d40db3082b0b7`.
+
+The concrete request is prepared, **not applied**, at `.cis/local/adoption-continuation/cis-corrections/source-assessment-proposed.json`:
+
+```json
+[{"id":"BRD-SRC-77aaeee8b0d1","assessment":"Adopted","reason":"Retain its Logging frontend requirements; historical October implementation status, task sequencing and execution authorization are superseded by current decisions.","reviewToken":"sha256:562990f0eeb1796c9324efc0a3aca525250840bb677b0681241d40db3082b0b7"}]
+```
+
+The specific source-assessment authorization and identity question is pending. No human BRD approval, reviewer identity, controller delegation or resource allocation is inferred. Once that exact assessment is authorized, save it through `cis brd sources assess --input <prepared-file> --workspace . --format json`, then validate and present the actual resulting BRD payload for any genuinely missing approval. Ordinary TI intake and the existing solution/no-UI drafts can then follow their actual upstream approvals; preserve accepted-document derivation of the settled no-UI fact.
+
+Corrected-host incremental plan/status and artifact inventory all return exit 0, but still show **one pending unit batch, zero executed/reused, and unaccounted output**. The local profile is unchanged and the selected class's two Boolean DataRows were rechecked. No CISLIB build/test or native result admission/settlement occurred. At 12:16 UTC on 10 November, the nine proposed regular-file roots measured `4,596,873,608` bytes, including `4,236,769,799` bytes under UnitTests/bin; this is a proposal measurement, not allocated capacity. Confirm actual owned bytes, reservations, authority/controller and decision references before allocating; profile limits and prior campaign allowances grant no capacity.
