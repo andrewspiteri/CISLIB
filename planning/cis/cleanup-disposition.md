@@ -595,6 +595,8 @@ Native operation and validation JSON is retained under ignored `.cis/local/adopt
 
 ## No-UI approved — CIS-0001 impact review
 
+This checkpoint's impact review was subsequently authorized and recorded in [CIS-0001 plan and allocation decision](#cis-0001-plan-and-allocation-decision).
+
 The user explicitly approved `docs/design/ui-direction.md` at `3c351284453bb6882be2090938371dd73893f032`, raw SHA-256 `63d25fbe901cd0e91cb8a5bccd8cfdaf4f97439478beed040280108f4464db6d`, as **Andrew Spiteri** with the exact reason above. After rechecking that hash and valid/current native validation, the verified host ran `ui-direction approve` with those exact reviewer/reason values, then rebuilt the graph. CIS returned `approved`, `applied=true`, exit 0, no errors/warnings, **Active, valid and current**. It recorded approval time `2026-11-10T14:15:46.6202153+00:00` and approved content digest `sha256:38013f3c2e10171e4389f8d9731b2d3e2582d588b971acf7aa249b42ebccb4d5`.
 
 The first bounded `change create` attempt was held, exit 2 / `applied=false`, only by technical questionnaire entries `TI-Q-006`, `TI-Q-012`, `TI-Q-015`. No change was created by that attempt. These were the previously identified extraction gaps in facts already present verbatim in the approved technical intent. Through supported `technical-intent questions answer`, Codex transcribed the exact accepted source passages with actor **Andrew Spiteri (approved technical intent; transcribed by Codex)**:
@@ -624,3 +626,57 @@ The proposed rejections concern separate implementation work, not removal of eit
 Current native setup logs, failed/successful creation results, literal approved-source transcription inputs and proposed review JSON are retained under ignored `.cis/local/adoption-continuation/ui-approved-work-intake/`. The profile remains unchanged at SHA-256 `1c36079948f05414698317527c72591140f2b46cdffa17cfb0f6e86d4fed02e4`. No CISLIB build/test, native report admission, settlement, controller delegation or finite allocation occurred; proposed ceilings remain ungranted and unchanged.
 
 Strict documentation validation passes for **65 entries / 65 Markdown documents**, with zero errors/warnings. Strict graph validation returns **exit 5** for the same 43 metadata warnings, with zero structural errors and fresh graph `sha256:4bfca6477c6d1b545bf66c31574359d1d49583ba15e1841dd15c27986276e163`, 19,283 nodes / 73,266 edges; this is not a strict graph pass. Read-only incremental status reports **one pending unit batch, zero executed and zero reused**, incomplete scope and `unaccounted-non-adopted` work coverage. Artifact inventory reports 337,985,382 configured live bytes and `ownedStorage.status: unaccounted`; that inventory is neither an owned-allocation measurement nor an allocation grant. Those admission checks remain necessary against the actual approved owner before execution.
+
+## CIS-0001 plan and allocation decision
+
+Andrew Spiteri explicitly approved the exact three-item impact review published at `23d202fa4fb9abeba6f4850d62a38de49ce59dc4`. The verified CIS host checked the reviewed handoff and actual pending impact file before applying native `impact accept` to `IMPACT-C74657D845` and `impact reject` to `IMPACT-492EEAD2A2` and `IMPACT-B086751FDB`, each with its exact approved reason above. All returned exit 0. Native events record acceptance at `2026-11-10T15:07:40.5670942+00:00` and rejections at `15:07:41.1047067+00:00` / `15:07:41.5601948+00:00`; the command has no human-reviewer flag, so the actual human authorization is recorded here. `impact completeness` now reports **reviewComplete=true, planReady=true: one accepted, two rejected, zero proposed/deferred, no gaps or diagnostics**.
+
+Supported `plan build CIS-0001 --repo . --format json` then returned **built / applied=true / exit 0**. It materialized the actual durable `docs/changes/CIS-0001/agent-tasks/WORK-001.md`, catalogue identity `cislib:change:cis-0001:task:work-001`, and plan link. There is one actionable medium task bound to `IMPACT-C74657D845` through the native stable instance key and input-basis metadata. No feature specification or extra workstream was created.
+
+The plan and task's authored sections now state the actual one-profile/two-case procedure, source/toolchain/filter exclusions, separate allocation gates, real TRX admission and settlement criteria, read-only current-result check, evidence fields and residual obligations. Native identity, category, manifest, task type and accepted-impact basis remain intact. The generated generic build/test sentence is bounded by that complete contract: the unchanged local profile's selected project builds and executes only the selected class. Independent source-aware review found no blocker, product-responsibility expansion or verification machinery expansion. The direct existing profile/CIS route is the simplest implementation; no new framework or experiment is needed.
+
+The exact plan-approval payload is [plan.md](../../docs/changes/CIS-0001/plan.md) together with [WORK-001.md](../../docs/changes/CIS-0001/agent-tasks/WORK-001.md), under the existing [proposal](../../docs/changes/CIS-0001/proposal.md) and [reviewed impacts](../../docs/changes/CIS-0001/impact.md). Both plan and task remain **Draft** with no approval. After authored refinement, `plan validate CIS-0001` returns **valid / exit 0, one accepted impact covered, zero open decisions, errors or warnings**. `plan show` retains this actual task and its authored exclusions/outputs. Strict documentation validation passes for **66 entries / 66 Markdown documents**, zero errors/warnings.
+
+After graph refresh, strict graph validation returns **exit 5** for the same 43 metadata warnings, with zero structural errors, fresh graph `sha256:4bfca6477c6d1b545bf66c31574359d1d49583ba15e1841dd15c27986276e163`, **19,292 nodes / 73,275 edges**. That separate strict gate remains a warning failure, not a pass. The bounded plan's valid state supplies neither a graph-warning waiver nor native/release qualification.
+
+The specific proposed plan decision is approval by **Andrew Spiteri**, with reason: “Approve the bounded CIS-0001 plan and WORK-001 contract for one governed unit-only verification of the unchanged HealthDiagnosticRuntimeAcceptanceBoundaryTests, preserving product behavior and existing release scope.” This approves that exact execution contract; it does not grant capacity. Only after actual approval may native `plan approve` record those reviewer/reason values. Task eligibility must then be established through supported lifecycle controls before native admission.
+
+### Separate proposed allocation/controller decision
+
+Read-only `agent work status CIS-0001 --task WORK-001` returns **missing-allocation / exit 4**, with the explicit requirement for an authorized allocation and historical-effort baseline. No live accounting ledger/adoption record or engineering-quality policy has been created. The following is a concrete **ungranted proposal**, not an allocation record:
+
+| Field | Exact proposed value/effect |
+| --- | --- |
+| Authority / owner | Existing `cislib` authority at `C:/miscwork/portfolio/cislib`, change `CIS-0001`, task `WORK-001`. |
+| Original allocation authority | **Andrew Spiteri**, used verbatim as native allocation `--actor` only after his explicit grant. |
+| Delegated controller / native actor | **Codex**, exact `controllers: ["Codex"]`; operate this bounded owner, record progress and reconcile the same execution within remaining authority. No separate provider-agent run is requested. |
+| Decision references | `decisionReference: CISLIB-CIS-0001-ALLOCATION-2026-11-10`; `storageCeilingReference: CISLIB-CIS-0001-STORAGE-2026-11-10`. These become actual decision references only if this exact grant is authorized and recorded. |
+| Containing change | `changeSeconds: 1200`, `changeAttempts: 3`, `restorationSeconds: 120`. |
+| Single fixed task | `taskId: WORK-001`, `seconds: 900`, `attempts: 2`, `restorationSeconds: 120`, `fixed: true`, `allowRedistribution: false`. |
+| Available ordinary time | Before measured consumption/reservations: 1,080 containing-change seconds and 780 task seconds after protected restoration capacity. No historical effort is reset or retrospectively claimed as measured zero. |
+| Historical baseline / revision | `acknowledgeHistoricalUnknown: true`; omit `expectedRevision` on initial allocation. Later updates require the actual revision and preserve history, consumption, reserves and reservations. |
+| Finite storage | `maximumBytes: 6442450944`, `restorationBytes: 67108864`, `allowNativeScratch: true`. Include existing files, not only new growth. Profile remains tighter at timeout 120 seconds / 128 MiB per run / 256 MiB retained / 1 GiB minimum free. |
+| Cleanup delegation | `cleanupControllers: []`. Counting the scratch roots grants no deletion authority. No cleanup or deletion is requested by this grant. |
+| Accounting first use | Explicit native `--adopt-accounting` adopts accounting across the authority's supported direct/story/native routes. Siblings need their own owner/capacity or legitimate inheritance. It installs no engineering-quality policy and grants no unrelated task capacity. |
+
+The exact nine proposed storage roots are all inside that same authority repository:
+
+| Repository-relative root | Scratch | Measured regular-file bytes |
+| --- | --- | --- |
+| `.cis/local` | false | 339,977,385 |
+| `implementations/csharp/src/CIS.Core/bin` | true | 1,706,737 |
+| `implementations/csharp/src/CIS.Core/obj` | true | 2,400,607 |
+| `implementations/csharp/tests/CIS.Core.UnitTests/bin` | true | 4,236,769,799 |
+| `implementations/csharp/tests/CIS.Core.UnitTests/obj` | true | 16,434,505 |
+| `implementations/csharp/tests/CIS.Core.TestSupport/bin` | true | 108,116 |
+| `implementations/csharp/tests/CIS.Core.TestSupport/obj` | true | 216,339 |
+| `implementations/csharp/eng/CIS.TypeManager.Build/bin` | true | 63,390 |
+| `implementations/csharp/eng/CIS.TypeManager.Build/obj` | true | 151,040 |
+
+Read-only measurement at `2026-11-10T15:12:44.6826444Z` found **4,597,827,918 regular-file bytes**, no root/ancestor/descendant reparse points and 196,308,340,736 drive-free bytes. The proposed ceiling minus existing measured files and restoration reserve leaves **1,777,514,162 bytes** before pending claims and record growth. This is a point-in-time proposal-root estimate, not an owned-allocation inventory or capacity grant. Refresh actual ownership/bytes/reservations and eligibility before admission; preserve the finite ceiling rather than silently increasing it.
+
+The proposed strict-schema input is retained locally at `.cis/local/adoption-continuation/impacts-approved-plan-intake/allocation-proposed.json`, raw SHA-256 **`444975f0d9f91c2cf1d5cda5a12e200ee05e32d8a6fed453dc33100753af3101`**. It contains exactly the values/roots above, no `expectedRevision`, no actor field and no CLI-only adoption property. Its separate measurement JSON is retained alongside it. Proposed native allocation reason: “Authorize the proposed finite CIS-0001/WORK-001 unit-verification allocation and accounting-only first use, with Andrew Spiteri as original authority and Codex as controller, preserving existing history and all independent gates.”
+
+Only if both exact decisions are actually granted, first record plan approval, then invoke `agent work allocate CIS-0001 --adopt-accounting --input <reviewed-file> --actor "Andrew Spiteri" --reason <exact-authorized-reason>`. Inspect current work/storage state, establish legitimate task eligibility and admit the unchanged profile with `--layer unit --change CIS-0001 --task WORK-001 --actor Codex` and the actual authority/legitimate parent. Never use `--force`; accept and settle the real TRX, then inspect read-only current-result status and associated inventory. Record a substantive controller checkpoint at the first useful result before any broadening, and use supported completion only when applicable evidence and gates pass. Separate decisions can be presented together without treating either as granted in advance.
+
+Actual native impact/build/validation/status receipts and local proposals are retained under ignored `.cis/local/adoption-continuation/impacts-approved-plan-intake/`. No finite allocation, controller delegation, CISLIB build/test, admitted native TRX or settlement has occurred. The two existing cases are still expected, not observed passing.
