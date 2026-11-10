@@ -3,16 +3,16 @@ title: "CISLIB product technical intent — registration proposal"
 type: specification
 owner: Repository maintainers
 review_cadence: on accepted product-direction change
-status: Draft
+status: Active
 scope: Workspace
-last_reviewed: null
+last_reviewed: 2026-11-10
 cis:
   stable_id: cislib:spec:technical-intent
   technical_intent_schema: 1
-  approved_by: null
-  approved_at: null
-  approval_reason: null
-  approved_content_hash: null
+  approved_by: "Andrew Spiteri"
+  approved_at: "2026-11-10T13:31:53.6000483\u002B00:00"
+  approval_reason: "Approve this technical mapping of the accepted CISLIB business baseline and retained implementation boundaries for canonical CIS registration."
+  approved_content_hash: "sha256:6d31eb9fb1effa30260edd940f99eba1c27c87512f30ceee847ab5269890b1c5"
 ---
 
 # CISLIB product technical intent

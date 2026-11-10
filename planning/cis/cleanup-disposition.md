@@ -497,6 +497,8 @@ Actual operation/validation JSON is retained under ignored `.cis/local/adoption-
 
 ## Canonical BRD approved — technical intent decision
 
+This checkpoint's technical-intent decision was subsequently authorized and recorded in [Technical intent approved](#technical-intent-approved--paired-solution-bundle-decision).
+
 The user explicitly approved the exact canonical BRD published at `eb870e250ec6a31e2c8612078f53b7fecbc27ede`, file SHA-256 `b345befc6cd1f201703a5bc01271023f005739ae54830f33117e12d9181a948d`, as **Andrew Spiteri** with the exact reason above. The verified CIS host rechecked that hash and valid/current native validation immediately before running:
 
 ```text
@@ -516,8 +518,41 @@ The review payload is `docs/specs/technical-intent-spec.md`, SHA-256 `dd13a7bc1a
 
 `graph validate --workspace . --strict --format json` returns **exit 5**: the graph is fresh and structurally readable with zero errors, but its 43 existing metadata warnings remain (15,209 symbol/test nodes without a confirmed component identity and 42 unregistered `unknown` document lifecycles). Current graph build is `sha256:eff0a9ff0e019ce4cfd8b028c337b492e1290cbc56f0dc11cd63deb92b4bd104`, 19,278 nodes / 73,261 edges. The TI's native approval readiness does not mean this separate strict graph gate passed. No component/lifecycle state was invented to suppress warnings; this checkpoint claims neither a complete governed workflow nor native/release qualification.
 
-The specific remaining decision is approval of that exact technical mapping as **Andrew Spiteri**. Proposed recorded reason: “Approve this technical mapping of the accepted CISLIB business baseline and retained implementation boundaries for canonical CIS registration.” The supported operation after that decision is `technical-intent approve --reviewer "Andrew Spiteri" --reason <the explicitly authorized reason> --workspace . --format json`. Recheck the exact file hash and current validation immediately beforehand; let CIS compute the actual approval digest. Technical-intent approval is not recorded yet.
+The specific remaining decision at this checkpoint was approval of that exact technical mapping as **Andrew Spiteri**, with proposed reason: “Approve this technical mapping of the accepted CISLIB business baseline and retained implementation boundaries for canonical CIS registration.” The user subsequently authorized that exact decision, which was applied below after checking the reviewed file hash and current validation. CIS computed the actual approval digest.
 
 For the subsequent solution draft, native CIS interpretation supports the existing four-component table and supplies its own deterministic component identities. Compare the resulting requirement/integration links to the authored tables: the legacy table projection does not populate per-component requirement IDs, and its integration aliases omit the exact current API/integration heading. Preserve those supplied relationships in the actual bundle's permitted authored sections before presenting that bundle for approval. Do not invent module IDs or expand this supported legacy import into a new schema/framework solely for registration.
 
 Native receipts are retained under ignored `.cis/local/adoption-continuation/brd-approved-ti-intake/`. No solution/UI approval, canonical change/task/plan, controller delegation, work allocation, CISLIB build/test, native report admission or settlement was created by BRD approval or technical-intent preparation. The bounded demonstration and its proposed allowance remain open and unchanged.
+
+## Technical intent approved — paired solution bundle decision
+
+The user explicitly approved the exact technical intent at `6407f3a3ca7b2ff9933ef5af116b73273e5a1561`, file SHA-256 `dd13a7bc1a52d82663e7113ac09be5ad65f1f3654d84eadc07412b345e9f4138`, as **Andrew Spiteri** with the exact reason above. The verified CIS host checked that hash and valid/current native validation immediately before running:
+
+```text
+cis technical-intent approve --reviewer "Andrew Spiteri" --reason "Approve this technical mapping of the accepted CISLIB business baseline and retained implementation boundaries for canonical CIS registration." --workspace . --format json
+cis graph build --repo . --format json
+cis technical-intent status --workspace . --format json
+cis solution-design init --workspace . --format json
+cis technical-intent questions init --workspace . --format json
+```
+
+CIS returned `approved`, `applied=true`, exit 0, no errors. It recorded approval time `2026-11-10T13:31:53.6000483+00:00`, the authorized reviewer/reason and approved content digest `sha256:6d31eb9fb1effa30260edd940f99eba1c27c87512f30ceee847ab5269890b1c5`. After graph refresh, technical intent was **Active, valid and current**. Its existing classification/test-binding warnings retain their original scope.
+
+Native solution initialization returned `initialized`, `applied=true`, exit 0, **valid/current, Ready for Approval**, with no bundle errors/warnings. It created the following actual paired canonical documents, both still Review Required with null approval fields:
+
+| Review payload | Raw SHA-256 |
+| --- | --- |
+| `docs/architecture/overall-solution-design.md` | `1fc6356bc9585d2387e8d3d66c65188da35ad50bde6cf14fc2c538713c688101` |
+| `docs/references/component-sheet.md` | `471f97cb1db49c8cda897728b731446c2435f6e34afa4d705ca5693b81b13a7d` |
+
+The bundle's native technical-intent source version is `semantic-v1:90692b384b0041bb71ed8ae26100042726f34453dc27ead65f89fad14b52695c`. This source-version value and the technical intent's approval digest above are separate native digest contracts, not manually substituted hashes.
+
+CIS assigned four actual component identities from the accepted technical table: Logging/environment `TI-MOD-DOC-2ED774F339B1`, Type Manager runtime `TI-MOD-DOC-D7BF0EECC9BE`, Healthcheck `TI-MOD-DOC-2083BB5AF8F0`, and inventory helper `TI-MOD-DOC-C62609274AA1`. Durable authored notes/profiles preserve their exact BRD authority, ownership/exclusions and all five accepted boundary contracts. Native metadata and managed projections were retained unchanged; notes explain the legacy projection's empty requirement cells and missing structured integration rows. No integration identity, new architecture choice, approval, package or product module was invented. Independent source-aware review found no mapping or authority inconsistency.
+
+After those refinements and graph refresh, final bundle validation again reports **valid/current, Ready for Approval, zero errors/warnings**, while technical intent remains Active, valid and current. Strict documentation validation passes for **55 entries/documents**. Strict workspace graph validation still exits **5** for the same 43 metadata warnings, with zero structural errors and fresh graph `sha256:a16eff19689ace6bf6247e9cd691e54c560062467cf9f69a414cfeb8a1115ad0`, 19,278 nodes / 73,261 edges. This is not a strict graph pass or native qualification.
+
+The technical questionnaire is current with 13 resolved and three unanswered projections (`TI-Q-006`, `TI-Q-012`, `TI-Q-015`). Those are extraction limitations for already accepted data-store, operational and AI scope; they do not create new product decisions or invalidate this supported whole-document technical baseline. `TI-Q-002` is legitimately **Derived / accepted-document / Current**, with null human answer identity/time and retained source evidence. Its recorded answer contains prose rather than the exact scalar consumed by the later no-UI matcher. Preserve that accepted-document record. After the solution bundle is approved, the supported UI questionnaire may transcribe the already-approved **No user-facing UI** fact with accurate attribution and an explicit reference to this technical-intent approval; do not claim that such a transcription is automatic UI derivation or a new human decision. No repeated UI-scope question or fabricated answer is needed.
+
+The specific remaining decision is one approval of the exact overall design and component sheet together as **Andrew Spiteri**. Proposed recorded reason: “Approve this CISLIB overall solution design and component sheet as one canonical bundle preserving the accepted business and technical baselines.” Before applying a decision, recheck both reviewed raw file hashes and current bundle validation; let `solution-design approve` compute and record the actual shared bundle digest. No solution-bundle approval is recorded yet.
+
+Actual operation, validation and questionnaire JSON is retained under ignored `.cis/local/adoption-continuation/ti-approved-solution-intake/`. No UI-direction approval, canonical change/task/plan, controller delegation, work allocation, CISLIB build/test, native TRX admission or settlement was created. The prepared unit profile remains unchanged at SHA-256 `1c36079948f05414698317527c72591140f2b46cdffa17cfb0f6e86d4fed02e4`; the proposed time/attempt/storage terms remain ungranted and unchanged.
