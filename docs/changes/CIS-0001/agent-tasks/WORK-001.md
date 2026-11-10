@@ -2,7 +2,7 @@
 title: "WORK-001 Address implementation impact: CIS.Tests.UnitTests.Healthcheck.HealthDiagnosticRuntimeAcceptanceBoundaryTests.ValidCallerIdentifiersAndRuntimeExceptionProjectionProduceADetachedDiagnostic(bool)"
 type: agent-task
 status: Draft
-task_status: Draft
+task_status: Blocked
 task_id: WORK-001
 task_type: core.legacy
 task_type_version: 1.0
@@ -55,7 +55,7 @@ Complete one governed CIS unit-only verification of the existing two Boolean Dat
 - Preserve shipping and test source, assertions, Logging/Type Manager/Healthcheck behavior, public contracts, package layout, SDK `10.0.401` and .NET/ASP.NET `10.0.12`. Do not change inputs to manufacture a pass.
 - Preserve `.cis/local/testing/profiles/healthcheck-diagnostic-unit.json`, reviewed SHA-256 `1c36079948f05414698317527c72591140f2b46cdffa17cfb0f6e86d4fed02e4`, including its 120-second timeout, 128 MiB per-run cap and 256 MiB retained cap. Preserve the exact class filter: `FullyQualifiedName~CIS.Tests.UnitTests.Healthcheck.HealthDiagnosticRuntimeAcceptanceBoundaryTests&TestCategory!=PerformanceObservation&TestCategory!=ExtendedStress`.
 - Do not use `--force` or run tests a second time solely to demonstrate reuse. Preserve real consumption, logical attempts, restoration reserves and uncertain reservations; no new run ID, retry or accounting option resets them.
-- Proposed capacity remains ungranted: containing change 1,200 active seconds / 3 logical attempts / 120 restoration seconds; this task 900 active seconds / 2 attempts / 120 restoration seconds; 6 GiB total owned storage including existing declared output / 64 MiB restoration reserve. An actual finite allocation, actor/controller grant, owned roots and decision references are required before admission.
+- Andrew Spiteri authorized the exact separate allocation proposal: containing change 1,200 active seconds / 3 logical attempts / 120 restoration seconds; this fixed task 900 active seconds / 2 attempts / 120 restoration seconds; 6 GiB total owned storage including existing declared output / 64 MiB restoration reserve. Native allocation recorded original authority Andrew Spiteri, controller Codex, the reviewed owned roots and decision references. Preserve actual consumption, reservations and recovery holds; this grant does not establish settlement or a passing result.
 - No feature pack, new product feature, provider-agent execution, unrelated workstream, quality-policy adoption, broad regression, mutation/coverage or performance campaign, package publication or release qualification is required by this task. Earlier historical results and campaign allowances do not transfer here.
 
 ## Context and evidence
@@ -69,23 +69,23 @@ Complete one governed CIS unit-only verification of the existing two Boolean Dat
 ## Dependencies and approval gates
 
 - No task dependencies.
-- The current plan requires actual approval; execution requires an eligible task and applicable finite work/storage authority.
-- The approved foundation records and dispositioned impact support planning only. Draft status, `authority: human-approved-plan` and `approval_gate: none` are native contract labels, not a recorded human plan approval or allocation.
+- Andrew Spiteri approved the exact plan/task at reviewed commit `bfbb21d834916af5aa8e44c2f466fc55447ac19b`; native `plan-approved` event time is `2026-11-10T15:22:33.9655648+00:00`. The separately granted allocation was recorded before admission, and native lifecycle moved this task to InProgress at `15:23:51.2341177+00:00`.
+- Native `authority: human-approved-plan` and `approval_gate: none` labels do not themselves grant authority. The actual human decisions, native events and retained receipts supply this approval/allocation history; the unresolved native execution still holds further admission.
 - If a genuine admission, permission, accounting, storage or recovery hold remains, preserve it and report the specific next action. Do not increase ceilings, infer a controller or create another task to bypass it.
 
 ## Acceptance criteria
 
 - [ ] The accepted impact IMPACT-C74657D845 is satisfied without unrecorded scope expansion.
-- [ ] Exact plan approval, an eligible `CIS-0001/WORK-001` owner and a separate authorized finite allocation exist before native admission. Actual actor/controller, decision references, owned roots/bytes, reservations and any inherited parent are recorded.
+- [x] Exact plan approval, an eligible `CIS-0001/WORK-001` owner and a separate authorized finite allocation exist before native admission. Actual actor/controller, decision references, owned roots/bytes, reservations and any inherited parent are recorded.
 - [ ] The unchanged selected method's `DataRow(false)` and `DataRow(true)` actually produce **2 passed, 0 failed, 0 skipped** through CIS. CIS parses and accepts the real nonempty TRX for current inputs and the exact canonical work association.
 - [ ] Active time/storage ownership settles with no unresolved reservation or recovery state. Associated inventory reports accounted/owned output within the actual finite allocation, including existing declared output and protected restoration capacity.
 - [ ] With inputs unchanged, read-only plan/status shows the selected unit result current, zero pending unit batches and the declared unit slice complete. No second test execution is used solely to demonstrate reuse.
-- [ ] Product/test source, assertions, toolchain, local profile/filter and existing release obligations are preserved. Native execution/admission/settlement evidence and any limits are recorded truthfully; no all-scope or release qualification is claimed.
+- [x] Product/test source, assertions, toolchain, local profile/filter and existing release obligations are preserved. Native execution/admission/settlement evidence and any limits are recorded truthfully; no all-scope or release qualification is claimed.
 
 ## Targeted validation
 
 - [ ] Build the affected component and run its connected deterministic tests.
-- [ ] Before admission, compare current source membership and local profile hash/filter with the reviewed two-case selection; inspect pinned SDK/runtime and compatible restored assets without running tests.
+- [x] Before admission, compare current source membership and local profile hash/filter with the reviewed two-case selection; inspect pinned SDK/runtime and compatible restored assets without running tests.
 - [ ] After actual plan/allocation authorization, use the unchanged profile's native build-and-test command through `cis test incremental run` with `--layer unit`, the exact owner/actor/authority and any legitimate inherited parent. Inspect the actual native TRX and CIS acceptance rather than treating process exit or expected membership as proof.
 - [ ] Inspect the same native execution's work status, reservations and restoration state. Reconcile that execution if needed through supported controls; retain any failure and its diagnosis.
 - [ ] Use read-only `test incremental plan` / `status` and `artifacts inventory` with the same owner and profile to confirm current zero-pending unit status and accounted output. Read-only result reuse is sufficient; do not invoke another run solely for that check.
@@ -95,14 +95,19 @@ Complete one governed CIS unit-only verification of the existing two Boolean Dat
 
 | Check | Command or artifact | Result | Notes |
 | --- | --- | --- | --- |
-| Accepted impact | No execution yet | Not run | Record actual scoped evidence before completion. |
-| Native cases / TRX admission | Pending actual execution | Not run | Expected 2/0/0 is not an observed result. |
-| Time/storage settlement | Pending actual allocation and execution | Not run | Preserve consumption and unresolved reservations. |
-| Current unit status / owned inventory | Pending settlement | Not run | Require zero pending unit batches and accounted output. |
+| Plan / finite authority | Native `plan-approval.json`, `allocation.json` and `task-in-progress.json` under `.cis/local/adoption-continuation/approved-native-unit/` | Recorded | Actual Andrew Spiteri decisions; adoption `8351035b241f4939ace19b3cc8d71d81`, controller Codex. |
+| Selected native build | `work/ff67770d152a/stdout.log` under the profile's incremental directory | Build outputs observed | Core, build helper, support and UnitTests built; VSTest reached assembly discovery. This does not prove the selected cases ran or passed. |
+| Native cases / TRX admission | `native-unit-run.json` and retained `state.json` | Held, exit 4 | Root `native/incremental/b8fc43c85f0e4e4785397265885ad4ca`; no accepted nonempty TRX or assessed unit result. Expected 2/0/0 remains unobserved. |
+| Time/storage settlement | `work-original-temp-context.json`, `first-result-progress.json`, `inventory-after-hold.json` | Unresolved | Original child remains uncertain; full 300,000 ms root time reservation and 268,506,743 storage bytes remain reserved. No reset, deletion or unsafe reconciliation. |
+| Current unit status | Read-only `unit-plan-after-hold.json` / `unit-status-after-hold.json` | Settlement required, exit 4 | One pending unit batch, zero executed/reused, scope incomplete; same original work association. |
+| Owned inventory | Associated `inventory-after-hold.json` | Current bounded inventory | 4,598,103,919 owned bytes within 6,442,450,944 ceiling; 67,108,864 restoration bytes retained. Current inventory is not completed settlement. |
+| Controller assessment | Native `first-result-progress.json` | Recorded | Codex retained the original ownership/recovery hold and bounded next action; logical attempt `WORK-001:1` remains open. |
 
 ## Deferrals and residual risk
 
 - No deferral is approved by generation. Record any actual unmet criterion, owner, follow-up and decision.
-- Exact plan approval and finite allocation/controller authority remain pending at this checkpoint. This document records a proposed execution contract, not completed work.
+- Exact plan approval and finite allocation/controller authority are recorded. The single attempted native run returned `settlement-required` before result assessment. Passing cases, accepted TRX, settled ownership and current zero-pending unit status remain unmet; do not complete this task.
+- The saved guard scratch claim uses its original invocation-private TEMP parent; later tool calls use different TEMP parents. Supported work reads succeed after restoring the exact recorded original context, without editing the ledger or storage policy. Original named-job namespace visibility remains unverified after the recorded driver/preparer disappeared, so PID absence or a new namespace's missing-name lookup cannot establish original job closure.
+- Preserve root `native/incremental/b8fc43c85f0e4e4785397265885ad4ca`, child `native/incremental/stage/d4bee5a0016342fa9041becfeacff8e9`, actual reservations, diagnostics and unchanged local profile. No retry, fabricated workflow/cache result, pilot or policy adoption was performed. Exact stopped-owner/job proof and supported same-execution reconciliation must precede further native admission; reconciliation alone cannot create the missing assessed unit result.
 - The 43 existing strict graph metadata warnings remain visible; this task does not assign component identities or lifecycle policy to suppress them. Other test families, platform/package, coverage/mutation, performance and release obligations retain their original scope.
 - No new volume-sensitive product workload or Final Delivery Sweep is introduced. Storage limits bound this existing two-case verification and its output; they do not request a dataset/load experiment or another workstream.

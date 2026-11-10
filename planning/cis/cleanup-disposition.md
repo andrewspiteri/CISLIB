@@ -629,6 +629,8 @@ Strict documentation validation passes for **65 entries / 65 Markdown documents*
 
 ## CIS-0001 plan and allocation decision
 
+Both decisions at this checkpoint were subsequently authorized and recorded in [Approved work — native settlement hold](#approved-work--native-settlement-hold).
+
 Andrew Spiteri explicitly approved the exact three-item impact review published at `23d202fa4fb9abeba6f4850d62a38de49ce59dc4`. The verified CIS host checked the reviewed handoff and actual pending impact file before applying native `impact accept` to `IMPACT-C74657D845` and `impact reject` to `IMPACT-492EEAD2A2` and `IMPACT-B086751FDB`, each with its exact approved reason above. All returned exit 0. Native events record acceptance at `2026-11-10T15:07:40.5670942+00:00` and rejections at `15:07:41.1047067+00:00` / `15:07:41.5601948+00:00`; the command has no human-reviewer flag, so the actual human authorization is recorded here. `impact completeness` now reports **reviewComplete=true, planReady=true: one accepted, two rejected, zero proposed/deferred, no gaps or diagnostics**.
 
 Supported `plan build CIS-0001 --repo . --format json` then returned **built / applied=true / exit 0**. It materialized the actual durable `docs/changes/CIS-0001/agent-tasks/WORK-001.md`, catalogue identity `cislib:change:cis-0001:task:work-001`, and plan link. There is one actionable medium task bound to `IMPACT-C74657D845` through the native stable instance key and input-basis metadata. No feature specification or extra workstream was created.
@@ -680,3 +682,59 @@ The proposed strict-schema input is retained locally at `.cis/local/adoption-con
 Only if both exact decisions are actually granted, first record plan approval, then invoke `agent work allocate CIS-0001 --adopt-accounting --input <reviewed-file> --actor "Andrew Spiteri" --reason <exact-authorized-reason>`. Inspect current work/storage state, establish legitimate task eligibility and admit the unchanged profile with `--layer unit --change CIS-0001 --task WORK-001 --actor Codex` and the actual authority/legitimate parent. Never use `--force`; accept and settle the real TRX, then inspect read-only current-result status and associated inventory. Record a substantive controller checkpoint at the first useful result before any broadening, and use supported completion only when applicable evidence and gates pass. Separate decisions can be presented together without treating either as granted in advance.
 
 Actual native impact/build/validation/status receipts and local proposals are retained under ignored `.cis/local/adoption-continuation/impacts-approved-plan-intake/`. No finite allocation, controller delegation, CISLIB build/test, admitted native TRX or settlement has occurred. The two existing cases are still expected, not observed passing.
+
+## Approved work — native settlement hold
+
+Andrew Spiteri explicitly approved the exact plan and WORK-001 contract at `bfbb21d834916af5aa8e44c2f466fc55447ac19b`, using the exact reason above. He separately authorized the exact finite allocation JSON, original authority/controller identities, decision references, nine roots, unknown-history acknowledgment and authority-wide accounting effect. The verified CIS host rechecked all reviewed file/profile/input hashes and current plan validity before applying the approvals. No further human allocation or plan decision is missing for this bounded scope.
+
+Native `plan approve` returned **approved / applied=true / exit 0**; its actual event time is `2026-11-10T15:22:33.9655648+00:00`. Native `agent work allocate --adopt-accounting`, with actor **Andrew Spiteri** and the exact authorized reason/input, returned **allocated / applied=true / exit 0**. Adoption is **`8351035b241f4939ace19b3cc8d71d81`**, initial revision `:1`; actual decision references are **`CISLIB-CIS-0001-ALLOCATION-2026-11-10`** and **`CISLIB-CIS-0001-STORAGE-2026-11-10`**. Codex is the delegated controller. The fixed change/task/time/attempt/restoration/storage terms above are unchanged, and no cleanup delegation or engineering-quality policy was adopted.
+
+The supported task lifecycle moved Draft → InProgress at `2026-11-10T15:23:51.2341177+00:00`, with actor Codex and the recorded bounded-start reason. Before admission, work status had known recovery state, zero reservations and the authorized ordinary change/task capacities of 1,080 / 780 seconds. Associated inventory was current: **4,597,948,616 owned bytes**, zero reserved storage, 67,108,864 restoration bytes and 1,777,393,464 remaining bytes under the 6 GiB ceiling.
+
+Source inspection still found one method and its two Boolean DataRows. Read-only toolchain checks selected SDK **10.0.401**, found both installed **10.0.12** frameworks and confirmed the test runtime configuration pins both with roll-forward disabled. The local profile hash remained **`1c36079948f05414698317527c72591140f2b46cdffa17cfb0f6e86d4fed02e4`**; its command, class filter and timeout/byte caps were preserved. No shipping/test source, assertions or project/toolchain configuration changed.
+
+### Actual single native attempt
+
+```text
+cis test incremental run --repo . --profile .cis/local/testing/profiles/healthcheck-diagnostic-unit.json --layer unit --max-batches 1 --max-seconds 300 --change CIS-0001 --task WORK-001 --authority C:/miscwork/portfolio/cislib --actor Codex --format json
+```
+
+This used the verified host `0.3.0+30ebacafcc0e97e2f62ac3da64eca1a7fa91d75c`. The 300-second containing invocation bound fit existing capacity; the profile's native timeout stayed 120 seconds. No force, provider-agent run, broad test selection or second native invocation was used.
+
+| Actual coordinate/result | Recorded value |
+| --- | --- |
+| Root execution | `native/incremental/b8fc43c85f0e4e4785397265885ad4ca` |
+| Native child | `native/incremental/stage/d4bee5a0016342fa9041becfeacff8e9` |
+| Work / logical attempt | `cislib / CIS-0001 / WORK-001`, owner WORK-001, attempt `WORK-001:1`; root parent null, child inherits that real root. |
+| Root/controller identities | Preparer PID 60984, start `2026-11-10T15:25:10.6061569Z`; native driver PID 13736, start `2026-11-10T15:27:02.653648Z`; controller Codex. |
+| Recorded containment | `cis-native-windows-outer-job-v1`, named job `Local\cis-native-af75f012d71a4fd6a17bf88606734ac7`, Windows session 1. |
+| Native observations | Core, build helper, TestSupport and UnitTests build outputs, followed by VSTest's one matching test assembly. No case result or nonempty TRX was admitted. |
+| Command outcome | **settlement-required / exit 4**, before batch assessment; saved unit result remains null. Expected 2 passed / 0 failed / 0 skipped is still unobserved. |
+
+The returned diagnosis is that owned native work has not been proven stopped, with root waiting for its owned child and child ownership uncertain. This is not a failed product assertion or an accepted test pass. Native result duration is retained as reported, but no final settled cost exists; overlapping root/child/preparation durations must not be summed. The unresolved reservation is not zero-cost historical work.
+
+The returned `pilot-required` metadata describes readiness for future mutation expansion; the producer excludes `--layer unit` from that expansion gate. No mutation/pilot work was attempted or required to resolve this unit-only result. It does not explain or waive the actual ownership/settlement hold.
+
+### Exact recovery boundary and current state
+
+The native guard recorded an exact scratch path under that tool invocation's private sandbox TEMP parent. Later tool calls have different TEMP parents. CIS's persisted-claim validation compares outside-root scratch against the **current** `Path.GetTempPath()` (`AgentWorkLedger.Storage.cs:498–515`), so ordinary subsequent work status returned a held ownership error. Restoring only the exact original guard-parent TEMP/TMP for a fresh inspection process made supported status readable, without editing any ledger, cache, claim, root or policy. The worker's inner TEMP is a different repository-owned directory and is not a substitute for the original guard parent.
+
+An outside-sandbox read observed both exact recorded PIDs absent. That alone does not establish stopped children. AppContainer named objects can have distinct namespaces ([Microsoft named-object guidance](https://learn.microsoft.com/en-us/windows/apps/develop/communication/sharing-named-objects)); CIS recorded the job name/session but no original AppContainer object path. Namespace equivalence for an outside/new-context named-job query was not established. No new-context missing-name result was used as original-job closure proof, and no cancellation or reconciliation was applied. The original ownership/recovery hold remains intact.
+
+Codex recorded a substantive first-result `agent work progress` checkpoint using the actual current revision and retained native/status/stdout references. It preserves logical attempt `WORK-001:1` with `closeAttempt:false`, diagnoses the TEMP/containment problem and chooses the original-execution recovery boundary. CIS supplies the active/reserved cost fields; no cost was invented in the input. Revision is now **`8351035b241f4939ace19b3cc8d71d81:18`**; the automatic accounting fields are retained rather than relabelled as settled cost.
+
+Read-only incremental **plan and status** under the exact original TEMP context return **settlement-required / exit 4**, with the same original work reference, **one pending unit batch, zero executed/reused and scopeComplete=false**. Associated artifact inventory returns a current bounded measurement, **4,598,103,919 owned bytes**, **268,506,743 reserved bytes**, **67,108,864 restoration bytes**, **1,508,731,418 remaining bytes**, maximum **6,442,450,944**. This current inventory does not release the pending storage reservation. Work status retains the full **300,000 ms root time reservation**, one used logical attempt, uncertain recovery state and its stop-proof hold. Its consumed pool field is not a finalized cost statement while ownership remains unresolved.
+
+Native lifecycle now records **WORK-001 Blocked**, event `2026-11-10T15:42:16.3314923+00:00`; the plan remains Approved and valid, with its one accepted impact covered and no open decisions or validation warnings/errors. Only actually satisfied preparation/source-preservation checkboxes are resolved. Remaining acceptance failures are real 2/0/0 cases, nonempty accepted TRX, settled time/storage ownership and unchanged current zero-pending unit completion. This adoption remains open; the native attempt establishes no regression/release qualification.
+
+### Next bounded action
+
+Preserve the original state, guard/output, accounting and all reservations. Supported exact-execution reconciliation requires original stopped-owner and actual job-closure proof; PID absence or a different namespace's missing object is insufficient. The same-execution reconciliation settles accounting/storage only: this interrupted unit never reached `IncrementalTestService.Assess`, and the supported revalidation/recovery paths require already assessed evidence. Do not invent a workflow ID, stamp a cache result, add a pilot, change the profile, replay tests for bookkeeping or grant another allowance.
+
+The concrete CIS follow-up is to preserve durable exact scratch provenance across invocation TEMP changes and record/query the original Windows job namespace safely across invocation contexts, while retaining finite caps, stopped-owner checks and interrupted evidence. Any interrupted-unit continuation must truthfully keep missing reports missing and use existing scope/capacity only after legitimate reconciliation. This is separate CIS control work, outside WORK-001's product-source exclusions and demonstration allowance; it is not another missing CISLIB plan/allocation approval.
+
+One additional bookkeeping observation is retained: native task transitions re-render `plan.md`, retaining Approved status and its actual approval event but removing the reviewer/rationale front matter and authored approval-summary paragraphs that `plan approve` had written/preserved. The original approved payload is in Git and its native approval receipt/event remains retained. No replacement approval fields were manually stamped; the durable task's authored scope/input binding remains intact.
+
+Actual approvals/allocation, native request/result/exit, work/plan/status/inventory and controller-progress receipts are retained under ignored `.cis/local/adoption-continuation/approved-native-unit/`, with native work under `.cis/local/testing/incremental/healthcheck-diagnostic-unit/`. Nothing was deleted, no second test was run and no budget/history was reset. CIS source remains at its separately delivered correction commit `30ebacafcc0e97e2f62ac3da64eca1a7fa91d75c`.
+
+Final bookkeeping validation passes for **66 documentation entries / 66 Markdown documents**, zero errors/warnings. After graph refresh, strict graph validation still exits **5** for the same **43 metadata warnings**, with zero structural errors and fresh graph `sha256:4bfca6477c6d1b545bf66c31574359d1d49583ba15e1841dd15c27986276e163`, 19,292 nodes / 73,275 edges. This is not a strict graph pass or a substitute for the failed native acceptance. Independent receipt/source review found no material evidence inconsistency or scope/verification-machinery expansion. Product/test/pin configuration and the local profile remain unchanged.
