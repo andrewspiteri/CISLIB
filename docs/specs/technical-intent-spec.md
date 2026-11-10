@@ -3,7 +3,7 @@ title: "CISLIB product technical intent — registration proposal"
 type: specification
 status: Draft
 owner: Repository maintainers
-last_reviewed: '2026-11-10'
+last_reviewed: null
 review_cadence: on accepted product-direction change
 ---
 
@@ -33,7 +33,7 @@ The primary surface is the .NET in-process library API. Supporting machine-facin
 
 No user-facing UI
 
-The product has no frontend application or browser/mobile/desktop presentation technology. HTTP routes are health-reporting contracts inside an application host. The canonical no-visual-UI applicability record remains a separate unapproved proposal until supported questionnaire/adoption controls establish it.
+The product has no frontend application or browser/mobile/desktop presentation technology. HTTP routes are health-reporting contracts inside an application host. The line above is proposed source content, not a recorded questionnaire answer or approval. The canonical no-visual-UI applicability record remains a separate unapproved proposal until supported questionnaire/adoption controls establish it.
 
 ### Backend technology and topology
 
@@ -48,7 +48,7 @@ The explicit component-ownership table below records the existing physical respo
 | Logging and environment | Preserve bounded diagnostics and explicit lifecycle/delivery observations. | Existing Core environment, `CIS.Logging` and `CIS.Logging.MicrosoftLogger` contracts, options, capture, processing and writers. | Application lifecycle/resources, collector SDKs or a durable business-audit store. | CIS-BR-002/003 |
 | Type Manager runtime | Prepare the pre-DI catalog, CLR identities, fixed membership and cached queries. | Core `CIS.TypeManagement` definitions, inventory consumption and read-only queries. | Application/configuration construction, DI registration, dynamic plugins or arbitrary load contexts. | CIS-BR-004 |
 | Healthcheck | Preserve monitor policy/state, safe collection/execution-fact binding, detached snapshots and bounded reporting. | Core `CIS.Healthcheck`, formatter and existing host-integrated HTTP/local-pipe contracts. | Business retries/restarts, external scheduling, general startup or forced termination. | CIS-BR-005/006 |
-| Type Manager inventory build helper | Generate the supported host assembly inventory from SDK-resolved assets. | Existing `CIS.TypeManager.Build` project and Core package SDK/targets; build-only machinery. | Runtime application dependencies/instantiation, separately deployed services or unsupported publish profiles. | CIS-BR-004/007 |
+| Type Manager inventory build helper | Generate the supported host assembly inventory from SDK-resolved assets. | Existing `CIS.TypeManager.Build` project and Core package SDK/targets; build-only machinery. | Runtime application dependencies/instantiation, separately deployed services or unsupported publish profiles. | CIS-BR-004/008 |
 
 Applications own startup/shutdown, option inputs, external resources, listeners, deployment and background work. Logging exposes bounded capture/queue behaviour and independent backend output paths. The consumer processes queued occurrences and writers own only their documented resources. Preserve callback/provider/scope ownership and recoverable-failure containment; caller expressions and fatal process failures retain their documented limits.
 
@@ -104,7 +104,7 @@ Retain five actual MSTest/VSTest families: Unit, Integration, Architecture, Comp
 
 Existing release obligations are 95% line / 90% conservative branch coverage across shipping Core and the build helper, 90% conservative mutation, complete declared source scope, no Timeout kill credit and actual instrumented-product activation in children. This direction does not adopt new CIS completion thresholds or claim fresh coverage/mutation evidence. Native assertions protect actual behaviour, public and private dependency boundaries, ownership and immutable snapshots.
 
-The continuation's prepared native selection is the existing `HealthDiagnosticRuntimeAcceptanceBoundaryTests` class with two Boolean DataRows. It checks real Unicode sanitization/explicit caller projection and detached bounded diagnostics. It must run through CIS with `--layer unit`, no `--force`, the final actual association/filter and parsed TRX. A successful narrow run is not release qualification. Historical cleanup passes remain historical.
+The continuation's prepared native selection is the existing `HealthDiagnosticRuntimeAcceptanceBoundaryTests` class. Source inspection confirms that this class contains one MSTest method, `ValidCallerIdentifiersAndRuntimeExceptionProjectionProduceADetachedDiagnostic`, with `[DataRow(false)]` and `[DataRow(true)]`; the expected result is two cases, not an observed pass. It checks real Unicode sanitization/explicit caller projection and detached bounded diagnostics. Preserve the existing local class filter `FullyQualifiedName~CIS.Tests.UnitTests.Healthcheck.HealthDiagnosticRuntimeAcceptanceBoundaryTests&TestCategory!=PerformanceObservation&TestCategory!=ExtendedStress`. It must run through CIS with `--layer unit`, no `--force`, the actual association and parsed TRX. Recheck the class if a descendant changes its test membership. A successful narrow run is not release qualification. Historical cleanup passes remain historical.
 
 Recorded targets of 30 seconds warm, 60 seconds unchanged build plus tests and 300 seconds full regression remain unverified for the cleaned revision. Budget estimates for the adoption task are separate finite proposals; no historical recovery allowance is reused.
 
