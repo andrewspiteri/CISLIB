@@ -1,7 +1,7 @@
 ---
 title: "cislib Technical Intent Questionnaire"
 type: specification
-status: Draft
+status: Complete
 scope: Workspace
 owner: Product owner and technical authority
 last_reviewed: null
@@ -19,11 +19,11 @@ This governed pre-intent record captures high-level technology and architecture 
 
 ## Decision progress
 
-- Resolved: 13 of 16
+- Resolved: 16 of 16
 - Derived from source or repository evidence: 13
-- Answered by a human: 0
+- Answered by a human: 3
 - Optional capabilities not requested: 0
-- State: Draft — answer every question before technical intent generation
+- State: Complete — ready to generate technical intent
 
 ## Questions
 ### TI-Q-001 — Product surfaces
@@ -164,17 +164,17 @@ What should be the primary transactional system of record?
 - Why this is needed: Consistency, migrations, concurrency, backup, restore, and operational cost depend on this choice.
 - Common options: SQLite; PostgreSQL; SQL Server; MySQL/MariaDB; Managed document database; No durable application data
 - Advisory starting direction: No transactional application system of record is introduced. Logging files and Type Manager manifests have their existing diagnostic/deployment roles; they are not inferred databases. Unrequested caches/search/object stores and AI/model execution do not become selected architecture.
-- Status: Unanswered
-- Answered by: Not recorded
-- Answered at: Not recorded
-- Resolution source: technical-intent-document
-- Confidence: Not assessed
-- Evidence: docs/specs/technical-intent-spec.md:87 — Application model and invariants (sha256:3f8b6e04a743a1b4bc067f8730dc1ea9b3b538da92ac22b0745b4f942f9c156c)
+- Status: Answered
+- Answered by: Andrew Spiteri (approved technical intent; transcribed by Codex)
+- Answered at: 2026-11-10T14:28:37.8063214+00:00
+- Resolution source: human
+- Confidence: confirmed
+- Evidence: Not recorded
 - Assessment record: {"SupportingBasis":{"BRD:unmapped:Business outcomes:0":"sha256:63f06b10d37e84d466481fa587bdb9285edd597c5efcf41b5cbc189008dceee3","BRD:unmapped:Canonical registration:0":"sha256:26027a377571f4b99f4595c7fc8a91cced04dacd4f04e6bfbc1b54ce48cf4ad9","BRD:unmapped:Functional requirements:1":"sha256:cbc46b87f50780d62831f4680c2942455d58d98de6ef10d840bfad06c3913a3d","BRD:unmapped:Functional requirements:3":"sha256:7f7984db9040b8819b7deb8ecd19c6fecdbf10931f9b47035ab908dcb4692892","BRD:unmapped:Functional requirements:5":"sha256:89428a5f0e3c2b87c8bef5b7c0ce5f21cc120d3ab446c18fc3e7eda89c64504d","BRD:unmapped:Open questions:0":"sha256:950ebf522c1271f11155a3c349a1188af4c26fbdff01b5d607cb121e1e9c1dec","BRD:unmapped:Stakeholders and actors:0":"sha256:4660f0a5b083676cceac105f14ca48f61178e358042b7c9a61ef24cbf2f07561","BRD:unmapped:Stakeholders and actors:4":"sha256:72bdf5d075aff8ac31d1694ec34df8fe41568095626a576e1c6c1ad6ce737cad","BRD:unmapped:Success measures:1":"sha256:d829372214a932a83be4a13b7b23beab9c46997216a895f190cb1525eef54dcd","BRD:unmapped:Traceability:1":"sha256:418faf927fe56611e48197e2de8f82df3731c0c7ad88c1b5552278f21180985c","BRD:unmapped:Traceability:4":"sha256:f656d3ff988a225e19a90670466df23d06fb528991e268dbd10bb82405e6cc16","BRD:unmapped:Traceability:8":"sha256:2831ac927fc003681fcadb517dbdf6eea8891c2710e010ccbca60d6e35bc49dc"},"Status":"Current","Reason":null,"History":[]}
 
 #### Recorded answer
 
-Not answered.
+No transactional application system of record is introduced. Logging files and Type Manager manifests have their existing diagnostic/deployment roles; they are not inferred databases. Unrequested caches/search/object stores and AI/model execution do not become selected architecture.
 
 ### TI-Q-007 — Supporting data services
 
@@ -344,41 +344,17 @@ What operational model, telemetry, and support expectations apply?
 - Why this is needed: The architecture must be diagnosable and recoverable, including during automated test and delivery runs.
 - Common options: Structured logs; Metrics; Distributed tracing; Health/readiness; Alerts/dashboards; Audit trail; Support runbooks
 - Advisory starting direction: This registration document maps existing source direction and the cleaned implementation at reviewed revision `f05b02c0c4967bfee2aabb1f4140709923ad5d3a` into one product-level technical baseline. It does not alter accepted requirements, resolve new technical choices or certify release readiness. Canonical technical-intent approval is recorded separately through supported CIS controls in the document metadata. Source paths below are relative to the CISLIB repository.
-
-| Logging and environment | Preserve bounded diagnostics and explicit lifecycle/delivery observations. | Existing Core environment, `CIS.Logging` and `CIS.Logging.MicrosoftLogger` contracts, options, capture, processing and writers. | Application lifecycle/resources, collector SDKs or a durable business-audit store. | CIS-BR-002/003 |
-
-Environment options retain the selected readonly static container, first-access constructor defaults followed by known overrides and bounded identity interning. Modules own mutable option values and explicit environment resolution; this product has no new global startup, reset or readiness framework.
-
-Healthcheck retains explicit monitor criticality, policy transitions, counts/revisions, safe collection ownership and immutable detached snapshots. Snapshot capture performs no collection or failure replay. Observed exception/runtime text is projected through the existing bounded diagnostic rules; explicit caller inputs retain their own validation contract. A watchdog may affect a caller's wait without gaining health authority or forced cancellation.
-
-No transactional application system of record is introduced. Logging files and Type Manager manifests have their existing diagnostic/deployment roles; they are not inferred databases. Unrequested caches/search/object stores and AI/model execution do not become selected architecture.
-
-Healthcheck detail access and local pipe authorization/endpoint protections retain the current transport contracts; this baseline does not infer missing privileged/cross-user/platform qualification. Logging remains diagnostic rather than a transactional audit guarantee. No new product identity provider, tenancy model, regulated-data guarantee, credential store or compliance certification is selected by registration.
-
-The continuation's prepared native selection is the existing `HealthDiagnosticRuntimeAcceptanceBoundaryTests` class. Source inspection confirms that this class contains one MSTest method, `ValidCallerIdentifiersAndRuntimeExceptionProjectionProduceADetachedDiagnostic`, with `[DataRow(false)]` and `[DataRow(true)]`; the expected result is two cases, not an observed pass. It checks real Unicode sanitization/explicit caller projection and detached bounded diagnostics. Preserve the existing local class filter `FullyQualifiedName~CIS.Tests.UnitTests.Healthcheck.HealthDiagnosticRuntimeAcceptanceBoundaryTests&TestCategory!=PerformanceObservation&TestCategory!=ExtendedStress`. It must run through CIS with `--layer unit`, no `--force`, the actual association and parsed TRX. Recheck the class if a descendant changes its test membership. A successful narrow run is not release qualification. Historical cleanup passes remain historical.
-
-Preserve current dependency/assembly/ownership/compatibility/platform policies in `docs/architecture/`, native test guidance, module contract catalogs and `planning/decisions.md`. Human-readable source requirements retain their original files and identities. No Active CIS standard is fabricated from a documentation metadata status, and optional standards/security capabilities remain explicit follow-up work.
-
-| Healthcheck policy/collection/execution/transport | `planning/healthcheck/technical-intent.md`, `contract-catalog.md`, `execution-facts.md`, `collection-contract-amendment.md`, `execution-contract-amendment.md`, `registration-diagnostic-amendment.md`, current `docs/modules/healthcheck/`, `contracts/healthcheck/v1/` |
-
-- Preserve predictable host ownership, bounded work and diagnostics with truthful failure and delivery observations. A successful queue admission is not durable delivery; a reported timeout does not prove underlying execution has stopped. [S01, S04, S06]
-
-| Application/operator consumer | Inspect truthful log delivery/flush/stop observations and detached health/readiness reports within the host's access and deployment policy. |
-
-Applications establish environment/module options, then use Logging to capture and process bounded diagnostic occurrences through independent destinations. Hosts can explicitly observe flush/stop outcomes without confusing admission with delivery. Before building the DI container, a host asks Type Manager to prepare its declared managed application assembly set and uses its completed read-only catalog and cached queries. An application can create Healthcheck state and monitor instances, optionally own collector execution, and publish detached health/readiness reports over the supported host-integrated transports. [S01, S04, S05, S06]
-
-| S06 | `planning/healthcheck/technical-intent.md`, `contract-catalog.md`, `execution-facts.md`, `collection-contract-amendment.md`, `execution-contract-amendment.md`, `registration-diagnostic-amendment.md`, `docs/modules/healthcheck/`, `contracts/healthcheck/v1/`: retained Healthcheck contracts and applicable amendments. |
-- Status: Unanswered
-- Answered by: Not recorded
-- Answered at: Not recorded
-- Resolution source: technical-intent-document
-- Confidence: Not assessed
-- Evidence: docs/specs/technical-intent-spec.md:20 — CISLIB product technical intent (sha256:3f8b6e04a743a1b4bc067f8730dc1ea9b3b538da92ac22b0745b4f942f9c156c); docs/specs/technical-intent-spec.md:64 — Runtime architecture and trust boundaries (sha256:3f8b6e04a743a1b4bc067f8730dc1ea9b3b538da92ac22b0745b4f942f9c156c); docs/specs/technical-intent-spec.md:79 — Application model and invariants (sha256:3f8b6e04a743a1b4bc067f8730dc1ea9b3b538da92ac22b0745b4f942f9c156c); docs/specs/technical-intent-spec.md:85 — Application model and invariants (sha256:3f8b6e04a743a1b4bc067f8730dc1ea9b3b538da92ac22b0745b4f942f9c156c); docs/specs/technical-intent-spec.md:87 — Application model and invariants (sha256:3f8b6e04a743a1b4bc067f8730dc1ea9b3b538da92ac22b0745b4f942f9c156c); docs/specs/technical-intent-spec.md:107 — Security and privacy intent (sha256:3f8b6e04a743a1b4bc067f8730dc1ea9b3b538da92ac22b0745b4f942f9c156c); docs/specs/technical-intent-spec.md:123 — Quality attributes and verification direction (sha256:3f8b6e04a743a1b4bc067f8730dc1ea9b3b538da92ac22b0745b4f942f9c156c); docs/specs/technical-intent-spec.md:129 — Architecture guidelines and applicable standards (sha256:3f8b6e04a743a1b4bc067f8730dc1ea9b3b538da92ac22b0745b4f942f9c156c); docs/specs/technical-intent-spec.md:151 — Source traceability (sha256:3f8b6e04a743a1b4bc067f8730dc1ea9b3b538da92ac22b0745b4f942f9c156c); docs/specs/business-requirements.md:30 — Business outcomes (sha256:7e0e542c011a0fa65c23ce63e305f4a62cd4c4c607d73c05b3a0bc46f2fcf042); docs/specs/business-requirements.md:47 — Stakeholders and actors (sha256:7e0e542c011a0fa65c23ce63e305f4a62cd4c4c607d73c05b3a0bc46f2fcf042); docs/specs/business-requirements.md:55 — Business capabilities and processes (sha256:7e0e542c011a0fa65c23ce63e305f4a62cd4c4c607d73c05b3a0bc46f2fcf042); docs/specs/business-requirements.md:108 — Traceability (sha256:7e0e542c011a0fa65c23ce63e305f4a62cd4c4c607d73c05b3a0bc46f2fcf042)
+- Status: Answered
+- Answered by: Andrew Spiteri (approved technical intent; transcribed by Codex)
+- Answered at: 2026-11-10T14:29:13.0292372+00:00
+- Resolution source: human
+- Confidence: confirmed
+- Evidence: Not recorded
 - Assessment record: {"SupportingBasis":{"BRD:Business capabilities and processes:0":"sha256:226405eaf82695481c2a8bb5a3683692e6cc6f41ca945ea41ff643a998f05bed","BRD:Business outcomes:1":"sha256:ed80a8d13c4b73bdb29848f9c514efc151abe7b3227edb9e73953618df78dcc1","BRD:Stakeholders and actors:1":"sha256:04d7cb14d188e1debe31c048cf4f2f25c3cd966e22596d37ae31612b5009a84c","BRD:Traceability:5":"sha256:a5560f4cd7bc5fa577e926a090089d82e69ab801fe814a581a14850bf2e88fa4","BRD:unmapped:Business outcomes:0":"sha256:63f06b10d37e84d466481fa587bdb9285edd597c5efcf41b5cbc189008dceee3","BRD:unmapped:Canonical registration:0":"sha256:26027a377571f4b99f4595c7fc8a91cced04dacd4f04e6bfbc1b54ce48cf4ad9","BRD:unmapped:Functional requirements:1":"sha256:cbc46b87f50780d62831f4680c2942455d58d98de6ef10d840bfad06c3913a3d","BRD:unmapped:Functional requirements:3":"sha256:7f7984db9040b8819b7deb8ecd19c6fecdbf10931f9b47035ab908dcb4692892","BRD:unmapped:Functional requirements:5":"sha256:89428a5f0e3c2b87c8bef5b7c0ce5f21cc120d3ab446c18fc3e7eda89c64504d","BRD:unmapped:Open questions:0":"sha256:950ebf522c1271f11155a3c349a1188af4c26fbdff01b5d607cb121e1e9c1dec","BRD:unmapped:Stakeholders and actors:0":"sha256:4660f0a5b083676cceac105f14ca48f61178e358042b7c9a61ef24cbf2f07561","BRD:unmapped:Stakeholders and actors:4":"sha256:72bdf5d075aff8ac31d1694ec34df8fe41568095626a576e1c6c1ad6ce737cad","BRD:unmapped:Success measures:1":"sha256:d829372214a932a83be4a13b7b23beab9c46997216a895f190cb1525eef54dcd","BRD:unmapped:Traceability:1":"sha256:418faf927fe56611e48197e2de8f82df3731c0c7ad88c1b5552278f21180985c","BRD:unmapped:Traceability:4":"sha256:f656d3ff988a225e19a90670466df23d06fb528991e268dbd10bb82405e6cc16","BRD:unmapped:Traceability:8":"sha256:2831ac927fc003681fcadb517dbdf6eea8891c2710e010ccbca60d6e35bc49dc"},"Status":"Current","Reason":null,"History":[]}
 
 #### Recorded answer
 
-Not answered.
+Application hosts own runtime startup/shutdown, deployment, external resources, cancellation requests and recovery policy. Preserve explicit Logging flush/stop outcomes, file recovery, Type Manager immutable preparation reports and Healthcheck truthful detached facts. Retired generated receipts, campaigns and old recovery owners supply neither operational authority nor new capacity.
 
 ### TI-Q-013 — Security, privacy, and compliance
 
@@ -429,17 +405,17 @@ Does the product use AI or learned models, and if so how are they hosted and gov
 - Why this is needed: Model execution introduces provider, data, evaluation, explainability, drift, cost, and human-oversight boundaries.
 - Common options: Not applicable; Local model; Managed model API; Self-hosted model; Retrieval-augmented generation; Training/fine-tuning; Human approval required
 - Advisory starting direction: No transactional application system of record is introduced. Logging files and Type Manager manifests have their existing diagnostic/deployment roles; they are not inferred databases. Unrequested caches/search/object stores and AI/model execution do not become selected architecture.
-- Status: Unanswered
-- Answered by: Not recorded
-- Answered at: Not recorded
-- Resolution source: technical-intent-document
-- Confidence: Not assessed
-- Evidence: docs/specs/technical-intent-spec.md:87 — Application model and invariants (sha256:3f8b6e04a743a1b4bc067f8730dc1ea9b3b538da92ac22b0745b4f942f9c156c)
+- Status: Answered
+- Answered by: Andrew Spiteri (approved technical intent; transcribed by Codex)
+- Answered at: 2026-11-10T14:29:47.3166554+00:00
+- Resolution source: human
+- Confidence: confirmed
+- Evidence: Not recorded
 - Assessment record: {"SupportingBasis":{"BRD:Constraints and assumptions:0":"sha256:1b6487cd2655d7c2bfcdd9dfd49cfff6170e66945b808ca530cb380ad3cabb03","BRD:Constraints and assumptions:1":"sha256:d36f3f8506b6a2d61d89fbe5aadc9a1f391a0e098a0521080a69365135f92576","BRD:Constraints and assumptions:2":"sha256:67728cf5261d1f576b66ed3e81ac8f0c26fb5ffbe7da0ed2d75e6e8d2625adc5","BRD:Constraints and assumptions:3":"sha256:071aa05f8fea7bcc341b2cf14cb5eca4b9db0eab9d813599577c818c0705a1e1","BRD:unmapped:Business outcomes:0":"sha256:63f06b10d37e84d466481fa587bdb9285edd597c5efcf41b5cbc189008dceee3","BRD:unmapped:Canonical registration:0":"sha256:26027a377571f4b99f4595c7fc8a91cced04dacd4f04e6bfbc1b54ce48cf4ad9","BRD:unmapped:Functional requirements:1":"sha256:cbc46b87f50780d62831f4680c2942455d58d98de6ef10d840bfad06c3913a3d","BRD:unmapped:Functional requirements:3":"sha256:7f7984db9040b8819b7deb8ecd19c6fecdbf10931f9b47035ab908dcb4692892","BRD:unmapped:Functional requirements:5":"sha256:89428a5f0e3c2b87c8bef5b7c0ce5f21cc120d3ab446c18fc3e7eda89c64504d","BRD:unmapped:Open questions:0":"sha256:950ebf522c1271f11155a3c349a1188af4c26fbdff01b5d607cb121e1e9c1dec","BRD:unmapped:Stakeholders and actors:0":"sha256:4660f0a5b083676cceac105f14ca48f61178e358042b7c9a61ef24cbf2f07561","BRD:unmapped:Stakeholders and actors:4":"sha256:72bdf5d075aff8ac31d1694ec34df8fe41568095626a576e1c6c1ad6ce737cad","BRD:unmapped:Success measures:1":"sha256:d829372214a932a83be4a13b7b23beab9c46997216a895f190cb1525eef54dcd","BRD:unmapped:Traceability:1":"sha256:418faf927fe56611e48197e2de8f82df3731c0c7ad88c1b5552278f21180985c","BRD:unmapped:Traceability:4":"sha256:f656d3ff988a225e19a90670466df23d06fb528991e268dbd10bb82405e6cc16","BRD:unmapped:Traceability:8":"sha256:2831ac927fc003681fcadb517dbdf6eea8891c2710e010ccbca60d6e35bc49dc"},"Status":"Current","Reason":null,"History":[]}
 
 #### Recorded answer
 
-Not answered.
+Unrequested caches/search/object stores and AI/model execution do not become selected architecture.
 
 ### TI-Q-016 — Constraints and exclusions
 
