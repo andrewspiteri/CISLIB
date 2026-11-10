@@ -173,3 +173,231 @@ The next required decision is an existing legitimate approved adoption change/ta
 `cis generate not applicable: this change registers and binds the existing native workflow; it does not generate product code or specifications.` The local usage ledger is `.cis/local/feedback/tool-usage.jsonl`. Doctor's final result is valid configuration with zero errors and 21 warnings for classification review, optional index/local-AI setup, security and standards capabilities. Those pending capabilities were left explicit. No governed unit run ID exists, and `cis test reconcile` was not run without native results. The accounting/settlement and unchanged-result acceptance rows must pass before step 1 can close.
 
 Strict `cis agent evidence validate` returns warnings (exit 5) because the changed suite binding is test-related and no native run ID/reconciliation exists. This is recorded as outstanding, not satisfied with a placeholder or a fabricated run. A model-assisted, context-limited reader check correctly identified the incomplete step, zero executed/reused unit cases, legitimate governance decision, optional no-visual-UI route and installation-specific profile; two wording clarifications were applied. This is a comprehension check, not human approval.
+
+## Adoption continuation decision package — 10 November 2026
+
+**Prepared for a specific decision; minimal adoption remains open.** “Step 1” in the earlier record means the whole minimal-adoption demonstration, not the first decision below. The accepted minimal import is retained. This continuation prepares real product-baseline content, downstream design/no-UI content, one bounded native-verification task and finite allocation terms. None of the proposals supplies human approval, canonical task identity, accounting authority or a passing native result. The controller's current command evidence and reviewer/build-host findings accompany this section.
+
+### Checkpoint A: complete entry route
+
+Existing source requirements and current explicit decisions remain authoritative. Registering their product-level mapping is a new canonical governance action; source acceptance is not a current CIS approval record. The actual CIS source remains reviewed `1eab89f68c635513a20bca8aa1a7ce6ae02cb8e5` and CISLIB preparation starts from `f05b02c0c4967bfee2aabb1f4140709923ad5d3a`.
+
+| Prerequisite | Prepared/current state | Supported operation and remaining decision |
+| --- | --- | --- |
+| Product BRD | Substantive supplied registration draft in `docs/specs/business-requirements.md`; no canonical approval claimed | `definition documents --role business --path ...`, reconcile/validate/status; exact source dispositions and explicit BRD approval remain human decisions. |
+| Product technical intent | Substantive supplied registration draft in `docs/specs/technical-intent-spec.md`; no canonical approval claimed | Select supplied technical document and prepare current direction; ordinary adoption/approval requires a current accepted BRD. Resolve only genuine remaining choices, then approve the exact TI. |
+| Solution design/components | Complete substantive content proposal below; upstream-bound canonical payload cannot yet be current | `solution-design init`, refine/validate both files and obtain one whole-bundle approval after TI acceptance. |
+| No visual UI | Explicit short applicability/direction proposal below | After accepted/current solution, initialize questions, retain or record exact authorized `UI-Q-001` answer, initialize/validate and explicitly approve the resulting direction. |
+| Adoption change | Coherent title/outcome/scope/task proposal below; no change ID invented | `change create` after current accepted TI, solution bundle and UI direction, against a fresh graph. |
+| Impact and plan | Native roots and scope proposed; no analysis/disposition/plan approval fabricated | `impact analyse`, human `accept/reject/defer`, then planning. Current `plan build` writes rows without durable task records; task-materialization restriction below must be resolved. |
+| Canonical owner | One draft adoption/native-unit owner contract below; no existing task document or approved plan claimed | Work ownership resolves an actual unambiguous `agent-tasks/*.md` and approved current plan with dispositioned impacts; plan rows alone do not establish this. |
+| First allocation | Finite terms below; no adopted accounting or allowance claimed | Current `agent work allocate` rejects fresh minimal entry before reading the payload. No supported explicit accounting-only first-use operation exists at the reviewed version. |
+| Native result/reuse | Existing local Windows unit profile retained; execution remains conditional | Once actual owner/authority/allocation are valid, run exactly the selected unit layer, settle, then inspect unchanged plan/status and owned inventory. |
+
+Source checks establish the whole chain: `ChangeDossierStore.cs:48–57` evaluates workspace foundation gates; `TechnicalIntentService.cs:484–508` requires the current accepted BRD; `AgentService.WorkControl.cs:19–20,433–476` checks accounting entry and actual canonical ownership; `AgentService.cs:2529–2570` checks current approved plan, impacts and task eligibility. `PlanningService.cs:64–114,1351–1377` shows ad-hoc build rows with null task paths; `:188–207` materializes tasks only through feature import. Current work/task help exposes no first-use opt-in or standalone task author/import command. These restrictions were inspected once; no unchanged rejected allocation was retried.
+
+### Minimum product-baseline mapping
+
+The two supplied registration drafts preserve the original source documents and map their current accepted obligations without regenerating module plans. Their source traceability distinguishes observed implementation from future specifications and open qualification. The BRD covers the existing reusable Logging/environment, Type Manager and Healthcheck outcomes, host ownership, single-package compatibility and native verification. Technical direction retains SDK `10.0.401`, .NET/ASP.NET `10.0.12`, explicit module boundaries and the approved Microsoft runtime closure.
+
+No future module, later language, Heartbeat scheduler, generic startup-provider integration or release claim is accepted by this registration. The exact imported source assessment, unresolved questions and validation state must be reviewed before approval. The original requirements and current decisions are not superseded by draft status or generated identities.
+
+### Overall solution-design proposal — unapproved downstream content
+
+Intended canonical roles are `architecture` and `components`, normally `docs/architecture/overall-solution-design.md` and `docs/references/component-sheet.md`. This content is ready for incorporation after supported initialization binds the actual accepted TI and managed component identities. It deliberately asserts no source hash, managed approval metadata or Active/current status.
+
+#### Architecture drivers
+
+Provide reusable Logging, Type Manager and Healthcheck in one C# `CIS.Core` package/runtime assembly, with direct implementation, bounded detached observations and application-owned lifecycle. Preserve nullable analysis, warnings as errors, the pinned toolchain and approved Microsoft/ASP.NET dependency closure. CIS remains development tooling outside runtime references.
+
+#### System context and boundaries
+
+Applications call Core contracts, own startup/shutdown/resources/hosting and retain those resources through actual worker/cleanup settlement. Existing Microsoft logger adaptation, host-integrated Healthcheck HTTP, local-pipe reporting and the matching non-Core probe are existing interfaces/consumers, not graphical products or new services. External scheduling, startup coordination and deployment recovery remain application responsibilities.
+
+#### Logical component topology
+
+The component catalogue below identifies three runtime responsibilities inside the single assembly plus genuine package build machinery. It does not split repositories, packages, processes or deployments. TestSupport, fixtures, examples, frozen consumers and the probe retain development/consumer roles.
+
+#### Data ownership and consistency
+
+Logging preserves bounded capture/incoming/output storage and truthful admission, consumption, delivery and cleanup observations: acceptance is not durable delivery and canceled waiting is not stopped work. Healthcheck coordinates policy/state and detached snapshots under its short state boundary; callbacks, serialization and I/O remain outside it. Type Manager fixes prepared membership and cached query results without constructing application objects. Borrowed resources never silently transfer ownership.
+
+#### Integration architecture
+
+Application/Microsoft logger consumers use existing Logging/runtime/provider contracts. Host build invokes the inventory helper, whose deterministic build-selected inventory feeds runtime Type Manager. Applications/optional collectors/external fact producers feed Healthcheck through existing ownership/collection/execution-fact seams. Detached Healthcheck snapshots flow through the shared formatter to HTTP/local-pipe consumers; transport does not evaluate policy, execute business callbacks or become a Healthcheck state dependency.
+
+#### Security and trust boundaries
+
+Applications supply exposure/access policy and own listeners/resources. Retain actual HTTP route/method, pipe framing/identity, bounded diagnostics, timeouts and cancellation rules without claiming a new deployment/container pass. Inventory is a trusted supported build artifact, not arbitrary plugin or assembly discovery. Development governance and native reports do not enter library runtime authorization or package closure.
+
+#### Deployment, operations, and recovery
+
+`0.1.0-dev.1` remains a development version with zero publications. Selected Windows/Linux x64 qualification lanes remain obligations, not results supplied by this draft. Type Manager retains the supported framework-dependent, untrimmed .NET 10 conventional-build/folder-publish profile; no AOT, single-file, self-contained, arbitrary-load-context or new MSBuild host support is inferred. Applications own restart/recovery. Generated output and ephemeral remote scratch are not protected evidence custody.
+
+#### Quality and verification architecture
+
+Preserve the five native MSTest/VSTest families and meaningful architecture/consumer/behavior assertions. Ordinary regression excludes `PerformanceObservation` and `ExtendedStress`. Existing release coverage, conservative branch/mutation, child activation, compatibility, platform/package/business and performance obligations retain their original scope/status. The proposed demonstration would prove only the existing selected two DataRows, their native report, settlement and unchanged-result reuse; it would run no broader qualification.
+
+#### UI design handoff
+
+Proposed exact scope: **No user-facing UI**. Library APIs, health-reporting HTTP, local pipe/probe and developer tools are not graphical surfaces. Record that decision through the native questionnaire and approve its resulting short direction; request no screen, framework, visual token, image or preview work.
+
+#### Traceability
+
+Bind the product BRD registration and technical-intent registration to actual accepted canonical versions before adoption. Existing references are `README.md`, `planning/decisions.md`, architecture dependency/ownership/layout policies, Logging contracts, Type Manager definition/build README and Healthcheck definition/technical intent/contract catalogue/addenda. The draft's proposed `TI-MOD-*`/`TI-INT-*` labels must be reconciled to native retained/assigned identities; they are not installed canonical identities.
+
+#### Design decisions and accepted exceptions
+
+Retain the existing one-Core-package decision, approved Microsoft runtime closure including ASP.NET in Core, application-owned lifecycle, Type Manager build assets, native MSTest/IDE workflow and no CIS runtime dependency. This proposal grants no new exception or approval and closes no future-scope or release gap.
+
+### Paired component-sheet proposal — unapproved
+
+#### Component catalogue
+
+| Proposed identity | Responsibility/ownership and business mapping | Explicit exclusions |
+| --- | --- | --- |
+| `TI-MOD-LOGGING` | Core `CIS.Logging`/`CIS.Logging.MicrosoftLogger` and existing environment identity/options; bounded capture, frontend/backend processing, writers and lifecycle observations; proposed `CIS-BR-002/003` | Application lifecycle, deployment recovery, collector SDK, durable business-audit store or new global startup/reset framework. |
+| `TI-MOD-TYPE-MANAGEMENT` | Core `CIS.TypeManagement`; prepared CLR identity/membership and cached queries; proposed `CIS-BR-004` | Constructing application/configuration objects, DI registration, dynamic plugins or arbitrary load contexts. |
+| `TI-MOD-HEALTHCHECK` | Core `CIS.Healthcheck`; monitor policy/state, snapshots, safe collection/execution-fact binding, formatter and HTTP/pipe integration; proposed `CIS-BR-005/006` | Business callback execution policy, Heartbeat scheduling, generic startup provider, restart decisions or forced termination. |
+| `TI-MOD-TYPE-INVENTORY-BUILD` | `CIS.TypeManager.Build`, packaged SDK/targets and generated inventory contract; genuine build-only asset inside Core package; proposed `CIS-BR-004/007` | Runtime application dependency/instantiation, test campaign engine, deployment orchestration or unsupported publish profiles. |
+
+#### Component responsibility profiles
+
+Logging captures detached bounded values and reports lifecycle/output facts separately; preserve 64 KiB entry default, known overrides, bounded identity interning and documented scope/resource-transfer limits. Type Manager fixes trusted prepared definitions and cached mappings without rescanning/constructing application objects. Healthcheck owns state and actual owner leases; reporting never mutates health and empty Healthy does not certify startup. The inventory helper inspects SDK-resolved deployed metadata, generates the host inventory and retains supported build/publish/clean errors.
+
+#### Component interaction catalogue
+
+Proposed links are application/ILogger→Logging (`TI-INT-LOGGING-APPLICATION`), host build→inventory helper→Type Manager (`TI-INT-TYPE-INVENTORY`), application/collector/fact producer→Healthcheck (`TI-INT-HEALTH-APPLICATION`), and snapshot→formatter→HTTP/pipe→consumer (`TI-INT-HEALTH-REPORT`). Each preserves the existing direction, contract, trust, compatibility, bounded failure and verification expectations; final identities come from actual TI adoption rather than a second contract registry.
+
+#### Ownership rules
+
+Keep existing module owners for mutable state/contracts, host ownership for global lifecycle/resources, detached public observations where promised and no reverse dependency merely because modules share an assembly. Tests/tooling/CIS stay outside runtime closure. Examples/probe remain consumers. Splitting modules/packages or implementing future specifications requires separate direction.
+
+#### Component-specific notes and accepted exceptions
+
+Approved ASP.NET integration remains in Core while Healthcheck policy/state stays independent of HTTP implementation types. The Type Manager helper is necessary build machinery. No new exception or approval is asserted. Whole-bundle source and approval hashes must come from supported CIS preparation after actual TI acceptance.
+
+### No-visual-UI direction proposal — unapproved
+
+#### UI applicability
+
+Proposed `UI-Q-001` answer: **No user-facing UI**. Visual questions, graphical screens, shell/navigation, tokens, typography, imagery, responsive layouts and previews do not apply to this product/adoption scope. Logging's incoming frontend is an event-processing stage. Existing API/wire/content/access/operational requirements remain applicable.
+
+#### Constraints and exclusions
+
+Implement no frontend package, brand decision or visual artifact to pass foundation setup. A later graphical surface requires a new scope decision and applicable technical/architecture/UI review. Missing frontend code alone is not acceptance of this proposal.
+
+#### Traceability
+
+Use the accepted product surface and solution bundle with the current native questionnaire. An already resolved `TI-Q-002` answer exactly `No user-facing UI` can derive `UI-Q-001`; otherwise record that exact genuinely authorized answer through `ui-direction questions answer`. Supported no-UI generation supplies `visual_ui:false`, actual solution/questionnaire hashes and `not-applicable` guideline/framework hashes without installing visual profiles.
+
+#### UI-specific decisions and accepted exceptions
+
+No visual UI is the only proposed UI decision. No additional brand/layout/accessibility-screen exception is invented. The generated direction still requires review and explicit approval; proposal text is not that record.
+
+### One bounded adoption task — draft contract, no canonical identity
+
+| Field | Prepared proposal |
+| --- | --- |
+| Title/outcome | Execute the existing HealthDiagnostic unit slice through CIS, admit its native report, settle ownership and prove unchanged reuse. |
+| Identity/status | Proposed logical label `adoption-native-unit`; actual change/task IDs and canonical task path remain unassigned. Draft/unapproved, not Ready/InProgress/Complete. |
+| Authority/owner/target | Existing `cislib` authority; sole target `cislib`; one task owner. Actual original allocation authority and delegated controller must be explicitly confirmed; no model/provider/Git username is treated as authority. |
+| Category/complexity | Low-complexity configuration/native verification, without a new product feature or broader feature-pack workstreams. |
+| Required changes | Preserve minimal import/native workflow; establish legitimate owner and allocation; finalize current material inputs/graph; use the compatible prepared local profile; execute one unit-only invocation; admit real TRX; settle; inspect unchanged status/inventory; update this handoff. |
+| Required outputs | Retained actual TRX and native CIS result/input/owner association; settled execution/storage references; read-only current/zero-pending unit result and owned inventory; exact commands/outcomes in existing handoff. |
+| Constraints/exclusions | Preserve Core behavior, public contracts, assertions, package/dependency/toolchain pins. No CIS implementation, product feature, coverage/mutation/pilot/canary/stress/release campaign, deliberate variant, replacement collector/archive or unrelated module. |
+| Source/impact | Current goal, product decisions, prepared profile and actual HealthDiagnostic/test/config/tool inputs. Fill precise graph roots and impact IDs only from fresh native analysis. |
+| Dependencies/gates | Accepted current foundations; fresh graph; real change; dispositioned impacts; actual durable canonical task and approved current plan; supported accounting first use; finite allocation; eligible native task and valid inherited parent if present. |
+| Acceptance 1 | Existing `HealthDiagnosticRuntimeAcceptanceBoundaryTests.ValidCallerIdentifiersAndRuntimeExceptionProjectionProduceADetachedDiagnostic` executes its expected two Boolean DataRows, with 2 passed / 0 failed / 0 skipped at the reviewed baseline. |
+| Acceptance 2 | CIS parses/accepts the nonempty real TRX against current declared inputs and exact canonical work association; discovery/process exit alone is insufficient. |
+| Acceptance 3 | Native time and storage settle with no unresolved reservation/recovery state for that execution; necessary current evidence remains protected and owned. |
+| Acceptance 4 | Inputs remain unchanged; read-only plan/status reports current unit result, zero pending unit batches and complete declared unit slice. No second native run is used just to prove reuse. |
+| Acceptance 5 | Associated artifact inventory reports owned/accounted evidence and finite remaining capacity; historical passes and other test families retain their actual scope/status. |
+| Targeted validation | Current strict profile/suite checks and fresh graph; incremental run explicitly `--layer unit`, never `--force`; ordinary category exclusions retained. Inspect real parsed two-case TRX, input digest, work/storage settlement, then only plan/status/inventory. |
+| Review/evidence | Independent review is advisory, not approval. Retain criterion/command/actual path/result/owner association in this handoff; do not replace missing evidence with a model success claim. |
+| Deferrals/residual risk | Other families remain configured/unverified through CIS; broader release obligations remain open. If native evidence is valid but settlement fails, reconcile that exact execution through supported controls instead of rerunning automatically. |
+
+### Proposed finite allocation — awaiting actual authority and supported entry
+
+| Term | Exact proposed value/effect |
+| --- | --- |
+| Containing change | 1,200 active seconds, 3 logical attempts, 120 seconds restoration reserve. |
+| Single task | 900 active seconds, 2 logical attempts, 120 seconds restoration reserve; fixed limit, no redistribution. |
+| Capacity | Before measured consumption/reservations: 1,080 ordinary change seconds and 780 ordinary task seconds; 180 change seconds beyond task + outer reserve and 1 outer attempt remain unassigned. These are estimates for remaining admitted preparation/execution/report settlement, not retroactive zero-cost history. |
+| Storage | 6 GiB = `6,442,450,944` regular-file bytes total, including existing declared cache/output; 64 MiB = `67,108,864` restoration bytes. Profile caps remain tighter: 128 MiB per run and 256 MiB retained; they allocate nothing themselves. |
+| Measured basis | Existing nine proposed roots contain `4,596,330,147` bytes; UnitTests/bin alone `4,236,769,799` bytes. A 2 GiB proposal cannot fit this existing state and is rejected. 6 GiB leaves `1,779,011,933` bytes after measured owned bytes and reserve, before pending claims/headroom; it is a proposed ceiling, not 6 GiB of necessary new growth. |
+| Decision/identity | Actual allocation actor, controller delegation, decision reference and storage-ceiling reference are pending explicit decision. Initial allocation acknowledges unknown historical effort and omits prior revision; updates require the actual revision and preserve consumption/history. |
+| Owned roots | `.cis/local` as owned CIS output; exact count-only scratch `bin`/`obj` under each of `implementations/csharp/src/CIS.Core`, `implementations/csharp/tests/CIS.Core.UnitTests`, `implementations/csharp/tests/CIS.Core.TestSupport`, `implementations/csharp/eng/CIS.TypeManager.Build`. All are in the actual authority repository. |
+| Cleanup scope | Only specifically delegated superseded disposable CIS output through existing controls. Preserve accounting/adoption/lock, current graph/profile/report and independent holds. Scratch inclusion counts bytes and grants no retention deletion authority; no old output is deleted by this proposal. |
+| Other work | Accounting adoption is authority-wide for supported routes. Siblings require their own canonical owner and finite capacity, or valid inherited ownership; this task allocates nothing to them and adopts no engineering-quality policy. |
+
+The current input schema already supports finite time/attempts/reserves, task flags, authority decision/storage references, controllers, historical-unknown acknowledgment and finite `storage` roots/cleanup controllers. It rejects unknown fields. Native admission includes declared writable roots so build growth is counted as well as the TRX. The actual payload can be finalized only with real canonical IDs/authority; no draft marker or proposed opt-in property is inserted into live accounting JSON. The supplied Ubuntu `/data` is ephemeral but is not a registered Windows-authority storage root or an allocation.
+
+### One compact CIS correction proposal — NOT IMPLEMENTED
+
+**Accounting entry:** extend the existing allocation boundary with explicit authorized accounting-only first use (a proposed name such as `--adopt-accounting` is not delivered CLI syntax). Change only the fresh-entry predicate in `AgentService.AllocateWork`; retain original-authority actor/reason/decision provenance and an explicit acknowledgment of authority-wide effect. Resolve real canonical owner/approved plan/dispositioned impacts and finite storage/time through existing checks, then reuse the existing `AgentWorkLedger.Allocate` transaction and ledger/adoption/lock. Write adoption and allocation atomically; no second store. Reject reset of corrupt/missing adopted state or historical governed-run references. Existing revisions, consumption, reservations, attempts, reserves, history, inherited parents and independent holds remain binding.
+
+**Proportional canonical owner:** let the existing ad-hoc `plan build` materialize durable catalogue-linked task documents for its bounded accepted rows, retaining scope, exclusions, acceptance/validation, identities and authored evidence. No feature specification or mandatory coordination/documentation/assurance/delivery feature pack should be necessary merely to obtain this configuration task's owner. Current `plan import-spec` does create durable tasks but unconditionally includes broader feature workstreams; it is not used as a workaround. Preserve normal plan/impact/task approval and eligibility, user edits, unchanged rebuilds and the approved-plan rewrite prohibition.
+
+**Quality-policy separation:** neither operation installs/reconciles full starters nor writes/enables `requireTaskCompletion:true`, engineering-adoption history, coverage/mutation thresholds or completion-quality gates. Installing a provider profile remains insufficient authority. Accounting adoption affects sibling supported direct/story/native routes, not product behavior or approval state.
+
+**Focused validation:** authorized fresh accounting-only adoption against a real approved owner succeeds; absent explicit authority, missing/ambiguous/unsafe owner, unapproved/stale plan, proposed impacts and invalid bounds/roots reject before writes. Engineering-policy bytes/applicability remain unchanged; sibling unallocated work holds; existing accounting update/revision/consumption/reservation/history and corrupt-state behavior remain. Ad-hoc task materialization yields an actual linked document without unrelated workstreams, preserves author edits/identity/evidence and leaves feature import behavior unchanged. Implement this separately in CIS only after a specific correction decision; this continuation makes no CIS product change.
+
+### Exact staged decisions and subsequent operations
+
+1. Review the actual supplied BRD registration and its source assessment. Record the human's chosen assessment and rationale through `brd sources assess` with the current token, then validate. Only when ready, request approval of that exact canonical mapping through `brd approve --reviewer <actual-human> --reason <actual-decision>`; existing source acceptance does not approve it automatically. Rebuild graph as required.
+2. Reconcile the supplied TI against that actual accepted BRD; preserve interpreted source facts and resolve only reported necessary new choices with the real human identity/decision. Validate and approve the exact current TI. This approval cannot precede its final upstream-bound payload.
+3. Initialize/refine the native solution/component bundle from the accepted TI, incorporating the substantive content above and actual identities; validate both and obtain one exact whole-bundle approval. Draft approval now cannot cover a later unknown hash-bound bundle.
+4. Preserve an already authorized exact no-UI answer or record the explicit actual answer through the supported questionnaire; generate/validate the short no-UI direction and approve its actual payload. No screens or visual profiles are part of that decision.
+5. Separately authorize the narrowly specified CIS corrections above, or supply a legitimate already-supported canonical owner/accounting route from a verified descendant. No source/quality/approval gate may be waived to simulate support; this goal does not implement those corrections.
+6. After current foundations and supported task materialization exist, create the bounded adoption change, analyze precise roots, disposition actual impacts, prepare the one actual canonical task and validate/approve its current plan. Present actual findings/IDs/payload before requesting their new decisions; do not promise one blanket approval across unavailable downstream records.
+7. Finalize the finite allocation with the actual original authority/controller/decision/storage references and scope acknowledgment, through supported first-use controls. Confirm current owner, remaining time/attempt/storage and inherited parent before admission. Broader engineering-quality adoption is excluded.
+8. Execute the unchanged prepared selection once through the verified CIS host with actual association and explicit `--layer unit`; admit the two-case TRX and settle. Then inspect only read-only incremental plan/status and associated artifact inventory. Close step 1 only when current native result, zero pending unit work and settled owned output all pass; otherwise retain the exact missing decision/result and keep it open.
+
+### Actual continuation evidence and remaining first decision
+
+The verified host remains `0.3.0+1eab89f68c635513a20bca8aa1a7ce6ae02cb8e5`, SHA-256 `e2cd83872c92bd41e38cd36a81dd006edfe154be57ef604552255bd2d3ec3cf9`; its source is clean at that revision. No host rebuild was necessary. CISLIB started clean at the reviewed pushed `f05b02c0` and retains the same minimal import, workspace/repository identity, product source, assertions, packages and native toolchain. There is no inherited `CIS_WORK_*` context or canonical change/task.
+
+These supported operations were actually applied; `cis` is the verified invocation in README:
+
+```text
+cis definition documents --workspace . --role business --path docs/specs/business-requirements.md --format json
+cis brd reconcile --workspace . --format json
+cis definition documents --workspace . --role technical --path docs/specs/technical-intent-spec.md --format json
+cis graph build --repo . --format json
+cis brd validate --workspace . --format json
+cis docs validate --repo . --strict --format agent
+cis definition status --workspace . --format json
+```
+
+Both document selections returned `loaded`, `applied=true`, no errors. BRD reconciliation returned `review-required`, `applied=true`; its source/body was preserved while CIS wrote real identity/evidence and null approval fields. The final BRD validation returned **exit 5, current=true, Review Required, no content issues or unanswered question rows**. Its only two errors require the assessment and rationale for the same actual source below. The initial authoring draft used an unrecognized table heading and allowed the managed source row's `TODO` rationale to fall under Open questions; the Requirement heading and separate registration section corrected these formatting issues without changing product scope or the managed evidence. Strict documentation validation now passes for **52 documents/entries, zero warnings/errors**.
+
+| Exact source-review field | Current value / concrete decision |
+| --- | --- |
+| ID/path | `BRD-SRC-77aaeee8b0d1`; `planning/logging/priority-spool/brd-v1.2.md` |
+| Content hash | `sha256:1cb6b678d7ea252075ca6cb90a0125df33557c31fb956cf9357475ce5fa36477` |
+| Review token | `sha256:562990f0eeb1796c9324efc0a3aca525250840bb677b0681241d40db3082b0b7`; re-read current status before saving a decision |
+| Assessment/rationale | Native `Unreviewed` / `TODO`; no human disposition has been selected or recorded. |
+| Review context | This original Logging incoming-frontend BRD supplies retained behavior, while its October implementation-status and task instructions are superseded by current decisions/cleanup. The product draft maps it through S04 and `CIS-BR-003`; retain the original and distinguish that source role from current implementation or qualification. |
+| Operation after the actual human decision | `brd sources assess --input <reviewed-array.json> --workspace . --format json`; the array uses `id`, the chosen `assessment`, substantive `reason` and current `reviewToken`. This saves source decisions, not BRD approval. Validate before requesting approval of the actual current BRD. |
+
+The TI is a **selected, substantive working draft**, not an imported/current canonical TI. Its explicit component ownership table is source content, not assigned managed identities. Ordinary `technical-intent init` needs the accepted BRD and can then supply actual scope/schema/baseline/approval metadata. The coordinator's review-only `definition prepare --page technical` can import drafts earlier, but also invokes preparation across fifteen observed-reference families and can include placeholder-only dictionaries. That broader inventory preparation is unnecessary for this supplied-document mapping and was not run; no empty dictionaries or visual artifacts were published. Full TI/module/questionnaire/baseline validation remains conditional, not passed by generic document validation.
+
+The missing first-use capability is confirmed at the actual [allocation entry](https://github.com/andrewspiteri/CIS/blob/1eab89f68c635513a20bca8aa1a7ce6ae02cb8e5/src/Cis.Modules.Agent/AgentService.WorkControl.cs#L12-L23); the distinct task gap is in [ad-hoc plan construction](https://github.com/andrewspiteri/CIS/blob/1eab89f68c635513a20bca8aa1a7ce6ae02cb8e5/src/Cis.Modules.Plan/PlanningService.cs#L64-L114). No allocation or known-rejected change creation was retried. Do not present the proposed accounting option as installed syntax or use a feature pack merely to manufacture an owner.
+
+Ubuntu readiness was inspected over the authorized LAN connection without transferring a repository or running a build/test. `/data` had zero available bytes; installed SDK/runtime were `10.0.301` / `10.0.9`, rather than CISLIB's `10.0.401` / `10.0.12`. The user explicitly permits deleting `/data` contents when required. No cleanup or installation was needed while native execution remains blocked, so neither was performed. Future required builds may use a bounded disposable `/data` directory after exact toolchain provisioning; raw remote output is outside this Windows authority's supported accounting and cannot substitute for the governed local demonstration. Credentials and connection details are not retained here.
+
+`cis generate` is not applicable: this continuation maps existing requirements and prepares development-governance records; it generates no product implementation. Historical cleanup results remain historical. There is still no governed native run ID, accepted adoption TRX, settlement or reuse receipt; other native families and all release obligations retain their previous status.
+
+| Final read-only/setup check | Actual result |
+| --- | --- |
+| Graph build/status | Exit 0; fresh graph, 19,278 nodes / 73,261 edges, no diagnostics; build `sha256:f7e29faef000f501b85ebcc9d532877451c8a672e6d0dac34b5523c8ac0e9c30`. |
+| Unchanged local profile | SHA-256 remains `1c36079948f05414698317527c72591140f2b46cdffa17cfb0f6e86d4fed02e4`; installation-specific paths stay ignored. |
+| Incremental plan/status | Both exit 0 with no diagnostics; `pendingUnitBatches=1`, `pendingMutationBatches=0`, `executedUnitBatches=0`, `reusedUnitBatches=0`, batch `unitCurrent=false`, `scopeComplete=false`, `qualified=false`; `workCoverage=unaccounted-non-adopted`. |
+| Artifact inventory | Exit 0; `ownedStorage.status=unaccounted`, no legitimate allocation association. A successful non-adopted inventory is not settled ownership. Proposed remaining bytes above are estimates, not current capacity. |
+| Product/native scope | No implementation, assertion, package/runtime pin, source requirement, existing decision, workspace identity or native profile changed; no CISLIB build/test ran on either host. |
+| Review | Source-aware Codex review checked current decisions, cited product sources, selected test and CIS entry/task code; no material finding remained. A separate context-limited reader correctly identified the outstanding source decision, conditional baseline/task/allocation, sibling effects and zero execution/reuse. Three wording clarifications were applied. This is model-assisted review, not human approval. |
+
+The final native read-only commands were `graph status`, `test incremental plan`, `test incremental status` and `artifacts inventory`, with `--repo . --format json` and the same local `--profile` on both incremental commands. Their actual JSON is retained under ignored `.cis/local/adoption-continuation/`; no execution ID or report was fabricated. Existing feedback records preserve command usage.
+
+The requested external Claude review has not run: automatic approval review rejected sending the selected drafts to Anthropic without payload-specific disclosure authorization. A request identifying the BRD, TI, this continuation section and current decisions is awaiting the user's choice. No document or credential was transmitted by that rejected action. This does not alter the independent source-review result or supply any canonical approval.

@@ -40,7 +40,7 @@ A local development package is not a published release. Scoped checks and curren
 
 `contracts/` and `conformance/` hold portable specifications and behavioral fixtures. C# source, tests, examples and build assets live under `implementations/csharp/`. `planning/` retains authoritative definitions and concise decisions; historical campaign payloads are available only where Git history still contains them. Existing historical reports establish no current acceptance claim.
 
-Minimal CIS import is installed alongside the native workflow. The governed unit demonstration and unchanged-result reuse still require a legitimate approved adoption task and finite work/storage allocation; this setup alone does not complete CIS adoption. See the [prepared adoption handoff](planning/cis/cleanup-disposition.md#minimal-cis-adoption-preparation--9-november-2026) for the actual governance blocker. Later languages and modules remain specifications rather than active scaffolding.
+Minimal CIS import is installed alongside the native workflow. The [product BRD](docs/specs/business-requirements.md) is registered for review and the [technical-intent draft](docs/specs/technical-intent-spec.md) is selected as working input. They map existing requirements and do not approve them. The governed unit demonstration remains open: current CIS also lacks proportional canonical task creation and explicit first-use accounting for this minimal repository. The [continuation decision package](planning/cis/cleanup-disposition.md#adoption-continuation-decision-package--10-november-2026) contains the downstream drafts, bounded task, allocation and precise correction proposal. Later languages and modules remain specifications rather than active scaffolding.
 
 ## CIS commands
 
@@ -50,6 +50,8 @@ From the repository root:
 
 ```text
 cis repo doctor --repo . --root docs --format agent
+cis definition status --workspace . --format json
+cis brd validate --workspace . --format json
 cis change list --repo . --format json
 cis technical-intent status --workspace . --format json
 cis test inventory --repo . --format agent
@@ -60,6 +62,6 @@ cis test incremental status --repo . --profile .cis/local/testing/profiles/healt
 
 The current ignored local profile selects two existing `HealthDiagnosticRuntimeAcceptanceBoundaryTests` cases covering real Unicode sanitization and explicit-message projection. It pins this installation's absolute executable/tool paths locally; on another installation, create a complete local profile using the reviewed CIS schema and actual tools. Other suites are configured and unverified through CIS. The canonical [suite bindings](docs/references/test-suite-profile.md) do not turn fixtures/examples into independent product modules.
 
-`change list` and `technical-intent status` locate existing work and expose the current foundation prerequisite; their absence is not permission to invent approvals. Only after a legitimate approved change/task association and finite allocation exist, use `cis test incremental run` with this profile, **`--layer unit`**, the real `--change`, `--task`, `--authority`, and authorized `--actor`, preserving any inherited `--parent-execution`. Do not use `--force`. Then inspect read-only plan/status for current results and zero pending unit work, and `cis artifacts inventory` with that same association. Profile limits do not allocate work; absent governance must be resolved through its owning authority rather than an unaccounted diagnostic run. Security, standards and optional capability setup remain explicit follow-up work; no full starter reconciliation or release qualification is implied.
+`definition status` preserves selected working direction separately from approved product records. `brd validate` exposes the actual source assessment needed before approval. `change list` and `technical-intent status` locate current work and foundation state. Follow the staged decisions in the handoff; no actor, task ID or approval may be inferred. Only after a legitimate approved change/task association and supported finite allocation exist, use `cis test incremental run` with this profile, **`--layer unit`**, the real `--change`, `--task`, `--authority`, and authorized `--actor`, preserving any inherited `--parent-execution`. Do not use `--force`. Then inspect read-only plan/status for current results and zero pending unit work, and `cis artifacts inventory` with that same association. Profile limits do not allocate work. Security, standards and optional capability setup remain explicit follow-up work; no full starter reconciliation or release qualification is implied.
 
 CisLib uses the [MIT License](LICENSE.md). Andrew Spiteri maintains the official [repository](https://github.com/andrewspiteri/CISLIB); external contributions and publication are governed by [maintenance policy](CONTRIBUTING.md).
