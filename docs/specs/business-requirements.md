@@ -16,7 +16,7 @@ cis:
 
 # CISLIB product business requirements
 
-This unapproved proposal maps existing CISLIB requirements and current decisions at reviewed revision `f05b02c0c4967bfee2aabb1f4140709923ad5d3a` into a product-level baseline for canonical registration. It proposes no new feature, product acceptance, release claim or replacement of the source documents. The current explicit user decisions and `planning/decisions.md` take precedence over superseded names, package splits and historical task instructions in those sources. Human review of this exact mapping and CIS approval records remain outstanding.
+This registration document maps existing CISLIB requirements and current decisions at reviewed revision `f05b02c0c4967bfee2aabb1f4140709923ad5d3a` into a product-level baseline. It proposes no new feature, product acceptance, release claim or replacement of the source documents. The current explicit user decisions and `planning/decisions.md` take precedence over superseded names, package splits and historical task instructions in those sources. Canonical approval is recorded separately through supported CIS controls in the document metadata.
 
 ## Executive summary
 
@@ -115,7 +115,7 @@ These are source mappings for review, not human `Adopted`/`Reference`/`Rejected`
 
 This mapping introduces no proposed answer to an unresolved product decision. The maintainer must review whether the transfer faithfully captures the existing baseline and whether source dispositions and canonical adoption are appropriate. Publication destination, signing/distribution and final supported API/behaviour baseline remain open before first publication as already recorded in S01; they are not silently answered or newly required feature work for this bounded internal adoption check.
 
-Human approval of the exact canonical payload and its source assessments is pending. The separate first-use accounting capability and work-allocation decision remain in the adoption handoff; neither is a new library feature or an approval supplied by this document.
+Canonical product-baseline approval, source assessment and native work allocation are distinct records. The authorized retained Logging source assessment is recorded below; CIS accounting capabilities are delivered separately. This document grants no implementation, execution, release or allocation authority.
 
 
 ## Canonical registration
@@ -142,6 +142,6 @@ The following CIS-managed evidence records source review separately from the pro
 <!-- cis:brd-evidence
 | ID | Type | Repository | Path | Hash | Assessment | Rationale |
 | --- | --- | --- | --- | --- | --- | --- |
-| BRD-SRC-77aaeee8b0d1 | business-requirements | cislib | planning/logging/priority-spool/brd-v1.2.md | sha256:1cb6b678d7ea252075ca6cb90a0125df33557c31fb956cf9357475ce5fa36477 | Unreviewed | TODO |
+| BRD-SRC-77aaeee8b0d1 | business-requirements | cislib | planning/logging/priority-spool/brd-v1.2.md | sha256:1cb6b678d7ea252075ca6cb90a0125df33557c31fb956cf9357475ce5fa36477 | Adopted | Retain its Logging frontend requirements; historical October implementation status, task sequencing and execution authorization are superseded by current decisions. |
 -->
 <!-- cis:sources:end -->

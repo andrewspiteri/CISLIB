@@ -434,6 +434,8 @@ After these edits, strict documentation validation still passes for 52 entries/d
 
 **Parts A and B are implemented; CISLIB's governed demonstration remains open.** This record supersedes the earlier capability/host stopping points, while preserving their historical evidence. The existing allocation proposal above is unchanged and remains a proposal.
 
+The source-review stopping point below was subsequently resolved in [Logging source assessment recorded](#logging-source-assessment-recorded--canonical-brd-decision).
+
 CIS branch: `codex/minimal-accounting-ad-hoc-tasks-2026-11-10`. Part A is [fa38a103](https://github.com/andrewspiteri/CIS/commit/fa38a103a125eaecef2d720de83a176df9520ae9); Part B is [440b5b96](https://github.com/andrewspiteri/CIS/commit/440b5b96f057ce34337bd1ec4a4d82481ea912b6), with bounded review corrections in [30ebacaf](https://github.com/andrewspiteri/CIS/commit/30ebacafcc0e97e2f62ac3da64eca1a7fa91d75c). All three commits are pushed; neither repository was merged or released.
 
 Part A changed `AgentModule.Work.cs`, `AgentService.WorkControl.cs`, `AgentWorkAccountingAdoptionTests.cs`, the work manual and agent-execution skill. Part B changed `PlanningService.cs`, its ad hoc partial, `AdHocPlanningTests.cs`, `FeatureRetirementPreflightTests.cs`, the plan-build manual and bounded-planning skill. Existing task contracts, catalogue and ledger stores remain the canonical machinery.
@@ -459,14 +461,34 @@ Claude reviewed only the publicly accessible CIS diff from `1eab89f` to `440b5b9
 
 The corrected host was built on Ubuntu with SDK `10.0.403`, delivered as 257 portable files / 82,598,013 bytes and verified on Windows. Its version at this checkpoint is `0.3.0+30ebacafcc0e97e2f62ac3da64eca1a7fa91d75c`; verified host SHA-256 is `37d798df581db6f6c4c6bec0f061e9c52041e2435826d58a378d12dbc5cff1a2`, and its Plan module SHA-256 is `4f072d6dc2ec41cc379d2c47e6ceeefd0a7fd4804f583d38596bb96d0953bab3`. This is a CIS producer toolchain, not a retargeting of CISLIB's SDK `10.0.401` or .NET/ASP.NET `10.0.12` pins. Further calls must use the corrected verified host, not the old `1eab89f` executable.
 
-With that host, CISLIB BRD status is current and still has only the two source-assessment/rationale errors for `BRD-SRC-77aaeee8b0d1`. The actual source is `planning/logging/priority-spool/brd-v1.2.md`, SHA-256 `1cb6b678d7ea252075ca6cb90a0125df33557c31fb956cf9357475ce5fa36477`. Its current review token remains `sha256:562990f0eeb1796c9324efc0a3aca525250840bb677b0681241d40db3082b0b7`.
+At this checkpoint, CISLIB BRD status was current and had only the two source-assessment/rationale errors for `BRD-SRC-77aaeee8b0d1`. The actual source was `planning/logging/priority-spool/brd-v1.2.md`, SHA-256 `1cb6b678d7ea252075ca6cb90a0125df33557c31fb956cf9357475ce5fa36477`. Its review token was `sha256:562990f0eeb1796c9324efc0a3aca525250840bb677b0681241d40db3082b0b7`.
 
-The concrete request is prepared, **not applied**, at `.cis/local/adoption-continuation/cis-corrections/source-assessment-proposed.json`:
+The concrete request was prepared, **not yet applied at that checkpoint**, at `.cis/local/adoption-continuation/cis-corrections/source-assessment-proposed.json`:
 
 ```json
 [{"id":"BRD-SRC-77aaeee8b0d1","assessment":"Adopted","reason":"Retain its Logging frontend requirements; historical October implementation status, task sequencing and execution authorization are superseded by current decisions.","reviewToken":"sha256:562990f0eeb1796c9324efc0a3aca525250840bb677b0681241d40db3082b0b7"}]
 ```
 
-The specific source-assessment authorization and identity question is pending. No human BRD approval, reviewer identity, controller delegation or resource allocation is inferred. Once that exact assessment is authorized, save it through `cis brd sources assess --input <prepared-file> --workspace . --format json`, then validate and present the actual resulting BRD payload for any genuinely missing approval. Ordinary TI intake and the existing solution/no-UI drafts can then follow their actual upstream approvals; preserve accepted-document derivation of the settled no-UI fact.
+The specific source-assessment authorization and identity questions were pending at that checkpoint and are resolved below. Canonical BRD approval, controller delegation and resource allocation remain distinct decisions. Ordinary TI intake and the existing solution/no-UI drafts can follow their actual upstream approvals; preserve accepted-document derivation of the settled no-UI fact.
 
 Corrected-host incremental plan/status and artifact inventory all return exit 0, but still show **one pending unit batch, zero executed/reused, and unaccounted output**. The local profile is unchanged and the selected class's two Boolean DataRows were rechecked. No CISLIB build/test or native result admission/settlement occurred. At 12:16 UTC on 10 November, the nine proposed regular-file roots measured `4,596,873,608` bytes, including `4,236,769,799` bytes under UnitTests/bin; this is a proposal measurement, not allocated capacity. Confirm actual owned bytes, reservations, authority/controller and decision references before allocating; profile limits and prior campaign allowances grant no capacity.
+
+## Logging source assessment recorded — canonical BRD decision
+
+On 10 November 2026, the user explicitly approved recording `BRD-SRC-77aaeee8b0d1` as **Adopted** and confirmed **Andrew Spiteri** as the human name for approvals explicitly authorized by the user. This establishes the recorded source decision and reviewer identity; canonical baseline approval and controller/allocation authority remain separate.
+
+The verified CIS host `0.3.0+30ebacafcc0e97e2f62ac3da64eca1a7fa91d75c` refreshed `brd status`, confirmed the exact source path/hash and current token shown above, and ran:
+
+```text
+cis brd sources assess --input .cis/local/adoption-continuation/source-assessment-approved/assessment.json --workspace . --format json
+```
+
+CIS returned `saved`, `applied=true`, exit 0, no errors/warnings. The recorded rationale is exactly: “Retain its Logging frontend requirements; historical October implementation status, task sequencing and execution authorization are superseded by current decisions.” The operation has no actor option; the human authorization is preserved here rather than invented as a native approval field.
+
+The requirements and source mapping remain unchanged. Two surrounding status paragraphs now distinguish canonical approval, source assessment and allocation, and point to native metadata for approval state. They no longer claim that the now-recorded source decision is pending. Source-aware independent review found no product-mapping blocker; the prior content review remains applicable to the retained requirements.
+
+The final review payload is `docs/specs/business-requirements.md`, SHA-256 `b345befc6cd1f201703a5bc01271023f005739ae54830f33117e12d9181a948d`. Native BRD validation reports **valid/current, Ready for Approval, zero errors, zero content issues and zero unanswered questions**. Its 43 nonblocking discovery warnings identify 15,209 symbol/test nodes without confirmed component ownership and 42 existing documents with unregistered `unknown` lifecycle metadata. These warnings remain visible; this registration does not assign component identities or adopt broader metadata policy merely to suppress them.
+
+The specific remaining decision is approval of that exact canonical product-requirement mapping as Andrew Spiteri. Proposed recorded reason: “Approve this mapping of retained CISLIB requirements and current decisions for canonical CIS registration.” The supported next operation is `brd approve --reviewer "Andrew Spiteri" --reason <the explicitly authorized reason> --workspace . --format json`. Immediately before applying an approval, recheck the exact reviewed file hash and current validation; let CIS compute its own approval digest. No BRD approval is recorded yet.
+
+Actual operation/validation JSON is retained under ignored `.cis/local/adoption-continuation/source-assessment-approved/`. No technical-intent approval, solution/UI approval, canonical work owner, allocation, native test execution or settlement is inferred from this source assessment. The proposed time/attempt/storage terms above remain unchanged.
