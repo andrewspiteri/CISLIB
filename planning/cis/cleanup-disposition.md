@@ -475,6 +475,8 @@ Corrected-host incremental plan/status and artifact inventory all return exit 0,
 
 ## Logging source assessment recorded — canonical BRD decision
 
+This checkpoint's canonical BRD decision was subsequently authorized and recorded in [Canonical BRD approved](#canonical-brd-approved--technical-intent-decision).
+
 On 10 November 2026, the user explicitly approved recording `BRD-SRC-77aaeee8b0d1` as **Adopted** and confirmed **Andrew Spiteri** as the human name for approvals explicitly authorized by the user. This establishes the recorded source decision and reviewer identity; canonical baseline approval and controller/allocation authority remain separate.
 
 The verified CIS host `0.3.0+30ebacafcc0e97e2f62ac3da64eca1a7fa91d75c` refreshed `brd status`, confirmed the exact source path/hash and current token shown above, and ran:
@@ -489,6 +491,33 @@ The requirements and source mapping remain unchanged. Two surrounding status par
 
 The final review payload is `docs/specs/business-requirements.md`, SHA-256 `b345befc6cd1f201703a5bc01271023f005739ae54830f33117e12d9181a948d`. Native BRD validation reports **valid/current, Ready for Approval, zero errors, zero content issues and zero unanswered questions**. Its 43 nonblocking discovery warnings identify 15,209 symbol/test nodes without confirmed component ownership and 42 existing documents with unregistered `unknown` lifecycle metadata. These warnings remain visible; this registration does not assign component identities or adopt broader metadata policy merely to suppress them.
 
-The specific remaining decision is approval of that exact canonical product-requirement mapping as Andrew Spiteri. Proposed recorded reason: “Approve this mapping of retained CISLIB requirements and current decisions for canonical CIS registration.” The supported next operation is `brd approve --reviewer "Andrew Spiteri" --reason <the explicitly authorized reason> --workspace . --format json`. Immediately before applying an approval, recheck the exact reviewed file hash and current validation; let CIS compute its own approval digest. No BRD approval is recorded yet.
+The specific remaining decision at this checkpoint was approval of that exact canonical product-requirement mapping as Andrew Spiteri, with proposed reason: “Approve this mapping of retained CISLIB requirements and current decisions for canonical CIS registration.” That exact decision was subsequently authorized and applied below. The reviewed payload hash and current validation were checked immediately before the native approval; CIS computed its own approval digest.
 
 Actual operation/validation JSON is retained under ignored `.cis/local/adoption-continuation/source-assessment-approved/`. No technical-intent approval, solution/UI approval, canonical work owner, allocation, native test execution or settlement is inferred from this source assessment. The proposed time/attempt/storage terms above remain unchanged.
+
+## Canonical BRD approved — technical intent decision
+
+The user explicitly approved the exact canonical BRD published at `eb870e250ec6a31e2c8612078f53b7fecbc27ede`, file SHA-256 `b345befc6cd1f201703a5bc01271023f005739ae54830f33117e12d9181a948d`, as **Andrew Spiteri** with the exact reason above. The verified CIS host rechecked that hash and valid/current native validation immediately before running:
+
+```text
+cis brd approve --reviewer "Andrew Spiteri" --reason "Approve this mapping of retained CISLIB requirements and current decisions for canonical CIS registration." --workspace . --format json
+cis graph build --repo . --format json
+cis brd status --workspace . --format json
+cis technical-intent init --workspace . --format json
+```
+
+Approval returned `approved`, `applied=true`, exit 0 and no errors. CIS recorded `approved_by: Andrew Spiteri`, approval time `2026-11-10T13:17:18.6806330+00:00`, the authorized reason and approved content digest `sha256:6190ff89fbcb18f0e009e516f8cd1bafa6855e5891713c66dbc9eed57e3bc5ce`. After graph refresh, the BRD was **Active, valid and current**. Its existing 43 nonblocking discovery warnings retain their scope from the preceding checkpoint.
+
+Ordinary technical-intent intake returned `initialized`, `applied=true`, exit 0 and no errors. It preserved the supplied narrative and created the supported schema-1 `cislib:spec:technical-intent`, `scope: Workspace`, a managed baseline bound to the actual approved BRD semantic digest, and null technical-intent approval fields. CIS retained the original selected document under ignored `.cis/local/document-import/4c2dc0c2c2e1efb823fc70464e02c1802c01f762354a2cce6e73637e42269008.md`. No full wizard, empty reference dictionaries or invented technical decisions were introduced.
+
+Seven factual/status paragraphs now refer to the actual Active BRD, native approval metadata and delivered CIS accounting/task capabilities. Independent review confirmed the native import preserved the supplied body and that these edits leave the product requirements, four-component ownership table, five-boundary integration table, dependency/toolchain pins, selected native filter and release constraints unchanged. The exact `No user-facing UI` source direction remains available for accepted-document derivation after technical-intent approval; no repeat human answer is requested or fabricated.
+
+The review payload is `docs/specs/technical-intent-spec.md`, SHA-256 `dd13a7bc1a52d82663e7113ac09be5ad65f1f3654d84eadc07412b345e9f4138`. After graph refresh, native technical-intent validation reports **valid/current, Ready for Approval, zero errors and no unresolved decision rows**. Its 15 existing classification warnings describe unverified conditional test/package declarations and fixture/example runner bindings; they do not turn those projects into product modules or establish any test qualification. Strict documentation validation still passes for 52 documents/entries.
+
+`graph validate --workspace . --strict --format json` returns **exit 5**: the graph is fresh and structurally readable with zero errors, but its 43 existing metadata warnings remain (15,209 symbol/test nodes without a confirmed component identity and 42 unregistered `unknown` document lifecycles). Current graph build is `sha256:eff0a9ff0e019ce4cfd8b028c337b492e1290cbc56f0dc11cd63deb92b4bd104`, 19,278 nodes / 73,261 edges. The TI's native approval readiness does not mean this separate strict graph gate passed. No component/lifecycle state was invented to suppress warnings; this checkpoint claims neither a complete governed workflow nor native/release qualification.
+
+The specific remaining decision is approval of that exact technical mapping as **Andrew Spiteri**. Proposed recorded reason: “Approve this technical mapping of the accepted CISLIB business baseline and retained implementation boundaries for canonical CIS registration.” The supported operation after that decision is `technical-intent approve --reviewer "Andrew Spiteri" --reason <the explicitly authorized reason> --workspace . --format json`. Recheck the exact file hash and current validation immediately beforehand; let CIS compute the actual approval digest. Technical-intent approval is not recorded yet.
+
+For the subsequent solution draft, native CIS interpretation supports the existing four-component table and supplies its own deterministic component identities. Compare the resulting requirement/integration links to the authored tables: the legacy table projection does not populate per-component requirement IDs, and its integration aliases omit the exact current API/integration heading. Preserve those supplied relationships in the actual bundle's permitted authored sections before presenting that bundle for approval. Do not invent module IDs or expand this supported legacy import into a new schema/framework solely for registration.
+
+Native receipts are retained under ignored `.cis/local/adoption-continuation/brd-approved-ti-intake/`. No solution/UI approval, canonical change/task/plan, controller delegation, work allocation, CISLIB build/test, native report admission or settlement was created by BRD approval or technical-intent preparation. The bounded demonstration and its proposed allowance remain open and unchanged.

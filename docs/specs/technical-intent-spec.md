@@ -1,19 +1,35 @@
 ---
 title: "CISLIB product technical intent — registration proposal"
 type: specification
-status: Draft
 owner: Repository maintainers
-last_reviewed: null
 review_cadence: on accepted product-direction change
+status: Draft
+scope: Workspace
+last_reviewed: null
+cis:
+  stable_id: cislib:spec:technical-intent
+  technical_intent_schema: 1
+  approved_by: null
+  approved_at: null
+  approval_reason: null
+  approved_content_hash: null
 ---
 
 # CISLIB product technical intent
 
-This unapproved proposal maps existing source direction and the cleaned implementation at reviewed revision `f05b02c0c4967bfee2aabb1f4140709923ad5d3a` into one product-level technical baseline. It does not alter accepted requirements, resolve new technical choices, certify release readiness or create human approval. The actual canonical BRD, imported technical direction, managed baselines and approval metadata must be established by supported CIS controls. Source paths below are relative to the CISLIB repository.
+This registration document maps existing source direction and the cleaned implementation at reviewed revision `f05b02c0c4967bfee2aabb1f4140709923ad5d3a` into one product-level technical baseline. It does not alter accepted requirements, resolve new technical choices or certify release readiness. Canonical technical-intent approval is recorded separately through supported CIS controls in the document metadata. Source paths below are relative to the CISLIB repository.
+
+## CIS technical baseline
+
+<!-- cis:technical-intent-baseline:start -->
+| Kind | ID | Version | Evidence |
+| --- | --- | --- | --- |
+| brd | cislib:spec:business-requirements | semantic-v1:sha256:6190ff89fbcb18f0e009e516f8cd1bafa6855e5891713c66dbc9eed57e3bc5ce | Active canonical BRD |
+<!-- cis:technical-intent-baseline:end -->
 
 ## Approved business baseline
 
-No canonical product BRD is currently approved. The companion `docs/specs/business-requirements.md` is a proposed registration of the existing authoritative product inputs, not a new accepted business baseline. Its `CIS-BR-*` identifiers summarize existing requirements and remain provisional until the maintainer reviews the mapping. `planning/decisions.md` and current explicit user decisions govern superseded historical names, package boundaries and orchestration instructions.
+The canonical product BRD at `docs/specs/business-requirements.md` is Active and approved by Andrew Spiteri. Its `CIS-BR-*` identifiers supply the accepted business authority for this technical mapping; the managed baseline above binds the actual approved semantic digest. `planning/decisions.md` and current explicit user decisions govern superseded historical names, package boundaries and orchestration instructions.
 
 The retained product outcomes are reusable Logging/environment behaviour, pre-DI managed-type preparation and application-owned Healthcheck, one `CIS.Core` package, host ownership, compatibility from first actual publication and meaningful native verification. This technical proposal traces to those existing outcomes without converting future specifications into implemented capabilities.
 
@@ -33,13 +49,13 @@ The primary surface is the .NET in-process library API. Supporting machine-facin
 
 No user-facing UI
 
-The product has no frontend application or browser/mobile/desktop presentation technology. HTTP routes are health-reporting contracts inside an application host. The line above is proposed source content, not a recorded questionnaire answer or approval. The canonical no-visual-UI applicability record remains a separate unapproved proposal until supported questionnaire/adoption controls establish it.
+The product has no frontend application or browser/mobile/desktop presentation technology. HTTP routes are health-reporting contracts inside an application host. The line above records the settled source direction. Accepted-document questionnaire derivation requires the actual approved technical baseline; the canonical no-visual-UI applicability record remains separate and governed by supported questionnaire/adoption controls.
 
 ### Backend technology and topology
 
 Use existing C# `net10.0`, pinned SDK `10.0.401`, selected .NET/ASP.NET runtime `10.0.12`, nullable analysis and warnings as errors. Maintain one repository, one `CIS.Core` package/assembly and module namespaces `CIS.Logging`, `CIS.Logging.MicrosoftLogger`, `CIS.TypeManagement` and `CIS.Healthcheck`. The product is a modular reusable library; there is no new server process, distributed-service topology, application database or UI deployable.
 
-The explicit component-ownership table below records the existing physical responsibilities. Cross-draft `TI-MOD-*` labels in the adoption handoff are proposals, not manually installed managed CIS identities. Supported import may assign canonical identities; reconcile links to its result before approval. Test projects, fixtures, examples, frozen consumers and `CisHealthProbe` keep their existing roles. Their presence adds no product-ownership participant.
+The explicit component-ownership table below records the existing physical responsibilities. Cross-draft `TI-MOD-*` labels in the adoption handoff are proposals, not manually installed managed CIS identities. Reconcile those labels to the actual component identities supplied by native CIS interpretation for the downstream solution bundle. Test projects, fixtures, examples, frozen consumers and `CisHealthProbe` keep their existing roles. Their presence adds no product-ownership participant.
 
 ## Runtime architecture and trust boundaries
 
@@ -116,13 +132,13 @@ Preserve current dependency/assembly/ownership/compatibility/platform policies i
 
 The following constraints already appear in current decisions: single Core package/assembly; C#/.NET 10; approved Microsoft dependency closure plus ASP.NET shared framework; explicit host lifecycle; native MSTest/VSTest; Type Manager pre-DI inventory/catalog boundaries; Healthcheck policy/transport/execution boundaries; MIT/maintainer publication; compatibility from first actual publication; separate release verification. Historical decisions that conflict with this current direction remain source history, not alternative active architecture.
 
-This registration does not implement Configuration, Heartbeat scheduler, generic startup-provider integration, later languages, a product-gap inventory or new qualification. Source examples/fixtures stay in their existing roles. Any missing CIS first-use accounting capability needs a separately scoped CIS correction; CIS product source is outside this task.
+This registration does not implement Configuration, Heartbeat scheduler, generic startup-provider integration, later languages, a product-gap inventory or new qualification. Source examples/fixtures stay in their existing roles. CIS first-use accounting and durable ad hoc tasks are delivered development capabilities; native execution still needs legitimate canonical ownership and finite allocation.
 
 ## Open technical decisions
 
-No new product architecture choice is proposed here. Human review of source equivalence and the exact canonical registration remains outstanding; this statement is not a saved answer or accepted `TI-DEC-*` row. Existing publication destination, signing/distribution and final supported API/behaviour baseline decisions remain open before first publication under `planning/decisions.md`.
+No new product architecture choice is proposed here. Canonical acceptance of this mapping is recorded in the managed approval metadata; this statement is not a saved answer or accepted `TI-DEC-*` row. Existing publication destination, signing/distribution and final supported API/behaviour baseline decisions remain open before first publication under `planning/decisions.md`.
 
-The blocked adoption owner/allocation and explicit first-use accounting entry are development-governance decisions in the handoff, not missing library architecture. Do not manufacture accepted decision records to satisfy validation. If CIS requires a canonical decision table or closure attestation, prepare that exact payload after intake and obtain the necessary human authority.
+Canonical work ownership, the approved plan and finite allocation are governed separately in the handoff. Delivered CIS accounting capabilities do not grant that authority. Do not manufacture accepted decision records to satisfy validation; any genuinely required closure attestation needs its actual human authority.
 
 ## Source traceability
 

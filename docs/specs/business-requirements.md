@@ -2,16 +2,16 @@
 title: "CISLIB product business requirements — registration proposal"
 type: specification
 owner: Repository maintainers
-last_reviewed: null
+last_reviewed: 2026-11-10
 review_cadence: on accepted product-direction change
-status: Review Required
+status: Active
 cis:
   stable_id: cislib:spec:business-requirements
   brd_schema: 1
-  approved_by: null
-  approved_at: null
-  approval_reason: null
-  approved_content_hash: null
+  approved_by: "Andrew Spiteri"
+  approved_at: "2026-11-10T13:17:18.6806330\u002B00:00"
+  approval_reason: "Approve this mapping of retained CISLIB requirements and current decisions for canonical CIS registration."
+  approved_content_hash: "sha256:6190ff89fbcb18f0e009e516f8cd1bafa6855e5891713c66dbc9eed57e3bc5ce"
 ---
 
 # CISLIB product business requirements
