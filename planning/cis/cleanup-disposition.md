@@ -1085,3 +1085,55 @@ passes all 66 documents. A sandbox inspection reported different effective input
 and pending work; its diagnostic is retained rather than weakening environment
 identity or replaying the consumer tests. The current report remains unit-only,
 with `qualified: false`; this closure grants no release acceptance or new capacity.
+
+### Four targeted continuity corrections
+
+The follow-up starts from CIS `c49d07b` and CISLIB `04cc92fc` on their existing
+development branches. The completed adoption, accepted report, approvals and
+original accounting stay in place; no consumer native test or new adoption is
+authorized by this correction pass.
+
+- [x] **1 — Delivered:** validate embedded output placeholders consistently with execution.
+- [x] **2 — Delivered:** retain current result references through metadata publication and compaction.
+- [x] **3 — Delivered:** preserve approved legacy coverage on unchanged-source refresh.
+- [x] **4 — Delivered:** derive accepted operations facts without another human answer.
+
+| Finding | Correction and focused verification | CIS commit |
+| --- | --- | --- |
+| 1 | Reconstruct the owned output root from retained embedded arguments, then check the full expansion. Nested/flag output stays current and reuses reports; executable/filter/root tampering still fails. 23 cases passed. | [121f168](https://github.com/andrewspiteri/CIS/commit/121f16845505a8c72681e58df8d481bf098ccff7) |
+| 2 | Current cache claims retain exact native dependencies independently of the metadata writer. Successful publication replaces the set, failed publication preserves it, and compaction keeps current/pending references. The composed native/revalidation/4 MiB compaction case, 54 ledger cases and 11 publication cases passed; obsolete history was removed without changing consumption or attempts. | [3dfdaa9](https://github.com/andrewspiteri/CIS/commit/3dfdaa907d5e65a834b252a1ca26f0294e746394) |
+| 3 | Exact approved-source refresh preserves legacy coverage before constructing obligations. The real-service broad guide/report fixture retained contracts, statuses, evidence, bytes, digests and approval; changed source still required review. 68 planner cases passed. | [1eed970](https://github.com/andrewspiteri/CIS/commit/1eed97019ca63705ba0507e388f13e13e2be42bb) |
+| 4 | Accepted operations headings and bounded caller-wait permission derive with source references and no human answerer. Actual source passages work with and without a saved questionnaire; undecided operations, tentative alternatives and transport choices still block. 24 cases passed. | [f971429](https://github.com/andrewspiteri/CIS/commit/f971429845f1aedf9dce209c014a933521f56ba5) |
+
+All affected Windows builds passed with zero warnings/errors. Two test fixtures
+needed corrections to path spelling and the existing overlap-hold diagnostic;
+production guard precedence and permission checks were preserved. Optional wording
+alignment for simultaneous pending-output/evidence holds remains deferred.
+
+These native runs used isolated CIS producer fixtures. CISLIB's WORK-001 remains
+Complete and its current canonical plan queues no successor. Broader product and
+release qualifications remain unallocated.
+
+Combined independent source review found one required edge case: a null retained
+command argument could throw during output-root reconstruction. The existing
+validator now rejects null arguments and the tamper regression covers that case;
+all three affected native cases passed again. The review is clean after
+[6e76a61](https://github.com/andrewspiteri/CIS/commit/6e76a61de09600b8eafd5116a8e00048c0951f25).
+The separate reader check found the guidance clear after the explicit no-successor
+statement above. Exact dependency metadata extends the existing ledger rather
+than adding a framework, store or approval flow. Its overhead is unmeasured;
+current compaction and storage bounds remain enforced.
+
+Ubuntu built the final `6e76a61` source with zero warnings/errors. Four focused
+embedded-output/compaction cases passed; the updated null-argument tamper case
+passed again on the final source. The published runtime's transferred tree matched
+exactly (258 files, 82,782,105 bytes; `cis.dll` SHA-256
+`cd459990b3f643fe2fc1263f4bc51a450c64beae62d925ee708221bd0eafc23a`).
+With this runtime in the original Windows environment, read-only unit plan/status
+show zero pending and zero executed batches, and verification returns `verified`,
+scope complete. The original fingerprint `9dc940a3526a49f4e6de35e2fec871900d9f875c88f919f90d2b2b4331f4e434`
+and ledger/report/profile bytes are unchanged. All 66 documents validate. No
+CISLIB native test ran, and no approval, allocation, attempt, cost or completion
+record was changed. WORK-001 remains Complete with its original 433,787 ms charged,
+two used attempts and no reservation. No required issue remains in this pass;
+broader release qualifications retain their existing pending/unallocated status.
