@@ -1194,3 +1194,21 @@ passed both standalone builds and security. Its verification failures match the
 Windows solution build cannot find the native fixture outputs, and Ubuntu's package
 audit rejects deprecated `Microsoft.Testing.Platform.MSBuild`. These existing build
 and dependency-audit repairs remain deferred; full hosted CI has not passed.
+
+### Remove the unused mutation replay generator
+
+Removed `implementations/csharp/tests/fixtures/TypeManager/Mutation/ApplyNativeMutation.cs`,
+the obsolete Roslyn/Stryker tool that replayed saved reports into separate mutant
+sources, controls and a hash manifest. Targeted searches for its class, namespace
+and path found no active reference. Project, shared compile/import and solution
+inspection confirmed it was not compiled; its folder contained no other support
+file or project. Both native Stryker configurations use the retained product
+projects and native tests, without this generator. No active reference needed editing.
+
+Static reference/inclusion checks, independent source review and `git diff --check`
+are sufficient for this uncompiled orphan deletion: runtime behavior and active
+test execution paths did not change, so no build or test was run. The five native
+MSTest/VSTest projects, assertions, fixture support, active `MutationChildFixture`
+and Type Manager package machinery are unchanged. WORK-001 remains Complete;
+its accepted 2 passed / 0 failed / 0 skipped result, retained metadata, approvals,
+allocation and accounting are preserved. This cleanup grants no new qualification.
