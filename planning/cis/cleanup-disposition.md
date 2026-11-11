@@ -1187,3 +1187,10 @@ Ledger, state, native report, profile, approved plan and completed task bytes ar
 unchanged. All 66 documents validate. No CISLIB native test ran. WORK-001 stays
 Complete with its original accounting and two counted attempts; no successor is
 queued, and this integration grants no broader release qualification.
+
+Hosted CIS [CI](https://github.com/andrewspiteri/CIS/actions/runs/43098804665)
+passed both standalone builds and security. Its verification failures match the
+[previous main run](https://github.com/andrewspiteri/CIS/actions/runs/42700315178):
+Windows solution build cannot find the native fixture outputs, and Ubuntu's package
+audit rejects deprecated `Microsoft.Testing.Platform.MSBuild`. These existing build
+and dependency-audit repairs remain deferred; full hosted CI has not passed.
