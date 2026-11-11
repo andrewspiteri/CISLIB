@@ -880,3 +880,41 @@ The repaired plan remains Approved/valid; strict consumer documentation validate
 graph metadata warnings retain their earlier scope. Original interruption cause
 remains unknown. No consumer execution report or accepted 2/0/0 result was created;
 no settlement, completion, cancellation, restart or new consumer native run occurred.
+
+## Practical workflow repair continuation
+
+The current instruction supersedes the earlier preparation-only restriction. It
+authorizes the scoped workflow repairs and the existing bounded demonstration,
+including controlled disposal/retry of interrupted disposable unit work. Historical
+custody or boot attestation is not a retry prerequisite. Preserve unknown facts,
+real costs, attempts, approvals and existing limits; no reboot, merge or release.
+Keep one implementation step active and commit its verified change before advancing.
+
+- [x] **1 — Delivered:** correct stop-time accounting, retained storage inspection,
+  unit retry, controlled disposal and interrupted finalization.
+- [ ] **2 — Active:** retain reusable material-input results across irrelevant changes and cleanup.
+- [ ] **3:** generate proportionate feature tasks without mandatory overhead tasks.
+- [ ] **4:** complete the existing governed two-case CISLIB unit demonstration;
+  report this readiness checkpoint before starting later repairs.
+- [ ] **5:** preserve accepted source facts through intake/applicability.
+- [ ] **6:** compact settled history and clean obsolete owned artifacts.
+- [ ] **7:** qualify ordinary interrupted unit recovery on Linux.
+
+Deferred unrelated improvements: none identified. Steps 5–7 are not prerequisites
+for the Step 4 demonstration.
+
+Step 1 is committed and pushed in [CIS `72fb9fe`](https://github.com/andrewspiteri/CIS/commit/72fb9feaa06bb75d514bfb3a25fa19536e72e1fa).
+Unknown duration charges the original bound independently of reconciliation delay;
+observed stops/overruns survive a failed first settlement. Blocked/retired tasks keep
+readable storage. Exact unit references retry without mutation restoration, and
+controlled `abandon-native-unit` retires inconclusive disposable work after actual
+cleanup/environment retirement, preserving valid children, cost and used attempts.
+Windows Release builds pass with zero warnings/errors. Focused verification covers
+95 Agent cases across unchanged passes and the corrected 16-case disposal run, plus
+17 Testing cases across focused runs; all remaining failures were resolved. A plain
+fixture needed a neutral per-process TEMP outside an existing home-directory CIS
+authority; the product ownership guard was preserved. Strict docs/test-bindings/
+standards and scoped whitespace pass. Independent source and reader findings were
+resolved; local Ollama refreshed the 21 changed routing cards. Receipts remain in
+the producer's ignored `.cis/local/workflow-repairs/step-1/`. The real CISLIB
+disposition/test is deliberately reserved for Step 4; its original state is unchanged.
