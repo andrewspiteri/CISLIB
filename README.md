@@ -46,7 +46,11 @@ The bounded CIS adoption unit result is verified: **2 passed, 0 failed, 0 skippe
 
 ## CIS commands
 
-Use a verified CIS build containing [`6e76a61de09600b8eafd5116a8e00048c0951f25`](https://github.com/andrewspiteri/CIS/commit/6e76a61de09600b8eafd5116a8e00048c0951f25). Here `cis` means that installed command, or `dotnet` followed by its verified `cis.dll`. Preserve the native commands and toolchain above; CIS is not a shipping runtime dependency. Agent skill references are in [AGENTS.md](AGENTS.md#cis-integration). The [incremental test manual](https://github.com/andrewspiteri/CIS/blob/6e76a61de09600b8eafd5116a8e00048c0951f25/docs/manual/cis_test_incremental.md) defines current result reuse and verification.
+Use a verified CIS build containing [`464dcb8255f9a0c4a01652f290bae680e2e7afc0`](https://github.com/andrewspiteri/CIS/commit/464dcb8255f9a0c4a01652f290bae680e2e7afc0). Here `cis` means that installed command, or `dotnet` followed by its verified `cis.dll`. Preserve the native commands and toolchain above; CIS is not a shipping runtime dependency. Agent skill references are in [AGENTS.md](AGENTS.md#cis-integration). The [incremental test manual](https://github.com/andrewspiteri/CIS/blob/464dcb8255f9a0c4a01652f290bae680e2e7afc0/docs/manual/cis_test_incremental.md) defines current result reuse and verification.
+
+The verified build in this checkout is installed under ignored `.cis/local/tools/cis/`.
+From the repository root, replace `cis` below with `dotnet .cis/local/tools/cis/cis.dll`.
+Fresh checkouts need their own verified installation; generated binaries are not committed.
 
 From the repository root:
 

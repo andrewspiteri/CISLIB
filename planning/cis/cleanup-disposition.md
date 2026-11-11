@@ -1163,3 +1163,27 @@ match the prior checkpoint. WORK-001 remains Complete with its original two coun
 attempts, approvals and allocation; no successor is queued. No required issue
 remains in this follow-up. Broader platform, coverage, mutation and release checks
 still need their own authorized work allocation.
+
+### Main integration and installed CIS build
+
+The reviewed CIS history is merged into main at
+[`464dcb8`](https://github.com/andrewspiteri/CIS/commit/464dcb8255f9a0c4a01652f290bae680e2e7afc0).
+CISLIB's README and agent guidance now pin that revision. Its verified local CLI
+is installed at ignored `.cis/local/tools/cis/cis.dll` and reports
+`0.3.0+464dcb8255f9a0c4a01652f290bae680e2e7afc0`. CIS remains development tooling;
+the library's shipping dependencies and native profile are unchanged.
+
+Every tracked Ubuntu source file matched the merged commit. The build passed with
+zero warnings/errors, the focused interrupted-save regression passed, and publish
+succeeded. The installed tree matches the transferred build: 257 files, 82,704,461
+bytes; `cis.dll` SHA-256
+`3fc11d851036c15e71b8c6a5e10880c7e1fc4794931a19602c0cbb4a575f60ed`.
+
+Using this installation in the original Windows environment, read-only unit
+plan/status show zero pending and zero executed batches; verification returns
+`verified`, scope complete, with the original fingerprint
+`9dc940a3526a49f4e6de35e2fec871900d9f875c88f919f90d2b2b4331f4e434`.
+Ledger, state, native report, profile, approved plan and completed task bytes are
+unchanged. All 66 documents validate. No CISLIB native test ran. WORK-001 stays
+Complete with its original accounting and two counted attempts; no successor is
+queued, and this integration grants no broader release qualification.
