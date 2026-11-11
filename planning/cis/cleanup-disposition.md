@@ -894,7 +894,7 @@ Keep one implementation step active and commit its verified change before advanc
   unit retry, controlled disposal and interrupted finalization.
 - [x] **2 — Delivered:** retain reusable material-input results across irrelevant changes and cleanup.
 - [x] **3 — Delivered:** generate proportionate feature tasks without mandatory overhead tasks.
-- [ ] **4 — Active:** complete the existing governed two-case CISLIB unit demonstration;
+- [x] **4 — Delivered:** complete the existing governed two-case CISLIB unit demonstration;
   report this readiness checkpoint before starting later repairs.
 - [ ] **5:** preserve accepted source facts through intake/applicability.
 - [ ] **6:** compact settled history and clean obsolete owned artifacts.
@@ -950,3 +950,40 @@ clarifications are applied. Optional older manual clarifications remain advisory
 Changed routing cards were refreshed locally. Producer receipts are in
 `.cis/local/workflow-repairs/step-3/`. Step 4 now uses the corrected runtime for the
 original bounded CISLIB invocation; no new product scope or allocation is implied.
+
+Step 4 readiness checkpoint: the real CISLIB unit slice is **verified and current**,
+with **2 passed / 0 failed / 0 skipped**, zero pending unit batches and WORK-001
+Complete through `cis plan task transition`. Product/test source, assertions,
+profile/filter, pinned toolchain, accepted approvals and allocation are unchanged.
+There was one ordinary consumer retry, not another run to demonstrate reuse.
+
+The original disposable tree was retired through supported `abandon-native-unit`
+after factual executor/scratch retirement. It remains interrupted/inconclusive;
+unknown historical stop/namespace fields were not backfilled. Its 300,000 ms admitted
+bound remains charged, and the successful retry root consumed 133,787 observed ms.
+Total change/task consumption is **433,787 ms**, with **0 reserved**, both attempts
+retained and the task's original **2-of-2** attempt allowance exhausted. That blocks
+future native admission; it does not invalidate the accepted report. Logical attempt
+WORK-001:2 is closed at native revision `8351035b241f4939ace19b3cc8d71d81:39`.
+
+The nonempty native TRX is retained at
+`.cis/local/testing/incremental/healthcheck-diagnostic-unit/reports/file-66df71e1403df5691bc4-unit.xml`
+(4,328 bytes; SHA-256 `c5162182701dd8ed3dfb0e694971a049dae2f33872247040f4c7f071af1656be`).
+The native command exited 0. The containing invocation initially returned exit 3
+because CIS compared equivalent absolute executable slash spellings literally.
+[CIS `d36e2aa`](https://github.com/andrewspiteri/CIS/commit/d36e2aa39e4a14d8f2a4656c5e4a62bf32c1bf53)
+corrects that shared reader while preserving exact remaining arguments and output
+bounds. Five governed producer checks passed. Its Ubuntu build and transferred
+runtime were verified; read-only verification then accepted the same report with no
+native replay or work-ledger change. Read-only plan/status both report unit scope
+complete with zero pending/executed batches, including inspection after attempt closure
+and task completion. Final owned inventory is current: 4,598,923,666
+of 6,442,450,944 bytes, no pending byte reservation, with the original 67,108,864-byte
+restoration reserve. Small later receipt/record writes remain within that ceiling.
+
+Actual receipts remain in ignored `.cis/local/workflow-repairs/step-4/`; the task and
+`verification.md` contain the concise evidence. Unit-only verification deliberately
+retains `qualified: false` and unsatisfied release thresholds: broad platform,
+package, coverage, mutation and other release obligations remain pending. The current
+canonical plan has no next queued task after WORK-001. Steps 5–7 repair the producer
+workflow separately and do not reopen this completed Windows adoption.

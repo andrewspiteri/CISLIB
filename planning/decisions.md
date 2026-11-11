@@ -14,6 +14,14 @@ This record preserves significant accepted decisions after the November 2026 cle
 - Healthcheck preserves monitor policies, detached snapshots, owner-safe collection, explicit execution-fact binding, HTTP/local-pipe/probe behavior and source examples. Module options resolve their own variables explicitly; the readonly static environment mechanism is unchanged. [Technical intent](healthcheck/technical-intent.md), [catalog](healthcheck/contract-catalog.md), [execution facts](healthcheck/execution-facts.md) and the collection/execution addenda define the retained behavior.
 - The MIT licence and maintainer-only official repository policy remain.
 
+## CIS adoption checkpoint
+
+The existing CIS-0001/WORK-001 bounded adoption result is current and independently verified: two existing native cases passed, with zero failures, zero skips and zero pending unit batches. Source, assertions, test selection, local profile and toolchain are unchanged. The approved product records, plan, original authority and finite limits remain in force; no engineering-quality policy was adopted. WORK-001 is Complete through the supported transition, with no active reservation or recovery hold. Its canonical plan has one task and no queued successor; the broader qualification obligations below remain unallocated.
+
+The original interrupted disposable invocation is retained as inconclusive, with unknown duration conservatively charged at its original 300,000 ms bound. Controlled disposal preserved its history and used attempt. The genuine retry consumed 133,787 ms: total consumption is 433,787 ms, with zero reserved and two attempts used out of the task's two-attempt limit. No original-host namespace proof is required for this disposable-unit retry.
+
+The retry initially returned invocation exit 3 because the CIS reader compared equivalent absolute executable path spellings literally. Its native report still records 2 passed / 0 failed / 0 skipped. The corrected reader in [CIS d36e2aa](https://github.com/andrewspiteri/CIS/commit/d36e2aa39e4a14d8f2a4656c5e4a62bf32c1bf53) verifies that retained result without rerunning native tests. Read-only unit plan/status report zero pending work. Full qualification remains false and release thresholds remain unsatisfied; this bounded result does not close the release obligations below. The [continuation checkpoint](cis/cleanup-disposition.md#practical-workflow-repair-continuation) records the execution and current closure state.
+
 ## Compatibility and release
 
 The publication ledger has **zero publications**. Development version `0.1.0-dev.1`, historical checkpoints, API self-comparison and frozen development consumers are not released historical baselines. Keep real current consumer compatibility and meaningful frozen API/configuration/wire tests. Preserve every actually published contract indefinitely from its first publication, including prereleases; version changes do not waive this commitment. Assembly identity remains `CIS.Core`, neutral culture, unsigned, `AssemblyVersion` `1.0.0.0`; package/file/informational versions identify individual releases.
@@ -32,4 +40,4 @@ Windows 11 x64 and Ubuntu 24.04 x64 are the selected initial lanes. Actual platf
 
 Historical campaigns, duplicate source snapshots, generated receipts and obsolete active instructions were retired. Their removal does not establish a pass or require replay. Exact historical bytes are available only if retained in Git history or separately identified user data; this record makes no continuing custody/availability claim. No unresolved product defect is inferred from a retired harness timeout or receipt failure.
 
-The next task adopts CIS against the native solution/projects and these retained obligations, without restoring deleted mechanisms or starting another module.
+CIS adoption now has the bounded unit result above. Broader native qualification and the remaining CIS workflow repairs require their actual authorized scope; the current canonical plan allocates no next task. The retired mechanisms remain retired, and no new module is started.
