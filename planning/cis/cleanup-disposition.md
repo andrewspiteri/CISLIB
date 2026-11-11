@@ -892,8 +892,8 @@ Keep one implementation step active and commit its verified change before advanc
 
 - [x] **1 — Delivered:** correct stop-time accounting, retained storage inspection,
   unit retry, controlled disposal and interrupted finalization.
-- [ ] **2 — Active:** retain reusable material-input results across irrelevant changes and cleanup.
-- [ ] **3:** generate proportionate feature tasks without mandatory overhead tasks.
+- [x] **2 — Delivered:** retain reusable material-input results across irrelevant changes and cleanup.
+- [ ] **3 — Active:** generate proportionate feature tasks without mandatory overhead tasks.
 - [ ] **4:** complete the existing governed two-case CISLIB unit demonstration;
   report this readiness checkpoint before starting later repairs.
 - [ ] **5:** preserve accepted source facts through intake/applicability.
@@ -918,3 +918,18 @@ standards and scoped whitespace pass. Independent source and reader findings wer
 resolved; local Ollama refreshed the 21 changed routing cards. Receipts remain in
 the producer's ignored `.cis/local/workflow-repairs/step-1/`. The real CISLIB
 disposition/test is deliberately reserved for Step 4; its original state is unchanged.
+
+Step 2 is committed and pushed in [CIS `91cd42f`](https://github.com/andrewspiteri/CIS/commit/91cd42fb84ca3d02ce0cf96cd43cca4620b3c288).
+Result contract 2 binds stage-specific material inputs, with producer hashes kept
+as provenance. Formatting, retention, mutation-only settings and overridden ambient
+TEMP no longer force unit launches. Shared unit configuration and template selectors
+remain material. Reuse/status/verification share native-report/command checks;
+obsolete producer installations and eight-transition refresh limits are removed.
+Provable legacy results migrate to compact metadata; unprovable inputs stay pending.
+Windows Release builds and gates pass. Focused runs passed 16 new compatibility/
+command cases, 135 updated existing cases and the final 12 material-input cases;
+unchanged earlier passes were reused. Legacy synthetic fixtures were updated to
+state their intended contract, preserving negative checks. Source/reader findings
+were resolved; current native reports survive reuse and cleanup checks. Producer
+receipts are in `.cis/local/workflow-repairs/step-2/`. No real CISLIB disposition or
+new native test has occurred before the Step 4 checkpoint.
