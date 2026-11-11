@@ -893,8 +893,8 @@ Keep one implementation step active and commit its verified change before advanc
 - [x] **1 — Delivered:** correct stop-time accounting, retained storage inspection,
   unit retry, controlled disposal and interrupted finalization.
 - [x] **2 — Delivered:** retain reusable material-input results across irrelevant changes and cleanup.
-- [ ] **3 — Active:** generate proportionate feature tasks without mandatory overhead tasks.
-- [ ] **4:** complete the existing governed two-case CISLIB unit demonstration;
+- [x] **3 — Delivered:** generate proportionate feature tasks without mandatory overhead tasks.
+- [ ] **4 — Active:** complete the existing governed two-case CISLIB unit demonstration;
   report this readiness checkpoint before starting later repairs.
 - [ ] **5:** preserve accepted source facts through intake/applicability.
 - [ ] **6:** compact settled history and clean obsolete owned artifacts.
@@ -933,3 +933,20 @@ state their intended contract, preserving negative checks. Source/reader finding
 were resolved; current native reports survive reuse and cleanup checks. Producer
 receipts are in `.cis/local/workflow-repairs/step-2/`. No real CISLIB disposition or
 new native test has occurred before the Step 4 checkpoint.
+
+Step 3 is committed and pushed in [CIS `e7b241e`](https://github.com/andrewspiteri/CIS/commit/e7b241ebd434d10ab9cd9192e14950d2a72f4913).
+A small backend feature now has one implementation task with native verification,
+documentation, independent review and completion obligations. Separately owned UI,
+migration, integration and handoff outcomes remain separate work. Existing reviewed
+task identities, authored scope, lifecycle and useful evidence survive refresh;
+the approved CISLIB plan was not regenerated. A reproduced trailing-exclusion bug
+no longer creates lifecycle work from excluded conversion or ownership transfer.
+Windows builds pass with zero warnings/errors. The final focused suite passed 85
+cases; its sole remaining fixture was adapted to the newly visible inline matrix
+and then passed separately, verifying all 86 cases. Required docs/test-binding/
+standards/skill/whitespace checks pass. Independent source findings are resolved;
+Claude checked the operating text without tools, and the resulting task/ownership
+clarifications are applied. Optional older manual clarifications remain advisory.
+Changed routing cards were refreshed locally. Producer receipts are in
+`.cis/local/workflow-repairs/step-3/`. Step 4 now uses the corrected runtime for the
+original bounded CISLIB invocation; no new product scope or allocation is implied.
