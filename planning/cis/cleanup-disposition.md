@@ -897,8 +897,8 @@ Keep one implementation step active and commit its verified change before advanc
 - [x] **4 — Delivered:** complete the existing governed two-case CISLIB unit demonstration;
   report this readiness checkpoint before starting later repairs.
 - [x] **5 — Delivered:** preserve accepted source facts through intake/applicability.
-- [ ] **6 — Active:** compact settled history and clean obsolete owned artifacts.
-- [ ] **7:** qualify ordinary interrupted unit recovery on Linux.
+- [x] **6 — Delivered:** compact settled history and clean obsolete owned artifacts.
+- [ ] **7 — Active:** qualify ordinary interrupted unit recovery on Linux.
 
 Optional follow-ups: clarify older approved-plan refresh/exit-code wording and
 support explicit no-UI framework-exclusion phrasing. Neither blocks the accepted
@@ -1010,3 +1010,30 @@ current; existing classification warnings retain their qualification status. No
 consumer native test or approved document was changed. Producer receipts are in
 `.cis/local/workflow-repairs/step-5/`; the two actual read-only status receipts are
 under the existing Step 4 receipt directory. Step 6 now repairs bounded retention.
+
+Step 6 is committed and pushed in [CIS `95377a4`](https://github.com/andrewspiteri/CIS/commit/95377a415c29cfd01052c8a4174649475e982c78).
+The existing ledger compacts redundant settled trees/checkpoints within its normal
+transaction, preserving authoritative consumption, attempts, closure state, current
+required references, unresolved work, restoration/cancellation/recovery obligations
+and needed ancestry. Normal admission can continue after appropriate compaction;
+irreducible required state still holds safely. No read rewrites the ledger or grants
+new allowance.
+
+Artifact retention protects exact controls, required results and pending output
+instead of the entire management area. Explicit delete/preserve policies can cover
+only the existing generated archive/retrieved/restore/cleanup subtrees, with leases,
+delegation, bounded reservations and no recursive re-archiving. Configured management
+bytes are counted once. Governed fixtures proved obsolete copies and later cleanup
+receipts can retire while current report/state bytes and foreign pending output stay
+protected; no new permanent receipt protection was added.
+
+Windows builds pass with zero warnings/errors. Verification passed 73 ledger cases
+and all 52 artifact cases across the initial compatible passes and five corrected
+fixture cases. Fixture path spelling and finite ownership were corrected without
+relaxing admission. Required docs/test-binding/standards/skills/whitespace gates pass;
+independent source and reader findings are resolved, including an explicit pin for
+old finalized-but-unrestored work. Routing cards were refreshed locally. Producer
+receipts are in `.cis/local/workflow-repairs/step-6/`. These checks did not modify
+the real CISLIB ledger, allocation, completed task or report, and did not grant its
+closed owner cleanup delegation or another attempt. Step 7 now qualifies the
+supported Linux interruption/retry path; Windows adoption remains complete.
