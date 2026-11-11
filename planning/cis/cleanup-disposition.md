@@ -896,11 +896,13 @@ Keep one implementation step active and commit its verified change before advanc
 - [x] **3 — Delivered:** generate proportionate feature tasks without mandatory overhead tasks.
 - [x] **4 — Delivered:** complete the existing governed two-case CISLIB unit demonstration;
   report this readiness checkpoint before starting later repairs.
-- [ ] **5:** preserve accepted source facts through intake/applicability.
-- [ ] **6:** compact settled history and clean obsolete owned artifacts.
+- [x] **5 — Delivered:** preserve accepted source facts through intake/applicability.
+- [ ] **6 — Active:** compact settled history and clean obsolete owned artifacts.
 - [ ] **7:** qualify ordinary interrupted unit recovery on Linux.
 
-Deferred unrelated improvements: none identified. Steps 5–7 are not prerequisites
+Optional follow-ups: clarify older approved-plan refresh/exit-code wording and
+support explicit no-UI framework-exclusion phrasing. Neither blocks the accepted
+passages or current adoption. Steps 5–7 are not prerequisites
 for the Step 4 demonstration.
 
 Step 1 is committed and pushed in [CIS `72fb9fe`](https://github.com/andrewspiteri/CIS/commit/72fb9feaa06bb75d514bfb3a25fa19536e72e1fa).
@@ -987,3 +989,24 @@ retains `qualified: false` and unsatisfied release thresholds: broad platform,
 package, coverage, mutation and other release obligations remain pending. The current
 canonical plan has no next queued task after WORK-001. Steps 5–7 repair the producer
 workflow separately and do not reopen this completed Windows adoption.
+
+Step 5 is committed and pushed in [CIS `3b7d4ca`](https://github.com/andrewspiteri/CIS/commit/3b7d4ca0ec88dbbf06daa9dba466cde2d82e8c53).
+The actual accepted AI exclusion and multi-paragraph no-UI direction now resolve
+through the existing source paths, with and without a saved technical questionnaire.
+Derived facts keep source references, digests and acceptance basis; they create no
+new human actor or answer time. Missing necessary choices and conflicting current
+model/visual direction still block. Current complete no-UI questionnaires retain
+their old resolved answers, including inactive framework details, so improved source
+recognition does not rewrite their approval basis. Existing recorded answers and
+approvals were preserved; no CISLIB registration or human answer was added.
+
+Windows builds pass with zero warnings/errors. Focused runs verified 70 distinct
+technical-intent cases, including the final eight actual-source cases, and all 22
+UI-direction cases. Required docs/test-binding/standards/skills/whitespace gates
+pass; independent source and reader checks have no remaining required findings.
+Changed routing cards were refreshed locally. Read-only checks against the actual
+CISLIB authority report both technical intent and UI direction Active, valid and
+current; existing classification warnings retain their qualification status. No
+consumer native test or approved document was changed. Producer receipts are in
+`.cis/local/workflow-repairs/step-5/`; the two actual read-only status receipts are
+under the existing Step 4 receipt directory. Step 6 now repairs bounded retention.
