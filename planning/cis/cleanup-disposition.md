@@ -789,3 +789,94 @@ This is implementation and qualification preparation only. **It authorizes no re
 Only after factual closure is verified may the existing reconciliation conservatively charge the original bound and settle pending reservations, preserving attempts/history/restoration and missing evidence. It creates no TRX or passing result. A justified subsequent unit attempt would still require actual remaining capacity and eligibility under the existing authorized scope; no task/allocation/profile or limit would be reset or enlarged. This new legacy-proof implementation is a separate decision from the already settled CISLIB product/foundation/plan/allocation decisions.
 
 Final corrected-host documentation validation passes **66 entries / 66 Markdown documents**, zero errors/warnings, and the repaired plan remains valid. The earlier 43 strict graph metadata warnings retain their historical scope; no fresh strict graph pass or native completion is claimed in this phase. Independent source/receipt and unfamiliar-reader reviews confirmed the delivered/proposed boundaries; stale historical inventory/TEMP guidance in task evidence was corrected. All original ledger/state/profile hashes remain unchanged.
+
+## Authorized legacy proof work — qualification limit
+
+Andrew Spiteri authorized the exact implementation/qualification proposal at
+`80fbb74496fa7c7f172d25bd3d5b0b06cfcf8eb4`. That decision grants no restart,
+cancellation, settlement, reservation release or consumer test. The settled
+product, foundation, plan and allocation approvals remain in effect.
+
+[CIS commit 36484f098397aa20c378144e24f4c4e0832d3f4d](https://github.com/andrewspiteri/CIS/commit/36484f098397aa20c378144e24f4c4e0832d3f4d)
+delivers **read-only qualification/preflight**, not the proposed positive
+machine-bound recovery engine. Existing `agent work disposition` now recognizes
+`prepare-restart-closure` and `verify-restart-closure`, validates the exact retained
+authority/adoption/root/whole tree/revision/controller and returns `held`, exit 4,
+`applied: false`, with structured `not-qualified` gaps. Its digest identifies raw
+serialized ledger execution fields and scope; it excludes artifact file contents and is no
+challenge, machine attestation or stopped-work receipt. No new store, proof fields,
+boot probe, namespace backfill or future admission framework was added.
+
+The design review exposed a prerequisite the proposal could not establish from
+these retained records: **same-original-host custody**. The original receipt has a
+hostname, PID/start and job name/session, with no contemporaneous machine-bound
+launch evidence. A DPAPI seal created now would bind the preparation machine to a
+later decryption context, not the original launch to that machine. Microsoft's
+[DPAPI contract](https://learn.microsoft.com/en-us/windows/win32/api/dpapi/nf-dpapi-cryptprotectdata)
+does not provide historical custody or hardware/anti-clone attestation. Copied
+machine state and ambiguous VM rollback remain unqualified. Human authorization,
+a new hostname/PID/session observation, wall-clock/uptime change or reboot cannot
+fill that historical gap. No additional speculative original-context probes were
+performed.
+
+Consequently **no challenge was prepared and no positive restart verifier is
+implemented or qualified**. Preflight reports
+`original-host-custody-unproven`, `anti-copy-rollback-unqualified` and
+`restart-verifier-unqualified`; verification also reports
+`challenge-not-prepared`. Caller evidence is inert context and unknown proof fields
+reject. An unreachable security-sensitive challenge engine was not introduced.
+There is no justified restart approval to request from this checkpoint. Genuine
+contemporaneous containment/custody evidence, if available, must be assessed before
+any further recovery design; the currently retained data supplies no supported
+positive restart route. Adoption remains open.
+
+Producer Release builds pass with zero warnings/errors. The same focused native
+set passes **68 / 0 / 0 on Windows and Ubuntu**, including 28 new qualification
+cases, existing native/storage regressions and work-command dispatch. Fixtures
+check Blocked-task inspection, full-file byte preservation, null historical
+namespace, allowances/attempts, root/tree/revision/controller failures and rejection
+of caller proof/continuation claims. No actual reboot or positive custody proof was
+tested. The first Windows VSTest launch aborted before tests connected inside the
+sandbox; the same set passed outside it. The first Ubuntu cold build reached its
+180-second bound; incremental completion passed. A fixture diagnostic-access compile
+error was corrected before final builds/tests. Strict producer docs, test-binding
+and standards checks pass; scoped whitespace passes for six C# files. Seven changed
+routing cards were refreshed with local Ollama `qwen2.5-coder:1.5b`, four with
+truncated inputs; direct source review supplied authority. Independent source and
+separate unfamiliar-reader review found no required issue. A tools-disabled Claude
+review of only the already-public commit completed with no required findings.
+Full solution/IDE,
+release, mutation and coverage qualification remain outside this focused evidence.
+
+The exact committed source archive was checksum-verified on Ubuntu, then published
+as **`0.3.0+36484f098397aa20c378144e24f4c4e0832d3f4d`**. The delivery archive's
+checksum was verified after transfer; all 252 listed file hashes match, with five
+hidden recipe assets also covered by the complete archive checksum. The delivered
+host contains **257 files / 82,597,381 bytes**, `cis.dll` SHA-256
+**`51ed39a28a153d740173300d48a04c749e26bf15f9b43f1ed669e96c5dd28185`**.
+Producer source/manifests/TRXs/review receipts remain under ignored
+`.cis/local/native-restart-qualification/` in CIS; older producer hosts remain intact.
+
+Both supported dispositions were run read-only against the original CISLIB root
+using that verified host. Each returned **held / exit 4 / applied=false**, the same
+two-execution tree, adoption and revision **`:18`**, and diagnostic digest
+`0ea2afb2a36acc55e14427c7d56bf81eafe5e853b400b1b793f806c68d75c77d`.
+`prepare` reported the three gaps above; `verify` also reported no prepared
+challenge. Before/after raw hashes of the ledger, adoption, incremental state and
+profile are identical. The historical namespace remains null. Consumer receipts
+are under ignored `.cis/local/adoption-continuation/native-restart-qualification/`.
+
+Current work status remains uncertain, logical attempt **WORK-001:1**, with the
+original **300,000 ms** time and **268,506,743 bytes** storage reservations held.
+Displayed ordinary remaining balances stay **480,000 task ms / one task attempt**
+and **780,000 change ms / two change attempts**, subject to that hold; consumed zero
+is still an unsettled field, not a zero-cost claim. Protected restoration, all
+ceilings, ownership and approvals remain unchanged. Read-only unit plan/status
+still return **settlement-required / exit 4**, one pending unit batch, zero
+executed/reused and scope incomplete. Associated inventory still returns held /
+unknown because WORK-001 is Blocked. No transition bypassed that restriction.
+The repaired plan remains Approved/valid; strict consumer documentation validates
+66 entries / 66 Markdown documents without errors or warnings. Existing strict
+graph metadata warnings retain their earlier scope. Original interruption cause
+remains unknown. No consumer execution report or accepted 2/0/0 result was created;
+no settlement, completion, cancellation, restart or new consumer native run occurred.

@@ -24,7 +24,17 @@ independent-assurance findings as agent tasks are completed.
 | WORK-001 | Producer corrections / genuine plan restoration | CIS `5f923ee75b5f8bd13e143fe51d15dc2629f1033f`; local `native-recovery-corrections/plan-repair-applied.json` | Delivered / repaired | Independently authorized source work; restored only genuine attribution/prose, preserving current Blocked task state and manifest. |
 | WORK-001 | Corrected-host inspection | Verified `0.3.0+5f923ee75b5f8bd13e143fe51d15dc2629f1033f`; local `work-status-corrected.json`, `unit-plan-corrected.json`, `unit-status-corrected.json` | Owner readable; unit settlement-required | No TEMP override; revision `:18`, 300,000 ms reserved, one pending unit batch, zero executed/reused. Ledger/native state/profile hashes unchanged. |
 | WORK-001 | Current associated inventory | Local `native-recovery-corrections/inventory-corrected.json` | Held, exit 4 | Task is Blocked; current owned inventory is unknown, not zero. Prior numeric inventory is historical; actual retained reservation stays intact. |
+| WORK-001 | Producer restart qualification | [CIS `36484f0`](https://github.com/andrewspiteri/CIS/commit/36484f098397aa20c378144e24f4c4e0832d3f4d), Windows/Ubuntu native TRXs | Read-only preflight delivered | 68/0/0 per platform; no positive custody/restart verifier, prepared challenge or real reboot qualification. These are producer tests, not CISLIB case results. |
+| WORK-001 | Exact-tree prepare/verify preflight | Verified host `0.3.0+36484f098397aa20c378144e24f4c4e0832d3f4d`, local `native-restart-qualification/` receipts | Both held, exit 4 / applied=false | Missing original-host custody, copy/rollback qualification and positive verifier; no challenge. Same two-execution tree/revision `:18`; ledger/adoption/state/profile hashes unchanged. |
 
 Receipts are retained under ignored `.cis/local/adoption-continuation/approved-native-unit/`; native state/output remains under `.cis/local/testing/incremental/healthcheck-diagnostic-unit/`. Allocation adoption is `8351035b241f4939ace19b3cc8d71d81`; actual decision references are `CISLIB-CIS-0001-ALLOCATION-2026-11-10` and `CISLIB-CIS-0001-STORAGE-2026-11-10`. Andrew Spiteri is the original allocation authority, Codex is the authorized controller, and no cleanup delegation or engineering-quality policy was adopted.
 
 The current failed acceptance criteria are actual 2/0/0 native case results, accepted nonempty TRX, proven settlement with no reservations/recovery hold, and current zero-pending unit completion. The case count remains expected only. Use the corrected verified host for legitimate work inspection without a TEMP override; original Windows containment/namespace proof is still required before supported reconciliation of that same execution. The retained unit result is null; bookkeeping reconciliation cannot manufacture its missing report/admission. The task remains open, and this evidence establishes no release qualification.
+
+The authorized legacy-proof follow-up delivered read-only qualification only.
+Original-host custody cannot be recovered from a new current-machine seal, and no
+positive restart verifier is available. Both supported preflights hold; no restart
+approval is justified. Current unit plan/status still show one pending batch, zero
+executed/reused and incomplete scope. The original 300,000 ms and 268,506,743 bytes
+remain reserved; task status stays Blocked and current inventory remains unknown.
+No cancellation, settlement, profile/allocation change or new consumer test occurred.
