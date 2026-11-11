@@ -898,7 +898,7 @@ Keep one implementation step active and commit its verified change before advanc
   report this readiness checkpoint before starting later repairs.
 - [x] **5 — Delivered:** preserve accepted source facts through intake/applicability.
 - [x] **6 — Delivered:** compact settled history and clean obsolete owned artifacts.
-- [ ] **7 — Active:** qualify ordinary interrupted unit recovery on Linux.
+- [x] **7 — Delivered:** qualify ordinary interrupted unit recovery on Linux.
 
 Optional follow-ups: clarify older approved-plan refresh/exit-code wording and
 support explicit no-UI framework-exclusion phrasing. Neither blocks the accepted
@@ -1037,3 +1037,51 @@ receipts are in `.cis/local/workflow-repairs/step-6/`. These checks did not modi
 the real CISLIB ledger, allocation, completed task or report, and did not grant its
 closed owner cleanup delegation or another attempt. Step 7 now qualifies the
 supported Linux interruption/retry path; Windows adoption remains complete.
+
+Step 7 is committed and pushed in [CIS `c49d07b`](https://github.com/andrewspiteri/CIS/commit/c49d07ba1a967c0fe1a9e5d924a0b4ab14fa0183).
+The existing Linux runner records its actual worker session before opening the
+target gate. Exact kernel start counters distinguish reused process IDs without
+relying on unstable cross-process UTC conversion. Supported cancellation stops
+that session's process groups and verified driver/controller identities;
+reconciliation checks stopped owners and an empty retained session. Historical
+missing bindings remain unknown, with controlled unit retirement still available
+under its existing factual conditions. Deliberately detached code remains outside
+the trusted runner's containment scope; no boot or custody framework was added.
+
+The actual governed CIS producer fixture on Ubuntu passed: it accepted a first native unit batch,
+blocked a conflicting live retry, interrupted only the real CLI preparer, stopped
+the surviving session and child through supported cancellation, released the
+child's interference lock, reconciled the original admitted charge and closed
+the attempt. Immediate retry reclaimed only its exact settled scratch through
+existing storage authority and executed only unfinished work. The earlier report
+bytes and accepted metadata survived; plan/status/verification launched nothing
+further. The scratch mutation check now preserves its retained classification;
+caller flags cannot grant unknown, live or foreign-owned output authority.
+
+Windows builds pass with zero warnings/errors. Focused runs verified 31 native
+recovery cases, 15 storage/provenance cases and 25 runner/retry cases, with the
+Linux-only case explicitly skipped on Windows. Ubuntu verified 15 runner cases,
+10 compatible governed retry cases and the final actual interruption/retry case.
+The stale Windows restoration fixture now requests a genuine mutation recipe
+through the existing all-scope readiness path; ordinary unit work still requests
+none. Required docs/test-binding/standards/skills/whitespace checks pass, source
+and reader findings are resolved, and changed routing cards were refreshed with
+the local model. Receipts stay in the existing ignored producer output. This
+qualifies the Linux producer workflow, not CISLIB's broader product/platform or
+release obligations. The completed Windows adoption, approvals, finite allocation,
+two used attempts and accepted report remain unchanged. No next canonical task
+is queued; existing broader qualifications remain unallocated.
+
+The final `c49d07b` runtime was published on Ubuntu with zero warnings/errors from
+the verified committed source patch. Its transferred tree matched exactly:
+258 files, 82,773,501 bytes; `cis.dll` SHA-256
+`af63d5c624f9ccb05356be596dc0b919f3a1674a52bb86e9bd0bdb7d986efdbf`.
+With that runtime in the original Windows execution context, read-only unit
+verification returns `verified`, scope complete; plan/status both show zero
+pending and zero executed batches. The accepted fingerprint remains
+`9dc940a3526a49f4e6de35e2fec871900d9f875c88f919f90d2b2b4331f4e434`.
+Ledger, report and profile bytes are unchanged, and strict documentation validation
+passes all 66 documents. A sandbox inspection reported different effective inputs
+and pending work; its diagnostic is retained rather than weakening environment
+identity or replaying the consumer tests. The current report remains unit-only,
+with `qualified: false`; this closure grants no release acceptance or new capacity.
