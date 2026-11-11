@@ -1137,3 +1137,29 @@ CISLIB native test ran, and no approval, allocation, attempt, cost or completion
 record was changed. WORK-001 remains Complete with its original 433,787 ms charged,
 two used attempts and no reservation. No required issue remains in this pass;
 broader release qualifications retain their existing pending/unallocated status.
+
+### Interrupted publication recovery follow-up
+
+[CIS `464dcb8`](https://github.com/andrewspiteri/CIS/commit/464dcb8255f9a0c4a01652f290bae680e2e7afc0)
+fixes the remaining legacy-cache gap: when recovery closes an interrupted metadata
+save, it validates and retains the reservation's candidate work references alongside
+the existing published references before removing the reservation. Claim ownership
+and the prior publisher stay unchanged; a later successful publication can replace
+the dependency set normally.
+
+The new composed regression reproduced the missing-reference failure before the
+fix and passed afterward. It covers an older revalidated cache, atomic state
+replacement, failed storage settlement, supported reconciliation and actual 4 MiB
+history compaction. Original settlement references remain resolvable, plan/status
+and verification stay current, report bytes remain unchanged, ordinary reuse
+launches no native tests, and unrelated obsolete history is removed without changing
+consumption or attempts. This case, the existing revalidation/compaction case and
+38 adjacent publication/recovery/provenance/retirement checks pass. Both affected
+Windows builds have zero warnings/errors; documentation, test bindings, standards
+and scoped whitespace checks pass. Independent source review has no required finding.
+
+No CISLIB consumer test ran. Its ledger, accepted report and profile hashes still
+match the prior checkpoint. WORK-001 remains Complete with its original two counted
+attempts, approvals and allocation; no successor is queued. No required issue
+remains in this follow-up. Broader platform, coverage, mutation and release checks
+still need their own authorized work allocation.
