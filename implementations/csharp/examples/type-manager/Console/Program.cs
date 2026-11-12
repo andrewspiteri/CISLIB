@@ -28,8 +28,8 @@ foreach (var type in candidates) { Console.WriteLine($"{type.FullName} | {type.A
 Console.WriteLine($"Prepared {manager.PreparationReport.SelectedAssemblyCount} assemblies and {manager.PreparationReport.TypeCount} types in {manager.PreparationReport.Elapsed.TotalMilliseconds:F2} ms.");
 if (args is ["--verify", var lateAssembly]) { SampleVerification.CheckFixedMembership(manager, lateAssembly); }
 
-// Application code may now construct its services. This console intentionally
-// needs no DI container or ASP.NET shared framework; see the separate Web sample.
+// Application code may now construct its services. This console needs no DI
+// container, but Core requires the approved ASP.NET shared framework in both hosts.
 Console.WriteLine("APPLICATION_READY");
 Console.WriteLine(JsonSerializer.Serialize(new
 {

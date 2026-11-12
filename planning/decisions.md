@@ -40,4 +40,11 @@ Windows 11 x64 and Ubuntu 24.04 x64 are the selected initial lanes. Actual platf
 
 Historical campaigns, duplicate source snapshots, generated receipts and obsolete active instructions were retired. Their removal does not establish a pass or require replay. Exact historical bytes are available only if retained in Git history or separately identified user data; this record makes no continuing custody/availability claim. No unresolved product defect is inferred from a retired harness timeout or receipt failure.
 
-CIS adoption now has the bounded unit result above. Broader native qualification and the remaining CIS workflow repairs require their actual authorized scope; the current canonical plan allocates no next task. The retired mechanisms remain retired, and no new module is started.
+CIS adoption retains the bounded unit result above; its CIS-0001 plan queues no
+successor. Separate [CIS-0002/WORK-001](../docs/changes/CIS-0002/agent-tasks/WORK-001.md)
+now owns the approved Type Manager package-consumer integration, focused native
+Windows/Ubuntu checks, instructions and review under its own finite allocation.
+Its [verification record](../docs/changes/CIS-0002/verification.md) determines the
+actual outcome; approval alone establishes no pass. Broader native qualification
+retains its actual authorization requirements. The retired mechanisms stay retired,
+and this task starts no new module or CIS correction pass.

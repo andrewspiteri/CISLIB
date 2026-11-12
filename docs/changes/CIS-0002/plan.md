@@ -1,9 +1,11 @@
 ---
 title: "CIS-0002 delivery plan"
 type: delivery-plan
-status: Draft
+status: Approved
 change_id: CIS-0002
 graph_build_id: "sha256:927e175440ceb1a56406399183b692c375ced7129e43c773a43d8f3faf5aff95"
+approved_by: "Andrew Spiteri"
+approval_rationale: "Approve the CIS-0002 plan and WORK-001 contract for the bounded Type Manager package-consumer integration described here, preserving the accepted CISLIB baselines, completed CIS-0001 result and existing release obligations."
 authority: human-approved
 ---
 
@@ -21,9 +23,12 @@ carries implementation, focused native tests, documentation, independent review
 and completion within that one medium owner. The [proposal](proposal.md) records
 the accepted product scope. Nothing reopens CIS-0001/WORK-001.
 
-This plan is Draft, not implementation approval. Andrew Spiteri accepted
-IMPACT-16713BDBE2 on 12 November 2026 with its exact published rationale; native
-impact review is complete. Plan and allocation decisions below remain pending.
+Andrew Spiteri accepted IMPACT-16713BDBE2 and explicitly approved this exact plan
+and WORK-001 contract on 12 November 2026. The separately authorized allocation
+was then applied through CIS, advancing the global ledger from revision 39 to 40
+without changing the completed adoption owner's allocation or accounting.
+WORK-001 is InProgress through the supported lifecycle. These decisions authorize
+the bounded integration work; they do not certify execution or release readiness.
 
 - Requirements covered: 0.
 - Work items: 1 (1 actionable).
@@ -38,6 +43,11 @@ impact review is complete. Plan and allocation decisions below remain pending.
 - Human authority recorded through `cis plan approve` or carried from a current approved feature by `cis plan derive`.
 
 ## Proposed allocation and controller
+
+The following is the reviewed proposal that Andrew Spiteri separately authorized
+on 12 November 2026. Native allocation succeeded after plan approval, using the
+exact request and reason retained below. The original proposal wording preserves
+the decision's scope; it is no longer an outstanding approval question.
 
 Original authority: Andrew Spiteri. Controller: Codex. The new task is
 `CIS-0002/WORK-001`, distinct from the completed adoption owner.
@@ -103,11 +113,12 @@ unmeasured historical preparation as unknown. New runs/profiles/platforms do not
 reset time or attempts. Apply only after plan approval, using a fresh ledger
 revision. No engineering-quality policy or release qualification is adopted.
 
-The native request is prepared, not applied, at ignored
+The approved native request is retained at ignored
 `.cis/local/testing/type-manager-package-integration/allocation-proposed.json`.
 SHA-256: `77a56145b477d42b33d27b44e85a7226e423b127a8fc69c33301fe4e39ae4406`.
-It binds the fifteen listed roots to this registered checkout and the inspected
-`:39` revision. Refresh only the expected-revision token if legitimate intervening
+It bound the fifteen listed roots to this registered checkout and was applied
+against the inspected `:39` revision. For any authorized later use, refresh only
+the expected-revision token if legitimate intervening
 work changes it; preserve all authorized limits, roots, actor/controller and decision
 references. CIS has no allocation preview operation; the request was checked against
 the installed schema, storage rules and current read-only inventory. Do not apply
@@ -127,10 +138,10 @@ and storage limitation."
 
 | Task | Area | Complexity | Depends on | Requirements | Repositories | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| [WORK-001 — Address implementation impact: ShippingBuildInventoryTests.cs](agent-tasks/WORK-001.md) | implementation | medium | — | — | — | Draft |
+| [WORK-001 — Address implementation impact: ShippingBuildInventoryTests.cs](agent-tasks/WORK-001.md) | implementation | medium | — | — | — | InProgress |
 
 <!-- cis:execution-manifest
 | ID | Category | Complexity | Parent | Task document | Title | Requirement IDs | Impact IDs | Depends on | Acceptance criteria | Validation | Status | Task type | Type version | Approval gate | Targets | Frontend type | Decision IDs | Negative criteria | Required outputs | Story ID | Instance key | Work owner | Verification obligations |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| WORK-001 | implementation | medium |  | agent-tasks/WORK-001.md | Address implementation impact: ShippingBuildInventoryTests.cs |  | IMPACT-16713BDBE2 |  | The accepted impact IMPACT-16713BDBE2 is satisfied without unrecorded scope expansion. | Build the affected component and run its connected deterministic tests. | Draft | core.legacy | 1.0 | none |  | not-applicable | json64:W10= | json64:WyJEbyBub3QgZXhwYW5kIHRoZSBhY2NlcHRlZCBjaGFuZ2UvaW1wYWN0IHNjb3BlIG9yIGJ5cGFzcyBwcm9kdWN0LCBwbGFuLCBkZXNpZ24sIGFsbG9jYXRpb24gb3IgY29tcGxldGlvbiBhdXRob3JpdHkuIl0= | json64:WyJUaGUgYm91bmRlZCBjaGFuZ2UgYW5kIHJlcHJvZHVjaWJsZSBldmlkZW5jZSBmb3IgdGhlIGFjY2VwdGVkIGltcGFjdC4iXQ== | json64:bnVsbA== | json64:ImFkLWhvYy1pbXBhY3Q6SU1QQUNULTE2NzEzQkRCRTIi | json64:bnVsbA== | json64:W3siSWQiOiJ0YXNrLWNvbnRyYWN0IiwiQ3JpdGVyaWEiOlsiVGhlIGFjY2VwdGVkIGltcGFjdCBJTVBBQ1QtMTY3MTNCREJFMiBpcyBzYXRpc2ZpZWQgd2l0aG91dCB1bnJlY29yZGVkIHNjb3BlIGV4cGFuc2lvbi4iXSwiRGVzY3JpcHRpb24iOiJCdWlsZCB0aGUgYWZmZWN0ZWQgY29tcG9uZW50IGFuZCBydW4gaXRzIGNvbm5lY3RlZCBkZXRlcm1pbmlzdGljIHRlc3RzLiIsIkV2aWRlbmNlUm91dGUiOiJyZXZpZXciLCJFdmlkZW5jZUV4cGVjdGF0aW9ucyI6WyJCdWlsZCB0aGUgYWZmZWN0ZWQgY29tcG9uZW50IGFuZCBydW4gaXRzIGNvbm5lY3RlZCBkZXRlcm1pbmlzdGljIHRlc3RzLiJdLCJTaGFyZWRHYXRlSWRzIjpbXSwiQmFzaXNSZWZlcmVuY2VzIjpbXX1d |
+| WORK-001 | implementation | medium |  | agent-tasks/WORK-001.md | Address implementation impact: ShippingBuildInventoryTests.cs |  | IMPACT-16713BDBE2 |  | The accepted impact IMPACT-16713BDBE2 is satisfied without unrecorded scope expansion. | Build the affected component and run its connected deterministic tests. | InProgress | core.legacy | 1.0 | none |  | not-applicable | json64:W10= | json64:WyJEbyBub3QgZXhwYW5kIHRoZSBhY2NlcHRlZCBjaGFuZ2UvaW1wYWN0IHNjb3BlIG9yIGJ5cGFzcyBwcm9kdWN0LCBwbGFuLCBkZXNpZ24sIGFsbG9jYXRpb24gb3IgY29tcGxldGlvbiBhdXRob3JpdHkuIl0= | json64:WyJUaGUgYm91bmRlZCBjaGFuZ2UgYW5kIHJlcHJvZHVjaWJsZSBldmlkZW5jZSBmb3IgdGhlIGFjY2VwdGVkIGltcGFjdC4iXQ== | json64:bnVsbA== | json64:ImFkLWhvYy1pbXBhY3Q6SU1QQUNULTE2NzEzQkRCRTIi | json64:bnVsbA== | json64:W3siSWQiOiJ0YXNrLWNvbnRyYWN0IiwiQ3JpdGVyaWEiOlsiVGhlIGFjY2VwdGVkIGltcGFjdCBJTVBBQ1QtMTY3MTNCREJFMiBpcyBzYXRpc2ZpZWQgd2l0aG91dCB1bnJlY29yZGVkIHNjb3BlIGV4cGFuc2lvbi4iXSwiRGVzY3JpcHRpb24iOiJCdWlsZCB0aGUgYWZmZWN0ZWQgY29tcG9uZW50IGFuZCBydW4gaXRzIGNvbm5lY3RlZCBkZXRlcm1pbmlzdGljIHRlc3RzLiIsIkV2aWRlbmNlUm91dGUiOiJyZXZpZXciLCJFdmlkZW5jZUV4cGVjdGF0aW9ucyI6WyJCdWlsZCB0aGUgYWZmZWN0ZWQgY29tcG9uZW50IGFuZCBydW4gaXRzIGNvbm5lY3RlZCBkZXRlcm1pbmlzdGljIHRlc3RzLiJdLCJTaGFyZWRHYXRlSWRzIjpbXSwiQmFzaXNSZWZlcmVuY2VzIjpbXX1d |
 cis:execution-manifest -->

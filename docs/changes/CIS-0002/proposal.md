@@ -45,10 +45,12 @@ source helper, `WriteTypeInventoryTests` covers inventory generation, and
 examples through a clean restore of the actual packaged SDK. The older local
 development package confirms asset layout only; it is not the new candidate.
 
-The native Draft plan now contains one medium implementation task with the
+The approved native plan contains one medium implementation task with the
 integration checks, concrete fixes, documentation, independent review and
-completion: [CIS-0002/WORK-001](agent-tasks/WORK-001.md). Its plan and allocation
-are not approved yet.
+completion: [CIS-0002/WORK-001](agent-tasks/WORK-001.md). Andrew Spiteri approved
+the exact plan and separately authorized its allocation on 12 November 2026;
+CIS recorded both in order and transitioned the task to InProgress. Execution
+and completion evidence remain separate from those decisions.
 Keep `CIS-0001/WORK-001` and its accepted records untouched.
 
 Required changes:
@@ -80,7 +82,11 @@ No Configuration, Heartbeat, Startup Pipeline, plugin/custom-load-context,
 Visual Studio/MSBuild.exe, PublishUrl, AOT, trimming, single-file, self-contained,
 coverage, mutation or broad performance/platform campaign is added.
 
-## Proposed finite allocation — not applied
+## Reviewed finite allocation
+
+Andrew Spiteri explicitly authorized this allocation separately from the plan on
+12 November 2026. Native application succeeded at revision 39, producing revision
+40. The reviewed limits and external-host boundary below remain binding.
 
 Original authority: Andrew Spiteri. Controller: Codex. Proposed change and sole
 task ceilings are each **7,200 active seconds, three logical attempts and a
@@ -132,6 +138,7 @@ entry point for the one Type Manager package-consumer integration task described
 here; retain the working runtime/helper/SDK and complete only its scoped coverage,
 concrete fixes, instructions and review."
 
-Native `plan build` materialized the single Draft task after that disposition.
-Validate the authored contract and present only the new exact-plan/allocation
-decision. Do not renew the accepted BRD, technical intent, solution bundle or no-UI approval.
+Native `plan build` materialized the single task after that disposition. Its
+authored contract validated with one accepted impact covered and no plan errors
+or warnings. Andrew Spiteri then approved the exact plan and allocation; the
+accepted BRD, technical intent, solution bundle and no-UI approvals were reused.

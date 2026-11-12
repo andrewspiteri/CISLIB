@@ -2,7 +2,7 @@
 title: "WORK-001 Address implementation impact: ShippingBuildInventoryTests.cs"
 type: agent-task
 status: Draft
-task_status: Draft
+task_status: InProgress
 task_id: WORK-001
 task_type: core.legacy
 task_type_version: 1.0
@@ -71,7 +71,7 @@ focused native integration coverage and fix only demonstrated in-scope defects.
 
 - No task dependencies.
 - The current plan requires actual approval; execution requires an eligible task and applicable finite work/storage authority.
-- Exact plan and new finite allocation remain pending separate human decisions. The existing foundations and accepted impact are sufficient; no foundational reapproval is requested. Controller/root ownership and external SSH limits are stated in [the plan](../plan.md#proposed-allocation-and-controller).
+- Andrew Spiteri approved the exact plan and separately authorized its finite allocation on 12 November 2026; CIS recorded both and transitioned this task to InProgress. Existing foundations and the accepted impact were reused. Controller/root ownership and external SSH limits remain as stated in [the plan](../plan.md#proposed-allocation-and-controller).
 
 ## Acceptance criteria
 
