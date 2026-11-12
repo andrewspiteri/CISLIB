@@ -45,9 +45,10 @@ source helper, `WriteTypeInventoryTests` covers inventory generation, and
 examples through a clean restore of the actual packaged SDK. The older local
 development package confirms asset layout only; it is not the new candidate.
 
-Propose one medium implementation task containing the integration checks, any
-concrete fixes, documentation, independent review and completion. Its expected
-native identity is `CIS-0002/WORK-001`; CIS has not materialized or approved it yet.
+The native Draft plan now contains one medium implementation task with the
+integration checks, concrete fixes, documentation, independent review and
+completion: [CIS-0002/WORK-001](agent-tasks/WORK-001.md). Its plan and allocation
+are not approved yet.
 Keep `CIS-0001/WORK-001` and its accepted records untouched.
 
 Required changes:
@@ -101,12 +102,16 @@ The allocation must reuse storage ceiling reference
 below authorizes joining the ceiling; it does not replace its identity or mutate
 the completed task's policy or claims.
 
-Both OS checks share this one task and human-granted time/attempt scope. The
+Both OS checks share one 7,200-second, three-attempt allowance with one included
+180-second restoration reserve; no platform gets a separate allowance. The
 installed CIS controller accounts its admitted local operations; it has no native
 cross-host accounting/storage transport. Actual Ubuntu CLI execution over the
 existing SSH access will use bounded commands and a disposable `/data` task
-directory capped at 2 GiB by controller inspection, with actual duration and
-output size recorded separately. Do not duplicate/reset the authority ledger or
+directory limited to 2 GiB for all regular files beneath it, including any new
+toolchain, package/cache, consumer and build/publish output stored there. Inspect
+before expansion and after commands; stop expansion and clean disposable output
+if capacity is insufficient. This is controller inspection, not an enforced
+filesystem quota. Record actual remote duration/output separately. Do not duplicate/reset the authority ledger or
 claim remote process containment/storage enforcement that CIS does not supply.
 The server is reachable; its checked CIS build installation has SDK 10.0.403 and
 runtime 10.0.14, so the requested 10.0.401/10.0.12 toolchain must be located or
@@ -118,15 +123,15 @@ materialized plan and allocation, using the then-current ledger revision and
 exact generated task identity. No new authority or native execution is granted
 by this proposal.
 
-## Pending impact decision
+## Accepted impact decision
 
-The sole finding `IMPACT-16713BDBE2` is proposed, high confidence and not truncated.
-Proposed acceptance reason: "Accept the existing inventory-test source as the
+Andrew Spiteri explicitly accepted the sole finding `IMPACT-16713BDBE2` on
+12 November 2026 using its published reason. Native impact review is complete,
+high confidence and not truncated. Recorded acceptance reason: "Accept the existing inventory-test source as the
 entry point for the one Type Manager package-consumer integration task described
 here; retain the working runtime/helper/SDK and complete only its scoped coverage,
 concrete fixes, instructions and review."
 
-The native planning gate requires this human disposition before `plan build` can
-materialize the one task. After acceptance, build/validate the canonical plan and
-present only its new exact-plan/allocation decision. Do not renew the accepted
-BRD, technical intent, solution bundle or no-UI approval.
+Native `plan build` materialized the single Draft task after that disposition.
+Validate the authored contract and present only the new exact-plan/allocation
+decision. Do not renew the accepted BRD, technical intent, solution bundle or no-UI approval.
