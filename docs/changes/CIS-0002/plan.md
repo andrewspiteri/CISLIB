@@ -27,8 +27,9 @@ Andrew Spiteri accepted IMPACT-16713BDBE2 and explicitly approved this exact pla
 and WORK-001 contract on 12 November 2026. The separately authorized allocation
 was then applied through CIS, advancing the global ledger from revision 39 to 40
 without changing the completed adoption owner's allocation or accounting.
-WORK-001 is InProgress through the supported lifecycle. These decisions authorize
-the bounded integration work; they do not certify execution or release readiness.
+WORK-001 is Complete through the supported lifecycle. The [verification record](verification.md)
+records the actual Windows/Ubuntu passes, current reuse, review and settled work.
+Plan/allocation approval itself did not certify execution or release readiness.
 
 - Requirements covered: 0.
 - Work items: 1 (1 actionable).
@@ -138,10 +139,10 @@ and storage limitation."
 
 | Task | Area | Complexity | Depends on | Requirements | Repositories | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| [WORK-001 — Address implementation impact: ShippingBuildInventoryTests.cs](agent-tasks/WORK-001.md) | implementation | medium | — | — | — | InProgress |
+| [WORK-001 — Address implementation impact: ShippingBuildInventoryTests.cs](agent-tasks/WORK-001.md) | implementation | medium | — | — | — | Complete |
 
 <!-- cis:execution-manifest
 | ID | Category | Complexity | Parent | Task document | Title | Requirement IDs | Impact IDs | Depends on | Acceptance criteria | Validation | Status | Task type | Type version | Approval gate | Targets | Frontend type | Decision IDs | Negative criteria | Required outputs | Story ID | Instance key | Work owner | Verification obligations |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| WORK-001 | implementation | medium |  | agent-tasks/WORK-001.md | Address implementation impact: ShippingBuildInventoryTests.cs |  | IMPACT-16713BDBE2 |  | The accepted impact IMPACT-16713BDBE2 is satisfied without unrecorded scope expansion. | Build the affected component and run its connected deterministic tests. | InProgress | core.legacy | 1.0 | none |  | not-applicable | json64:W10= | json64:WyJEbyBub3QgZXhwYW5kIHRoZSBhY2NlcHRlZCBjaGFuZ2UvaW1wYWN0IHNjb3BlIG9yIGJ5cGFzcyBwcm9kdWN0LCBwbGFuLCBkZXNpZ24sIGFsbG9jYXRpb24gb3IgY29tcGxldGlvbiBhdXRob3JpdHkuIl0= | json64:WyJUaGUgYm91bmRlZCBjaGFuZ2UgYW5kIHJlcHJvZHVjaWJsZSBldmlkZW5jZSBmb3IgdGhlIGFjY2VwdGVkIGltcGFjdC4iXQ== | json64:bnVsbA== | json64:ImFkLWhvYy1pbXBhY3Q6SU1QQUNULTE2NzEzQkRCRTIi | json64:bnVsbA== | json64:W3siSWQiOiJ0YXNrLWNvbnRyYWN0IiwiQ3JpdGVyaWEiOlsiVGhlIGFjY2VwdGVkIGltcGFjdCBJTVBBQ1QtMTY3MTNCREJFMiBpcyBzYXRpc2ZpZWQgd2l0aG91dCB1bnJlY29yZGVkIHNjb3BlIGV4cGFuc2lvbi4iXSwiRGVzY3JpcHRpb24iOiJCdWlsZCB0aGUgYWZmZWN0ZWQgY29tcG9uZW50IGFuZCBydW4gaXRzIGNvbm5lY3RlZCBkZXRlcm1pbmlzdGljIHRlc3RzLiIsIkV2aWRlbmNlUm91dGUiOiJyZXZpZXciLCJFdmlkZW5jZUV4cGVjdGF0aW9ucyI6WyJCdWlsZCB0aGUgYWZmZWN0ZWQgY29tcG9uZW50IGFuZCBydW4gaXRzIGNvbm5lY3RlZCBkZXRlcm1pbmlzdGljIHRlc3RzLiJdLCJTaGFyZWRHYXRlSWRzIjpbXSwiQmFzaXNSZWZlcmVuY2VzIjpbXX1d |
+| WORK-001 | implementation | medium |  | agent-tasks/WORK-001.md | Address implementation impact: ShippingBuildInventoryTests.cs |  | IMPACT-16713BDBE2 |  | The accepted impact IMPACT-16713BDBE2 is satisfied without unrecorded scope expansion. | Build the affected component and run its connected deterministic tests. | Complete | core.legacy | 1.0 | none |  | not-applicable | json64:W10= | json64:WyJEbyBub3QgZXhwYW5kIHRoZSBhY2NlcHRlZCBjaGFuZ2UvaW1wYWN0IHNjb3BlIG9yIGJ5cGFzcyBwcm9kdWN0LCBwbGFuLCBkZXNpZ24sIGFsbG9jYXRpb24gb3IgY29tcGxldGlvbiBhdXRob3JpdHkuIl0= | json64:WyJUaGUgYm91bmRlZCBjaGFuZ2UgYW5kIHJlcHJvZHVjaWJsZSBldmlkZW5jZSBmb3IgdGhlIGFjY2VwdGVkIGltcGFjdC4iXQ== | json64:bnVsbA== | json64:ImFkLWhvYy1pbXBhY3Q6SU1QQUNULTE2NzEzQkRCRTIi | json64:bnVsbA== | json64:W3siSWQiOiJ0YXNrLWNvbnRyYWN0IiwiQ3JpdGVyaWEiOlsiVGhlIGFjY2VwdGVkIGltcGFjdCBJTVBBQ1QtMTY3MTNCREJFMiBpcyBzYXRpc2ZpZWQgd2l0aG91dCB1bnJlY29yZGVkIHNjb3BlIGV4cGFuc2lvbi4iXSwiRGVzY3JpcHRpb24iOiJCdWlsZCB0aGUgYWZmZWN0ZWQgY29tcG9uZW50IGFuZCBydW4gaXRzIGNvbm5lY3RlZCBkZXRlcm1pbmlzdGljIHRlc3RzLiIsIkV2aWRlbmNlUm91dGUiOiJyZXZpZXciLCJFdmlkZW5jZUV4cGVjdGF0aW9ucyI6WyJCdWlsZCB0aGUgYWZmZWN0ZWQgY29tcG9uZW50IGFuZCBydW4gaXRzIGNvbm5lY3RlZCBkZXRlcm1pbmlzdGljIHRlc3RzLiJdLCJTaGFyZWRHYXRlSWRzIjpbXSwiQmFzaXNSZWZlcmVuY2VzIjpbXX1d |
 cis:execution-manifest -->

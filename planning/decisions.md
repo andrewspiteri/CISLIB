@@ -35,16 +35,16 @@ Windows 11 x64 and Ubuntu 24.04 x64 are the selected initial lanes. Actual platf
 - No all-scope release qualification is claimed. The last pre-cleanup Source47 snapshot had scoped passing native/API/package results, an incomplete mutation pilot/control sequence and stopped/partial shipping coverage. No Full47 ran. Earlier scores/results do not transfer to the cleaned source.
 - Actual external Heartbeat scheduler and generic startup-provider integrations remain absent; local binding/collector tests do not prove those external integrations.
 - Complete current platform, exact-package/example, coverage, mutation and release acceptance remain unexecuted unless individually recorded by subsequent work. Windows remote/alternate-user/elevated-identity rejection, privileged Unix denial and deployment/container-specific behavior require their actual environment when claimed.
-- Type Manager Visual Studio/MSBuild.exe task hosting, Visual Studio `PublishUrl` copying and nonconventional helper output layouts remain outside the qualified profile. Final clean-package and supported-profile consolidation remains pending.
+- Type Manager clean-package Console/Web consumption passed on actual Windows 11 x64 and Ubuntu 24.04 x64 with SDK 10.0.401 and NET/ASP.NET Core 10.0.12, framework-dependent and untrimmed, covering ordinary build, folder publish and matching no-build publish. See [CIS-0002 verification](../docs/changes/CIS-0002/verification.md). Visual Studio/MSBuild.exe task hosting, Visual Studio `PublishUrl` copying and nonconventional helper output layouts remain outside the qualified profile; full release qualification remains separate.
 - Publication destination, signing/distribution policy and the final supported API/behavior baseline must be settled before first publication. Licence is already MIT.
 
 Historical campaigns, duplicate source snapshots, generated receipts and obsolete active instructions were retired. Their removal does not establish a pass or require replay. Exact historical bytes are available only if retained in Git history or separately identified user data; this record makes no continuing custody/availability claim. No unresolved product defect is inferred from a retired harness timeout or receipt failure.
 
 CIS adoption retains the bounded unit result above; its CIS-0001 plan queues no
 successor. Separate [CIS-0002/WORK-001](../docs/changes/CIS-0002/agent-tasks/WORK-001.md)
-now owns the approved Type Manager package-consumer integration, focused native
-Windows/Ubuntu checks, instructions and review under its own finite allocation.
-Its [verification record](../docs/changes/CIS-0002/verification.md) determines the
-actual outcome; approval alone establishes no pass. Broader native qualification
+is Complete after the separate approved Type Manager package-consumer integration,
+focused native Windows/Ubuntu checks, instructions and review under its own finite allocation.
+Its [verification record](../docs/changes/CIS-0002/verification.md) records the
+actual passing package outcomes and completion checks. Broader native qualification
 retains its actual authorization requirements. The retired mechanisms stay retired,
 and this task starts no new module or CIS correction pass.

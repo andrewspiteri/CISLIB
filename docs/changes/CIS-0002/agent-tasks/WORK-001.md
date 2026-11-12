@@ -2,7 +2,7 @@
 title: "WORK-001 Address implementation impact: ShippingBuildInventoryTests.cs"
 type: agent-task
 status: Draft
-task_status: InProgress
+task_status: Complete
 task_id: WORK-001
 task_type: core.legacy
 task_type_version: 1.0
@@ -75,33 +75,39 @@ focused native integration coverage and fix only demonstrated in-scope defects.
 
 ## Acceptance criteria
 
-- [ ] The accepted impact IMPACT-16713BDBE2 is satisfied without unrecorded scope expansion.
-- [ ] Clean first restore/build uses the actual candidate's exact versioned SDK, no source Core reference/import, duplicate Core reference, cached Core or old assets, and the early selected native RID. Inventory includes the deployed sample implementation assembly that the host has not touched.
-- [ ] Preparation completes before Console APPLICATION_READY and Web builder/container creation. Root and scoped consumers share the completed ITypeManager and cached query; fixed membership and no discovery-time object activation hold.
-- [ ] Build output, ordinary folder publish and matching publish --no-build all run successfully; unchanged manifests retain bytes and modification time.
-- [ ] A missing selected assembly produces the existing useful failure before readiness/container construction, without publishing a partial successful catalog.
-- [ ] Non-enabled ordinary package use works; only one Core runtime dependency is supplied, the build helper stays outside runtime output and public/default/package boundaries remain intact.
-- [ ] Actual Windows and Ubuntu checks use the pinned supported toolchain and shared candidate identity. Any unavailable execution stays open, not inferred.
-- [ ] Focused independent review has no required finding, current native evidence is retained and this owner's work/storage has settled. Record any remaining acceptance item honestly; no broader qualification claim is made.
+- [x] The accepted impact IMPACT-16713BDBE2 is satisfied without unrecorded scope expansion.
+- [x] Clean first restore/build uses the actual candidate's exact versioned SDK, no source Core reference/import, duplicate Core reference, cached Core or old assets, and the early selected native RID. Inventory includes the deployed sample implementation assembly that the host has not touched.
+- [x] Preparation completes before Console APPLICATION_READY and Web builder/container creation. Root and scoped consumers share the completed ITypeManager and cached query; fixed membership and no discovery-time object activation hold.
+- [x] Build output, ordinary folder publish and matching publish --no-build all run successfully; unchanged manifests retain bytes and modification time.
+- [x] A missing selected assembly produces the existing useful failure before readiness/container construction, without publishing a partial successful catalog.
+- [x] Non-enabled ordinary package use works; only one Core runtime dependency is supplied, the build helper stays outside runtime output and public/default/package boundaries remain intact.
+- [x] Actual Windows and Ubuntu checks use the pinned supported toolchain and shared candidate identity. Any unavailable execution stays open, not inferred.
+- [x] Focused independent review has no required finding, current native evidence is retained and this owner's work/storage has settled. Record any remaining acceptance item honestly; no broader qualification claim is made.
 
 ## Targeted validation
 
-- [ ] Build the affected component and run its connected deterministic tests.
-- [ ] Before native execution, approve the exact plan and allocation, transition this task through supported lifecycle controls, inspect finite remaining time/ attempts/storage and verify the actual SDK/shared frameworks. Do not use the completed Healthcheck owner or profile.
-- [ ] Build only IntegrationTests and connected project dependencies for the new package checks. Run selected native checks through the scoped CIS unit profile; reuse compatible helper/runtime results and broaden only for a concrete fix.
-- [ ] Use the same candidate across both actual OS lanes and the related host modes; repack only after shipped bytes change. Keep matching restore/RID/build inputs, never share an intermediate directory across different RID builds.
-- [ ] Perform Ubuntu CLI checks through existing SSH access with bounded commands, actual duration/output observation and the declared external-host limitation; do not copy/reset the authoritative ledger or invent remote CIS containment.
-- [ ] Record actual compact results, review and settlement in this task and ../verification.md. Read-only plan/status/verification may demonstrate current reuse; do not rerun unchanged work solely to prove reuse.
+- [x] Build the affected component and run its connected deterministic tests.
+- [x] Before native execution, approve the exact plan and allocation, transition this task through supported lifecycle controls, inspect finite remaining time/ attempts/storage and verify the actual SDK/shared frameworks. Do not use the completed Healthcheck owner or profile.
+- [x] Build only IntegrationTests and connected project dependencies for the new package checks. Run selected native checks through the scoped CIS unit profile; reuse compatible helper/runtime results and broaden only for a concrete fix.
+- [x] Use the same candidate across both actual OS lanes and the related host modes; repack only after shipped bytes change. Keep matching restore/RID/build inputs, never share an intermediate directory across different RID builds.
+- [x] Perform Ubuntu CLI checks through existing SSH access with bounded commands, actual duration/output observation and the declared external-host limitation; do not copy/reset the authoritative ledger or invent remote CIS containment.
+- [x] Record actual compact results, review and settlement in this task and ../verification.md. Read-only plan/status/verification may demonstrate current reuse; do not rerun unchanged work solely to prove reuse.
 
 ## Completion evidence
 
 | Check | Command or artifact | Result | Notes |
 | --- | --- | --- | --- |
-| Accepted impact | No execution yet | Not run | Record actual scoped evidence before completion. |
+| Accepted impact and package boundary | New native `TypeManagerPackageConsumerTests` and shared fixture; existing Console/Web/Contracts/Unused/Shared | Satisfied on both actual platforms | Four cases cover clean versioned-SDK first restore/build, both publish modes, preparation/identity/fixed membership, broken deployment and non-enabled use. Existing product implementation was reused. |
+| Windows | Scoped CIS unit profile; `file-754f922ff7fc05e162f8-unit.xml` | 4 passed, 0 failed, 0 skipped | Actual Windows 11 x64, SDK 10.0.401 and NET/ASP.NET Core 10.0.12; graph selects only the four cases. |
+| Ubuntu | `linux/type-manager-package-linux.trx` and `linux-outcome.json` under the scoped local testing directory | 4 passed, 0 failed, 0 skipped | Actual Ubuntu 24.04 x64, same pinned toolchain and unchanged candidate; remote disposable source/build/cache directory removed after collection. |
+| Candidate and detailed outcome | [Verification record](../verification.md) | Same package reused across platforms | Candidate SHA-256 `de794bafcee21b8a667bb3558e45242fddbab3f8eb7ca3b04974c5037628d93e`; source and report identities, measured costs, profile correction and review are recorded there. |
+| Current reuse and preserved adoption | Read-only unit plan/status/verification after documentation updates; original adoption artifact hashes | Verified with zero pending batches; no additional native launch | CIS-0001 remains Complete with its unchanged report and accounting. |
+| Review and settlement | Independent focused review; native `agent work progress` close at revision `:106` | No required finding; logical attempt closed | 602,214 ms native consumption, zero reserved, one of three attempts used, no recovery hold. Separately observed Ubuntu work stays within the shared limit. Temporary consumers and remote job were removed. |
+| CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=362; failed=49; possibleTokenSavings=123; ledgerDigest=sha256:2961851e19b156a2b999e4d5f9dbcc8d02c8e74ad4308f94e69e9cdbbd723924 |
 
 ## Deferrals and residual risk
 
-- No deferral is approved by generation. Record any actual unmet criterion, owner, follow-up and decision.
-- Ubuntu availability does not prove the pinned SDK/runtime are installed. Locate or install them within the approved task bounds before claiming that lane.
+- No acceptance item is deferred. Full release qualification and the excluded deployment profiles remain outside this completed integration task.
+- Ubuntu used the existing pinned SDK/runtime installation; no installation or toolchain copy was needed.
 - CIS accounts its admitted local operations, not independent remote process/ filesystem enforcement. External SSH observations must be explicit and bounded.
 - No new volume-sensitive workload is introduced; conventional example assemblies and inventories exercise the accepted package/startup contract. Existing broader product and release obligations remain unchanged and outside this task.

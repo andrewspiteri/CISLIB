@@ -49,8 +49,9 @@ The approved native plan contains one medium implementation task with the
 integration checks, concrete fixes, documentation, independent review and
 completion: [CIS-0002/WORK-001](agent-tasks/WORK-001.md). Andrew Spiteri approved
 the exact plan and separately authorized its allocation on 12 November 2026;
-CIS recorded both in order and transitioned the task to InProgress. Execution
-and completion evidence remain separate from those decisions.
+CIS recorded both in order. The task is now Complete through the supported
+lifecycle; [verification.md](verification.md) records actual execution, current
+reuse, review and settled accounting separately from those decisions.
 Keep `CIS-0001/WORK-001` and its accepted records untouched.
 
 Required changes:
