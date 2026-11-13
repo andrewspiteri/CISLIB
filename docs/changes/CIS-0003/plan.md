@@ -1,9 +1,11 @@
 ---
 title: "CIS-0003 delivery plan"
 type: delivery-plan
-status: Draft
+status: Approved
 change_id: CIS-0003
 graph_build_id: "sha256:55ddaa8300bc2ef02d0e335fe9ff002e5045727d73315193a7b28f06f3f8b676"
+approved_by: "Andrew Spiteri"
+approval_rationale: "Approve the CIS-0003 plan and WORK-001 contract for the bounded ConsoleHuman Logging example and real package-consumer integration, preserving accepted product decisions, completed CIS-0001/CIS-0002 results and existing release obligations."
 authority: human-approved
 ---
 
@@ -22,11 +24,14 @@ there are no separate documentation, assurance or final-sweep tasks.
 
 Andrew Spiteri accepted `IMPACT-C3273A4304` from proposal commit `9c57f0b2`.
 Native CIS recorded that decision before generating this plan. The one accepted
-impact is covered. This draft plan and its separate allocation remain pending.
+impact is covered. Andrew Spiteri subsequently approved this exact plan/task and
+separately authorized the published finite allocation. Native CIS recorded both
+in order and transitioned WORK-001 to InProgress; the allocation advanced ledger
+revision `:106` to `:107` without changing the completed owners' accounting.
 Native plan validation reports zero errors, zero warnings and no open content
 decisions. Strict documentation validation passed. Independent read-only review
-of the exact contract/allocation found no required change; no product build or
-test has run under this new owner.
+of the exact contract/allocation found no required change. Subsequent actual
+execution is recorded separately in [verification.md](verification.md).
 Existing product and no-UI direction are reused; CIS-0001 and CIS-0002 remain
 Complete with their accepted results, profiles, approvals and accounting intact.
 
@@ -50,8 +55,9 @@ regression/coverage/mutation/performance/release campaigns are excluded.
 
 ## Proposed allocation and controller
 
-This proposal is unchanged from the reviewed scope. Apply it only after exact
-plan/task approval; it does not grant execution now. Original authority:
+Andrew Spiteri separately authorized this unchanged proposal after exact plan/task
+approval, and native allocation succeeded. Its original limits and reasons remain
+below as the decision record. Original authority:
 Andrew Spiteri. Controller: Codex. New owner: `CIS-0003/WORK-001`.
 
 | Limit | Containing change | Sole task |
@@ -101,10 +107,10 @@ and storage limitation."
 
 | Task | Area | Complexity | Depends on | Requirements | Repositories | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| [WORK-001 — Address implementation impact: Program.cs](agent-tasks/WORK-001.md) | implementation | medium | — | — | — | Draft |
+| [WORK-001 — Address implementation impact: Program.cs](agent-tasks/WORK-001.md) | implementation | medium | — | — | — | InProgress |
 
 <!-- cis:execution-manifest
 | ID | Category | Complexity | Parent | Task document | Title | Requirement IDs | Impact IDs | Depends on | Acceptance criteria | Validation | Status | Task type | Type version | Approval gate | Targets | Frontend type | Decision IDs | Negative criteria | Required outputs | Story ID | Instance key | Work owner | Verification obligations |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| WORK-001 | implementation | medium |  | agent-tasks/WORK-001.md | Address implementation impact: Program.cs |  | IMPACT-C3273A4304 |  | The accepted impact IMPACT-C3273A4304 is satisfied without unrecorded scope expansion. | Build the affected component and run its connected deterministic tests. | Draft | core.legacy | 1.0 | none |  | not-applicable | json64:W10= | json64:WyJEbyBub3QgZXhwYW5kIHRoZSBhY2NlcHRlZCBjaGFuZ2UvaW1wYWN0IHNjb3BlIG9yIGJ5cGFzcyBwcm9kdWN0LCBwbGFuLCBkZXNpZ24sIGFsbG9jYXRpb24gb3IgY29tcGxldGlvbiBhdXRob3JpdHkuIl0= | json64:WyJUaGUgYm91bmRlZCBjaGFuZ2UgYW5kIHJlcHJvZHVjaWJsZSBldmlkZW5jZSBmb3IgdGhlIGFjY2VwdGVkIGltcGFjdC4iXQ== | json64:bnVsbA== | json64:ImFkLWhvYy1pbXBhY3Q6SU1QQUNULUMzMjczQTQzMDQi | json64:bnVsbA== | json64:W3siSWQiOiJ0YXNrLWNvbnRyYWN0IiwiQ3JpdGVyaWEiOlsiVGhlIGFjY2VwdGVkIGltcGFjdCBJTVBBQ1QtQzMyNzNBNDMwNCBpcyBzYXRpc2ZpZWQgd2l0aG91dCB1bnJlY29yZGVkIHNjb3BlIGV4cGFuc2lvbi4iXSwiRGVzY3JpcHRpb24iOiJCdWlsZCB0aGUgYWZmZWN0ZWQgY29tcG9uZW50IGFuZCBydW4gaXRzIGNvbm5lY3RlZCBkZXRlcm1pbmlzdGljIHRlc3RzLiIsIkV2aWRlbmNlUm91dGUiOiJyZXZpZXciLCJFdmlkZW5jZUV4cGVjdGF0aW9ucyI6WyJCdWlsZCB0aGUgYWZmZWN0ZWQgY29tcG9uZW50IGFuZCBydW4gaXRzIGNvbm5lY3RlZCBkZXRlcm1pbmlzdGljIHRlc3RzLiJdLCJTaGFyZWRHYXRlSWRzIjpbXSwiQmFzaXNSZWZlcmVuY2VzIjpbXX1d |
+| WORK-001 | implementation | medium |  | agent-tasks/WORK-001.md | Address implementation impact: Program.cs |  | IMPACT-C3273A4304 |  | The accepted impact IMPACT-C3273A4304 is satisfied without unrecorded scope expansion. | Build the affected component and run its connected deterministic tests. | InProgress | core.legacy | 1.0 | none |  | not-applicable | json64:W10= | json64:WyJEbyBub3QgZXhwYW5kIHRoZSBhY2NlcHRlZCBjaGFuZ2UvaW1wYWN0IHNjb3BlIG9yIGJ5cGFzcyBwcm9kdWN0LCBwbGFuLCBkZXNpZ24sIGFsbG9jYXRpb24gb3IgY29tcGxldGlvbiBhdXRob3JpdHkuIl0= | json64:WyJUaGUgYm91bmRlZCBjaGFuZ2UgYW5kIHJlcHJvZHVjaWJsZSBldmlkZW5jZSBmb3IgdGhlIGFjY2VwdGVkIGltcGFjdC4iXQ== | json64:bnVsbA== | json64:ImFkLWhvYy1pbXBhY3Q6SU1QQUNULUMzMjczQTQzMDQi | json64:bnVsbA== | json64:W3siSWQiOiJ0YXNrLWNvbnRyYWN0IiwiQ3JpdGVyaWEiOlsiVGhlIGFjY2VwdGVkIGltcGFjdCBJTVBBQ1QtQzMyNzNBNDMwNCBpcyBzYXRpc2ZpZWQgd2l0aG91dCB1bnJlY29yZGVkIHNjb3BlIGV4cGFuc2lvbi4iXSwiRGVzY3JpcHRpb24iOiJCdWlsZCB0aGUgYWZmZWN0ZWQgY29tcG9uZW50IGFuZCBydW4gaXRzIGNvbm5lY3RlZCBkZXRlcm1pbmlzdGljIHRlc3RzLiIsIkV2aWRlbmNlUm91dGUiOiJyZXZpZXciLCJFdmlkZW5jZUV4cGVjdGF0aW9ucyI6WyJCdWlsZCB0aGUgYWZmZWN0ZWQgY29tcG9uZW50IGFuZCBydW4gaXRzIGNvbm5lY3RlZCBkZXRlcm1pbmlzdGljIHRlc3RzLiJdLCJTaGFyZWRHYXRlSWRzIjpbXSwiQmFzaXNSZWZlcmVuY2VzIjpbXX1d |
 cis:execution-manifest -->

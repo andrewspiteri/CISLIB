@@ -84,9 +84,12 @@ used attempts; CIS-0002 retains 602,214 ms and one used attempt.
 
 ## Proposed finite allocation and controller
 
-This is a review proposal, not applied authority. Apply only after the actual
-generated plan/task has been approved. Original authority: Andrew Spiteri;
-controller: Codex. Proposed new owner: CIS-0003/WORK-001.
+Andrew Spiteri approved the exact generated plan/task and separately authorized
+this allocation from commit `47fef095f10587d9b0b563ec58f9654bf12f274d`. Native CIS
+applied them in that order, advancing allocation revision `:106` to `:107`, then
+transitioned WORK-001 to InProgress. The reviewed terms are retained below;
+execution outcomes remain separate. Original authority: Andrew Spiteri;
+controller: Codex. New owner: CIS-0003/WORK-001.
 
 | Limit | Containing change | Sole task |
 | --- | --- | --- |
@@ -161,7 +164,8 @@ completion; preserve completed CIS-0001/CIS-0002 work and exclude broader releas
 qualification or unrelated product changes."
 
 CIS recorded this exact decision and generated one medium WORK-001 task. The
-decision does not approve the [generated plan](plan.md) or allocate execution.
+impact decision did not itself approve the [generated plan](plan.md) or allocate
+execution; the subsequent explicit decisions above supplied those authorities.
 No existing governed feature authorizes this new instance through plan derivation.
 The one accepted impact is covered, with no truncated traversal or other findings.
 

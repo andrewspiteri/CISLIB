@@ -2,7 +2,7 @@
 title: "WORK-001 Address implementation impact: Program.cs"
 type: agent-task
 status: Draft
-task_status: Draft
+task_status: InProgress
 task_id: WORK-001
 task_type: core.legacy
 task_type_version: 1.0
@@ -75,8 +75,8 @@ review and completion within this one medium task.
 
 - No task dependencies.
 - The current plan requires actual approval; execution requires an eligible task and applicable finite work/storage authority.
-- The exact plan/task and the separate allocation/controller decision remain pending. Apply allocation only after plan approval, with the current revision token and unchanged reviewed limits/roots/reasons. Reuse accepted product and no-UI decisions; no foundational approval is reopened.
-- The [plan's allocation section](../plan.md#proposed-allocation-and-controller) proposes one shared 3,600-second/three-attempt allowance with 180 seconds included restoration at change and fixed task levels, the existing six GiB shared storage ceiling/64 MiB reserve and fifteen roots, and the bounded external Ubuntu limitation. No native execution is authorized by this draft.
+- Andrew Spiteri approved the exact plan/task and separately authorized the allocation/controller proposal from commit `47fef095f10587d9b0b563ec58f9654bf12f274d`. Native CIS recorded them in order and transitioned this task to InProgress. Accepted product and no-UI decisions remain in force; no foundational approval was reopened.
+- The [plan's allocation section](../plan.md#proposed-allocation-and-controller) records the authorized shared 3,600-second/three-attempt allowance with 180 seconds included restoration at change and fixed task levels, existing six GiB shared storage ceiling/64 MiB reserve and fifteen roots, and bounded external Ubuntu limitation. Inspect current eligibility/capacity before each expensive action; these decisions do not establish a passing execution.
 
 ## Acceptance criteria
 

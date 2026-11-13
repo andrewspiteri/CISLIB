@@ -48,3 +48,10 @@ Its [verification record](../docs/changes/CIS-0002/verification.md) records the
 actual passing package outcomes and completion checks. Broader native qualification
 retains its actual authorization requirements. The retired mechanisms stay retired,
 and this task starts no new module or CIS correction pass.
+
+Separate [CIS-0003/WORK-001](../docs/changes/CIS-0003/agent-tasks/WORK-001.md) now
+owns the approved ConsoleHuman Logging example and focused real-package integration.
+Its plan and finite allocation were explicitly authorized by Andrew Spiteri;
+actual outcomes remain in its [verification record](../docs/changes/CIS-0003/verification.md).
+Both earlier owners stay Complete with their accepted results and accounting.
+Healthcheck package-example integration remains a later, unallocated task.
