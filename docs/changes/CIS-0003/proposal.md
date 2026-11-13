@@ -152,18 +152,18 @@ restoration limits and fifteen roots under the existing shared storage ceiling,
 acknowledging historical unknown effort and the stated external SSH accounting
 and storage limitation."
 
-## Pending impact decision
+## Accepted impact decision
 
-Accept `IMPACT-C3273A4304` with reason: "Accept the ConsoleHuman Program.cs impact
+Andrew Spiteri explicitly accepted `IMPACT-C3273A4304` with reason: "Accept the ConsoleHuman Program.cs impact
 as the anchor for one bounded Logging example and real package-consumer integration
 task, including focused Windows/Ubuntu verification, documentation, review and
 completion; preserve completed CIS-0001/CIS-0002 work and exclude broader release
 qualification or unrelated product changes."
 
-This decision permits native bounded-plan generation. It does not approve the
-generated plan or allocate execution. No existing governed feature authorizes
-this new instance through plan derivation. CIS reports one proposed finding,
-no truncated traversal and no other impact findings.
+CIS recorded this exact decision and generated one medium WORK-001 task. The
+decision does not approve the [generated plan](plan.md) or allocate execution.
+No existing governed feature authorizes this new instance through plan derivation.
+The one accepted impact is covered, with no truncated traversal or other findings.
 
 ## Exclusions
 
