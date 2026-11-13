@@ -49,9 +49,11 @@ actual passing package outcomes and completion checks. Broader native qualificat
 retains its actual authorization requirements. The retired mechanisms stay retired,
 and this task starts no new module or CIS correction pass.
 
-Separate [CIS-0003/WORK-001](../docs/changes/CIS-0003/agent-tasks/WORK-001.md) now
-owns the approved ConsoleHuman Logging example and focused real-package integration.
-Its plan and finite allocation were explicitly authorized by Andrew Spiteri;
-actual outcomes remain in its [verification record](../docs/changes/CIS-0003/verification.md).
+Separate [CIS-0003/WORK-001](../docs/changes/CIS-0003/agent-tasks/WORK-001.md) is
+Complete after the approved ConsoleHuman Logging example and focused real-package
+integration. Two native cases passed on each actual Windows/Ubuntu lane using
+identical source and package bytes. Its
+[verification record](../docs/changes/CIS-0003/verification.md) records current reuse,
+review, cleanup and settled work under the separately authorized finite allocation.
 Both earlier owners stay Complete with their accepted results and accounting.
 Healthcheck package-example integration remains a later, unallocated task.

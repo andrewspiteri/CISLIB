@@ -91,6 +91,10 @@ transitioned WORK-001 to InProgress. The reviewed terms are retained below;
 execution outcomes remain separate. Original authority: Andrew Spiteri;
 controller: Codex. New owner: CIS-0003/WORK-001.
 
+The task is now Complete through the supported lifecycle; its
+[verification record](verification.md) records both actual platform passes,
+current reuse, review, cleanup and accounting closure.
+
 | Limit | Containing change | Sole task |
 | --- | --- | --- |
 | Active time ceiling | 3,600 seconds | 3,600 seconds, fixed/no redistribution |

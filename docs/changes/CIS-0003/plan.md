@@ -28,6 +28,9 @@ impact is covered. Andrew Spiteri subsequently approved this exact plan/task and
 separately authorized the published finite allocation. Native CIS recorded both
 in order and transitioned WORK-001 to InProgress; the allocation advanced ledger
 revision `:106` to `:107` without changing the completed owners' accounting.
+WORK-001 is now Complete through the supported lifecycle. Both actual platform
+results, current reuse, review, cleanup and settled accounting are recorded in
+[verification.md](verification.md); the one-task plan queues no successor.
 Native plan validation reports zero errors, zero warnings and no open content
 decisions. Strict documentation validation passed. Independent read-only review
 of the exact contract/allocation found no required change. Subsequent actual
@@ -107,10 +110,10 @@ and storage limitation."
 
 | Task | Area | Complexity | Depends on | Requirements | Repositories | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| [WORK-001 — Address implementation impact: Program.cs](agent-tasks/WORK-001.md) | implementation | medium | — | — | — | InProgress |
+| [WORK-001 — Address implementation impact: Program.cs](agent-tasks/WORK-001.md) | implementation | medium | — | — | — | Complete |
 
 <!-- cis:execution-manifest
 | ID | Category | Complexity | Parent | Task document | Title | Requirement IDs | Impact IDs | Depends on | Acceptance criteria | Validation | Status | Task type | Type version | Approval gate | Targets | Frontend type | Decision IDs | Negative criteria | Required outputs | Story ID | Instance key | Work owner | Verification obligations |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| WORK-001 | implementation | medium |  | agent-tasks/WORK-001.md | Address implementation impact: Program.cs |  | IMPACT-C3273A4304 |  | The accepted impact IMPACT-C3273A4304 is satisfied without unrecorded scope expansion. | Build the affected component and run its connected deterministic tests. | InProgress | core.legacy | 1.0 | none |  | not-applicable | json64:W10= | json64:WyJEbyBub3QgZXhwYW5kIHRoZSBhY2NlcHRlZCBjaGFuZ2UvaW1wYWN0IHNjb3BlIG9yIGJ5cGFzcyBwcm9kdWN0LCBwbGFuLCBkZXNpZ24sIGFsbG9jYXRpb24gb3IgY29tcGxldGlvbiBhdXRob3JpdHkuIl0= | json64:WyJUaGUgYm91bmRlZCBjaGFuZ2UgYW5kIHJlcHJvZHVjaWJsZSBldmlkZW5jZSBmb3IgdGhlIGFjY2VwdGVkIGltcGFjdC4iXQ== | json64:bnVsbA== | json64:ImFkLWhvYy1pbXBhY3Q6SU1QQUNULUMzMjczQTQzMDQi | json64:bnVsbA== | json64:W3siSWQiOiJ0YXNrLWNvbnRyYWN0IiwiQ3JpdGVyaWEiOlsiVGhlIGFjY2VwdGVkIGltcGFjdCBJTVBBQ1QtQzMyNzNBNDMwNCBpcyBzYXRpc2ZpZWQgd2l0aG91dCB1bnJlY29yZGVkIHNjb3BlIGV4cGFuc2lvbi4iXSwiRGVzY3JpcHRpb24iOiJCdWlsZCB0aGUgYWZmZWN0ZWQgY29tcG9uZW50IGFuZCBydW4gaXRzIGNvbm5lY3RlZCBkZXRlcm1pbmlzdGljIHRlc3RzLiIsIkV2aWRlbmNlUm91dGUiOiJyZXZpZXciLCJFdmlkZW5jZUV4cGVjdGF0aW9ucyI6WyJCdWlsZCB0aGUgYWZmZWN0ZWQgY29tcG9uZW50IGFuZCBydW4gaXRzIGNvbm5lY3RlZCBkZXRlcm1pbmlzdGljIHRlc3RzLiJdLCJTaGFyZWRHYXRlSWRzIjpbXSwiQmFzaXNSZWZlcmVuY2VzIjpbXX1d |
+| WORK-001 | implementation | medium |  | agent-tasks/WORK-001.md | Address implementation impact: Program.cs |  | IMPACT-C3273A4304 |  | The accepted impact IMPACT-C3273A4304 is satisfied without unrecorded scope expansion. | Build the affected component and run its connected deterministic tests. | Complete | core.legacy | 1.0 | none |  | not-applicable | json64:W10= | json64:WyJEbyBub3QgZXhwYW5kIHRoZSBhY2NlcHRlZCBjaGFuZ2UvaW1wYWN0IHNjb3BlIG9yIGJ5cGFzcyBwcm9kdWN0LCBwbGFuLCBkZXNpZ24sIGFsbG9jYXRpb24gb3IgY29tcGxldGlvbiBhdXRob3JpdHkuIl0= | json64:WyJUaGUgYm91bmRlZCBjaGFuZ2UgYW5kIHJlcHJvZHVjaWJsZSBldmlkZW5jZSBmb3IgdGhlIGFjY2VwdGVkIGltcGFjdC4iXQ== | json64:bnVsbA== | json64:ImFkLWhvYy1pbXBhY3Q6SU1QQUNULUMzMjczQTQzMDQi | json64:bnVsbA== | json64:W3siSWQiOiJ0YXNrLWNvbnRyYWN0IiwiQ3JpdGVyaWEiOlsiVGhlIGFjY2VwdGVkIGltcGFjdCBJTVBBQ1QtQzMyNzNBNDMwNCBpcyBzYXRpc2ZpZWQgd2l0aG91dCB1bnJlY29yZGVkIHNjb3BlIGV4cGFuc2lvbi4iXSwiRGVzY3JpcHRpb24iOiJCdWlsZCB0aGUgYWZmZWN0ZWQgY29tcG9uZW50IGFuZCBydW4gaXRzIGNvbm5lY3RlZCBkZXRlcm1pbmlzdGljIHRlc3RzLiIsIkV2aWRlbmNlUm91dGUiOiJyZXZpZXciLCJFdmlkZW5jZUV4cGVjdGF0aW9ucyI6WyJCdWlsZCB0aGUgYWZmZWN0ZWQgY29tcG9uZW50IGFuZCBydW4gaXRzIGNvbm5lY3RlZCBkZXRlcm1pbmlzdGljIHRlc3RzLiJdLCJTaGFyZWRHYXRlSWRzIjpbXSwiQmFzaXNSZWZlcmVuY2VzIjpbXX1d |
 cis:execution-manifest -->

@@ -2,7 +2,7 @@
 title: "WORK-001 Address implementation impact: Program.cs"
 type: agent-task
 status: Draft
-task_status: InProgress
+task_status: Complete
 task_id: WORK-001
 task_type: core.legacy
 task_type_version: 1.0
@@ -80,33 +80,40 @@ review and completion within this one medium task.
 
 ## Acceptance criteria
 
-- [ ] The accepted impact IMPACT-C3273A4304 is satisfied without unrecorded scope expansion.
-- [ ] The example creates its owned runtime/logger, performs meaningful awaited work in a correctly owned scope, and emits useful real records with typed values and operation/context; defaults and environment override semantics remain intact.
-- [ ] Write summaries describe admission honestly. Flush and stop results are inspected separately from actual Completion; cleanup is observed, scopes are disposed by their creator, runtime-owned resources and borrowed console streams follow the existing contract, and failure produces clear diagnostics/nonzero exit.
-- [ ] Clean isolated first restore/build uses the exact candidate's ordinary PackageReference with no Core source reference, Type Manager SDK, inherited imports, warm Core cache or stale assets; deployed Core matches the intended package.
-- [ ] Build and normal folder-published output run the actual example, showing human logs and JSONL/file records with expected operation/structured values plus successful normal flush/shutdown and actual cleanup completion. A focused startup-failure case verifies the new failure exit path.
-- [ ] Actual Windows and Ubuntu execution uses the pinned toolchain and identical package. Unavailable execution remains open rather than inferred. Unchanged accepted work is reused without replay.
-- [ ] The existing README contains working source/package commands, configuration choices, expected output and the precise ownership/shutdown explanation.
-- [ ] Focused independent review has no required finding, necessary current evidence remains, disposable consumers/remote copies are removed, native time/storage is settled, the logical attempt is closed and supported task lifecycle is Complete. Record any actual unmet item without a broader qualification claim.
+- [x] The accepted impact IMPACT-C3273A4304 is satisfied without unrecorded scope expansion.
+- [x] The example creates its owned runtime/logger, performs meaningful awaited work in a correctly owned scope, and emits useful real records with typed values and operation/context; defaults and environment override semantics remain intact.
+- [x] Write summaries describe admission honestly. Flush and stop results are inspected separately from actual Completion; cleanup is observed, scopes are disposed by their creator, runtime-owned resources and borrowed console streams follow the existing contract, and failure produces clear diagnostics/nonzero exit.
+- [x] Clean isolated first restore/build uses the exact candidate's ordinary PackageReference with no Core source reference, Type Manager SDK, inherited imports, warm Core cache or stale assets; deployed Core matches the intended package.
+- [x] Build and normal folder-published output run the actual example, showing human logs and JSONL/file records with expected operation/structured values plus successful normal flush/shutdown and actual cleanup completion. A focused startup-failure case verifies the new failure exit path.
+- [x] Actual Windows and Ubuntu execution uses the pinned toolchain and identical package. Unavailable execution remains open rather than inferred. Unchanged accepted work is reused without replay.
+- [x] The existing README contains working source/package commands, configuration choices, expected output and the precise ownership/shutdown explanation.
+- [x] Focused independent review has no required finding, necessary current evidence remains, disposable consumers/remote copies are removed, native time/storage is settled, the logical attempt is closed and supported task lifecycle is Complete. Record any actual unmet item without a broader qualification claim.
 
 ## Targeted validation
 
-- [ ] Build the affected component and run its connected deterministic tests.
-- [ ] Before execution, record plan/allocation decisions through existing controls, transition the new task to InProgress and inspect its legitimate remaining time/attempts/storage. Do not use either completed owner's capacity.
-- [ ] Build only the affected IntegrationTests project and connected dependencies. Inspect the scoped profile's nonempty exact test selection first; clear the older fixture's 16 KiB test override when checking the example's 64 KiB default.
-- [ ] Run the new example-specific native checks on actual Windows, reusing the unchanged candidate. Reuse the same package on actual Ubuntu with bounded SSH, actual elapsed/output and manual two GiB task-directory inspection; do not duplicate/reset the authoritative ledger or claim remote CIS containment/storage enforcement.
-- [ ] Check build output and ordinary folder-publish output using matching restore/framework/runtime settings and actual process exit/log/lifecycle observations. Reuse established logger-semantic coverage; broaden only for a concrete remaining risk or in-scope defect.
-- [ ] Record compact native reports, candidate/source identity, separate platform outcomes, exact limitations and independent review in this task and ../verification.md. Update documentation before read-only plan/status/verification so ordinary reuse is checked without launching unchanged tests again.
-- [ ] Validate affected documentation and the approved plan, inspect the actual diff and required findings, close the logical attempt and complete the task through supported CIS controls. Keep any dossier-wide template limitation separate from actual scoped evidence; invent no approval or feature metadata.
+- [x] Build the affected component and run its connected deterministic tests.
+- [x] Before execution, record plan/allocation decisions through existing controls, transition the new task to InProgress and inspect its legitimate remaining time/attempts/storage. Do not use either completed owner's capacity.
+- [x] Build only the affected IntegrationTests project and connected dependencies. Inspect the scoped profile's nonempty exact test selection first; clear the older fixture's 16 KiB test override when checking the example's 64 KiB default.
+- [x] Run the new example-specific native checks on actual Windows, reusing the unchanged candidate. Reuse the same package on actual Ubuntu with bounded SSH, actual elapsed/output and manual two GiB task-directory inspection; do not duplicate/reset the authoritative ledger or claim remote CIS containment/storage enforcement.
+- [x] Check build output and ordinary folder-publish output using matching restore/framework/runtime settings and actual process exit/log/lifecycle observations. Reuse established logger-semantic coverage; broaden only for a concrete remaining risk or in-scope defect.
+- [x] Record compact native reports, candidate/source identity, separate platform outcomes, exact limitations and independent review in this task and ../verification.md. Update documentation before read-only plan/status/verification so ordinary reuse is checked without launching unchanged tests again.
+- [x] Validate affected documentation and the approved plan, inspect the actual diff and required findings, close the logical attempt and complete the task through supported CIS controls. Keep any dossier-wide template limitation separate from actual scoped evidence; invent no approval or feature metadata.
 
 ## Completion evidence
 
 | Check | Command or artifact | Result | Notes |
 | --- | --- | --- | --- |
-| Accepted impact | No execution yet | Not run | Record actual scoped evidence before completion. |
+| Accepted impact and actual example | Program.cs, existing ConsoleHuman README and two native package-consumer cases | Satisfied | Application-owned runtime, awaited scoped order quote, typed records and honest admission/flush/stop/actual-completion observations; existing production API and defaults reused. |
+| Windows | Scoped CIS unit profile and `file-a611b2eafa1ee6b730dd-unit.xml` | 2 passed, 0 failed, 0 skipped | Actual Windows 11 x64, pinned SDK/shared frameworks; normal and published output plus the startup-failure exit. |
+| Ubuntu | `linux/logging-example-package-linux.trx` under the scoped local testing directory | 2 passed, 0 failed, 0 skipped | Actual Ubuntu 24.04 x64, exact source commit `4055720e`, same pinned tools and package. Remote source/build/cache directory was removed after confirmed collection. |
+| Candidate/source identity and detailed outcomes | [Verification record](../verification.md) | Identical across actual platforms | Package `de794baf…7628d93e`, source Program `4c55f8c2…a688f10a`; full hashes, native report references and elapsed/storage observations are recorded there. No repack or accepted-test replay. |
+| Review and current reuse | Independent source/README review; read-only unit plan/status/verification after metadata updates | No required finding; verified with zero pending batches | One shutdown-path review correction was fixed before the first native run; no production change. Both completed owners' ten saved artifacts remain byte-identical and their results verify. |
+| Work and cleanup | Native `agent work progress` close at ledger revision `:127` | Logical attempt closed; no reservation or recovery hold | 179,935 ms native consumption, one of three attempts used. Separately observed 62-second preflight and 488-second external lane stay within the shared allowance; no cross-host CIS enforcement is claimed. Windows consumers and remote job were removed. |
+| Task lifecycle | `plan task transition CIS-0003 WORK-001 --status Complete --actor Codex` | Complete | Supported transition succeeded after resolved acceptance/validation checklists and completion evidence. No successor is queued. |
+| CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=413; failed=53; possibleTokenSavings=123; ledgerDigest=sha256:3fae0df95113845c966db20b3de7deab4e1ba49ced706686bb5700156ce3cc4c |
 
 ## Deferrals and residual risk
 
-- No deferral is approved by generation. Record any actual unmet criterion, owner, follow-up and decision.
-- Ubuntu's previously checked pinned installation must be verified again when executing this task; availability or cross-publishing proves no OS pass. Its externally supervised time/storage checks are not cross-host CIS enforcement and remain inside the same finite allowance.
+- No acceptance item is deferred. The excluded qualification/deployment profiles remain outside this completed integration outcome.
+- Actual Ubuntu tools, execution, collection and cleanup were observed; externally supervised time/storage checks are not cross-host CIS enforcement and remained inside the same finite allowance.
 - This example is not volume-sensitive work: a few conventional records demonstrate the existing lifecycle/package path. No capacity, load, performance or release qualification is claimed. Broader recorded obligations and excluded profiles retain their separate authorization requirements.
