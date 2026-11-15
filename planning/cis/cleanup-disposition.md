@@ -1366,3 +1366,23 @@ SHA-256 is `45610b37a7e249b764e1fc50a5f36d98250758d8e47798565f99b527d662052c`.
 WORK-001 retains its inconclusive 600,000 ms / one attempt; consumer total is
 811,151 ms / two attempts. No other profile ran. Post-closeout reuse is checked
 separately; a fresh pass alone does not establish it.
+
+After closeout commit `97d625bb`, real graph refresh and fresh CLI processes,
+unit plan/status report current scope with zero pending batches; verification
+returns `verified`, exit 0. Sequential plan reasons are empty. Report bytes, the
+accepted unit record, the one native launch and 211,151 ms cost are unchanged.
+All original contracts, reports, costs, attempts, limits and checkpoint facts
+remain intact. Native serialization normalized checkpoint timestamp strings to
+UTC without changing their instants. No original owner was reopened.
+
+One concurrent plan reader briefly included a settlement warning despite current
+scope; status/verification and the subsequent sequential plan were clean. Ledger
+lock contention is a source-supported inference, not a proven captured exception.
+This small concurrent-inspection diagnostic issue is deferred; it required no
+report edit or test replay.
+
+WORK-002 is Complete through the checked lifecycle. Its logical attempt is closed;
+the prior inconclusive WORK-001 remains Deferred with its ended attempt closed,
+without refunding costs or attempts. Neither supporting task queues another
+execution. Release qualification and the parent CIS engineering closeout remain
+separate.

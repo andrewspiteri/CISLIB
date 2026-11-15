@@ -2,7 +2,7 @@
 title: "WORK-002 Prove two-case consumer reuse after the authorized additional execution"
 type: agent-task
 status: Draft
-task_status: ReadyForReview
+task_status: Complete
 task_id: WORK-002
 parent_id: none
 category: implementation
@@ -29,13 +29,16 @@ Prove two-case consumer reuse after the authorized additional execution
 
 ## Acceptance criteria
 
-- [ ] Execute only healthcheck-diagnostic-reuse-continuation once within 540 seconds. Require two passed cases, zero failures or skips, and a settled accepted report. Complete ordinary notes and task lifecycle, commit, refresh the graph, and inspect plan/status/verify in fresh processes with zero additional native launches and unchanged accepted report bytes and prior execution costs. Preserve all original CIS-0001 through CIS-0004 tasks, reports, contracts and accounting.
+- [x] Execute only healthcheck-diagnostic-reuse-continuation once within 540 seconds. Require two passed cases, zero failures or skips, and a settled accepted report. Complete ordinary notes and task lifecycle, commit, refresh the graph, and inspect plan/status/verify in fresh processes with zero additional native launches and unchanged accepted report bytes and prior execution costs. Preserve all original CIS-0001 through CIS-0004 tasks, reports, contracts and accounting.
 
 ## Targeted validation
 
-- [ ] Use the exact installed 2b916962 development build, profile SHA-256 ad22abca641dd2585bc5f6266c1a76b5159b8c51cadd28608d1f15f6ce3f767a, explicit --layer unit --max-batches 1 --max-seconds 540 without force. Retain compact report, native execution references, pre/post read-only checks and original preservation comparisons. No further test execution is authorized.
+- [x] Use the exact installed 2b916962 development build, profile SHA-256 ad22abca641dd2585bc5f6266c1a76b5159b8c51cadd28608d1f15f6ce3f767a, explicit --layer unit --max-batches 1 --max-seconds 540 without force. Retain compact report, native execution references, pre/post read-only checks and original preservation comparisons. No further test execution is authorized.
 
 ## Completion evidence
 
 | Check | Result | Evidence |
 | --- | --- | --- |
+| Authorized native execution | 2 passed, 0 failed, 0 skipped; settled 211,151 ms / one attempt | [Verification record](../verification.md) |
+| Post-closeout reuse | Current plan/status, verified exit 0 after commit and graph refresh; zero extra native launches, report and cost unchanged | [Continuation record](../../../../planning/cis/cleanup-disposition.md#authorized-diagnostic-continuation) |
+| CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=607; failed=95; possibleTokenSavings=123; ledgerDigest=sha256:f098e69b55648bd4d97fe07c32b39b3501d03fd7dcb3a15f4fa9e49309651234 |
