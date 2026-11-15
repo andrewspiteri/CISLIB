@@ -16,7 +16,7 @@ This record preserves significant accepted decisions after the November 2026 cle
 
 ## CIS adoption checkpoint
 
-The existing CIS-0001/WORK-001 bounded adoption result is current and independently verified: two existing native cases passed, with zero failures, zero skips and zero pending unit batches. Source, assertions, test selection, local profile and toolchain are unchanged. The approved product records, plan, original authority and finite limits remain in force; no engineering-quality policy was adopted. WORK-001 is Complete through the supported transition, with no active reservation or recovery hold. Its canonical plan has one task and no queued successor; the broader qualification obligations below remain unallocated.
+At its accepted checkpoint, the CIS-0001/WORK-001 bounded adoption result was independently verified: two existing native cases passed, with zero failures, zero skips and zero pending unit batches. The approved product records, plan, original authority and finite limits remain in force; no engineering-quality policy was adopted. WORK-001 is Complete through the supported transition, with no active reservation or recovery hold. Its canonical plan has one task and no queued successor. Later cache-currentness observations are recorded below and do not rewrite that checkpoint; broader qualification obligations remain unallocated.
 
 The original interrupted disposable invocation is retained as inconclusive, with unknown duration conservatively charged at its original 300,000 ms bound. Controlled disposal preserved its history and used attempt. The genuine retry consumed 133,787 ms: total consumption is 433,787 ms, with zero reserved and two attempts used out of the task's two-attempt limit. No original-host namespace proof is required for this disposable-unit retry.
 
@@ -56,4 +56,21 @@ identical source and package bytes. Its
 [verification record](../docs/changes/CIS-0003/verification.md) records current reuse,
 review, cleanup and settled work under the separately authorized finite allocation.
 Both earlier owners stay Complete with their accepted results and accounting.
-Healthcheck package-example integration remains a later, unallocated task.
+The new shared-outcome [CIS-0004/WORK-001](../docs/changes/CIS-0004/agent-tasks/WORK-001.md)
+closes implementation/developer-package integration for all three features.
+[Its verification record](../docs/changes/CIS-0004/verification.md) reuses the
+accepted Logging/Type Manager results and records six Healthcheck package cases
+plus four affected source stories passing on each actual Windows/Ubuntu lane.
+The exact retained candidate is unchanged. The same CountryList source supports
+ordinary package restore/build/folder publish and matching HTTP/pipe/probe use;
+Core contracts, defaults, dependencies and application ownership are unchanged.
+
+The bounded 15 November diagnosis could not identify the earlier effective-input
+fingerprint difference because the original individual input/environment basis
+was not retained. The new Windows package cache also reports noncurrent despite
+its genuine settled six-case pass. These currentness limitations remain explicit;
+no report/fingerprint rewrite or demonstration replay was used. New Linux results
+and the Windows source result verified current in their recorded environments.
+All earlier owners retain their exact consumed work, attempts, completion and
+accepted reports. Full release obligations above remain open; this milestone
+adds no Heartbeat scheduler, generic startup coordination or publication.

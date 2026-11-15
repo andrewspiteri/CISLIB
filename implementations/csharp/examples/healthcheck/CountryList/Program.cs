@@ -9,6 +9,11 @@ namespace CIS.Healthcheck.Examples.CountryList;
 
 internal static class Program
 {
+#if CIS_PACKAGE_CONSUMER
+    private const bool SourceReferenceDevelopmentExample = false;
+#else
+    private const bool SourceReferenceDevelopmentExample = true;
+#endif
     internal static async Task<int> Main(string[] args)
     {
         bool selfTest = args.Contains("--self-test", StringComparer.Ordinal);
@@ -181,7 +186,8 @@ internal static class Program
                     reportingBeforePriming = true,
                     refreshRegistered = refresh is not null,
                     actualOwnerDrain = startupSucceeded,
-                    sourceReferenceDevelopmentExample = true,
+                    sourceReferenceDevelopmentExample = SourceReferenceDevelopmentExample,
+                    coreAssemblyPath = typeof(HealthcheckService).Assembly.Location,
                     runtime = RuntimeInformation.FrameworkDescription,
                     observations,
                     ownerDrain
@@ -193,6 +199,8 @@ internal static class Program
                 Console.WriteLine(JsonSerializer.Serialize(new
                 {
                     kind = "countryListStarted",
+                    sourceReferenceDevelopmentExample = SourceReferenceDevelopmentExample,
+                    coreAssemblyPath = typeof(HealthcheckService).Assembly.Location,
                     primeSucceeded = primed,
                     startupSucceeded,
                     failureMode,

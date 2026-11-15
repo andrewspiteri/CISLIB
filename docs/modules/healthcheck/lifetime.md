@@ -70,3 +70,10 @@ The current repository has no implemented Heartbeat scheduler. Real monitor/fact
 5. Close pipe/HTTP reporting admission and settle handlers; dispose adapters and the service/root dependencies.
 
 A canceled shutdown wait leaves real work outstanding. Application supervisor policy owns what happens next. Repeated stop/dispose shares terminal completion; an instance is not restarted as a new application lifetime. Removing the last failing monitor during shutdown can make aggregate health Healthy while readiness remains false because `IsStopping` is terminal.
+
+The [CountryList source and package example](country-list.md) applies this order
+to an actual application-owned catalog and collection lease. Its self-test
+blocks owned work, requests shutdown, observes disposal still pending, then
+releases and awaits the real work before observing dependency disposal. A passed
+shutdown-request flag alone is insufficient. The package route preserves those
+same application sources and ownership assertions.

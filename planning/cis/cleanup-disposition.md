@@ -1257,3 +1257,30 @@ CIS-0001/0002/0003 consumption remains 433,787 / 602,214 / 179,935 ms and used
 attempts remain 2 / 1 / 1, with no open attempt or owner hold. Their WORK-001 tasks
 remain Complete, their accepted reports remain 2 / 4 / 2 passed, and no successor is
 queued. This tooling update grants no broader product or release qualification.
+## Three-feature integration closure — 2026-11-15
+
+[CIS-0004 verification](../../docs/changes/CIS-0004/verification.md) is the compact
+per-feature closure record. The actual instruction authorized one shared outcome
+and one concrete Healthcheck task, including supporting checks, guides and review.
+The verified installed CIS `672fd39c569f16c6edc18c25985f78ab72eec8b6` was reused.
+
+Logging and Type Manager retain their accepted package-consumer evidence without
+replay. Healthcheck's actual CountryList source now has clean exact-package build
+and folder-publish checks, shared original startup/failure/refresh/drain assertions,
+and matching same-identity pipe/probe coverage. Actual Windows and Ubuntu each
+passed 6 package rows plus 4 affected source rows, with zero final failures/skips.
+The retained `de794baf…d93e` candidate and all shipping Core inputs are unchanged.
+
+Historical cache currentness remains held with no reconstructable original
+per-input/environment inventory. The new Windows package result also reports an
+unidentified aggregate-identity difference; its passing report and settled work
+remain retained. Linux and Windows source checks verified current. No fingerprints,
+reports or completed history were changed to force reuse.
+
+All native executions settled under CIS-0004 with 1,216,113 ms consumed and one
+logical attempt. The prior three owners retain 433,787 / 602,214 / 179,935 ms and
+2 / 1 / 1 used attempts. Temporary consumers/caches were cleaned; necessary native
+results, identities and candidate remain. Ubuntu retains only the selected
+toolchain (640,148,071 bytes), below 2 GiB. Scope ends at developer integration;
+release qualification, coverage/mutation/performance, main merge and publication
+remain separate.
