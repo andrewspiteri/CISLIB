@@ -1286,3 +1286,63 @@ results, identities and candidate remain. Ubuntu retains only the selected
 toolchain (640,148,071 bytes), below 2 GiB. Scope ends at developer integration;
 release qualification, coverage/mutation/performance, main merge and publication
 remain separate.
+
+## Saved-result reuse correction — 2026-11-15
+
+The CIS correction separates native inputs from graph-only closeout documents,
+normalizes session transport values at execution and retains compact input
+digests for precise invalidation reasons. The verified development installation
+is recorded in `AGENTS.md`; README's compatible minimum remains unchanged.
+The CIS record is `docs/changes/CIS-0004/verification.md` in the CIS repository.
+
+All seven original profiles were inspected with read-only `plan` and `verify`,
+explicitly using `--layer unit`. Each reports one pending batch and
+`input-detail-unavailable`: its aggregate historical fingerprint cannot establish
+current applicability. None was relabelled or rerun.
+
+| Retained profile | Original passing cases | Current disposition |
+| --- | --- | --- |
+| healthcheck-diagnostic-unit | 2 | Historical basis unavailable |
+| type-manager-package-windows | 4 | Historical basis unavailable |
+| logging-example-package-windows | 2 | Historical basis unavailable |
+| healthcheck-package-windows | 6 | Historical basis unavailable |
+| healthcheck-source-windows | 4 | Historical basis unavailable |
+| healthcheck-package-linux | 6 | Historical basis unavailable; original settlement reference unresolved by the local Windows inspection |
+| healthcheck-source-linux | 4 | Historical basis unavailable |
+
+The single permitted fresh attempt used the same two-case diagnostic scope in
+new ignored `healthcheck-diagnostic-reuse-correction` under CIS-0005/WORK-001.
+It reached build output but produced no native test report. Its process result
+required reconciliation. The recorded controller and driver were absent, and the
+trusted helper confirmed the exact retained Windows job was empty or destroyed.
+The existing `reconcile` disposition then settled the original tree: **600,000 ms
+conservatively charged, one attempt, zero active reservation and no recovery
+hold**. No passing baseline or subsequent consumer reuse is claimed. The attempt
+was not repeated.
+
+All seven original state/report files and all four original owner objects and
+task contracts are unchanged. Consumption/attempts remain 433,787 ms / 2,
+602,214 ms / 1, 179,935 ms / 1 and 1,216,113 ms / 1. All four original tasks remain
+Complete. Production/test source, the retained candidate, approvals, limits and
+shipping behavior are unchanged. The new supporting task is Blocked on practical
+consumer proof.
+
+### Proposed additional diagnostic execution
+
+This proposal is unapplied. The original instruction permits at most one fresh
+consumer execution; another requires Andrew Spiteri's explicit exception.
+
+Allow one additional execution of only the same two diagnostic cases, in new
+`healthcheck-diagnostic-reuse-continuation`. Its prepared profile copies the
+original diagnostic profile, changes only ID and timeout to 360 seconds, and has
+SHA-256 `ad22abca641dd2585bc5f6266c1a76b5159b8c51cadd28608d1f15f6ce3f767a`.
+Use `--layer unit --max-batches 1 --max-seconds 540`, without force.
+
+Keep the shared 7,200-second / three-attempt total, original storage ceilings and
+180 protected restoration seconds. Preserve inconclusive WORK-001 history at
+600 seconds / one used attempt; assign the remaining consumer 600 seconds and
+one unused shared attempt to a concrete supporting WORK-002. Reduce the CIS
+supporting owner's attempt allocation from two to one, preserving its counted
+attempt. This transfers existing resources rather than granting more. The new
+task must prove closeout, commit and fresh-process reuse without another test
+launch. No other historical profile or release campaign is included.
