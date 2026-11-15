@@ -2,7 +2,7 @@
 title: "WORK-001 Integrate the verified correction and prove zero-repeat consumer continuation"
 type: agent-task
 status: Draft
-task_status: Blocked
+task_status: Deferred
 task_id: WORK-001
 parent_id: none
 category: implementation

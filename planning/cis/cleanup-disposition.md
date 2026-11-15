@@ -1329,8 +1329,8 @@ consumer proof.
 
 ### Proposed additional diagnostic execution
 
-This proposal is unapplied. The original instruction permits at most one fresh
-consumer execution; another requires Andrew Spiteri's explicit exception.
+This proposal was initially unapplied. Andrew Spiteri subsequently approved this
+exact exception; its authorization and observed outcome are recorded below.
 
 Allow one additional execution of only the same two diagnostic cases, in new
 `healthcheck-diagnostic-reuse-continuation`. Its prepared profile copies the
@@ -1346,3 +1346,23 @@ supporting owner's attempt allocation from two to one, preserving its counted
 attempt. This transfers existing resources rather than granting more. The new
 task must prove closeout, commit and fresh-process reuse without another test
 launch. No other historical profile or release campaign is included.
+
+### Authorized diagnostic continuation
+
+Andrew Spiteri explicitly approved the published additional-execution proposal.
+The original task scope and history remain retained; new WORK-002 owns only this
+approved exception. The CIS supporting task is limited to its one used attempt.
+The consumer retains 1,200 seconds across two attempts: WORK-001 keeps its charged
+600 seconds and used attempt, while WORK-002 receives the remaining 600 seconds
+and one attempt. Shared limits remain 7,200 seconds, three attempts and 180 included
+restoration seconds, with unchanged storage ceilings. Only the prepared two-case
+profile may execute once, bounded at 540 seconds; all subsequent reuse checks are
+read-only. Its observed outcome will be recorded here after execution.
+
+The authorized invocation completed with **2 passed, 0 failed, 0 skipped** and one
+executed unit batch. CIS admitted the report and settled the original new tree at
+**211,151 ms**, one used attempt, zero reservation and no recovery hold. Its report
+SHA-256 is `45610b37a7e249b764e1fc50a5f36d98250758d8e47798565f99b527d662052c`.
+WORK-001 retains its inconclusive 600,000 ms / one attempt; consumer total is
+811,151 ms / two attempts. No other profile ran. Post-closeout reuse is checked
+separately; a fresh pass alone does not establish it.
