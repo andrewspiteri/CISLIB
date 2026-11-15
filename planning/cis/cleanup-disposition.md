@@ -1212,3 +1212,48 @@ MSTest/VSTest projects, assertions, fixture support, active `MutationChildFixtur
 and Type Manager package machinery are unchanged. WORK-001 remains Complete;
 its accepted 2 passed / 0 failed / 0 skipped result, retained metadata, approvals,
 allocation and accounting are preserved. This cleanup grants no new qualification.
+
+### Reviewed CIS main build installed — 2026-11-15
+
+The requested CIS merge fast-forwarded main to
+[`672fd39c569f16c6edc18c25985f78ab72eec8b6`](https://github.com/andrewspiteri/CIS/commit/672fd39c569f16c6edc18c25985f78ab72eec8b6)
+and was pushed. It includes the shared-outcome workflow, amendment continuity,
+concrete seed readiness and accepted-task pause/resume fixes. This main integration
+does not finalize the separate CIS completion/security closeout or publish a release.
+
+CISLIB now uses the verified Release build of that exact revision at the existing
+ignored `.cis/local/tools/cis/` path. Its CLI reports
+`0.3.0+672fd39c569f16c6edc18c25985f78ab72eec8b6`. All 257 installed files match
+the verified publication: 82,988,648 bytes; `cis.dll` SHA-256
+`e54f3328cfe897726969302b2ed94b364820b6da9683c45f65e424acd36b7659`.
+The previous generated installation is retained locally for rollback. Binaries are
+not committed. AGENTS.md carries the current pin and skill/manual links. README.md's
+compatible minimum ancestor remains unchanged because Type Manager and Logging
+profiles include that file as an accepted package input.
+
+Before and after installation, only unit-layer incremental plan, status and verify
+were invoked for the three completed profiles, in the same outside-sandbox Windows
+context. All three already reported one pending batch and failed current verification
+with the previous CLI. The new CLI reports the same computed fingerprints and holds:
+
+| Profile | Computed fingerprint with both CLIs | Executed batches |
+| --- | --- | --- |
+| Healthcheck diagnostic unit | `b343b9a85c5285786a144490e824f5ac911aa7fea1c25885812e9a79a95d4dcc` | 0 |
+| Type Manager package Windows | `7a9a790c03d3c4122aa46b29e263e4749d26a50feb704c1b0b069189e0de545b` | 0 |
+| Logging example package Windows | `7edf0d0394557599887fdf3f4ff53bade66d3aca148883943fa6b2ae51e6d886` | 0 |
+
+Those effective-input fingerprints differ from the retained passing results; the
+specific changed input was not established. Current reuse is therefore held in this
+context, and is not represented as verified. The difference predates installation;
+no fingerprint, profile or evidence was weakened to force reuse. No accepted test,
+consumer build/pack/restore, revalidation, recovery or new allocation ran.
+
+All 1,203 protected files remain byte-for-byte unchanged, including product/test
+source, README, approved records and completed task contracts, profiles, state,
+reports, platform outcomes, candidate package and accounting. No incremental result
+file was added. The ledger remains adoption `8351035b241f4939ace19b3cc8d71d81`,
+revision 127, SHA-256 `39071a1737dfb3405ec9eb43ec4b8e9d44377eddc74154f0966a41ce17239a23`.
+CIS-0001/0002/0003 consumption remains 433,787 / 602,214 / 179,935 ms and used
+attempts remain 2 / 1 / 1, with no open attempt or owner hold. Their WORK-001 tasks
+remain Complete, their accepted reports remain 2 / 4 / 2 passed, and no successor is
+queued. This tooling update grants no broader product or release qualification.
