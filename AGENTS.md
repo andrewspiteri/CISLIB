@@ -31,6 +31,8 @@ each actual Windows/Ubuntu lane, reusing the retained candidate and earlier
 Logging/Type Manager evidence. Preserve all four owners' history and accounting.
 The historical three-cache fingerprint difference remains unidentified; the new
 Windows package cache also reports noncurrent despite its retained native pass.
+Post-closeout checks additionally held Windows source and Linux package reuse;
+Linux source's latest verified receipt predates the final metadata commit.
 Keep those currentness limits distinct from actual test observations. Do not
 force reuse or rerun completed tests to clear a status. Release qualification,
 coverage/mutation/performance and publication remain separate, unallocated work.

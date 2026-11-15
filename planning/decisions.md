@@ -69,8 +69,11 @@ The bounded 15 November diagnosis could not identify the earlier effective-input
 fingerprint difference because the original individual input/environment basis
 was not retained. The new Windows package cache also reports noncurrent despite
 its genuine settled six-case pass. These currentness limitations remain explicit;
-no report/fingerprint rewrite or demonstration replay was used. New Linux results
-and the Windows source result verified current in their recorded environments.
+no report/fingerprint rewrite or demonstration replay was used. New Linux receipts
+and the Windows source plan initially reported current. After closeout metadata
+and commit `601b3d21`, read-only checks also held Windows source and Linux package
+reuse; Linux source was not rechecked past the fail-fast package hold. Retained
+native passes are not unconditional cache-currentness claims.
 All earlier owners retain their exact consumed work, attempts, completion and
 accepted reports. Full release obligations above remain open; this milestone
 adds no Heartbeat scheduler, generic startup coordination or publication.

@@ -43,6 +43,6 @@ Finish Healthcheck exact-package example and close shared three-feature acceptan
 | Native platform checks | Passed: 6 package + 4 source on each actual Windows/Ubuntu lane | [Verification](../verification.md#exact-candidate-and-native-checks) |
 | Earlier feature evidence | Reused unchanged; no completed tests replayed | [Three-feature outcome](../verification.md#three-feature-outcome) |
 | Independent review and guides | Complete; required findings resolved | [Review and retained evidence](../verification.md#corrections-review-and-retained-evidence) |
-| Currentness limitation | Recorded honestly; Windows package cache held, no force or rewritten inputs | [Saved results](../verification.md#saved-results-and-currentness) |
+| Currentness limitation | Recorded honestly, including post-closeout cache holds; no force or rewritten inputs | [Saved results](../verification.md#saved-results-and-currentness) |
 | Work and storage | Native executions settled; original owners/limits preserved; owned temporary output cleaned | [Accounting](../verification.md#accounting-and-completion-boundary) |
 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=526; failed=79; possibleTokenSavings=123; ledgerDigest=sha256:49899702f6aa6b686148b7e58b6407f3395b0e82acb29021cf76d0fd5b233109 |

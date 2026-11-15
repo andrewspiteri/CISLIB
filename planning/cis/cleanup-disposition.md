@@ -1274,8 +1274,10 @@ The retained `de794baf…d93e` candidate and all shipping Core inputs are unchan
 Historical cache currentness remains held with no reconstructable original
 per-input/environment inventory. The new Windows package result also reports an
 unidentified aggregate-identity difference; its passing report and settled work
-remain retained. Linux and Windows source checks verified current. No fingerprints,
-reports or completed history were changed to force reuse.
+remain retained. Linux receipts and the Windows source plan initially reported
+current. Post-closeout checks additionally held Windows source and Linux package
+reuse; no newer Linux source claim is made past that fail-fast hold. No
+fingerprints, reports or completed history were changed to force reuse.
 
 All native executions settled under CIS-0004 with 1,216,113 ms consumed and one
 logical attempt. The prior three owners retain 433,787 / 602,214 / 179,935 ms and

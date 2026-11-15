@@ -82,14 +82,22 @@ safely restored from that evidence. The new shared assertion link also genuinely
 changes the integration-test project input, independently of that earlier hold.
 No old fingerprint, report, profile, completed task or accounting was rewritten.
 
-The new Linux package/source results verify as current with zero pending batches
-in their recorded SSH invocation environment. The Windows source result remains
-current after removal of its temporary source/build copy. The new Windows package
-report is a genuine settled six-case pass, but its later aggregate fingerprint
-differs (`b2a99b6d…` saved, `8c98f268…` observed). Bounded inspection found no
-specific input that could honestly be restored. Its CIS cache reuse remains held;
-no force, fingerprint edit, revalidation or demonstration rerun was used.
-This tooling limitation is retained separately from the observed package behavior.
+Before final closeout, the new Linux package/source receipts verified current
+with zero pending batches in their recorded SSH invocation environment. The
+Windows source plan also reported zero pending after its temporary source/build
+copy was removed. The Windows package report was a genuine settled six-case pass,
+but a later aggregate fingerprint differed (`b2a99b6d…` saved, `8c98f268…`
+observed). Bounded inspection found no specific input that could honestly be
+restored.
+
+After ordinary closeout metadata and commit `601b3d21`, read-only checks also held
+Windows source and Linux package cache reuse. Linux source's last verified receipt
+predates that commit; the fail-fast post-commit check stopped at Linux package,
+so no newer source-currentness claim is made. The precise individual changed basis
+remains unidentified. Treat these as retained scoped native passes, not a promise
+of current cache reuse. All report bytes and settlement remain intact. No force,
+fingerprint edit, revalidation or demonstration rerun was used. This explicit
+tooling limitation does not become another recovery project under this outcome.
 
 ## Corrections, review and retained evidence
 
