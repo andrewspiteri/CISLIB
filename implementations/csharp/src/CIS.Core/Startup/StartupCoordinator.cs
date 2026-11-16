@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using CIS.Healthcheck;
-using CIS.Heartbeat;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -13,8 +12,8 @@ internal sealed class StartupCoordinator : IAsyncDisposable
     private readonly IServiceProvider root;
     private readonly ServiceDescriptor[] descriptors;
     private readonly HealthcheckService? health;
-    private readonly HeartbeatRuntime? heartbeat;
     private readonly ILogger<StartupCoordinator>? logger;
+    private readonly Func<CancellationToken, bool>? confirmStartupCompletion;
     private readonly CancellationTokenSource stoppingCancellation = new();
     private Task? operation, runner, disposal, disposalRunner;
     private IConditionMonitor? failureMonitor;
@@ -22,15 +21,16 @@ internal sealed class StartupCoordinator : IAsyncDisposable
     private bool stopping;
 
     internal StartupCoordinator(IServiceProvider root, IReadOnlyList<ServiceDescriptor> descriptors,
-        HealthcheckService? health = null, HeartbeatRuntime? heartbeat = null, ILogger<StartupCoordinator>? logger = null)
+        HealthcheckService? health = null, ILogger<StartupCoordinator>? logger = null,
+        Func<CancellationToken, bool>? confirmStartupCompletion = null)
     {
         ArgumentNullException.ThrowIfNull(root);
         ArgumentNullException.ThrowIfNull(descriptors);
         this.root = root;
         this.descriptors = descriptors.ToArray();
         this.health = health;
-        this.heartbeat = heartbeat;
         this.logger = logger;
+        this.confirmStartupCompletion = confirmStartupCompletion;
     }
 
     internal Task StartAsync(CancellationToken startupCancellation, CancellationToken applicationStopping = default)
@@ -69,8 +69,6 @@ internal sealed class StartupCoordinator : IAsyncDisposable
             using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(
                 startupCancellation, applicationStopping, stoppingCancellation.Token);
             token = cancellation.Token;
-            using CancellationTokenRegistration heartbeatStopping = heartbeat is null ? default
-                : token.UnsafeRegister(static value => ((HeartbeatRuntime)value!).BeginStopping(), heartbeat);
             ThrowIfStopping(token);
             try
             {
@@ -110,9 +108,9 @@ internal sealed class StartupCoordinator : IAsyncDisposable
             {
                 stage = "Completion";
                 ThrowIfStopping(token);
-                bool activated = heartbeat?.ActivateForStartup() ?? true;
-                ThrowIfStopping(token); // Cancellation during timer creation must never publish readiness.
-                if (!activated) { throw new InvalidOperationException("Heartbeat activation could not be confirmed before startup completion."); }
+                bool confirmed = confirmStartupCompletion?.Invoke(token) ?? true;
+                ThrowIfStopping(token); // Cancellation during completion must never publish readiness.
+                if (!confirmed) { throw new InvalidOperationException("Required startup completion could not be confirmed."); }
                 health?.MarkStartupCompleted();
             }
             Log(LogLevel.Information, "Startup", "Completed", participants.Length, null, started);
@@ -144,11 +142,13 @@ internal sealed class StartupCoordinator : IAsyncDisposable
         if (Volatile.Read(ref stopRequested) != 0) { throw new OperationCanceledException(new CancellationToken(canceled: true)); }
     }
 
+    // Publish stop intent without waiting for the completion gate. The hosting
+    // adapter can then close external dispatch before joining this operation.
+    internal void RequestStopping() => Interlocked.Exchange(ref stopRequested, 1);
+
     internal void BeginStopping()
     {
-        Interlocked.Exchange(ref stopRequested, 1);
-        // Close dispatch even if final activation currently holds the coordinator gate.
-        heartbeat?.BeginStopping();
+        RequestStopping();
         lock (gate) { stopping = true; }
         health?.BeginStopping();
         try { stoppingCancellation.Cancel(); }
@@ -159,7 +159,6 @@ internal sealed class StartupCoordinator : IAsyncDisposable
     internal async Task StopAsync()
     {
         BeginStopping();
-        Task heartbeatDrain = heartbeat?.StopAsync() ?? Task.CompletedTask;
         Task? startup;
         lock (gate) { startup = operation; }
         if (startup is not null)
@@ -170,7 +169,6 @@ internal sealed class StartupCoordinator : IAsyncDisposable
         Task? actualRunner;
         lock (gate) { actualRunner = runner; }
         if (actualRunner is not null) { await actualRunner.ConfigureAwait(false); }
-        await heartbeatDrain.ConfigureAwait(false);
     }
 
     public async ValueTask DisposeAsync()

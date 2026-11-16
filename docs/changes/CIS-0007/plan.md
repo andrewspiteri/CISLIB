@@ -15,3 +15,5 @@ Derived under `cislib:CIS-0007:outcome:c997f879fbcb418ca460744ba3ea25f0` by Code
 | --- | --- | --- | --- |
 | WORK-002 | [Integrate sequential startup with live probes, Heartbeat, safe hosting and runnable cache example](agent-tasks/WORK-002.md) | Complete | WORK-001 |
 | WORK-001 | [Implement once-only sequential startup with real DI construction and lifetime barriers](agent-tasks/WORK-001.md) | Complete |  |
+| WORK-003 | [Move concrete Heartbeat lifecycle wiring from startup coordination into hosting](agent-tasks/WORK-003.md) | Complete | WORK-001, WORK-002 |
+| WORK-004 | [Preserve immediate Heartbeat admission cutoff during held startup cancellation](agent-tasks/WORK-004.md) | Complete | WORK-003 |
