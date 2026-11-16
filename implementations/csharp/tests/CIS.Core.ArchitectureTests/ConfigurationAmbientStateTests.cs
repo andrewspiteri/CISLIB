@@ -73,11 +73,22 @@ public sealed class ConfigurationAmbientStateTests
     {
         MethodInfo probe = typeof(ConfigurationAmbientStateTests).GetMethod(nameof(InfrastructureProbe), BindingFlags.NonPublic | BindingFlags.Static)!;
         string[] actual = Calls(probe).Where(IsInfrastructureCall).Select(called => called.DeclaringType?.FullName + "." + called.Name).ToArray();
-        foreach (string expected in new[] { "System.IO.Directory.CreateDirectory", "System.IO.File.OpenWrite", "System.IO.File.Exists", "System.Net.Http.HttpClient..ctor", "System.Threading.Thread..ctor", "System.Threading.Thread.Start", "System.Threading.Tasks.Task.Run" })
+        foreach (string expected in new[] { "System.IO.Directory.CreateDirectory", "System.IO.File.OpenWrite", "System.IO.File.Exists", "System.Net.Http.HttpClient..ctor", "System.Threading.Thread..ctor", "System.Threading.Thread.Start", "System.Threading.ThreadPool.QueueUserWorkItem", "System.Threading.Tasks.Task.Run" })
         {
             Assert.IsTrue(actual.Contains(expected, StringComparer.Ordinal), expected);
         }
         Assert.IsFalse(Calls(typeof(string).GetMethod(nameof(string.IsNullOrWhiteSpace), [typeof(string)])!).Any(IsInfrastructureCall));
+    }
+
+    [TestMethod]
+    public void HeartbeatDefaultReadsConfiguredThreadPoolMaximumWithoutStartingWorkersOrUsingLiveAvailability()
+    {
+        MethodInfo defaults = typeof(CIS.Heartbeat.HeartbeatOptions).GetMethod("ReadDefaultMaxConcurrent", BindingFlags.NonPublic | BindingFlags.Static)!;
+        MethodBase[] calls = Calls(defaults).ToArray();
+        Assert.AreEqual(1, calls.Count(call => call.DeclaringType == typeof(ThreadPool) && call.Name == nameof(ThreadPool.GetMaxThreads)));
+        Assert.IsFalse(calls.Any(IsInfrastructureCall));
+        Assert.IsFalse(calls.Any(call => call.DeclaringType == typeof(ThreadPool) && call.Name == nameof(ThreadPool.GetAvailableThreads)));
+        Assert.IsFalse(calls.Any(call => call.DeclaringType == typeof(Environment) && call.Name == "get_ProcessorCount"));
     }
 
     [TestMethod]
@@ -89,7 +100,7 @@ public sealed class ConfigurationAmbientStateTests
         Assert.IsNull(store.GetMethod("Initialize"));
         Assert.IsNull(store.GetProperty("Current"));
         Assert.IsNull(store.GetProperty("IsInitialized"));
-        Assert.AreEqual(18, store.GetProperties().Length);
+        Assert.AreEqual(19, store.GetProperties().Length);
         foreach (PropertyInfo property in store.GetProperties())
         {
             if (property.Name is "EnvironmentKind" or "CommitId" or "BuildId") { Assert.IsNotNull(property.SetMethod); }
@@ -123,6 +134,7 @@ public sealed class ConfigurationAmbientStateTests
     private static bool IsStartupType(Type type) =>
         type.Namespace is "CIS.Configuration" or "CIS.Logging.Configuration" ||
         type == typeof(CIS.EnvironmentOptions) ||
+        type == typeof(CIS.Heartbeat.HeartbeatOptions) || type == typeof(CIS.Heartbeat.HeartbeatRegistrationOptions) ||
         type == typeof(CIS.Logging.LoggingOptions) || type == typeof(CIS.Logging.EventMetadata);
 
     private static bool IsInfrastructureCall(MethodBase called)
@@ -132,7 +144,8 @@ public sealed class ConfigurationAmbientStateTests
         if (type?.Namespace?.StartsWith("System.Net", StringComparison.Ordinal) == true) { return true; }
         if (name is "System.Console" or "System.IO.File" or "System.IO.FileInfo" or "System.IO.FileStream" or "System.IO.DirectoryInfo" or "System.IO.FileSystemWatcher" or "System.IO.StreamReader" or "System.IO.StreamWriter") { return true; }
         if (name == "System.IO.Directory") { return called.Name != nameof(Directory.GetCurrentDirectory); }
-        if (name is "System.Threading.Thread" or "System.Threading.ThreadPool" or "System.Threading.Timer" or "System.Threading.PeriodicTimer") { return true; }
+        if (name == "System.Threading.ThreadPool") { return called.Name != nameof(ThreadPool.GetMaxThreads); }
+        if (name is "System.Threading.Thread" or "System.Threading.Timer" or "System.Threading.PeriodicTimer") { return true; }
         return name switch
         {
             "System.Threading.Tasks.Task" => called.Name is "Run" or "Start" or "Delay",
@@ -152,6 +165,7 @@ public sealed class ConfigurationAmbientStateTests
         using var client = new System.Net.Http.HttpClient();
         var worker = new Thread(static () => { });
         worker.Start();
+        ThreadPool.QueueUserWorkItem(static _ => { });
         _ = Task.Run(static () => { });
     }
 

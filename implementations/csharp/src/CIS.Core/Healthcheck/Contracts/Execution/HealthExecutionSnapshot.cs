@@ -11,6 +11,13 @@ public sealed class HealthExecutionSnapshot
         Phase = data.Phase;
         EligibleAtUtc = data.EligibleAtUtc?.ToUniversalTime();
         AdmittedAtUtc = data.AdmittedAtUtc?.ToUniversalTime();
+        DispatchedAtUtc = data.DispatchedAtUtc?.ToUniversalTime();
+        SuppressedAtUtc = data.SuppressedAtUtc?.ToUniversalTime();
+        SuppressedPhase = data.SuppressedPhase;
+        SuppressionReason = data.SuppressionReason;
+        ConditionResult = data.ConditionResult;
+        CallbackResult = data.CallbackResult;
+        ExpectedCancellationPhase = data.ExpectedCancellationPhase;
         ConditionStartedAtUtc = data.ConditionStartedAtUtc?.ToUniversalTime();
         CallbackStartedAtUtc = data.CallbackStartedAtUtc?.ToUniversalTime();
         WorkCompletedAtUtc = data.WorkCompletedAtUtc?.ToUniversalTime();
@@ -19,6 +26,7 @@ public sealed class HealthExecutionSnapshot
         CleanupCompletedAtUtc = data.CleanupCompletedAtUtc?.ToUniversalTime();
         SettledAtUtc = data.SettledAtUtc?.ToUniversalTime();
         QueueDelayMilliseconds = data.QueueDelayMilliseconds;
+        DispatchDelayMilliseconds = data.DispatchDelayMilliseconds;
         ConditionDurationMilliseconds = data.ConditionDurationMilliseconds;
         CallbackDurationMilliseconds = data.CallbackDurationMilliseconds;
         ErrorHandlingDurationMilliseconds = data.ErrorHandlingDurationMilliseconds;
@@ -42,6 +50,20 @@ public sealed class HealthExecutionSnapshot
     public DateTimeOffset? EligibleAtUtc { get; }
     /// <summary>Gets actual UTC admission time when known.</summary>
     public DateTimeOffset? AdmittedAtUtc { get; }
+    /// <summary>Gets actual UTC dispatch time when known.</summary>
+    public DateTimeOffset? DispatchedAtUtc { get; }
+    /// <summary>Gets the UTC decision time preventing the next user phase.</summary>
+    public DateTimeOffset? SuppressedAtUtc { get; }
+    /// <summary>Gets the condition or callback phase prevented from starting.</summary>
+    public HealthExecutionPhase? SuppressedPhase { get; }
+    /// <summary>Gets the neutral reason for the prevented user phase.</summary>
+    public HealthExecutionSuppressionReason? SuppressionReason { get; }
+    /// <summary>Gets the actual condition boolean, independently of later cleanup failure.</summary>
+    public bool? ConditionResult { get; }
+    /// <summary>Gets the actual callback boolean, independently of later cleanup failure.</summary>
+    public bool? CallbackResult { get; }
+    /// <summary>Gets the user phase that actually acknowledged known cancellation.</summary>
+    public HealthExecutionPhase? ExpectedCancellationPhase { get; }
     /// <summary>Gets actual UTC condition-start time when known.</summary>
     public DateTimeOffset? ConditionStartedAtUtc { get; }
     /// <summary>Gets actual UTC callback-start time when known.</summary>
@@ -58,6 +80,8 @@ public sealed class HealthExecutionSnapshot
     public DateTimeOffset? SettledAtUtc { get; }
     /// <summary>Gets measured monotonic milliseconds from eligibility to admission.</summary>
     public double? QueueDelayMilliseconds { get; }
+    /// <summary>Gets monotonic milliseconds from admission to dispatch, including capacity wait.</summary>
+    public double? DispatchDelayMilliseconds { get; }
     /// <summary>Gets measured monotonic condition duration in milliseconds.</summary>
     public double? ConditionDurationMilliseconds { get; }
     /// <summary>Gets measured monotonic callback duration in milliseconds.</summary>
@@ -90,6 +114,13 @@ internal sealed class HealthExecutionSnapshotData
     internal required HealthExecutionPhase Phase { get; init; }
     internal DateTimeOffset? EligibleAtUtc { get; init; }
     internal DateTimeOffset? AdmittedAtUtc { get; init; }
+    internal DateTimeOffset? DispatchedAtUtc { get; init; }
+    internal DateTimeOffset? SuppressedAtUtc { get; init; }
+    internal HealthExecutionPhase? SuppressedPhase { get; init; }
+    internal HealthExecutionSuppressionReason? SuppressionReason { get; init; }
+    internal bool? ConditionResult { get; init; }
+    internal bool? CallbackResult { get; init; }
+    internal HealthExecutionPhase? ExpectedCancellationPhase { get; init; }
     internal DateTimeOffset? ConditionStartedAtUtc { get; init; }
     internal DateTimeOffset? CallbackStartedAtUtc { get; init; }
     internal DateTimeOffset? WorkCompletedAtUtc { get; init; }
@@ -98,6 +129,7 @@ internal sealed class HealthExecutionSnapshotData
     internal DateTimeOffset? CleanupCompletedAtUtc { get; init; }
     internal DateTimeOffset? SettledAtUtc { get; init; }
     internal double? QueueDelayMilliseconds { get; init; }
+    internal double? DispatchDelayMilliseconds { get; init; }
     internal double? ConditionDurationMilliseconds { get; init; }
     internal double? CallbackDurationMilliseconds { get; init; }
     internal double? ErrorHandlingDurationMilliseconds { get; init; }

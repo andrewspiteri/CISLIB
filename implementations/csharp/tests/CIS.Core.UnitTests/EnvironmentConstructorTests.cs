@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.InteropServices;
+using CIS.Heartbeat;
 using CIS.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -57,12 +58,14 @@ public sealed class EnvironmentConstructorTests
         string instance = EnvironmentOptions.InstanceId;
         DateTimeOffset time = EnvironmentOptions.InitializedAtUtc;
         LoggingOptions logging = EnvironmentOptions.Logging;
+        HeartbeatOptions heartbeat = EnvironmentOptions.Heartbeat;
         var first = new EventMetadata();
         var second = new EventMetadata();
         Assert.AreEqual(instance, first.InstanceId);
         Assert.AreEqual(instance, second.InstanceId);
         Assert.AreEqual(time, second.InitializedAtUtc);
         Assert.AreSame(logging, EnvironmentOptions.Logging);
+        Assert.AreSame(heartbeat, EnvironmentOptions.Heartbeat);
         Assert.IsNull(string.IsInterned(instance));
     }
 
@@ -77,7 +80,7 @@ public sealed class EnvironmentConstructorTests
         {
             Assert.IsTrue(typeof(EnvironmentOptions).GetProperty(name)!.SetMethod!.IsPublic);
         }
-        Assert.AreEqual(15, typeof(EnvironmentOptions).GetProperties().Count(property => property.SetMethod is null));
+        Assert.AreEqual(16, typeof(EnvironmentOptions).GetProperties().Count(property => property.SetMethod is null));
     }
 
     private static Assembly ApplicationAssembly(string? information)

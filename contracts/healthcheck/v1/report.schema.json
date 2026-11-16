@@ -482,6 +482,27 @@
         "admittedAtUtc": {
           "$ref": "#/$defs/utcTimestamp"
         },
+        "dispatchedAtUtc": {
+          "$ref": "#/$defs/utcTimestamp"
+        },
+        "suppressedAtUtc": {
+          "$ref": "#/$defs/utcTimestamp"
+        },
+        "suppressedPhase": {
+          "enum": ["Condition", "Callback"]
+        },
+        "suppressionReason": {
+          "enum": ["ApplicationStopping", "TargetUnavailable"]
+        },
+        "conditionResult": {
+          "type": "boolean"
+        },
+        "callbackResult": {
+          "type": "boolean"
+        },
+        "expectedCancellationPhase": {
+          "enum": ["Condition", "Callback"]
+        },
         "conditionStartedAtUtc": {
           "$ref": "#/$defs/utcTimestamp"
         },
@@ -504,6 +525,9 @@
           "$ref": "#/$defs/utcTimestamp"
         },
         "queueDelayMs": {
+          "$ref": "#/$defs/durationMs"
+        },
+        "dispatchDelayMs": {
           "$ref": "#/$defs/durationMs"
         },
         "conditionDurationMs": {
@@ -539,6 +563,11 @@
         "integrationError": {
           "$ref": "#/$defs/diagnostic"
         }
+      },
+      "dependentRequired": {
+        "suppressedAtUtc": ["suppressedPhase", "suppressionReason"],
+        "suppressedPhase": ["suppressedAtUtc", "suppressionReason"],
+        "suppressionReason": ["suppressedAtUtc", "suppressedPhase"]
       }
     },
     "stepStatus": {

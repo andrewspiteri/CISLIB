@@ -39,7 +39,20 @@ public enum HealthExecutionFactKind
     /// <summary>The scheduling registration retired.</summary>
     Retired = 10,
     /// <summary>A bounded integration diagnostic was observed without changing the actual callback outcome.</summary>
-    IntegrationFault = 11
+    IntegrationFault = 11,
+    /// <summary>Capacity was reserved and the execution was posted to its executor.</summary>
+    Dispatched = 12,
+    /// <summary>A coordinated lifecycle gate prevented a user phase from starting.</summary>
+    Suppressed = 13
+}
+
+/// <summary>The neutral lifecycle reason a condition or callback did not start.</summary>
+public enum HealthExecutionSuppressionReason
+{
+    /// <summary>Application stopping closed the next user-phase start gate.</summary>
+    ApplicationStopping = 0,
+    /// <summary>The registered target was known unusable before the next invocation.</summary>
+    TargetUnavailable = 1
 }
 
 /// <summary>A detached execution phase, independent of health policy interpretation.</summary>

@@ -1,0 +1,90 @@
+{
+  "tasks": [
+    {
+      "title": "Implement monotonic fair Heartbeat scheduling and exclusive asynchronous execution",
+      "scopeIds": [
+        "heartbeat"
+      ],
+      "paths": [
+        "implementations/csharp/src/CIS.Core/Heartbeat",
+        "implementations/csharp/tests",
+        "planning/heartbeat",
+        "docs/changes/CIS-0006"
+      ],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "complexity": "medium",
+      "assignee": "Codex",
+      "acceptanceCriteria": "AC-1/AC-2: one application engine uses reference identity/CWT bindings, weak idle entries and a single monotonic timer; at most one accepted execution per registration and MaxConcurrent unfinished dispatched wrappers. FIFO ready work progresses one released slot at a time. Conditions, callback, awaited exception-only OnError, cleanup and reporting retain exclusivity and owner holds; full settlement starts the fixed delay. Register never invokes subscriber code inline; duplicate settings stay unchanged. Include controlled time/executor/capacity/outcome tests, docs and review.",
+      "validation": "Build the affected native projects and run Heartbeat timing, identity, duplicate-race, non-overlap, fairness, bounded-state, synchronous-prologue and result/error tests using ManualTimeProvider and controlled tasks. Verify no user code or arbitrary owner/reporting callback under scheduler lock, no per-idle-registration task history, no business timeout/retry/health arithmetic."
+    },
+    {
+      "title": "Complete Heartbeat cutoffs, retirement and true owner settlement barriers",
+      "scopeIds": [
+        "heartbeat"
+      ],
+      "paths": [
+        "implementations/csharp/src/CIS.Core/Heartbeat",
+        "implementations/csharp/tests",
+        "planning/heartbeat",
+        "docs/changes/CIS-0006"
+      ],
+      "dependsOn": [
+        "WORK-002"
+      ],
+      "complexity": "medium",
+      "assignee": "Codex",
+      "acceptanceCriteria": "AC-3/AC-4: unregister/owner close drain accepted queued/running work; global cutoff additionally suppresses condition/callback phases that have not won their start gate. Await posted wrappers, handlers, owned cleanup and reporting before barrier completion, with caller-only wait cancellation and no automatic execution cancellation. Retain identity until true drain, support sequential reuse, safely retire collected/unusable targets and report once through an independently retained safe Core binding. Detect direct own-barrier waits. Include deterministic boundary/race/reachability checks and review.",
+      "validation": "Run focused native tests with blocked phases, paused wrappers, already-canceled waits, concurrent stop/unregister, owner-close/admission races, cleanup/reporting faults and full target/condition/owner/exception graph GC. Assert no callback after losing a start gate, no early owner/slot release and exactly-once collection retirement while an external monitor survives."
+    },
+    {
+      "title": "Extend detached Healthcheck facts and implement Heartbeat policy binding",
+      "scopeIds": [
+        "heartbeat"
+      ],
+      "paths": [
+        "implementations/csharp/src/CIS.Core/Healthcheck",
+        "implementations/csharp/src/CIS.Core/Heartbeat",
+        "implementations/csharp/tests",
+        "contracts/healthcheck/v1",
+        "conformance/healthcheck",
+        "planning/healthcheck",
+        "planning/heartbeat",
+        "docs/modules/healthcheck",
+        "docs/changes/CIS-0006"
+      ],
+      "complexity": "medium",
+      "assignee": "Codex",
+      "acceptanceCriteria": "AC-5/AC-7: append Dispatched/Suppressed facts and optional raw boolean/cancellation/timing context without changing existing enum values, outcomes or phase strings. Merge immutable bounded context, retain neutral suppression without policy arithmetic, preserve cleanup-error precedence in one final Outcome and distinct settlement. Select existing monitor/consecutive-failure/availability bindings once, isolate reporting failures, preserve external/created-monitor ownership and old reports. Keep live configuration in target-dependent graph and safe concrete binder available for collection retirement. Include affected receiving/wire/compatibility tests, docs and independent review.",
+      "validation": "Build and run focused existing/new native Healthcheck binder, fact validation, snapshot, formatter/protocol and compatibility cases for dispatch/suppression/result context, duplicates, contradictions and optional legacy payloads. New Healthcheck tests can run before engine binding integration; complete real adapter tests with engine before task completion. No forced old baseline rewrite or invented durable delivery guarantee."
+    },
+    {
+      "title": "Integrate Heartbeat readiness, safe DI scope shutdown and developer package example",
+      "scopeIds": [
+        "heartbeat"
+      ],
+      "paths": [
+        "implementations/csharp/src/CIS.Core/Heartbeat",
+        "implementations/csharp/examples/heartbeat",
+        "implementations/csharp/tests",
+        "implementations/csharp/CisLib.slnx",
+        "docs/modules/heartbeat",
+        "docs/modules/healthcheck",
+        "planning/heartbeat",
+        "planning/decisions.md",
+        "README.md",
+        "docs/changes/CIS-0006",
+        ".cis/local/testing"
+      ],
+      "dependsOn": [
+        "WORK-003",
+        "WORK-004"
+      ],
+      "complexity": "medium",
+      "assignee": "Codex",
+      "acceptanceCriteria": "AC-6/AC-7: provide a narrow application-owned Generic Host adapter and actual owner-bound scope wrapper: ready dependencies precede activation, no ApplicationStarted self-deadlock, both stopping paths close starts, actual drain precedes dependent stopping and scope/root disposal even after canceled waits. Deliver hosted polling example from source and exact development package in ordinary build/folder publish; include false/exception/refresh/stop observations, concise usage, native host/business/package checks and integrated independent review. Preserve existing module behavior and all historical owners/evidence. Settle actual current accounting; leave all unexecuted platform and release obligations explicit.",
+      "validation": "Run real local Windows host/scope/business tests covering readiness, early stop, running-condition/callback/error handling and dependency disposal ordering. Build and consume the current development package in the Heartbeat example, including folder publish and executable shutdown. Run meaningful affected architecture/compatibility regression only after source stabilizes. Record all AT mappings and actual evidence, review scope/complexity and verify resources settled. No Ubuntu/release/coverage/mutation/performance claim without actual separately authorized work."
+    }
+  ]
+}

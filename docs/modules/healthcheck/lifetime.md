@@ -59,7 +59,7 @@ Use a fresh nonempty `RegistrationId` per registration lifetime and positive, no
 
 The binder keeps bounded current/previous execution context and an accepted outcome high-water mark. Identical retained terminal repeats are Duplicate, older history is Obsolete, retired bindings return Retired, and retained contradictions raise a bounded integration error. Isolate reporting errors from callback/error-handler execution; do not invoke business work again, call OnError again, or count a second callback failure because a health handoff failed. See the [validation matrix](../../../planning/healthcheck/execution-facts.md).
 
-The current repository has no implemented Heartbeat scheduler. Real monitor/fact binding is implemented separately from the pending real Heartbeat activation, duplicate registration reuse, OnError, owner-retirement and final-handoff evidence. The CountryList example uses explicit application priming and the actual collector runner; it does not provide a substitute Heartbeat API.
+The execution binder does not activate a scheduler. Heartbeat's separate engine and owner integration must establish readiness, duplicate registration reuse, awaited OnError, safe retirement and final handoff. Additive [Heartbeat facts](../../../planning/healthcheck/heartbeat-facts-amendment.md) distinguish dispatch from admission, record neutral suppression, and preserve actual boolean/cancellation context when cleanup changes the final outcome. The CountryList example uses explicit application priming and the actual collector runner; it does not provide a substitute Heartbeat API.
 
 ## Application shutdown
 

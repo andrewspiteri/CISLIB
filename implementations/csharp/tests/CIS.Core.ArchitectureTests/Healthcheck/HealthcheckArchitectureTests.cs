@@ -12,7 +12,7 @@ public sealed class HealthcheckArchitectureTests
         "HealthCollectionDisposition", "HealthCollectionAttempt", "HealthCollectionResultKind", "HealthCollectionResult",
         "HealthCollectorOptions", "IHealthCollector", "IHealthCollectionLease", "IHealthCollectionRegistration",
         "HealthExecutionBindingOptions", "HealthFactDisposition", "HealthExecutionFactKind", "HealthExecutionPhase",
-        "HealthExecutionStepStatus", "HealthExecutionFact", "HealthExecutionSnapshot", "IHealthExecutionBinding",
+        "HealthExecutionStepStatus", "HealthExecutionSuppressionReason", "HealthExecutionFact", "HealthExecutionSnapshot", "IHealthExecutionBinding",
         "HealthApplicationIdentity", "HealthDiagnostic", "HealthStatus", "MonitorState", "HealthPolicyKind", "NumericComparison",
         "HealthExecutionOutcome", "HealthMeasurementValueKind", "HealthReportView", "HealthMeasurement", "IHealthSnapshotSource",
         "IHealthMonitorFactory", "IHealthMonitor", "IConditionMonitor", "IConsecutiveFailureMonitor", "INumericThresholdMonitor",

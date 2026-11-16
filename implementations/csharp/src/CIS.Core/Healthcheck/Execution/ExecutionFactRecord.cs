@@ -5,11 +5,19 @@ internal sealed class ExecutionFactRecord(long executionId)
 {
     internal long ExecutionId { get; } = executionId;
     internal bool HasOutcome => outcome.HasValue;
+    internal bool HasSuppression => suppressedAt.HasValue;
 
     private HealthExecutionOutcome? outcome;
     private HealthExecutionPhase? sourcePhase;
     private DateTimeOffset? eligibleAt;
     private DateTimeOffset? admittedAt;
+    private DateTimeOffset? dispatchedAt;
+    private DateTimeOffset? suppressedAt;
+    private HealthExecutionPhase? suppressedPhase;
+    private HealthExecutionSuppressionReason? suppressionReason;
+    private bool? conditionResult;
+    private bool? callbackResult;
+    private HealthExecutionPhase? expectedCancellationPhase;
     private DateTimeOffset? conditionStartedAt;
     private DateTimeOffset? callbackStartedAt;
     private DateTimeOffset? workCompletedAt;
@@ -18,6 +26,7 @@ internal sealed class ExecutionFactRecord(long executionId)
     private DateTimeOffset? cleanupCompletedAt;
     private DateTimeOffset? settledAt;
     private double? queueDelay;
+    private double? dispatchDelay;
     private double? conditionDuration;
     private double? callbackDuration;
     private double? handlerDuration;
@@ -41,6 +50,13 @@ internal sealed class ExecutionFactRecord(long executionId)
         }
         next.eligibleAt = MergeValue(eligibleAt, fact.EligibleAtUtc);
         next.admittedAt = MergeValue(admittedAt, fact.AdmittedAtUtc);
+        next.dispatchedAt = MergeValue(dispatchedAt, fact.DispatchedAtUtc);
+        next.suppressedAt = MergeValue(suppressedAt, fact.SuppressedAtUtc);
+        next.suppressedPhase = MergeValue(suppressedPhase, fact.SuppressedPhase);
+        next.suppressionReason = MergeValue(suppressionReason, fact.SuppressionReason);
+        next.conditionResult = MergeValue(conditionResult, fact.ConditionResult);
+        next.callbackResult = MergeValue(callbackResult, fact.CallbackResult);
+        next.expectedCancellationPhase = MergeValue(expectedCancellationPhase, fact.ExpectedCancellationPhase);
         next.conditionStartedAt = MergeValue(conditionStartedAt, fact.ConditionStartedAtUtc);
         next.callbackStartedAt = MergeValue(callbackStartedAt, fact.CallbackStartedAtUtc);
         next.workCompletedAt = MergeValue(workCompletedAt, fact.WorkCompletedAtUtc);
@@ -49,6 +65,7 @@ internal sealed class ExecutionFactRecord(long executionId)
         next.cleanupCompletedAt = MergeValue(cleanupCompletedAt, fact.CleanupCompletedAtUtc);
         next.settledAt = MergeValue(settledAt, fact.SettledAtUtc);
         next.queueDelay = MergeValue(queueDelay, fact.QueueDelayMilliseconds);
+        next.dispatchDelay = MergeValue(dispatchDelay, fact.DispatchDelayMilliseconds);
         next.conditionDuration = MergeValue(conditionDuration, fact.ConditionDurationMilliseconds);
         next.callbackDuration = MergeValue(callbackDuration, fact.CallbackDurationMilliseconds);
         next.handlerDuration = MergeValue(handlerDuration, fact.ErrorHandlingDurationMilliseconds);
@@ -66,6 +83,10 @@ internal sealed class ExecutionFactRecord(long executionId)
             ExecutionFactValidation.ValidateContext(next.sourcePhase, next.outcome, next.callbackStartedAt, next.callbackDuration,
                 next.handlerStartedAt, next.handlerCompletedAt, next.handlerDuration, next.handlerStatus, next.originalError,
                 next.handlerError, next.cleanupError, next.cleanupCompletedAt, next.cleanupDuration, next.cleanupStatus, merged: true);
+            ExecutionFactValidation.ValidateProducerContext(next.sourcePhase, next.outcome, next.conditionStartedAt,
+                next.callbackStartedAt, next.conditionDuration, next.callbackDuration, next.suppressedAt,
+                next.suppressedPhase, next.suppressionReason, next.conditionResult, next.callbackResult,
+                next.expectedCancellationPhase, next.cleanupStatus, next.originalError, merged: true);
         }
         catch (ArgumentException)
         {
@@ -78,10 +99,14 @@ internal sealed class ExecutionFactRecord(long executionId)
 
     internal bool SameContext(ExecutionFactRecord other) => outcome == other.outcome && sourcePhase == other.sourcePhase
         && eligibleAt == other.eligibleAt && admittedAt == other.admittedAt && conditionStartedAt == other.conditionStartedAt
+        && dispatchedAt == other.dispatchedAt && suppressedAt == other.suppressedAt && suppressedPhase == other.suppressedPhase
+        && suppressionReason == other.suppressionReason && conditionResult == other.conditionResult
+        && callbackResult == other.callbackResult && expectedCancellationPhase == other.expectedCancellationPhase
         && callbackStartedAt == other.callbackStartedAt && workCompletedAt == other.workCompletedAt
         && handlerStartedAt == other.handlerStartedAt && handlerCompletedAt == other.handlerCompletedAt
         && cleanupCompletedAt == other.cleanupCompletedAt && settledAt == other.settledAt
-        && queueDelay == other.queueDelay && conditionDuration == other.conditionDuration && callbackDuration == other.callbackDuration
+        && queueDelay == other.queueDelay && dispatchDelay == other.dispatchDelay
+        && conditionDuration == other.conditionDuration && callbackDuration == other.callbackDuration
         && handlerDuration == other.handlerDuration && cleanupDuration == other.cleanupDuration && totalDuration == other.totalDuration
         && handlerStatus == other.handlerStatus && cleanupStatus == other.cleanupStatus
         && SameDiagnostic(originalError, other.originalError) && SameDiagnostic(handlerError, other.handlerError)
