@@ -1,0 +1,22 @@
+{
+  "tasks": [
+    {
+      "title": "Implement once-only sequential startup with real DI construction and lifetime barriers",
+      "scopeIds": [
+        "startup"
+      ],
+      "paths": [
+        "implementations/csharp/src/CIS.Core/Startup",
+        "implementations/csharp/tests/CIS.Core.UnitTests",
+        "docs/modules/startup",
+        "planning/startup",
+        "docs/changes/CIS-0007",
+        "implementations/csharp/src/CIS.Core/Heartbeat/HeartbeatRuntime.cs"
+      ],
+      "complexity": "medium",
+      "assignee": "Codex",
+      "acceptanceCriteria": "AC-02 through AC-09: add the single CIS.Startup.IStartable identity; enroll only ordinary unkeyed singleton interface registrations; validate final descriptors and use standard actual-root scope validation, materialize the full sequence once before any startup, reference-deduplicate preserving first occurrence, directly await actual tasks sequentially and retain one operation/first host token and success/fault/cancel without replay. Establish the existing critical condition monitor before participant construction when installed; preserve useful sync/null-task/async/unexpected-cancel failure and neutral known host cancellation. Cancellation never certifies actual settlement; final publication belongs to the same operation's stopping boundary and supports the narrow HB completion connection. Include focused real-DI controlled unit tests, usage documentation and independent review. Do not add a DI framework, second provider, scan, priority, retry, custom graph validator or generic hook registry.",
+      "validation": "Build affected Core/Unit projects and run focused meaningful Startup enrollment, empty sequence, late-constructor-zero-call, registration/dependency-order, held-task, ref/equal-by-value identity, alias/lifetime/scope-validation, concurrent/repeated terminal-entry, sync/null/async fault, host/unexpected cancellation and actual-settlement tests. Inspect operation retention before user code and no user code under control locks. Preserve existing module behavior and ordinary PerformanceObservation/ExtendedStress exclusions. Record exact native symbols/results and AC mapping, actual cost/storage and responsibility-growth review in this task. Root controller serializes shared builds. Host acceptance remains owned by the dependent integration task."
+    }
+  ]
+}
