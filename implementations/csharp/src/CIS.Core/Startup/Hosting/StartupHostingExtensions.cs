@@ -23,20 +23,35 @@ public static class StartupHostingExtensions
     public static IServiceCollection AddCisStartup(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
-        services.TryAddSingleton(provider => new StartupCoordinator(provider, services.ToArray(),
-            provider.GetService<HealthcheckService>(), provider.GetService<HeartbeatRuntime>(),
-            provider.GetService<ILogger<StartupCoordinator>>()));
         services.TryAddSingleton(new StartupHostingOrder(services));
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IHostedService, StartupHostedService>());
         return services;
     }
 }
 
-internal sealed class StartupHostedService(StartupCoordinator coordinator, StartupHostingOrder order,
-    IHostApplicationLifetime lifetime, IOptions<HostOptions> hostOptions) : IHostedLifecycleService, IAsyncDisposable
+internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisposable
 {
+    private readonly StartupCoordinator coordinator;
+    private readonly HeartbeatRuntime? heartbeat;
+    private readonly StartupHostingOrder order;
+    private readonly IHostApplicationLifetime lifetime;
+    private readonly IOptions<HostOptions> hostOptions;
     private CancellationTokenRegistration stopping;
+    private CancellationTokenRegistration startupStopping;
+    private CancellationTokenRegistration completionStopping;
     private int subscribed;
+
+    public StartupHostedService(IServiceProvider root, StartupHostingOrder order,
+        IHostApplicationLifetime lifetime, IOptions<HostOptions> hostOptions)
+    {
+        this.order = order;
+        this.lifetime = lifetime;
+        this.hostOptions = hostOptions;
+        heartbeat = root.GetService<HeartbeatRuntime>();
+        coordinator = new StartupCoordinator(root, order.Descriptors,
+            root.GetService<HealthcheckService>(), root.GetService<ILogger<StartupCoordinator>>(),
+            ConfirmStartupCompletion);
+    }
 
     public Task StartingAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
@@ -48,7 +63,10 @@ internal sealed class StartupHostedService(StartupCoordinator coordinator, Start
         }
         if (Interlocked.Exchange(ref subscribed, 1) == 0)
         {
-            stopping = lifetime.ApplicationStopping.UnsafeRegister(static value => ((StartupCoordinator)value!).BeginStopping(), coordinator);
+            stopping = lifetime.ApplicationStopping.UnsafeRegister(static value => ((StartupHostedService)value!).BeginStopping(), this);
+            // Close admission even while an initializer ignores startup cancellation.
+            startupStopping = heartbeat is null ? default : cancellationToken.UnsafeRegister(
+                static value => ((HeartbeatRuntime)value!).BeginStopping(), heartbeat);
         }
         return Task.CompletedTask;
     }
@@ -59,13 +77,42 @@ internal sealed class StartupHostedService(StartupCoordinator coordinator, Start
         => coordinator.StartAsync(cancellationToken, lifetime.ApplicationStopping);
 
     // A host wait budget cannot certify actual startup/Heartbeat settlement.
-    public Task StoppingAsync(CancellationToken cancellationToken) => coordinator.StopAsync();
-    public Task StopAsync(CancellationToken cancellationToken) => coordinator.StopAsync();
+    public Task StoppingAsync(CancellationToken cancellationToken) => StopCoreAsync();
+    public Task StopAsync(CancellationToken cancellationToken) => StopCoreAsync();
     public Task StoppedAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+    private bool ConfirmStartupCompletion(CancellationToken cancellationToken)
+    {
+        if (heartbeat is null) { return true; }
+        // This callback closes dispatch independently of the coordinator gate if
+        // the first host startup token is canceled during actual activation.
+        completionStopping = cancellationToken.UnsafeRegister(
+            static value => ((HeartbeatRuntime)value!).BeginStopping(), heartbeat);
+        return heartbeat.ActivateForStartup();
+    }
+
+    private void BeginStopping()
+    {
+        coordinator.RequestStopping();
+        // Close dispatch before waiting for the final startup publication gate.
+        heartbeat?.BeginStopping();
+        coordinator.BeginStopping();
+    }
+
+    private async Task StopCoreAsync()
+    {
+        BeginStopping();
+        Task heartbeatDrain = heartbeat?.StopAsync() ?? Task.CompletedTask;
+        await coordinator.StopAsync().ConfigureAwait(false);
+        await heartbeatDrain.ConfigureAwait(false);
+    }
 
     public async ValueTask DisposeAsync()
     {
-        await coordinator.StopAsync().ConfigureAwait(false);
+        await StopCoreAsync().ConfigureAwait(false);
+        await coordinator.DisposeAsync().ConfigureAwait(false);
+        completionStopping.Dispose();
+        startupStopping.Dispose();
         stopping.Dispose();
     }
 }
@@ -76,6 +123,8 @@ internal sealed class StartupHostingOrder(IServiceCollection services)
 {
     private static readonly Type? WebHost = typeof(GenericHostWebHostBuilderExtensions).Assembly
         .GetType("Microsoft.AspNetCore.Hosting.GenericWebHostService");
+
+    internal ServiceDescriptor[] Descriptors => services.ToArray();
 
     internal bool IsValid() => IsValid(Hosted(services), requireHeartbeat: false);
 

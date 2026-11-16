@@ -266,3 +266,194 @@ the GitHub pull request. The documented standard-DI validation limitation and
 unexecuted platform/release obligations remain unchanged.
 | WORK-001 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=792; failed=125; possibleTokenSavings=123; ledgerDigest=sha256:ccd35fc4d51e92cb6a3f544e0bc99aba772b9f3fc1323b2a22c643e4f09e33b9 |
 | WORK-002 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=809; failed=125; possibleTokenSavings=123; ledgerDigest=sha256:080fa7aba8fbfebdc6d4b12fad90be245cd1f204e15f40fbed9cf6b12d532480 |
+
+## Heartbeat hosting boundary follow-up — WORK-003
+
+After the original Startup merge, Andrew Spiteri explicitly requested moving
+Heartbeat lifecycle wiring into hosting, keeping the coordinator independent of
+Heartbeat and preserving behavior with tests. This same-module follow-up uses
+the retained Startup outcome and unchanged shared 10,800-second / four-attempt /
+six-GiB limits. The supported `plan task add` route added WORK-003 under the
+approved outcome; completed WORK-001/002 and the original Closed dossier remain
+historical. `work-allocation-refactor.json` redistributes unused capacity, without
+changing past consumption, used attempts or the protected 300-second / 64-MiB
+reserve. The follow-up grants no new numeric capacity or publication authority.
+
+### Result and responsibility boundary
+
+`StartupHostedService` owns one coordinator and optional concrete Heartbeat
+connection. Hosting now owns activation acknowledgement, operation-token cutoff,
+application-stopping cutoff and the actual Heartbeat drain. It publishes generic
+coordinator stop intent before closing dispatch and entering the completion gate.
+Both actual drains precede coordinator resource disposal and dependent teardown.
+
+`StartupCoordinator` has no Heartbeat import, field, constructor dependency,
+resolution or lifecycle call. It retains sequential initialization and one
+terminal operation. A single internal Boolean completion callback remains inside
+that operation's final gate: check stopping, confirm, recheck stopping, reject
+unconfirmed completion, then publish Healthcheck startup completion. Known
+cancellation during activation therefore stays neutral; activation failure uses
+the original retained fault/critical-monitor path. No public contract, package
+dependency, DI framework, Configuration implementation or scheduler was added.
+
+### Actual native observations
+
+All four commands ran serially through the existing native unit layer under
+`CIS-0007/WORK-003`, logical attempt `WORK-003:1`, with the original ordinary
+`PerformanceObservation` / `ExtendedStress` exclusions:
+
+```text
+dotnet .cis/local/tools/cis/cis.dll test incremental run --profile .cis/local/testing/profiles/<profile>.json --layer unit --max-batches 1 --max-seconds 900 --change CIS-0007 --task WORK-003 --authority C:/miscwork/portfolio/cislib --actor Codex --format agent
+```
+
+| Profile | Native project / selection | Passed | Failed / skipped | Reported elapsed ms |
+| --- | --- | ---: | ---: | ---: |
+| startup-host-boundary-unit | Unit: Startup and affected Heartbeat regressions | 180 | 0 / 0 | 730581 |
+| startup-host-boundary-integration | Integration: real Startup host and existing Heartbeat hosting | 25 | 0 / 0 | 795466 |
+| startup-host-boundary-architecture | Existing Architecture suite plus coordinator dependency guard | 341 | 0 / 0 | 715488 |
+| startup-host-boundary-example | BusinessCases: real Startup country-list process and Type Manager startup stories | 11 | 0 / 0 | 444667 |
+
+Each profile has a settled `latest-run.json` and native TRX report at
+`.cis/local/testing/incremental/<profile>/reports/file-e7e4df149e0949e4a8a2-unit.xml`.
+All report exit 0, one executed unit batch and zero pending unit batches:
+**557 passed, zero failed or skipped**. These are the actual Windows observations;
+unit-only `qualified=false` and the existing mutation-pilot advisory do not imply
+broader platform, mutation or release qualification.
+
+- AC-07/08/09: four new generic completion cases retain failure/cancellation,
+  prevent readiness on false/faulted confirmation and prioritize known stopping.
+- AC-10/13: three Heartbeat-specific completion cases now run through the actual
+  Generic Host and both adapters, covering timer failure, stopped no-op and
+  cancellation during real timer creation, with zero dispatch and truthful health.
+- AC-10/11/12/14: the existing real-listener, business gate, pipe/probe, critical
+  recovery and actual startup/callback/error-handler drain cases remain passing.
+- Dependency boundary: the compiled coordinator and generated async/lambda work
+  are inspected for signature, field, local and IL references to Heartbeat; six
+  negative controls prove body-only, async and type-token dependencies are caught.
+- AC-01/15: the unchanged runnable source consumer proves actual Type Manager
+  preparation, ordered cache/reader priming, 500/503 then 200 responses, readiness
+  before the first held refresh, actual recurring refresh and safe shutdown.
+
+Independent read-only reviews found no required production, test, authority or
+history defect. The existing standard-DI limitation above is unchanged. Guides
+under `docs/modules/startup`, the cooperating Heartbeat paragraph and Startup
+planning/acceptance records describe the refined ownership boundary. The user-owned
+untracked example `Properties/launchSettings.json` remains untouched.
+
+### Identity, accounting and storage
+
+The tested Core DLL SHA-256 is
+`c464dc14097e8e428a5247e693993599f330185889f4b088a5b853546806eb61`.
+The original attachment remains byte-identical at SHA-256
+`a0812a281c6696f16ccbe1d0d006e62988eae9982e581add51bb66f74ab16451`.
+The source-frozen graph used by all four native runs is
+`sha256:7e47d1be230f7e50da8554c03142401609d4e60050210be538da81ad24f9e159`.
+
+Settled native accounting charges WORK-003 **2,636,486 ms**, using one logical
+attempt, with zero reservations or recovery holds. Shared recorded consumption
+is **5,336,934 ms**, three of four attempts used; the original 300,000-ms reserve
+remains protected. Reported command elapsed times above are separate observations
+from canonical charges. Historical unmeasured effort remains unknown; these
+records do not invent complete metering for all authoring and review activity.
+
+At **2026-11-16 21:00:16 UTC**, a conservative file-length observation counted
+`.cis/local` **758,165,887 B**, `implementations/csharp` **4,468,077,555 B**, and all
+`.artifacts` **179,355,528 B**: **5,405,598,970 B** combined. That is **14,014,480 B**
+growth from original closeout and **969,743,110 B** below six GiB after the protected
+64-MiB reserve. This is a sampled directory observation, not a peak or deduplicated
+claim. Historical results remain preserved; no cleanup authority was inferred.
+
+## Early-cancellation admission correction — WORK-004
+
+Final review after the WORK-003 checkpoint found a missed observable behavior:
+the original coordinator installed its linked-token Heartbeat cutoff before
+participant construction, while the first refactor installed it only during
+final confirmation. Canceling the first startup token while an initializer
+ignored cancellation still prevented dispatch/readiness, but Heartbeat owner
+creation and new/duplicate registration remained accepting until explicit host
+stop. The 557 passing cases above did not cover that early admission boundary;
+their actual results remain preserved, rather than being treated as proof of it.
+
+WORK-004 owns this narrow correction and its tests/documentation under the same
+outcome. The completed owners remain historical. The supported allocation update
+in `work-allocation-early-cancellation.json` redistributes only unused capacity:
+unchanged 10,800 seconds, four attempts, 300-second / 64-MiB protected reserve and
+the same six-GiB group. Existing costs and all three used attempts are retained.
+
+The hosted adapter now connects the first host-start token in its existing
+once-only `StartAsync` subscription block, before participant construction. It
+retains the final operation-token connection and disposes both only after actual
+drains. The coordinator and single internal completion callback are unchanged.
+One real-host regression cancels only the startup token while an ignoring
+initializer is held, proves `ApplicationStopping` remains unset, and asserts
+immediate rejection of owner creation plus new and duplicate registration before
+stop or release. It then proves host stop still waits for actual initialization
+settlement, with neutral cancellation and no readiness/dispatch.
+
+### Corrected candidate: actual final observations
+
+The four final profiles ran serially under WORK-004 using the native command
+above with `--task WORK-004`, the same ordinary category exclusions and one shared
+logical attempt `WORK-004:1`. No earlier receipt was overwritten.
+
+| Profile | Passed | Failed / skipped | Reported elapsed ms |
+| --- | ---: | ---: | ---: |
+| startup-host-boundary-final-unit | 181 | 0 / 0 | 594410 |
+| startup-host-boundary-final-integration | 25 | 0 / 0 | 547743 |
+| startup-host-boundary-final-architecture | 341 | 0 / 0 | 372437 |
+| startup-host-boundary-final-example | 11 | 0 / 0 | 627949 |
+
+**558 passed, zero failed or skipped**, on the corrected candidate. Each settled
+receipt reports exit 0, one executed unit batch and zero pending unit batches;
+TRX reports retain the same per-profile location pattern described above. The
+new held-initializer regression is included in the 181-case Unit result. Real
+host readiness/gates/drains, compiled dependency guard and actual source example
+all pass on this candidate. Independent review found no remaining material
+production, test, authority or history defect.
+
+Final tested Core DLL SHA-256:
+`e8d5231789054ead81fc2dd7b572ef3c9d9739133c1a2923755ae4c54b4ff82a`.
+The original specification remains at SHA-256
+`a0812a281c6696f16ccbe1d0d006e62988eae9982e581add51bb66f74ab16451`.
+All final native runs use frozen graph
+`sha256:510d1ca22cb6500fdd7ff39ef84ab3c788ce941b382ac0c1e6ed473072692e52`.
+The user-owned untracked launch settings remain at SHA-256
+`1d65b76547423e534c95085865c646667153c7313fbe3f2dc910ca73a8d89c71`.
+
+WORK-004's settled canonical native charge is **1,982,090 ms**, one logical
+attempt, zero reservations or recovery holds. Shared recorded consumption is
+**7,319,024 ms**, all four attempts used; the original **300,000-ms** reserve
+remains protected. Historical metering limits and unit-only qualification limits
+remain as stated above; no broader execution or release claim is made.
+
+At **2026-11-16 21:57:07 UTC**, conservative file-length measurement counted
+`.cis/local` **762,030,198 B**, `implementations/csharp` **4,469,141,522 B**, and all
+`.artifacts` **179,358,361 B**, totaling **5,410,530,081 B**. This is **18,945,591 B**
+above original closeout and leaves **964,811,999 B** below six GiB after the
+protected 64-MiB reserve. It is a sampled directory observation, with all earlier
+history retained and no general cleanup inferred. Module guides and acceptance
+now explicitly include immediate admission cutoff during held initialization.
+
+The supported final transition recorded WORK-004 **Complete**. All four canonical
+tasks are Complete; `plan validate CIS-0007` is valid with no unresolved decisions.
+Final graph refresh has zero warnings/errors and retains the frozen build above.
+Both follow-up logical attempts are closed, with no native reservation or recovery
+hold. The original Closed dossier and earlier completion history remain intact.
+
+## User-authorized refactor merge
+
+The subsequent user instruction explicitly requests merging this refactor and
+closing its branch before the next module. This authorizes publishing the reviewed
+refactor branch to the existing repository, merging its pull request into `main`,
+and deleting the finished feature branch. It does not authorize another module or
+native execution beyond the completed allocation.
+
+Merge preparation found local and remote `main` at
+`e8dccb39bea25da56c073a859fcfda7a6a6f3efb`. Independent read-only closeout review
+confirmed all four tasks Complete, the final 558 passing results, matching frozen
+source facts and Core/specification hashes, and settled accounting. The user-owned
+untracked launch settings are excluded from the commit. The existing Closed
+dossier and earlier task/result history remain preserved. The actual merge and
+branch-deletion result is reported with the pull request.
+| WORK-003 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=829; failed=125; possibleTokenSavings=123; ledgerDigest=sha256:84132d8db3e3eb614f7c1d6711d67a3eca8d2a17e1f21ad44f05b28f347b733e |
+| WORK-004 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=845; failed=125; possibleTokenSavings=123; ledgerDigest=sha256:b74a61b3ab549a34df44fae9a316c8c2235b9510e92eae4a8721f096864bbaeb |

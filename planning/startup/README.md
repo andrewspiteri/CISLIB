@@ -20,8 +20,9 @@ creates that allocation.
 | [Original attachment](sources/CISLIB_Startup_and_DI_Specification_v1_0.md) | Byte-preserved copy of `C:/Users/andrs/Downloads/CISLIB_Startup_and_DI_Specification_v1_0.md`; 28,663 bytes; SHA-256 `a0812a281c6696f16ccbe1d0d006e62988eae9982e581add51bb66f74ab16451`. Defines SU-01–SU-10 and AC-01–AC-15. |
 | [CIS supplied technical document](../../docs/imports/technical/bef0c0e4521945569ba36c179d7d5153/CISLIB_Startup_and_DI_Specification_v1_0.md) | Imported by installed `definition documents --role technical --source ...` and retained in the CIS catalog and CIS-0007. CIS adds Draft frontmatter and its BRD baseline. The wrapper has a distinct module-specific identity; it is not the byte-preserved source or an approved replacement for the existing product intent. The import initially selected it globally; execution reconciliation restores `.cis/product-documents.json` to the existing approved whole-product intent. |
 | Working branch | `codex/cislib-startup-di-2026-11-16`, from merged `main` commit `ae61b1f63bd961e2e349d7c2fd67398b7451aef0`. Heartbeat and its compatibility correction are present. |
+| Subsequent boundary refinement | After the initial implementation merged, the user explicitly requested that `StartupCoordinator` be independent of Heartbeat and that concrete activation, cancellation and shutdown coordination belong to hosting. The original source remains preserved; this current instruction refines the implementation boundary without changing required behavior. |
 | [Existing product intent](../../docs/specs/technical-intent-spec.md) | Accepted product architecture remains in force for unchanged modules. The existing business document's future-Startup exclusion describes its earlier registration scope; this new module is separately scoped by the current request and CIS-0007. No historical approval is relabeled. |
-| [Change and shared limits](../../docs/changes/CIS-0007/implementation-plan.md) | Authorized focused outcome, two coherent implementation tasks and one shared finite allocation. [Acceptance-to-test mapping](acceptance.md) and [actual native results](../../docs/changes/CIS-0007/verification.md) retain behavior, observations and limits. |
+| [Change and shared limits](../../docs/changes/CIS-0007/implementation-plan.md) | Authorized focused outcome and shared finite allocation. The initial plan had two coherent implementation tasks; the current plan records the separately owned boundary refinement. [Acceptance-to-test mapping](acceptance.md) and [actual native results](../../docs/changes/CIS-0007/verification.md) retain behavior, observations and limits. |
 
 The installed CIS build is `2b916962dbedef18bdde8959e3144184d37d64f9`.
 The supplied-document workflow was run through document selection, graph,
@@ -62,7 +63,9 @@ remains Draft; no global definition activation is claimed.
 7. Existing Heartbeat activates from `ApplicationStarted` and currently requires
    a last hosted-service position for safe shutdown. Startup needs a narrow
    cooperating lifecycle connection, checked activation acknowledgement and
-   coordinated close/drain ordering. Preserve standalone Heartbeat behavior.
+   coordinated close/drain ordering. Preserve standalone Heartbeat behavior. The
+   later explicit user direction places that concrete connection in hosting;
+   the coordinator has no Heartbeat dependency or concrete module lifecycle work.
 
 ## Small implementation shape
 
@@ -74,11 +77,20 @@ is no re-resolution, replay, retry or reset. The first operation's host token
 owns cancellation. A later caller cannot replace it or falsely certify drain.
 
 The final transition belongs to that same operation: under the stopping boundary,
-check host cancellation, confirm Heartbeat's activation bookkeeping when present,
-then mark startup complete exactly once. Do not wait for a first Heartbeat
-callback or aggregate healthy state. Stopping closes readiness and dispatch,
-requests cancellation, and joins actual startup and Heartbeat settlement before
-dependent teardown. Startup failure cleanup has the same drain requirement.
+check cancellation/stopping, invoke hosting's single internal Boolean completion
+callback, check cancellation/stopping again, reject an unconfirmed completion,
+then mark startup complete exactly once. Hosting owns concrete Heartbeat
+activation and the operation-token cancellation cutoff through actual startup
+settlement. The coordinator's failure handling therefore still records activation
+failure in its retained outcome and critical monitor. Do not wait for a first
+Heartbeat callback or aggregate healthy state.
+
+Hosting closes Heartbeat dispatch before entering the coordinator's stopping
+gate. The coordinator closes health readiness, requests cancellation and joins
+actual startup work; the host bridge joins both that settlement and the actual
+Heartbeat drain before dependent teardown. Startup failure cleanup has the same
+combined drain requirement. Neither a canceled wait budget nor startup-task
+completion alone proves that accepted Heartbeat work has settled.
 
 Use one thin `IHostedLifecycleService.StartedAsync` bridge. In the supported
 .NET 10 host, ordinary `IHostedService.StartAsync` calls finish before this awaited
@@ -99,18 +111,18 @@ readiness-critical asynchronous initializer belongs in `IStartable` or completes
 in ordinary host `StartAsync`. Document unsupported lifecycle arrangements with
 an actionable startup error rather than inventing a general ordering framework.
 
-Keep one writer for the core coordinator and another for hosting/Heartbeat files.
-The coordinator's final publication remains one operation even if the adapter
-supplies a small internal activation connection. No third public startup stage,
-generic hook registry or alternate provider is needed. The runnable example owns
+The coordinator's final publication remains one operation through the adapter's
+single internal completion callback. Core has no Heartbeat type reference or
+concrete activation/cancellation/drain responsibility. No third public startup
+stage, generic hook registry or alternate provider is needed. The runnable example owns
 Type Manager preparation, DI options, health-before-business routing, direct cache
 priming, ordered reader startup and explicit safe drain before root disposal.
 
 ## Observable acceptance
 
 These are requirement groups, not separate tasks or a new manual-test catalogue.
-Names below describe intended native checks; exact test symbols and actual
-results will be linked during implementation.
+Names below describe required native checks. Exact test symbols and actual
+checkpoint results are retained in the [acceptance mapping](acceptance.md).
 
 | Source acceptance | Planned meaningful evidence | Owned batch |
 | --- | --- | --- |

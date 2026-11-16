@@ -69,16 +69,36 @@ startup caller. Logging records stage, participant position/type, outcome and
 elapsed time, without participant values or raw exception messages. Logging or
 health-reporting failure cannot replace the originating exception.
 
-Only successful sequential initialization may confirm Heartbeat activation and
-call `HealthcheckService.MarkStartupCompleted()`. Activation bookkeeping must
-succeed; it does not await a first callback or aggregate healthy readiness.
-Stopping competes with this final publication, closes health/dispatch admission,
-requests cancellation outside the control lock and joins actual startup and
-Heartbeat drains before dependency disposal. `StopAsync` observes the retained
-startup fault/cancellation without replay; an unconfirmed Heartbeat drain still
-fails shutdown. The coordinator never disposes startup participants or their
-dependencies. Its own monitor is released only after the drain during container
-disposal, so an observable failed application keeps its startup diagnostic.
+The coordinator depends on ordinary DI, optional Healthcheck and logging. It has
+no Heartbeat dependency and does not activate, stop or drain that module. Hosting
+supplies one internal synchronous Boolean completion callback when activation
+confirmation is needed. This is a single integration seam, without public hooks,
+an extension registry or another startup operation.
+
+The retained operation checks cancellation/stopping, invokes that confirmation,
+checks cancellation/stopping again, rejects an unconfirmed completion, and only
+then calls `HealthcheckService.MarkStartupCompleted()`. These steps share the
+final publication gate. A completion failure therefore belongs to the same
+retained startup outcome and critical failure monitor as initialization failure.
+The second cancellation check lets known stopping win over a negative activation
+acknowledgement. Completion does not await aggregate healthy readiness.
+
+The [host bridge](README.md) owns concrete Heartbeat activation, the startup-token
+cancellation cutoff and application-stopping connection. It confirms activation
+without awaiting a first callback and retains the token cutoff through actual
+startup settlement. Hosting also connects the first host-start token before
+participant construction, so cancellation closes owner/registration admission
+even while an initializer remains held. On stopping it closes Heartbeat dispatch
+before entering the coordinator's stopping gate, then joins both actual drains
+before dependent teardown. A canceled host wait budget never replaces those
+barriers, and an unconfirmed Heartbeat drain still fails hosted shutdown.
+
+The coordinator's own stopping path closes health readiness, requests cancellation
+outside its control lock and joins actual startup settlement. Its `StopAsync`
+observes the retained startup fault/cancellation without replay. It never disposes
+startup participants or their dependencies. Hosting completes its combined drain
+before destructive root disposal; the coordinator's monitor is released during
+its disposal, so an observable failed application keeps its startup diagnostic.
 
 The host bridge and runnable example supply automatic invocation and actual
 probe/request ordering. This document describes the core contract, not a claim

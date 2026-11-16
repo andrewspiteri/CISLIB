@@ -61,12 +61,29 @@ incomplete. Readiness-critical initialization belongs in `IStartable`; another
 hosted service's lifecycle callback must not rely on unfinished CIS startup.
 
 When registered, the real `HealthcheckService` and `HeartbeatRuntime` are connected
-automatically. Successful initialization confirms Heartbeat activation and then
-publishes startup completion. This acknowledges scheduler activation, without
-waiting for its first callback or aggregate healthy readiness. An unhealthy
-application remains NotReady under the existing Healthcheck policy. An initializer
-must prime required data directly, rather than await a Heartbeat callback that is
-still intentionally disabled during startup.
+automatically by hosting. The coordinator remains independent of Heartbeat:
+hosting owns its concrete activation and supplies one internal Boolean completion
+callback. The coordinator invokes that callback inside its retained startup
+operation, checks cancellation/stopping again, and then publishes Healthcheck
+startup completion. An activation failure therefore remains a retained startup
+failure with the existing critical diagnostic, without rerunning participants.
+This acknowledges scheduler activation, without waiting for its first callback
+or aggregate healthy readiness. An unhealthy application remains NotReady under
+the existing Healthcheck policy. An initializer must prime required data directly,
+rather than await a Heartbeat callback still disabled during startup.
+
+Hosting connects the original operation token to Heartbeat's stopping cutoff and
+keeps that connection through actual startup settlement. It also connects the
+first host-start token before participant construction: cancellation immediately
+rejects new owners and new or duplicate registrations while an initializer is
+still held, without waiting for application stopping. Cancellation during timer
+creation must close dispatch before activation can make work runnable. Later
+startup callers cannot replace the first operation's tokens. Application stopping
+closes Heartbeat admission before entering the coordinator's stopping gate. The
+hosted barrier joins actual startup work and Heartbeat callbacks, handlers and
+cleanup before dependent lifecycle stopping or root disposal. A canceled host
+stop budget does not release those dependencies early. The coordinator itself
+joins startup work; it does not own the Heartbeat drain.
 
 Install the existing reserved health branch before every business side effect:
 

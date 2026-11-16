@@ -1,0 +1,27 @@
+{
+  "tasks": [
+    {
+      "acceptanceCriteria": "Complete the same user-requested boundary refactor by preserving the original early Heartbeat admission cutoff: cancellation of the first real host startup token closes CreateOwner and Register immediately while an initializer remains held, before ApplicationStopping or explicit StopAsync. Keep all concrete wiring hosted, the coordinator independent and the one retained completion callback. Retain first-token/once-only subscriptions and actual drain before registration disposal. Include a deterministic actual-host regression, appropriate existing native tests, documentation and independent review. Preserve completed owners/evidence, user launch settings, APIs/dependencies and original shared limits.",
+      "paths": [
+        "implementations/csharp/src/CIS.Core/Startup",
+        "implementations/csharp/tests",
+        "docs/modules/startup",
+        "docs/modules/heartbeat",
+        "planning/startup",
+        "docs/changes/CIS-0007",
+        "docs/catalog.yml"
+      ],
+      "dependsOn": [
+        "WORK-003"
+      ],
+      "title": "Preserve immediate Heartbeat admission cutoff during held startup cancellation",
+      "category": "implementation",
+      "complexity": "low",
+      "validation": "Use the existing StartupHeartbeatCompletionTests host composition to hold an ignoring initializer, cancel only the first host-start token, prove ApplicationStopping remains unsignaled and startup/stop are not yet settled, assert new owner and new/duplicate registration reject immediately, then release and prove neutral cancellation, no dispatch/readiness and real cleanup. Run affected existing Unit/host Integration, dependency architecture and runnable source tests serially under the remaining original allocation. Preserve ordinary exclusions, do not create a framework, harness or tooling campaign.",
+      "assignee": "Codex",
+      "scopeIds": [
+        "startup"
+      ]
+    }
+  ]
+}
