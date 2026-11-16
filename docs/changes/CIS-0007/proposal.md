@@ -2,7 +2,7 @@
 title: "Sequential application startup and DI integration"
 type: change-proposal
 record_format: proportionate
-status: Proposed
+status: "Closed"
 change_id: CIS-0007
 outcome: "Applications construct all enrolled root-singleton IStartable services before awaiting them in DI registration order exactly once, retain failure or cancellation, keep live probes truthful during startup, and activate existing Heartbeat only after initialization with safe stopping and actual settlement."
 baseline_kind: git

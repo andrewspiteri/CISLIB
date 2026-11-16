@@ -242,5 +242,27 @@ Final graph refresh reports zero warnings/errors, unchanged build
 There is no active logical attempt, native reservation or recovery hold.
 Historical owners and the remaining original limits are preserved. This task
 closeout records no package publication, remote source transmission or merge.
+
+## User-authorized branch and change closure
+
+The subsequent user instruction explicitly requests merging the Startup branch
+and closing it before the next module. This later decision authorizes publishing
+the reviewed branch to the existing GitHub repository, merging it into `main`,
+and deleting the finished feature branch. The implementation-only exclusions
+above remain historical; no package release or new module work is authorized.
+
+Merge preparation verified clean implementation commit
+`af7de31936796776402e4f73eeedd119438849d9`, with remote `main` unchanged at
+`ae61b1f63bd961e2e349d7c2fd67398b7451aef0` and an ancestor of the branch.
+Main has no required status checks, reviews or branch rules. Independent read-only
+closeout review confirmed both tasks Complete, all six retained passing receipts
+and their counts, unchanged tested Core/attachment hashes, and canonical accounting
+with no open attempts, reservations or recovery holds. Historical owners and
+ignored native evidence remain intact; no metadata-only native rerun is needed.
+
+`cis change close CIS-0007` recorded the dossier as **Closed** under this explicit
+user instruction. The actual merge and branch-deletion result is reported with
+the GitHub pull request. The documented standard-DI validation limitation and
+unexecuted platform/release obligations remain unchanged.
 | WORK-001 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=792; failed=125; possibleTokenSavings=123; ledgerDigest=sha256:ccd35fc4d51e92cb6a3f544e0bc99aba772b9f3fc1323b2a22c643e4f09e33b9 |
 | WORK-002 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=809; failed=125; possibleTokenSavings=123; ledgerDigest=sha256:080fa7aba8fbfebdc6d4b12fad90be245cd1f204e15f40fbed9cf6b12d532480 |
