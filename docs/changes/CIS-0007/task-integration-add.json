@@ -1,0 +1,32 @@
+{
+  "tasks": [
+    {
+      "title": "Integrate sequential startup with live probes, Heartbeat, safe hosting and runnable cache example",
+      "scopeIds": [
+        "startup"
+      ],
+      "paths": [
+        "implementations/csharp/src/CIS.Core/Startup/Hosting",
+        "implementations/csharp/src/CIS.Core/Heartbeat",
+        "implementations/csharp/src/CIS.Core/Healthcheck",
+        "implementations/csharp/tests",
+        "implementations/csharp/examples/startup",
+        "implementations/csharp/CisLib.slnx",
+        "docs/modules/startup",
+        "docs/modules/heartbeat",
+        "docs/modules/healthcheck",
+        "README.md",
+        "planning/startup",
+        "docs/catalog.yml",
+        "docs/changes/CIS-0007"
+      ],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "complexity": "medium",
+      "assignee": "Codex",
+      "acceptanceCriteria": "AC-01, AC-10 through AC-15 plus host AC-06/AC-09: prepare actual Type Manager before the one root Build and register the same instance; use one awaited StartedAsync lifecycle bridge with an explicit supported ordered host composition; retain truthful existing readiness and critical/noncritical health; health routes bypass the business 503 gate while real listener answers 500 during held startup and 200 after success; existing actual pipe probe observes 1/0. Keep HB inactive until all participants complete, positively acknowledge activation without waiting for callbacks/health, and preserve standalone HB behavior. Startup/HB close and true drains precede dependent stopping/disposal, including held initialization/final-publication stop races and failed-host-start cleanup. Deliver country-cache prime then dependent reader then recurring refresh/normal requests example using actual modules. Include existing-project integration/business/affected compatibility tests, guide updates and independent review. No alternate host framework, scheduler, health system, generic shutdown abstraction, new test harness or tooling campaign.",
+      "validation": "Use existing native projects/transport support to prove actual listener availability before blocked initialization completes, business counter stays zero, health/pipe transitions, critical recovery without replay, noncritical behavior, no premature HB condition/callback, activation without waiting for first callback, failures before activation, actual timer/activation failure or stopped no-op after successful startables leaving StartupCompleted false, stop/publication race and real startup/HB settlement before dependency disposal. Validate the cooperating profile rejects concurrent host start/stop options and unclassifiable hosted-service factory tails, preserving standalone HB behavior. Exercise the real Type Manager preparation/instance/failure path and runnable example; add only meaningful affected lifecycle/compatibility/architecture assertions. Preserve ordinary PerformanceObservation/ExtendedStress exclusions and existing package/runtime closure. Root controller serializes shared native builds; reuse valid unchanged results. Record exact AC-to-test mapping, actual native commands/results/cost/storage and responsibility-growth review; make no unexecuted platform or release claim."
+    }
+  ]
+}

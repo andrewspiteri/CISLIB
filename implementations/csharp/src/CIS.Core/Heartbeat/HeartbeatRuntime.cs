@@ -188,6 +188,18 @@ public sealed class HeartbeatRuntime : IAsyncDisposable
         Wake();
     }
 
+    // Startup must not publish success when activation was stopped or its timer
+    // failed. This acknowledges infrastructure bookkeeping, never a user callback.
+    internal bool ActivateForStartup()
+    {
+        Activate();
+        lock (Gate)
+        {
+            return running && timer is not null && !activating && !stopping && !disposed
+                && !infrastructureFailure.Task.IsCompleted;
+        }
+    }
+
     private ITimer CreateTimer() => Clock.CreateTimer(static value => ((HeartbeatRuntime)value!).Wake(), this,
         Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
 

@@ -9,6 +9,7 @@
     <ProjectReference Include="../CIS.Core.TestSupport/CIS.Core.TestSupport.csproj" />
     <ProjectReference Include="../fixtures/DiscoveryHost/CIS.Core.DiscoveryFixture.csproj" />
     <ProjectReference Include="../../examples/healthcheck/CountryList/CountryList.csproj" ReferenceOutputAssembly="false" Private="false" PrivateAssets="all" />
+    <ProjectReference Include="../../examples/startup/CountryList/CountryList.csproj" ReferenceOutputAssembly="false" Private="false" PrivateAssets="all" />
   </ItemGroup>
   <Target Name="CopyLoggingBusinessFixture" AfterTargets="Build">
     <ItemGroup>
@@ -21,5 +22,11 @@
       <HealthcheckBusinessFiles Include="../../examples/healthcheck/CountryList/bin/$(Configuration)/$(TargetFramework)/*" />
     </ItemGroup>
     <Copy SourceFiles="@(HealthcheckBusinessFiles)" DestinationFolder="$(TargetDir)healthcheck-country-list" />
+  </Target>
+  <Target Name="CopyStartupBusinessExample" AfterTargets="Build">
+    <ItemGroup>
+      <StartupBusinessExampleFiles Include="../../examples/startup/CountryList/bin/$(Configuration)/$(TargetFramework)/*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(StartupBusinessExampleFiles)" DestinationFolder="$(TargetDir)startup-country-list" />
   </Target>
 </Project>

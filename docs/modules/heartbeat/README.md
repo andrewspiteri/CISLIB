@@ -14,6 +14,15 @@ before readiness are inactive; the hosting adapter enables work at
 `ApplicationStarted`. Registration while running can dispatch promptly, so the
 subscriber must be fully initialized before it is registered.
 
+When using [CIS.Startup](../startup/README.md), register `AddCisStartup()` immediately
+after `AddCisHeartbeat()` among hosted services and keep concurrent host starting
+and stopping disabled. Startup awaits its participants after the listener starts,
+then acknowledges Heartbeat activation before publishing startup completion.
+The final Startup lifecycle service closes readiness and joins startup/Heartbeat
+drains before dependent stopping. The ordinary framework web-host service may
+follow this cooperating pair. Standalone Heartbeat retains its final-service
+ordering rule and `ApplicationStarted` activation behavior shown below.
+
 ## Actual owners and hosting
 
 ```csharp

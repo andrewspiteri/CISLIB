@@ -38,6 +38,7 @@ A local development package is not a published release. Scoped checks and curren
 | Type Manager | [Definition](planning/type-manager/sources/CIS_Type_Manager_Definition_v1.0.md), [inventory build integration](implementations/csharp/build/type-manager/README.md), [examples](implementations/csharp/examples/type-manager/README.md) |
 | Healthcheck | [Usage and transports](docs/modules/healthcheck/README.md), [technical intent](planning/healthcheck/technical-intent.md), [contracts](planning/healthcheck/contract-catalog.md) |
 | Heartbeat | [Owners, scheduling and hosting](docs/modules/heartbeat/README.md), [Polling example](implementations/csharp/examples/heartbeat/Polling/README.md), [implementation record](docs/changes/CIS-0006/verification.md) |
+| Startup and DI | [Sequential startup and runnable country-list example](docs/modules/startup/README.md), [enrollment and lifetime contract](docs/modules/startup/core.md), [requirements](planning/startup/README.md) |
 | Shared behavior | [Logging contracts](contracts/logging/README.md), [Healthcheck contracts](contracts/healthcheck/v1/README.md), native fixtures under `conformance/` |
 | Architecture | [Dependencies](docs/architecture/csharp-dependency-policy.md), [compatibility](docs/architecture/compatibility-policy.md), [assembly identity](docs/architecture/csharp-assembly-policy.md) |
 

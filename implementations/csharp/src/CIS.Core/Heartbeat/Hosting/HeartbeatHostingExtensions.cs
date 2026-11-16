@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using CIS.Startup.Hosting;
 
 namespace CIS.Heartbeat.Hosting;
 
@@ -15,7 +16,8 @@ public static class HeartbeatHostingExtensions
         ArgumentNullException.ThrowIfNull(services);
         services.TryAddSingleton(_ => new HeartbeatRuntime(options));
         services.TryAddSingleton(_ => new HeartbeatHostingOrder(
-            services.LastOrDefault(item => item.ServiceType == typeof(IHostedService))?.ImplementationType == typeof(HeartbeatHostedService)));
+            services.LastOrDefault(item => !item.IsKeyedService && item.ServiceType == typeof(IHostedService))?.ImplementationType == typeof(HeartbeatHostedService)
+            || StartupHostingOrder.FollowsHeartbeat(services)));
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IHostedService, HeartbeatHostedService>());
         return services;
     }
