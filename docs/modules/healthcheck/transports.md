@@ -81,6 +81,14 @@ dotnet run --project tools/CisHealthProbe -- --pipe country-list-health --view r
 
 After a coordinated Release build, the built DLL can run from the repository root as `dotnet implementations/csharp/tools/CisHealthProbe/bin/Release/net10.0/CisHealthProbe.dll --pipe country-list-health --view readiness --timeout-ms 1000`. This DLL invocation does not build the project. Deployment fragments below use `cis-health-probe` as the intended installed command name; adapt the executable path to the actual matching artifact. Neither development invocation establishes exact-package or publication qualification.
 
+For the package path, the [CountryList guide](country-list.md#match-the-pipe-probe-to-the-package)
+builds this same tool source against the same exact `CIS.Core` candidate as the
+application, using its isolated feed and cache. It covers the normal host's HTTP
+and same-identity pipe consumption without inventing a new probe distribution.
+The [integration verification record](../../changes/CIS-0004/verification.md)
+identifies actual package and platform observations; deployment/container and
+alternate-identity acceptance remain separate.
+
 Exactly these options are accepted: required `--pipe`; `--view health|readiness|details` (default health); `--timeout-ms` (default 1000, range 50–60000); `--max-report-bytes` (default 4194304, range 1024–16777216). Duplicate/unknown options, missing values and invalid names/numbers fail. There are no internal retries. Connect, request and complete response share one monotonic timeout budget; individual reads do not each receive a new budget.
 
 | Exit | Meaning |

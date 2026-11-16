@@ -57,7 +57,7 @@ internal sealed partial class HealthStateCoordinator : IHealthCollectionState, I
         { throw new ArgumentException("Supply bounded, valid Unicode identity text without controls.", parameter); }
     }
 
-    private static void ValidatePolicy(HealthMonitorOptions options)
+    internal static void ValidatePolicy(HealthMonitorOptions options)
     {
         ArgumentNullException.ThrowIfNull(options);
         options.ValidateCommon();

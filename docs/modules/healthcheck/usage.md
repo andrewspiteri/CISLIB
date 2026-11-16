@@ -8,6 +8,12 @@ cis:
 
 # Usage and configuration
 
+For a runnable application, use the existing [CountryList guide](country-list.md)
+for source development or an isolated consumer of the exact `CIS.Core` package.
+Both routes require SDK 10.0.401 and the .NET and ASP.NET Core 10.0.12 shared
+frameworks. Package consumption does not require an additional Healthcheck package
+or a CIS CLI dependency in the application.
+
 Create one application-owned service and retain each monitor for its actual owner lifetime. Construction starts no endpoint, collector, polling, or business initialization.
 
 ```csharp

@@ -1,0 +1,338 @@
+{
+  "authorizationId": "cislib:CIS-0006:outcome:1b263f451fd24affb01271c9f2ed4f66",
+  "actor": "Codex",
+  "workItems": [
+    {
+      "id": "WORK-001",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-001.md",
+      "title": "Define Heartbeat consumer contracts, copied configuration and weak registration ownership",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [],
+      "acceptanceCriteria": "AC-1/AC-4/AC-7: provide the two-method consumer registration API and awaited subscriber contract; snapshot10ms/default-zero schedule and validate documented duration/name limits; resolve MaxConcurrent once with invariant environment/setup/default precedence and1..16 range. Preserve actual EnvironmentOptions architecture. Define one actual owner with a weak idle association and atomic lifetime-hold contract used by the engine; no alternate scheduler, subscriber disposal transfer or generic startup framework. Include meaningful configuration/identity/reference-graph tests and independent review.",
+      "validation": "Build affected Core/test projects, run the focused new Heartbeat configuration/contract tests plus affected EnvironmentOptions architecture/constructor assertions. Inspect public XML contract and bound-condition/owner graphs. Record actual native results and applicable source AT coverage; preserve old module defaults and dependency closure. No release qualification claim.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:seed:becde80cd5184b4e86cfeba58824533a",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "heartbeat"
+      ],
+      "authorizationScopeBasis": "sha256:7be3625710d72f724d009b5375a3779a25ee5f2d9cab24c29dd6bb63fe8284e8",
+      "workPaths": [
+        "implementations/csharp/src/CIS.Core/Heartbeat",
+        "implementations/csharp/src/CIS.Core/Environment",
+        "implementations/csharp/tests",
+        "planning/heartbeat",
+        "docs/changes/CIS-0006"
+      ],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "AC-1/AC-4/AC-7: provide the two-method consumer registration API and awaited subscriber contract; snapshot10ms/default-zero schedule and validate documented duration/name limits; resolve MaxConcurrent once with invariant environment/setup/default precedence and1..16 range. Preserve actual EnvironmentOptions architecture. Define one actual owner with a weak idle association and atomic lifetime-hold contract used by the engine; no alternate scheduler, subscriber disposal transfer or generic startup framework. Include meaningful configuration/identity/reference-graph tests and independent review."
+          ],
+          "description": "Build affected Core/test projects, run the focused new Heartbeat configuration/contract tests plus affected EnvironmentOptions architecture/constructor assertions. Inspect public XML contract and bound-condition/owner graphs. Record actual native results and applicable source AT coverage; preserve old module defaults and dependency closure. No release qualification claim.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Build affected Core/test projects, run the focused new Heartbeat configuration/contract tests plus affected EnvironmentOptions architecture/constructor assertions. Inspect public XML contract and bound-condition/owner graphs. Record actual native results and applicable source AT coverage; preserve old module defaults and dependency closure. No release qualification claim."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-002",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-002.md",
+      "title": "Implement monotonic fair Heartbeat scheduling and exclusive asynchronous execution",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "acceptanceCriteria": "AC-1/AC-2: one application engine uses reference identity/CWT bindings, weak idle entries and a single monotonic timer; at most one accepted execution per registration and MaxConcurrent unfinished dispatched wrappers. FIFO ready work progresses one released slot at a time. Conditions, callback, awaited exception-only OnError, cleanup and reporting retain exclusivity and owner holds; full settlement starts the fixed delay. Register never invokes subscriber code inline; duplicate settings stay unchanged. Include controlled time/executor/capacity/outcome tests, docs and review.",
+      "validation": "Build the affected native projects and run Heartbeat timing, identity, duplicate-race, non-overlap, fairness, bounded-state, synchronous-prologue and result/error tests using ManualTimeProvider and controlled tasks. Verify no user code or arbitrary owner/reporting callback under scheduler lock, no per-idle-registration task history, no business timeout/retry/health arithmetic.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:a9722ad0730c4f42859aa6fdfa75144d",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "heartbeat"
+      ],
+      "authorizationScopeBasis": "sha256:7be3625710d72f724d009b5375a3779a25ee5f2d9cab24c29dd6bb63fe8284e8",
+      "workPaths": [
+        "implementations/csharp/src/CIS.Core/Heartbeat",
+        "implementations/csharp/tests",
+        "planning/heartbeat",
+        "docs/changes/CIS-0006"
+      ],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "AC-1/AC-2: one application engine uses reference identity/CWT bindings, weak idle entries and a single monotonic timer; at most one accepted execution per registration and MaxConcurrent unfinished dispatched wrappers. FIFO ready work progresses one released slot at a time. Conditions, callback, awaited exception-only OnError, cleanup and reporting retain exclusivity and owner holds; full settlement starts the fixed delay. Register never invokes subscriber code inline; duplicate settings stay unchanged. Include controlled time/executor/capacity/outcome tests, docs and review."
+          ],
+          "description": "Build the affected native projects and run Heartbeat timing, identity, duplicate-race, non-overlap, fairness, bounded-state, synchronous-prologue and result/error tests using ManualTimeProvider and controlled tasks. Verify no user code or arbitrary owner/reporting callback under scheduler lock, no per-idle-registration task history, no business timeout/retry/health arithmetic.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Build the affected native projects and run Heartbeat timing, identity, duplicate-race, non-overlap, fairness, bounded-state, synchronous-prologue and result/error tests using ManualTimeProvider and controlled tasks. Verify no user code or arbitrary owner/reporting callback under scheduler lock, no per-idle-registration task history, no business timeout/retry/health arithmetic."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-003",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-003.md",
+      "title": "Complete Heartbeat cutoffs, retirement and true owner settlement barriers",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-002"
+      ],
+      "acceptanceCriteria": "AC-3/AC-4: unregister/owner close drain accepted queued/running work; global cutoff additionally suppresses condition/callback phases that have not won their start gate. Await posted wrappers, handlers, owned cleanup and reporting before barrier completion, with caller-only wait cancellation and no automatic execution cancellation. Retain identity until true drain, support sequential reuse, safely retire collected/unusable targets and report once through an independently retained safe Core binding. Detect direct own-barrier waits. Include deterministic boundary/race/reachability checks and review.",
+      "validation": "Run focused native tests with blocked phases, paused wrappers, already-canceled waits, concurrent stop/unregister, owner-close/admission races, cleanup/reporting faults and full target/condition/owner/exception graph GC. Assert no callback after losing a start gate, no early owner/slot release and exactly-once collection retirement while an external monitor survives.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:e4eafe4e9a364dd2ac411cc70f602991",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "heartbeat"
+      ],
+      "authorizationScopeBasis": "sha256:7be3625710d72f724d009b5375a3779a25ee5f2d9cab24c29dd6bb63fe8284e8",
+      "workPaths": [
+        "implementations/csharp/src/CIS.Core/Heartbeat",
+        "implementations/csharp/tests",
+        "planning/heartbeat",
+        "docs/changes/CIS-0006"
+      ],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "AC-3/AC-4: unregister/owner close drain accepted queued/running work; global cutoff additionally suppresses condition/callback phases that have not won their start gate. Await posted wrappers, handlers, owned cleanup and reporting before barrier completion, with caller-only wait cancellation and no automatic execution cancellation. Retain identity until true drain, support sequential reuse, safely retire collected/unusable targets and report once through an independently retained safe Core binding. Detect direct own-barrier waits. Include deterministic boundary/race/reachability checks and review."
+          ],
+          "description": "Run focused native tests with blocked phases, paused wrappers, already-canceled waits, concurrent stop/unregister, owner-close/admission races, cleanup/reporting faults and full target/condition/owner/exception graph GC. Assert no callback after losing a start gate, no early owner/slot release and exactly-once collection retirement while an external monitor survives.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Run focused native tests with blocked phases, paused wrappers, already-canceled waits, concurrent stop/unregister, owner-close/admission races, cleanup/reporting faults and full target/condition/owner/exception graph GC. Assert no callback after losing a start gate, no early owner/slot release and exactly-once collection retirement while an external monitor survives."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-004",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-004.md",
+      "title": "Extend detached Healthcheck facts and implement Heartbeat policy binding",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [],
+      "acceptanceCriteria": "AC-5/AC-7: append Dispatched/Suppressed facts and optional raw boolean/cancellation/timing context without changing existing enum values, outcomes or phase strings. Merge immutable bounded context, retain neutral suppression without policy arithmetic, preserve cleanup-error precedence in one final Outcome and distinct settlement. Select existing monitor/consecutive-failure/availability bindings once, isolate reporting failures, preserve external/created-monitor ownership and old reports. Keep live configuration in target-dependent graph and safe concrete binder available for collection retirement. Include affected receiving/wire/compatibility tests, docs and independent review.",
+      "validation": "Build and run focused existing/new native Healthcheck binder, fact validation, snapshot, formatter/protocol and compatibility cases for dispatch/suppression/result context, duplicates, contradictions and optional legacy payloads. New Healthcheck tests can run before engine binding integration; complete real adapter tests with engine before task completion. No forced old baseline rewrite or invented durable delivery guarantee.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:8b607b94ddc548408cad0b458c5b28d3",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "heartbeat"
+      ],
+      "authorizationScopeBasis": "sha256:7be3625710d72f724d009b5375a3779a25ee5f2d9cab24c29dd6bb63fe8284e8",
+      "workPaths": [
+        "implementations/csharp/src/CIS.Core/Healthcheck",
+        "implementations/csharp/src/CIS.Core/Heartbeat",
+        "implementations/csharp/tests",
+        "contracts/healthcheck/v1",
+        "conformance/healthcheck",
+        "planning/healthcheck",
+        "planning/heartbeat",
+        "docs/modules/healthcheck",
+        "docs/changes/CIS-0006"
+      ],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "AC-5/AC-7: append Dispatched/Suppressed facts and optional raw boolean/cancellation/timing context without changing existing enum values, outcomes or phase strings. Merge immutable bounded context, retain neutral suppression without policy arithmetic, preserve cleanup-error precedence in one final Outcome and distinct settlement. Select existing monitor/consecutive-failure/availability bindings once, isolate reporting failures, preserve external/created-monitor ownership and old reports. Keep live configuration in target-dependent graph and safe concrete binder available for collection retirement. Include affected receiving/wire/compatibility tests, docs and independent review."
+          ],
+          "description": "Build and run focused existing/new native Healthcheck binder, fact validation, snapshot, formatter/protocol and compatibility cases for dispatch/suppression/result context, duplicates, contradictions and optional legacy payloads. New Healthcheck tests can run before engine binding integration; complete real adapter tests with engine before task completion. No forced old baseline rewrite or invented durable delivery guarantee.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Build and run focused existing/new native Healthcheck binder, fact validation, snapshot, formatter/protocol and compatibility cases for dispatch/suppression/result context, duplicates, contradictions and optional legacy payloads. New Healthcheck tests can run before engine binding integration; complete real adapter tests with engine before task completion. No forced old baseline rewrite or invented durable delivery guarantee."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-005",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-005.md",
+      "title": "Integrate Heartbeat readiness, safe DI scope shutdown and developer package example",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-003",
+        "WORK-004"
+      ],
+      "acceptanceCriteria": "AC-6/AC-7: provide a narrow application-owned Generic Host adapter and actual owner-bound scope wrapper: ready dependencies precede activation, no ApplicationStarted self-deadlock, both stopping paths close starts, actual drain precedes dependent stopping and scope/root disposal even after canceled waits. Deliver hosted polling example from source and exact development package in ordinary build/folder publish; include false/exception/refresh/stop observations, concise usage, native host/business/package checks and integrated independent review. Preserve existing module behavior and all historical owners/evidence. Settle actual current accounting; leave all unexecuted platform and release obligations explicit.",
+      "validation": "Run real local Windows host/scope/business tests covering readiness, early stop, running-condition/callback/error handling and dependency disposal ordering. Build and consume the current development package in the Heartbeat example, including folder publish and executable shutdown. Run meaningful affected architecture/compatibility regression only after source stabilizes. Record all AT mappings and actual evidence, review scope/complexity and verify resources settled. No Ubuntu/release/coverage/mutation/performance claim without actual separately authorized work.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:08b3429528b849d38a5e9bf869360752",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "heartbeat"
+      ],
+      "authorizationScopeBasis": "sha256:7be3625710d72f724d009b5375a3779a25ee5f2d9cab24c29dd6bb63fe8284e8",
+      "workPaths": [
+        "implementations/csharp/src/CIS.Core/Heartbeat",
+        "implementations/csharp/examples/heartbeat",
+        "implementations/csharp/tests",
+        "implementations/csharp/CisLib.slnx",
+        "docs/modules/heartbeat",
+        "docs/modules/healthcheck",
+        "planning/heartbeat",
+        "planning/decisions.md",
+        "README.md",
+        "docs/changes/CIS-0006",
+        ".cis/local/testing"
+      ],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "AC-6/AC-7: provide a narrow application-owned Generic Host adapter and actual owner-bound scope wrapper: ready dependencies precede activation, no ApplicationStarted self-deadlock, both stopping paths close starts, actual drain precedes dependent stopping and scope/root disposal even after canceled waits. Deliver hosted polling example from source and exact development package in ordinary build/folder publish; include false/exception/refresh/stop observations, concise usage, native host/business/package checks and integrated independent review. Preserve existing module behavior and all historical owners/evidence. Settle actual current accounting; leave all unexecuted platform and release obligations explicit."
+          ],
+          "description": "Run real local Windows host/scope/business tests covering readiness, early stop, running-condition/callback/error handling and dependency disposal ordering. Build and consume the current development package in the Heartbeat example, including folder publish and executable shutdown. Run meaningful affected architecture/compatibility regression only after source stabilizes. Record all AT mappings and actual evidence, review scope/complexity and verify resources settled. No Ubuntu/release/coverage/mutation/performance claim without actual separately authorized work.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Run real local Windows host/scope/business tests covering readiness, early stop, running-condition/callback/error handling and dependency disposal ordering. Build and consume the current development package in the Heartbeat example, including folder publish and executable shutdown. Run meaningful affected architecture/compatibility regression only after source stabilizes. Record all AT mappings and actual evidence, review scope/complexity and verify resources settled. No Ubuntu/release/coverage/mutation/performance claim without actual separately authorized work."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-006",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-006.md",
+      "title": "Repair Type Manager compatibility consumer deployment and pinned API host discovery after Heartbeat integration",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [],
+      "acceptanceCriteria": "AC-7 corrective follow-up to the user-reported3 TypeManager compatibility failures: run frozen and rebuilt historical consumers against the current unchanged Core with its already-approved Microsoft.AspNetCore.App and exact two-package deployment. Preserve frozen binaries/source/deps/runtimeconfig/hash manifests. Keep complete TypeManager metadata discovery and both missing-NuGet and missing-framework negative checks. Select explicit API host override, then verified private pinned8.0.31 host, then global dotnet with strict version enforcement; no download or roll-forward relaxation. Include actual affected native cases, independent review, accurate fixture instructions and retained correction evidence.",
+      "validation": "Build the affected compatibility project and run all TypeManager compatibility cases including the3 reported failures, existing missing-dependency rejection and a meaningful missing-shared-framework rejection. Run ordinary MSTest with existing performance/stress exclusions, no externally supplied API host override so repository-local fallback is exercised, SDK10.0.401 NET/ASP.NET10.0.12 ApiCompat10.0.401 host8.0.31. Confirm unchanged shipping Core SHA and frozen input manifests. Review fixture-only scope and preserve all completed owners/native observations; record actual costs and settled execution without release or Linux claims.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:47811ae4b00c4b389171ad261f21a97f",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "heartbeat"
+      ],
+      "authorizationScopeBasis": "sha256:7be3625710d72f724d009b5375a3779a25ee5f2d9cab24c29dd6bb63fe8284e8",
+      "workPaths": [
+        "implementations/csharp/tests/CIS.Core.CompatibilityTests",
+        "README.md",
+        "docs/changes/CIS-0006"
+      ],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "AC-7 corrective follow-up to the user-reported3 TypeManager compatibility failures: run frozen and rebuilt historical consumers against the current unchanged Core with its already-approved Microsoft.AspNetCore.App and exact two-package deployment. Preserve frozen binaries/source/deps/runtimeconfig/hash manifests. Keep complete TypeManager metadata discovery and both missing-NuGet and missing-framework negative checks. Select explicit API host override, then verified private pinned8.0.31 host, then global dotnet with strict version enforcement; no download or roll-forward relaxation. Include actual affected native cases, independent review, accurate fixture instructions and retained correction evidence."
+          ],
+          "description": "Build the affected compatibility project and run all TypeManager compatibility cases including the3 reported failures, existing missing-dependency rejection and a meaningful missing-shared-framework rejection. Run ordinary MSTest with existing performance/stress exclusions, no externally supplied API host override so repository-local fallback is exercised, SDK10.0.401 NET/ASP.NET10.0.12 ApiCompat10.0.401 host8.0.31. Confirm unchanged shipping Core SHA and frozen input manifests. Review fixture-only scope and preserve all completed owners/native observations; record actual costs and settled execution without release or Linux claims.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Build the affected compatibility project and run all TypeManager compatibility cases including the3 reported failures, existing missing-dependency rejection and a meaningful missing-shared-framework rejection. Run ordinary MSTest with existing performance/stress exclusions, no externally supplied API host override so repository-local fallback is exercised, SDK10.0.401 NET/ASP.NET10.0.12 ApiCompat10.0.401 host8.0.31. Confirm unchanged shipping Core SHA and frozen input manifests. Review fixture-only scope and preserve all completed owners/native observations; record actual costs and settled execution without release or Linux claims."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    }
+  ],
+  "source": null
+}

@@ -23,6 +23,7 @@ internal static class ExecutionFactValidation
             throw Invalid();
         }
         ValidateDuration(fact.QueueDelayMilliseconds);
+        ValidateDuration(fact.DispatchDelayMilliseconds);
         ValidateDuration(fact.ConditionDurationMilliseconds);
         ValidateDuration(fact.CallbackDurationMilliseconds);
         ValidateDuration(fact.ErrorHandlingDurationMilliseconds);
@@ -50,6 +51,13 @@ internal static class ExecutionFactValidation
                 break;
             case HealthExecutionFactKind.Admitted:
                 RequireEventTime(fact.AdmittedAtUtc, fact.OccurredAtUtc);
+                break;
+            case HealthExecutionFactKind.Dispatched:
+                RequireEventTime(fact.DispatchedAtUtc, fact.OccurredAtUtc);
+                break;
+            case HealthExecutionFactKind.Suppressed:
+                RequireEventTime(fact.SuppressedAtUtc, fact.OccurredAtUtc);
+                if (!fact.SuppressedPhase.HasValue || !fact.SuppressionReason.HasValue) { throw Invalid(); }
                 break;
             case HealthExecutionFactKind.ConditionStarted:
                 RequireEventTime(fact.ConditionStartedAtUtc, fact.OccurredAtUtc);
@@ -90,6 +98,10 @@ internal static class ExecutionFactValidation
             fact.ErrorHandlingStartedAtUtc, fact.ErrorHandlingCompletedAtUtc, fact.ErrorHandlingDurationMilliseconds,
             fact.ErrorHandlingStatus, fact.OriginalError, fact.ErrorHandlingError, fact.CleanupError,
             fact.CleanupCompletedAtUtc, fact.CleanupDurationMilliseconds, fact.CleanupStatus);
+        ValidateProducerContext(fact.SourcePhase, fact.Outcome, fact.ConditionStartedAtUtc, fact.CallbackStartedAtUtc,
+            fact.ConditionDurationMilliseconds, fact.CallbackDurationMilliseconds, fact.SuppressedAtUtc,
+            fact.SuppressedPhase, fact.SuppressionReason, fact.ConditionResult, fact.CallbackResult,
+            fact.ExpectedCancellationPhase, fact.CleanupStatus, fact.OriginalError, merged: false);
 
         return new HealthExecutionFact
         {
@@ -101,6 +113,13 @@ internal static class ExecutionFactValidation
             Outcome = fact.Outcome,
             EligibleAtUtc = fact.EligibleAtUtc?.ToUniversalTime(),
             AdmittedAtUtc = fact.AdmittedAtUtc?.ToUniversalTime(),
+            DispatchedAtUtc = fact.DispatchedAtUtc?.ToUniversalTime(),
+            SuppressedAtUtc = fact.SuppressedAtUtc?.ToUniversalTime(),
+            SuppressedPhase = fact.SuppressedPhase,
+            SuppressionReason = fact.SuppressionReason,
+            ConditionResult = fact.ConditionResult,
+            CallbackResult = fact.CallbackResult,
+            ExpectedCancellationPhase = fact.ExpectedCancellationPhase,
             ConditionStartedAtUtc = fact.ConditionStartedAtUtc?.ToUniversalTime(),
             CallbackStartedAtUtc = fact.CallbackStartedAtUtc?.ToUniversalTime(),
             WorkCompletedAtUtc = fact.WorkCompletedAtUtc?.ToUniversalTime(),
@@ -109,6 +128,7 @@ internal static class ExecutionFactValidation
             CleanupCompletedAtUtc = fact.CleanupCompletedAtUtc?.ToUniversalTime(),
             SettledAtUtc = fact.SettledAtUtc?.ToUniversalTime(),
             QueueDelayMilliseconds = fact.QueueDelayMilliseconds,
+            DispatchDelayMilliseconds = fact.DispatchDelayMilliseconds,
             ConditionDurationMilliseconds = fact.ConditionDurationMilliseconds,
             CallbackDurationMilliseconds = fact.CallbackDurationMilliseconds,
             ErrorHandlingDurationMilliseconds = fact.ErrorHandlingDurationMilliseconds,
@@ -126,6 +146,49 @@ internal static class ExecutionFactValidation
     internal static bool IsTerminal(HealthExecutionStepStatus? status) => status is
         HealthExecutionStepStatus.Succeeded or HealthExecutionStepStatus.Failed or HealthExecutionStepStatus.ExpectedCancellation
         or HealthExecutionStepStatus.NotApplicable or HealthExecutionStepStatus.NotInvoked;
+
+    internal static void ValidateProducerContext(HealthExecutionPhase? sourcePhase, HealthExecutionOutcome? outcome,
+        DateTimeOffset? conditionStarted, DateTimeOffset? callbackStarted, double? conditionDuration, double? callbackDuration,
+        DateTimeOffset? suppressedAt, HealthExecutionPhase? suppressedPhase, HealthExecutionSuppressionReason? suppressionReason,
+        bool? conditionResult, bool? callbackResult, HealthExecutionPhase? expectedCancellationPhase,
+        HealthExecutionStepStatus? cleanupStatus, HealthDiagnostic? originalError, bool merged)
+    {
+        if (suppressedAt.HasValue != suppressedPhase.HasValue || suppressedAt.HasValue != suppressionReason.HasValue
+            || (suppressedPhase.HasValue && suppressedPhase is not (HealthExecutionPhase.Condition or HealthExecutionPhase.Callback))
+            || (suppressionReason.HasValue && !Enum.IsDefined(suppressionReason.Value))
+            || (expectedCancellationPhase.HasValue && expectedCancellationPhase is not (HealthExecutionPhase.Condition or HealthExecutionPhase.Callback)))
+        { throw Invalid(); }
+
+        bool conditionRan = conditionStarted.HasValue || conditionDuration.HasValue || conditionResult.HasValue
+            || expectedCancellationPhase == HealthExecutionPhase.Condition || sourcePhase == HealthExecutionPhase.Condition && outcome.HasValue;
+        bool callbackRan = callbackStarted.HasValue || callbackDuration.HasValue || callbackResult.HasValue
+            || expectedCancellationPhase == HealthExecutionPhase.Callback || sourcePhase == HealthExecutionPhase.Callback && outcome.HasValue;
+        if (conditionResult == false && (callbackRan || suppressedPhase == HealthExecutionPhase.Callback)
+            || expectedCancellationPhase == HealthExecutionPhase.Condition && (conditionResult.HasValue || callbackRan)
+            || expectedCancellationPhase == HealthExecutionPhase.Callback && callbackResult.HasValue
+            || suppressedPhase == HealthExecutionPhase.Condition && (conditionRan || callbackRan)
+            || suppressedPhase == HealthExecutionPhase.Callback && callbackRan
+            || outcome.HasValue && expectedCancellationPhase.HasValue && sourcePhase != expectedCancellationPhase
+            || outcome == HealthExecutionOutcome.ExpectedCancellation && (sourcePhase == HealthExecutionPhase.Condition && conditionResult.HasValue
+                || sourcePhase == HealthExecutionPhase.Callback && callbackResult.HasValue)
+            || originalError is not null && (sourcePhase == HealthExecutionPhase.Condition && conditionResult.HasValue
+                || sourcePhase == HealthExecutionPhase.Callback && callbackResult.HasValue)
+            || callbackResult == false && outcome == HealthExecutionOutcome.Succeeded)
+        { throw Invalid(); }
+
+        if (!merged || !outcome.HasValue) { return; }
+        bool cleanupFailed = cleanupStatus == HealthExecutionStepStatus.Failed;
+        if (suppressedAt.HasValue && (outcome != HealthExecutionOutcome.Failed || sourcePhase != HealthExecutionPhase.Condition
+                || conditionResult != true || !cleanupFailed)
+            || cleanupFailed && outcome != HealthExecutionOutcome.Failed
+                && (conditionResult.HasValue || callbackResult.HasValue || expectedCancellationPhase.HasValue)
+            || sourcePhase == HealthExecutionPhase.Condition && conditionResult == true && outcome != HealthExecutionOutcome.Failed
+            || outcome == HealthExecutionOutcome.Failed && !cleanupFailed && (expectedCancellationPhase.HasValue
+                || sourcePhase == HealthExecutionPhase.Condition && conditionResult.HasValue
+                || sourcePhase == HealthExecutionPhase.Callback && callbackResult == true)
+            || conditionResult == false && sourcePhase == HealthExecutionPhase.Condition && outcome != HealthExecutionOutcome.Skipped && !cleanupFailed)
+        { throw Invalid(); }
+    }
 
     internal static void ValidateContext(HealthExecutionPhase? sourcePhase, HealthExecutionOutcome? outcome,
         DateTimeOffset? callbackStarted, double? callbackDuration, DateTimeOffset? handlerStarted,
@@ -158,6 +221,9 @@ internal static class ExecutionFactValidation
 
     private static bool HasExecutionContext(HealthExecutionFact fact) => fact.Outcome.HasValue
         || fact.EligibleAtUtc.HasValue || fact.AdmittedAtUtc.HasValue || fact.ConditionStartedAtUtc.HasValue
+        || fact.DispatchedAtUtc.HasValue || fact.DispatchDelayMilliseconds.HasValue || fact.SuppressedAtUtc.HasValue
+        || fact.SuppressedPhase.HasValue || fact.SuppressionReason.HasValue || fact.ConditionResult.HasValue
+        || fact.CallbackResult.HasValue || fact.ExpectedCancellationPhase.HasValue
         || fact.CallbackStartedAtUtc.HasValue || fact.WorkCompletedAtUtc.HasValue || fact.ErrorHandlingStartedAtUtc.HasValue
         || fact.ErrorHandlingCompletedAtUtc.HasValue || fact.CleanupCompletedAtUtc.HasValue || fact.SettledAtUtc.HasValue
         || fact.QueueDelayMilliseconds.HasValue || fact.ConditionDurationMilliseconds.HasValue || fact.CallbackDurationMilliseconds.HasValue

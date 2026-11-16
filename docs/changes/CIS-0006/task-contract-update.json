@@ -1,0 +1,21 @@
+{
+  "tasks": [
+    {
+      "title": "Define Heartbeat consumer contracts, copied configuration and weak registration ownership",
+      "scopeIds": [
+        "heartbeat"
+      ],
+      "paths": [
+        "implementations/csharp/src/CIS.Core/Heartbeat",
+        "implementations/csharp/src/CIS.Core/Environment",
+        "implementations/csharp/tests",
+        "planning/heartbeat",
+        "docs/changes/CIS-0006"
+      ],
+      "complexity": "medium",
+      "assignee": "Codex",
+      "acceptanceCriteria": "AC-1/AC-4/AC-7: provide the two-method consumer registration API and awaited subscriber contract; snapshot10ms/default-zero schedule and validate documented duration/name limits; resolve MaxConcurrent once with invariant environment/setup/default precedence and1..16 range. Preserve actual EnvironmentOptions architecture. Define one actual owner with a weak idle association and atomic lifetime-hold contract used by the engine; no alternate scheduler, subscriber disposal transfer or generic startup framework. Include meaningful configuration/identity/reference-graph tests and independent review.",
+      "validation": "Build affected Core/test projects, run the focused new Heartbeat configuration/contract tests plus affected EnvironmentOptions architecture/constructor assertions. Inspect public XML contract and bound-condition/owner graphs. Record actual native results and applicable source AT coverage; preserve old module defaults and dependency closure. No release qualification claim."
+    }
+  ]
+}

@@ -74,18 +74,47 @@ internal sealed class TypeManagerCompatibilityFixture : IDisposable
 
     public void Dispose() => temporary.Dispose();
 
-    internal async Task<string> Run(string name, string[] arguments, string[]? errors = null, bool api = false, bool additionalDependencies = true, string? workingDirectory = null)
+    internal async Task<string> Run(string name, string[] arguments, string[]? errors = null, bool api = false, bool additionalDependencies = true, string? workingDirectory = null, bool sharedFrameworks = true)
     {
-        string executable = api ? Environment.GetEnvironmentVariable("CIS_COMPAT_API_DOTNET") ?? dotnet : dotnet;
+        string executable = api ? ApiHost() : dotnet;
+        bool managed = arguments[0].EndsWith(".dll", StringComparison.OrdinalIgnoreCase);
         string supplemental = Path.Combine(Path.GetDirectoryName(arguments[0]) ?? Root, "approved-dependencies.deps.json");
-        string[] dependencyArguments = !api && additionalDependencies && File.Exists(supplemental) ? ["--additional-deps", supplemental] : [];
-        string[] command = arguments[0].EndsWith(".dll", StringComparison.Ordinal)
-            ? ["exec", "--fx-version", policy[api ? "toolHostRuntime" : "targetRuntime"]!.GetValue<string>(), "--roll-forward", "Disable", .. dependencyArguments, .. arguments]
+        string[] dependencyArguments = !api && managed && additionalDependencies && File.Exists(supplemental) ? ["--additional-deps", supplemental] : [];
+        string[] frameworkArguments = !api && managed && sharedFrameworks ? ["--runtimeconfig", ConsumerRuntimeConfig(arguments[0])] : [];
+        string[] command = managed
+            ? ["exec", "--fx-version", policy[api ? "toolHostRuntime" : "targetRuntime"]!.GetValue<string>(), "--roll-forward", "Disable", .. frameworkArguments, .. dependencyArguments, .. arguments]
             : arguments;
         ProcessResult child = await ProcessRunner.RunAsync(executable, command, workingDirectory ?? Path.Combine(Root, "cwd"), TimeSpan.FromSeconds(180), environment, Encoding.UTF8);
         string output = child.StandardOutput + child.StandardError;
         Require(child.OutputDrained && (errors is null ? child.ExitCode == 0 : child.ExitCode != 0 && errors.All(text => output.Contains(text, StringComparison.Ordinal))), name + ": " + output);
         return child.StandardOutput;
+    }
+
+    private string ApiHost()
+    {
+        string? selected = Environment.GetEnvironmentVariable("CIS_COMPAT_API_DOTNET");
+        if (!string.IsNullOrWhiteSpace(selected)) { return selected; }
+        string version = policy["toolHostRuntime"]!.GetValue<string>();
+        string localRoot = Path.Combine(Repository(), ".artifacts", "tool-host-" + version);
+        string localHost = Path.Combine(localRoot, OperatingSystem.IsWindows() ? "dotnet.exe" : "dotnet");
+        return File.Exists(localHost) && File.Exists(Path.Combine(localRoot, "shared/Microsoft.NETCore.App", version, "System.Private.CoreLib.dll"))
+            ? localHost : dotnet;
+    }
+
+    private string ConsumerRuntimeConfig(string consumer)
+    {
+        // Deploy Core's approved shared framework without rewriting frozen input files.
+        JsonObject config = Read(Path.ChangeExtension(consumer, ".runtimeconfig.json"));
+        JsonObject options = config["runtimeOptions"]!.AsObject();
+        string version = policy["targetRuntime"]!.GetValue<string>();
+        options.Remove("framework");
+        options["frameworks"] = new JsonArray(
+            new JsonObject { ["name"] = "Microsoft.NETCore.App", ["version"] = version },
+            new JsonObject { ["name"] = "Microsoft.AspNetCore.App", ["version"] = version });
+        options["rollForward"] = "Disable";
+        string output = Path.Combine(Path.GetDirectoryName(consumer)!, "approved-frameworks.runtimeconfig.json");
+        File.WriteAllText(output, config.ToJsonString());
+        return output;
     }
 
     private void Runtime(string directory, string candidate)
@@ -156,7 +185,7 @@ internal sealed class TypeManagerCompatibilityFixture : IDisposable
         Unchanged();
     }
 
-    internal async Task Historical(string name, string candidate, bool source, bool missingDependencies = false)
+    internal async Task Historical(string name, string candidate, bool source, bool missingDependencies = false, bool missingFramework = false)
     {
         string directory;
         if (source) { directory = await Source(name, Path.Combine(Original, "source"), candidate, true); }
@@ -170,8 +199,10 @@ internal sealed class TypeManagerCompatibilityFixture : IDisposable
         string manifest = Path.Combine(directory, "consumer.types.json");
         File.WriteAllText(manifest, JsonSerializer.Serialize(new { schemaVersion = 1, hostAssembly = "CIS.TypeManager.ContractConsumer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", assemblies = new[] { "CIS.TypeManager.ContractConsumer", "CIS.Core" }.Select(identity => new { assemblyName = identity + ", Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", relativePath = identity + ".dll" }) }));
         string consumer = Path.Combine(directory, "CIS.TypeManager.ContractConsumer.dll");
-        string[]? errors = missingDependencies ? ["TypeManagerInitializationException", "Microsoft.Extensions.Logging.Abstractions", "ReflectionTypeLoadException"] : null;
-        string output = await Run(name, [consumer, manifest], errors, additionalDependencies: !missingDependencies);
+        string[]? errors = missingDependencies ? ["TypeManagerInitializationException", "Microsoft.Extensions.Logging.Abstractions", "ReflectionTypeLoadException"]
+            : missingFramework ? ["TypeManagerInitializationException", "Microsoft.Extensions.Hosting.Abstractions", "ReflectionTypeLoadException"] : null;
+        string output = await Run(name, [consumer, manifest], errors, additionalDependencies: !missingDependencies,
+            sharedFrameworks: !missingDependencies && !missingFramework);
         if (errors is null)
         {
             JsonNode observed = JsonNode.Parse(output)!;

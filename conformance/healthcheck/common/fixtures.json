@@ -86,6 +86,16 @@
       "selectedHealthy": true,
       "expectedProbeExit": 0,
       "reason": "A separate bounded registration integration diagnostic does not invent an execution or health failure."
+    },
+    {
+      "id": "HC-WIRE-011", "file": "valid/heartbeat-suppressed-details.json",
+      "schema": "urn:cis:healthcheck:report:v1", "view": "details", "selectedHealthy": true,
+      "expectedProbeExit": 0, "reason": "Dispatch capacity wait and neutral shutdown suppression do not fabricate an outcome."
+    },
+    {
+      "id": "HC-WIRE-012", "file": "valid/heartbeat-cleanup-failure-details.json",
+      "schema": "urn:cis:healthcheck:report:v1", "view": "details", "selectedHealthy": false,
+      "expectedProbeExit": 1, "reason": "One final cleanup failure retains the actual true callback result."
     }
   ],
   "invalid": [
@@ -155,6 +165,11 @@
       "requestView": "details",
       "reason": "NullRegistrationDiagnostic",
       "expectedProbeExit": 2
+    },
+    {
+      "id": "HC-WIRE-109", "file": "invalid/heartbeat-result-null.json",
+      "schema": "urn:cis:healthcheck:report:v1", "validationStage": "schema", "requestView": "details",
+      "reason": "NullCallbackResult", "expectedProbeExit": 2
     }
   ],
   "reasonNames": "Fixture classification labels; they are not new public library or protocol error codes.",

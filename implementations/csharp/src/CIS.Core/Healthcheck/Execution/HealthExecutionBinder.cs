@@ -42,6 +42,20 @@ public static class HealthExecutionBinder
     private static IHealthStateAccess GetAccess(IHealthMonitorFactory factory) => factory as IHealthStateAccess
         ?? throw new ArgumentException("Use the monitor factory supplied by this Healthcheck implementation.", nameof(factory));
 
+    // Registration adapters validate copied policy arguments even for a successful
+    // duplicate without creating another monitor or reimplementing policy rules.
+    internal static void ValidatePolicy(HealthMonitorOptions policy, bool successPublishesUsableData)
+    {
+        HealthStateCoordinator.ValidatePolicy(policy);
+        HealthPolicyKind kind = policy switch
+        {
+            ConsecutiveFailureMonitorOptions => HealthPolicyKind.ConsecutiveFailures,
+            AvailabilityMonitorOptions => HealthPolicyKind.FirstSuccessAvailability,
+            _ => throw new ArgumentException("Execution bindings require a consecutive-failure or availability policy.", nameof(policy))
+        };
+        HealthStateCoordinator.ValidateExecutionPolicy(kind, successPublishesUsableData);
+    }
+
     private static ExecutionBinding Create(IHealthStateAccess access, BindingRequest request)
     {
         IHealthExecutionState state = access.ExecutionState;
@@ -110,11 +124,12 @@ public static class HealthExecutionBinder
 
                     ExecutionFactRecord next = (retained ?? new ExecutionFactRecord(executionId)).Merge(normalized);
                     bool repeatedOutcome = normalized.Kind == HealthExecutionFactKind.Outcome && retained?.HasOutcome == true;
+                    bool repeatedSuppression = normalized.Kind == HealthExecutionFactKind.Suppressed && retained?.HasSuppression == true;
                     if (normalized.Kind == HealthExecutionFactKind.Outcome && !repeatedOutcome && executionId <= outcomeHighWater)
                     {
                         return HealthFactDisposition.Obsolete;
                     }
-                    if (repeatedOutcome && next.SameContext(retained!)) { return HealthFactDisposition.Duplicate; }
+                    if ((repeatedOutcome || repeatedSuppression) && next.SameContext(retained!)) { return HealthFactDisposition.Duplicate; }
 
                     HealthFactDisposition accepted = normalized.Kind == HealthExecutionFactKind.Outcome && !repeatedOutcome
                         ? state.ApplyOutcome(target, normalized) : state.UpdateLifecycle(target, normalized);
@@ -127,7 +142,7 @@ public static class HealthExecutionBinder
                     else if (ReferenceEquals(current, retained)) { current = next; }
                     else { previous = next; }
                     if (normalized.Kind == HealthExecutionFactKind.Outcome && !repeatedOutcome) { outcomeHighWater = executionId; }
-                    return repeatedOutcome ? HealthFactDisposition.Duplicate : HealthFactDisposition.Recorded;
+                    return repeatedOutcome || repeatedSuppression ? HealthFactDisposition.Duplicate : HealthFactDisposition.Recorded;
                 }
             }
             finally

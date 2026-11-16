@@ -91,7 +91,7 @@ internal sealed partial class HealthStateCoordinator
         }
     }
 
-    private static void ValidateExecutionPolicy(HealthPolicyKind policy, bool successPublishesUsableData)
+    internal static void ValidateExecutionPolicy(HealthPolicyKind policy, bool successPublishesUsableData)
     {
         if (policy is not (HealthPolicyKind.ConsecutiveFailures or HealthPolicyKind.FirstSuccessAvailability))
         {
@@ -195,17 +195,29 @@ internal sealed partial class HealthStateCoordinator
             throw new ArgumentException("The fact requires the corresponding registration or execution identity.", nameof(fact));
         }
         if (fact.ExecutionId is <= 0 || (fact.SourcePhase.HasValue && !Enum.IsDefined(fact.SourcePhase.Value))
+            || (fact.SuppressedPhase.HasValue && !Enum.IsDefined(fact.SuppressedPhase.Value))
+            || (fact.SuppressionReason.HasValue && !Enum.IsDefined(fact.SuppressionReason.Value))
+            || (fact.ExpectedCancellationPhase.HasValue && !Enum.IsDefined(fact.ExpectedCancellationPhase.Value))
             || (fact.ErrorHandlingStatus.HasValue && !Enum.IsDefined(fact.ErrorHandlingStatus.Value))
             || (fact.CleanupStatus.HasValue && !Enum.IsDefined(fact.CleanupStatus.Value)))
         {
             throw new ArgumentException("Execution identities and lifecycle statuses must be valid.", nameof(fact));
         }
         ValidateDuration(fact.QueueDelayMilliseconds);
+        ValidateDuration(fact.DispatchDelayMilliseconds);
         ValidateDuration(fact.ConditionDurationMilliseconds);
         ValidateDuration(fact.CallbackDurationMilliseconds);
         ValidateDuration(fact.ErrorHandlingDurationMilliseconds);
         ValidateDuration(fact.CleanupDurationMilliseconds);
         ValidateDuration(fact.TotalDurationMilliseconds);
+        if (fact.Kind == HealthExecutionFactKind.Dispatched && fact.DispatchedAtUtc != fact.OccurredAtUtc
+            || fact.Kind == HealthExecutionFactKind.Suppressed && (fact.SuppressedAtUtc != fact.OccurredAtUtc
+                || !fact.SuppressedPhase.HasValue || !fact.SuppressionReason.HasValue))
+        { throw new ArgumentException("The scheduling event requires its actual time and disposition.", nameof(fact)); }
+        ExecutionFactValidation.ValidateProducerContext(fact.SourcePhase, fact.Outcome, fact.ConditionStartedAtUtc,
+            fact.CallbackStartedAtUtc, fact.ConditionDurationMilliseconds, fact.CallbackDurationMilliseconds,
+            fact.SuppressedAtUtc, fact.SuppressedPhase, fact.SuppressionReason, fact.ConditionResult,
+            fact.CallbackResult, fact.ExpectedCancellationPhase, fact.CleanupStatus, fact.OriginalError, merged: false);
 
         static void ValidateDuration(double? duration)
         {
@@ -312,7 +324,7 @@ internal sealed partial class HealthStateCoordinator
         HealthExecutionPhase phase = fact.Kind switch
         {
             HealthExecutionFactKind.Eligible => HealthExecutionPhase.Eligible,
-            HealthExecutionFactKind.Admitted => HealthExecutionPhase.Admitted,
+            HealthExecutionFactKind.Admitted or HealthExecutionFactKind.Dispatched => HealthExecutionPhase.Admitted,
             HealthExecutionFactKind.ConditionStarted => HealthExecutionPhase.Condition,
             HealthExecutionFactKind.CallbackStarted => HealthExecutionPhase.Callback,
             HealthExecutionFactKind.Outcome => fact.SourcePhase!.Value,
@@ -331,6 +343,13 @@ internal sealed partial class HealthStateCoordinator
             Phase = phase,
             EligibleAtUtc = fact.EligibleAtUtc ?? previous?.EligibleAtUtc,
             AdmittedAtUtc = fact.AdmittedAtUtc ?? previous?.AdmittedAtUtc,
+            DispatchedAtUtc = fact.DispatchedAtUtc ?? previous?.DispatchedAtUtc,
+            SuppressedAtUtc = fact.SuppressedAtUtc ?? previous?.SuppressedAtUtc,
+            SuppressedPhase = fact.SuppressedPhase ?? previous?.SuppressedPhase,
+            SuppressionReason = fact.SuppressionReason ?? previous?.SuppressionReason,
+            ConditionResult = fact.ConditionResult ?? previous?.ConditionResult,
+            CallbackResult = fact.CallbackResult ?? previous?.CallbackResult,
+            ExpectedCancellationPhase = fact.ExpectedCancellationPhase ?? previous?.ExpectedCancellationPhase,
             ConditionStartedAtUtc = fact.ConditionStartedAtUtc ?? previous?.ConditionStartedAtUtc,
             CallbackStartedAtUtc = fact.CallbackStartedAtUtc ?? previous?.CallbackStartedAtUtc,
             WorkCompletedAtUtc = fact.WorkCompletedAtUtc ?? previous?.WorkCompletedAtUtc,
@@ -339,6 +358,7 @@ internal sealed partial class HealthStateCoordinator
             CleanupCompletedAtUtc = fact.CleanupCompletedAtUtc ?? previous?.CleanupCompletedAtUtc,
             SettledAtUtc = fact.SettledAtUtc ?? previous?.SettledAtUtc,
             QueueDelayMilliseconds = fact.QueueDelayMilliseconds ?? previous?.QueueDelayMilliseconds,
+            DispatchDelayMilliseconds = fact.DispatchDelayMilliseconds ?? previous?.DispatchDelayMilliseconds,
             ConditionDurationMilliseconds = fact.ConditionDurationMilliseconds ?? previous?.ConditionDurationMilliseconds,
             CallbackDurationMilliseconds = fact.CallbackDurationMilliseconds ?? previous?.CallbackDurationMilliseconds,
             ErrorHandlingDurationMilliseconds = fact.ErrorHandlingDurationMilliseconds ?? previous?.ErrorHandlingDurationMilliseconds,

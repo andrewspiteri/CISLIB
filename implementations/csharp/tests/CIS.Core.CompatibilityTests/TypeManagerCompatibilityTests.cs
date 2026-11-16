@@ -57,6 +57,13 @@ public sealed class TypeManagerCompatibilityTests
     }
 
     [TestMethod]
+    public async Task FrozenConsumerRequiresApprovedSharedFrameworkDeployment()
+    {
+        TypeManagerCompatibilityFixture f = await Shared.Value;
+        await f.Historical("missing-shared-framework", f.Core, false, missingFramework: true);
+    }
+
+    [TestMethod]
     public async Task PublicApiRemainsCompatible()
     {
         TypeManagerCompatibilityFixture f = await Shared.Value;

@@ -300,9 +300,9 @@ internal static class HealthReportProtocol
         GuidValue(Required(execution, "registrationId"));
         if (CanonicalDecimal(Required(execution, "executionId"), signed: false, int64: true) == "0") { throw Invalid(); }
         string phase = EnumText<HealthExecutionPhase>(Required(execution, "phase"));
-        foreach (string name in new[] { "eligibleAtUtc", "admittedAtUtc", "conditionStartedAtUtc", "callbackStartedAtUtc", "workCompletedAtUtc",
+        foreach (string name in new[] { "eligibleAtUtc", "admittedAtUtc", "dispatchedAtUtc", "suppressedAtUtc", "conditionStartedAtUtc", "callbackStartedAtUtc", "workCompletedAtUtc",
                      "errorHandlingStartedAtUtc", "errorHandlingCompletedAtUtc", "cleanupCompletedAtUtc", "settledAtUtc" }) { OptionalTimestamp(execution, name); }
-        foreach (string name in new[] { "queueDelayMs", "conditionDurationMs", "callbackDurationMs", "errorHandlingDurationMs", "cleanupDurationMs", "totalDurationMs" })
+        foreach (string name in new[] { "queueDelayMs", "dispatchDelayMs", "conditionDurationMs", "callbackDurationMs", "errorHandlingDurationMs", "cleanupDurationMs", "totalDurationMs" })
         {
             if (execution.TryGetProperty(name, out var value) && Number(value) < 0) { throw Invalid(); }
         }
@@ -319,9 +319,36 @@ internal static class HealthReportProtocol
         if (cleanup is "NotStarted" or "Running" && Has("cleanupCompletedAtUtc") ||
             cleanup is "NotApplicable" or "NotInvoked" && Has("cleanupDurationMs") ||
             Has("cleanupError") && cleanup is "NotStarted" or "Running" or "Succeeded" or "NotApplicable") { throw Invalid(); }
+        ValidateExecutionProducerContext(execution, phase);
 
         long Counter(string name) => long.Parse(CanonicalDecimal(Required(outcomes, name), signed: false, int64: true), CultureInfo.InvariantCulture);
         bool Has(string name) => execution.TryGetProperty(name, out _);
+    }
+
+    private static void ValidateExecutionProducerContext(JsonElement execution, string phase)
+    {
+        bool? conditionResult = execution.TryGetProperty("conditionResult", out var condition) ? Boolean(condition) : null;
+        bool? callbackResult = execution.TryGetProperty("callbackResult", out var callback) ? Boolean(callback) : null;
+        string? suppressedPhase = Phase("suppressedPhase"), canceledPhase = Phase("expectedCancellationPhase");
+        bool suppressed = Has("suppressedAtUtc");
+        if (suppressed != (suppressedPhase is not null) || suppressed != Has("suppressionReason")) { throw Invalid(); }
+        if (Has("suppressionReason")) { EnumText<HealthExecutionSuppressionReason>(execution.GetProperty("suppressionReason")); }
+        bool conditionRan = Has("conditionStartedAtUtc") || Has("conditionDurationMs") || conditionResult.HasValue || canceledPhase == "Condition" || phase == "Condition";
+        bool callbackRan = Has("callbackStartedAtUtc") || Has("callbackDurationMs") || callbackResult.HasValue || canceledPhase == "Callback" || phase == "Callback";
+        if (conditionResult == false && (callbackRan || suppressedPhase == "Callback")
+            || canceledPhase == "Condition" && (conditionResult.HasValue || callbackRan)
+            || canceledPhase == "Callback" && callbackResult.HasValue
+            || suppressedPhase == "Condition" && (conditionRan || callbackRan)
+            || suppressedPhase == "Callback" && callbackRan)
+        { throw Invalid(); }
+
+        bool Has(string name) => execution.TryGetProperty(name, out _);
+        string? Phase(string name)
+        {
+            if (!execution.TryGetProperty(name, out var value)) { return null; }
+            string result = EnumText<HealthExecutionPhase>(value);
+            return result is "Condition" or "Callback" ? result : throw Invalid();
+        }
     }
 
     private static JsonElement Required(JsonElement value, string name)

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using CIS.Configuration;
+using CIS.Heartbeat;
 using CIS.Logging;
 using CIS.Text;
 
@@ -30,6 +31,7 @@ public static class EnvironmentOptions
         InstanceId = Guid.NewGuid().ToString("D");
         InitializedAtUtc = DateTimeOffset.UtcNow;
         Logging = new LoggingOptions();
+        Heartbeat = new HeartbeatOptions();
         var issues = new List<ConfigurationIssue>();
         (ApplicationName, EnvironmentName, ServiceVersion) = EnvironmentOverrides.Apply(
             System.Environment.GetEnvironmentVariable, ApplicationName, EnvironmentName, ServiceVersion, Logging, issues);
@@ -82,6 +84,8 @@ public static class EnvironmentOptions
     public static string? BuildId { get; set; }
     /// <summary>Mutable module settings; logging owns their preparation and runtime.</summary>
     public static LoggingOptions Logging { get; }
+    /// <summary>Mutable Heartbeat setup; its application runtime resolves and copies settings before activation.</summary>
+    public static HeartbeatOptions Heartbeat { get; }
 
     internal static string ReadBuildVersion(Assembly? application)
     {

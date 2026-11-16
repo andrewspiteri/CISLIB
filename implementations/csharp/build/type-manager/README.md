@@ -1,8 +1,8 @@
 # Type Manager build inventory
 
-This source integration generates inventories for the runtime Type Manager now
-implemented in `CIS.Core`. The same development package also includes an optional
-MSBuild SDK for package consumers. These are development assets, not a published release.
+Type Manager inventory generation is implemented in `CIS.Core`. The same package
+contains the optional MSBuild SDK and `CIS.TypeManager.Build` helper; there is no
+separate shipping build-tool package. These are development assets, not a published release.
 
 For a package consumer, replace its separate `CIS.Core` PackageReference with the
 versioned SDK reference and enable inventory generation:
@@ -18,16 +18,33 @@ versioned SDK reference and enable inventory generation:
 </Project>
 ```
 
-Use `Microsoft.NET.Sdk.Web` for an ASP.NET host. The SDK supplies an exact matching
+Use the actual candidate package version in `Version`; `0.1.0-dev.1` is the current
+development version. Use `Microsoft.NET.Sdk.Web` for an ASP.NET host. The SDK supplies an exact matching
 Core runtime PackageReference; it does not add a second shipping package. With
 central package management it supplies a matching PackageVersion when absent and
 rejects a conflicting central version. Put the package in the consumer's configured
 NuGet feed. The SDK import participates in the first restore, before runtime asset
 selection; no restore is launched from a build target. An ordinary Core
 PackageReference still works when Type Manager inventory is not enabled.
-This package requires .NET SDK 10.0.401. Set any existing
+Both hosts require SDK **10.0.401**, .NET runtime **10.0.12** and ASP.NET Core shared
+framework **10.0.12**, including Console because Core has the approved shared-framework
+reference. Keep framework-dependent, untrimmed `net10.0` output. Set any existing
 `BeforeMicrosoftNETSdkTargets` hook in `Directory.Build.props`, before the Core
 SDK import; replacing the hook later prevents early runtime selection and fails.
+
+For a clean package consumer, make the feed's `NuGet.Config` and an SDK-pinning
+`global.json` visible before the first project evaluation. Set an isolated
+`NUGET_PACKAGES` cache before the first restore. The SDK itself must resolve from
+the candidate feed; a later `restore --configfile` argument cannot substitute for
+that initial SDK setup. Do not carry repository imports, `bin`/`obj`, or source
+project lock files into the consumer. The [Console/Web package setup](../../examples/type-manager/README.md#package-consumers)
+shows complete projects, isolation files and ordinary commands.
+
+When adapting the checked-in examples, remove the Core `ProjectReference`, the
+source `CIS.TypeManager.targets` import and their broad `RuntimeIdentifiers` list.
+Keep the sample Contracts/Unused references and shared example code. Do not add a
+second Core `PackageReference`; the versioned SDK supplies it. Its helper is used
+by MSBuild and must stay out of application runtime deployment.
 
 For source-reference development, use the source target instead:
 
@@ -47,8 +64,9 @@ pass `-r win-x64` or `-r linux-x64` explicitly when building and publishing. A f
 published with the default RID is not a portable cross-platform deployment.
 Cross-RID publishing replaces the project's restored assets graph. Run an ordinary
 native restore before returning to native builds or publishing without restore.
-Do not run different-RID builds/publishes concurrently against the same project
-and intermediate directory. Parallel builds of distinct host projects are tested.
+Do not run different-RID builds/publishes against the same intermediate directory.
+Keep configuration, target framework, RID and dependency inputs matching when using
+`--no-build` or `--no-restore`.
 Static-graph restore is outside the qualified matrix; version validation runs at
 build time when the restore path does not execute its validation targets.
 The target prints the selected RID and does not alter requested self-contained,
@@ -57,9 +75,9 @@ supplying a supported RID fails clearly.
 
 This development target is exercised through the pinned `dotnet` CLI. Visual
 Studio/MSBuild.exe task hosting is not qualified yet.
-Web SDK matrix results cover CLI publication with an explicit `-o` directory.
-They do not qualify a Visual Studio/FileSystem profile's separate `PublishUrl`
-copy stage. Custom helper output layouts, including `--artifacts-path`, fail with
+The supported publish route is the CLI with an explicit `-o` directory. It does
+not qualify a Visual Studio/FileSystem profile's separate `PublishUrl` copy stage.
+Custom helper output layouts, including `--artifacts-path`, fail with
 CISTM005 and remain unsupported by this source integration.
 Late imports from `Directory.Build.targets` are unsupported: SDK RID inference
 has already run there. An isolated clean NuGet consumer demonstrated that even
@@ -84,7 +102,7 @@ Unchanged manifests retain their bytes and modification time. Build-generated
 manifests participate in MSBuild clean tracking. Every selected managed file is
 required; corrupt metadata, duplicate-name conflicts or reference assemblies fail.
 Satellite resource assemblies and unrelated content files are excluded. Native
-assets labeled by the SDK are excluded. An isolated real-package matrix exercises
+assets labeled by the SDK are excluded. Existing focused tests exercise
 native assets, a compile-only reference assembly, three same-identity RID variants,
 satellites, unrelated DLL content, build and both folder-publish modes.
 
@@ -92,14 +110,15 @@ Single-file, trimming, AOT and self-contained settings are rejected without chan
 the requested profile. Disabling `CopyLocalLockFileAssemblies` is also rejected:
 build inventory requires deployed package runtime assemblies. Relative publish
 directories are resolved explicitly against the host project directory.
-Design-time builds do not generate inventories. Windows x64
-and Linux x64 source inventory executions have passed; complete release
-qualification remains pending. Source task registration checks the actual helper
+Design-time builds do not generate inventories. Actual package-consumer Windows
+and Ubuntu outcomes belong to the [CIS-0002 verification record](../../../../docs/changes/CIS-0002/verification.md);
+source-reference results do not establish those passes. Complete release
+qualification remains separate. Source task registration checks the actual helper
 output path before execution, so an unsupported helper output layout fails rather
 than silently using an older task DLL. Custom host `-o` output is supported.
-The CLI task uses `TaskHostFactory` with `Runtime="NET"`; a source-change probe
-verified that a later build executes the rebuilt helper instead of a retained
-in-process copy. This is not a Visual Studio qualification claim.
+The CLI task uses `TaskHostFactory` with `Runtime="NET"` so a later invocation can
+use the rebuilt helper instead of retaining an in-process copy. This is not a
+Visual Studio qualification claim.
 
 Run from `implementations/csharp`:
 

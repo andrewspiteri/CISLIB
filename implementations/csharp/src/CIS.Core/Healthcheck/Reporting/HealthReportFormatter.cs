@@ -194,6 +194,13 @@ public static class HealthReportFormatter
         WriteEnum(writer, "phase", execution.Phase);
         WriteTime(writer, "eligibleAtUtc", execution.EligibleAtUtc);
         WriteTime(writer, "admittedAtUtc", execution.AdmittedAtUtc);
+        WriteTime(writer, "dispatchedAtUtc", execution.DispatchedAtUtc);
+        WriteTime(writer, "suppressedAtUtc", execution.SuppressedAtUtc);
+        if (execution.SuppressedPhase is { } suppressedPhase) { WriteEnum(writer, "suppressedPhase", suppressedPhase); }
+        if (execution.SuppressionReason is { } suppressionReason) { WriteEnum(writer, "suppressionReason", suppressionReason); }
+        if (execution.ConditionResult is { } conditionResult) { writer.WriteBoolean("conditionResult", conditionResult); }
+        if (execution.CallbackResult is { } callbackResult) { writer.WriteBoolean("callbackResult", callbackResult); }
+        if (execution.ExpectedCancellationPhase is { } canceledPhase) { WriteEnum(writer, "expectedCancellationPhase", canceledPhase); }
         WriteTime(writer, "conditionStartedAtUtc", execution.ConditionStartedAtUtc);
         WriteTime(writer, "callbackStartedAtUtc", execution.CallbackStartedAtUtc);
         WriteTime(writer, "workCompletedAtUtc", execution.WorkCompletedAtUtc);
@@ -202,6 +209,7 @@ public static class HealthReportFormatter
         WriteTime(writer, "cleanupCompletedAtUtc", execution.CleanupCompletedAtUtc);
         WriteTime(writer, "settledAtUtc", execution.SettledAtUtc);
         WriteDuration(writer, "queueDelayMs", execution.QueueDelayMilliseconds);
+        WriteDuration(writer, "dispatchDelayMs", execution.DispatchDelayMilliseconds);
         WriteDuration(writer, "conditionDurationMs", execution.ConditionDurationMilliseconds);
         WriteDuration(writer, "callbackDurationMs", execution.CallbackDurationMilliseconds);
         WriteDuration(writer, "errorHandlingDurationMs", execution.ErrorHandlingDurationMilliseconds);

@@ -28,6 +28,27 @@ public sealed class HealthExecutionFact
     /// <summary>Gets the observed UTC admission time when known.</summary>
     public DateTimeOffset? AdmittedAtUtc { get; init; }
 
+    /// <summary>Gets the actual UTC time capacity was reserved and execution was posted.</summary>
+    public DateTimeOffset? DispatchedAtUtc { get; init; }
+
+    /// <summary>Gets the UTC decision time preventing the next user phase.</summary>
+    public DateTimeOffset? SuppressedAtUtc { get; init; }
+
+    /// <summary>Gets the condition or callback phase that was prevented from starting.</summary>
+    public HealthExecutionPhase? SuppressedPhase { get; init; }
+
+    /// <summary>Gets the neutral lifecycle reason for a prevented user phase.</summary>
+    public HealthExecutionSuppressionReason? SuppressionReason { get; init; }
+
+    /// <summary>Gets the actual condition boolean, independently of the final outcome after cleanup.</summary>
+    public bool? ConditionResult { get; init; }
+
+    /// <summary>Gets the actual callback boolean, independently of the final outcome after cleanup.</summary>
+    public bool? CallbackResult { get; init; }
+
+    /// <summary>Gets the condition or callback phase that actually acknowledged known cancellation.</summary>
+    public HealthExecutionPhase? ExpectedCancellationPhase { get; init; }
+
     /// <summary>Gets the observed UTC condition-start time when known.</summary>
     public DateTimeOffset? ConditionStartedAtUtc { get; init; }
 
@@ -51,6 +72,9 @@ public sealed class HealthExecutionFact
 
     /// <summary>Gets monotonic milliseconds from eligibility to admission when measured.</summary>
     public double? QueueDelayMilliseconds { get; init; }
+
+    /// <summary>Gets monotonic milliseconds from admission to dispatch, including capacity wait.</summary>
+    public double? DispatchDelayMilliseconds { get; init; }
 
     /// <summary>Gets monotonic milliseconds spent evaluating the condition when measured.</summary>
     public double? ConditionDurationMilliseconds { get; init; }

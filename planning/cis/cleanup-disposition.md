@@ -1194,3 +1194,195 @@ passed both standalone builds and security. Its verification failures match the
 Windows solution build cannot find the native fixture outputs, and Ubuntu's package
 audit rejects deprecated `Microsoft.Testing.Platform.MSBuild`. These existing build
 and dependency-audit repairs remain deferred; full hosted CI has not passed.
+
+### Remove the unused mutation replay generator
+
+Removed `implementations/csharp/tests/fixtures/TypeManager/Mutation/ApplyNativeMutation.cs`,
+the obsolete Roslyn/Stryker tool that replayed saved reports into separate mutant
+sources, controls and a hash manifest. Targeted searches for its class, namespace
+and path found no active reference. Project, shared compile/import and solution
+inspection confirmed it was not compiled; its folder contained no other support
+file or project. Both native Stryker configurations use the retained product
+projects and native tests, without this generator. No active reference needed editing.
+
+Static reference/inclusion checks, independent source review and `git diff --check`
+are sufficient for this uncompiled orphan deletion: runtime behavior and active
+test execution paths did not change, so no build or test was run. The five native
+MSTest/VSTest projects, assertions, fixture support, active `MutationChildFixture`
+and Type Manager package machinery are unchanged. WORK-001 remains Complete;
+its accepted 2 passed / 0 failed / 0 skipped result, retained metadata, approvals,
+allocation and accounting are preserved. This cleanup grants no new qualification.
+
+### Reviewed CIS main build installed — 2026-11-15
+
+The requested CIS merge fast-forwarded main to
+[`672fd39c569f16c6edc18c25985f78ab72eec8b6`](https://github.com/andrewspiteri/CIS/commit/672fd39c569f16c6edc18c25985f78ab72eec8b6)
+and was pushed. It includes the shared-outcome workflow, amendment continuity,
+concrete seed readiness and accepted-task pause/resume fixes. This main integration
+does not finalize the separate CIS completion/security closeout or publish a release.
+
+CISLIB now uses the verified Release build of that exact revision at the existing
+ignored `.cis/local/tools/cis/` path. Its CLI reports
+`0.3.0+672fd39c569f16c6edc18c25985f78ab72eec8b6`. All 257 installed files match
+the verified publication: 82,988,648 bytes; `cis.dll` SHA-256
+`e54f3328cfe897726969302b2ed94b364820b6da9683c45f65e424acd36b7659`.
+The previous generated installation is retained locally for rollback. Binaries are
+not committed. AGENTS.md carries the current pin and skill/manual links. README.md's
+compatible minimum ancestor remains unchanged because Type Manager and Logging
+profiles include that file as an accepted package input.
+
+Before and after installation, only unit-layer incremental plan, status and verify
+were invoked for the three completed profiles, in the same outside-sandbox Windows
+context. All three already reported one pending batch and failed current verification
+with the previous CLI. The new CLI reports the same computed fingerprints and holds:
+
+| Profile | Computed fingerprint with both CLIs | Executed batches |
+| --- | --- | --- |
+| Healthcheck diagnostic unit | `b343b9a85c5285786a144490e824f5ac911aa7fea1c25885812e9a79a95d4dcc` | 0 |
+| Type Manager package Windows | `7a9a790c03d3c4122aa46b29e263e4749d26a50feb704c1b0b069189e0de545b` | 0 |
+| Logging example package Windows | `7edf0d0394557599887fdf3f4ff53bade66d3aca148883943fa6b2ae51e6d886` | 0 |
+
+Those effective-input fingerprints differ from the retained passing results; the
+specific changed input was not established. Current reuse is therefore held in this
+context, and is not represented as verified. The difference predates installation;
+no fingerprint, profile or evidence was weakened to force reuse. No accepted test,
+consumer build/pack/restore, revalidation, recovery or new allocation ran.
+
+All 1,203 protected files remain byte-for-byte unchanged, including product/test
+source, README, approved records and completed task contracts, profiles, state,
+reports, platform outcomes, candidate package and accounting. No incremental result
+file was added. The ledger remains adoption `8351035b241f4939ace19b3cc8d71d81`,
+revision 127, SHA-256 `39071a1737dfb3405ec9eb43ec4b8e9d44377eddc74154f0966a41ce17239a23`.
+CIS-0001/0002/0003 consumption remains 433,787 / 602,214 / 179,935 ms and used
+attempts remain 2 / 1 / 1, with no open attempt or owner hold. Their WORK-001 tasks
+remain Complete, their accepted reports remain 2 / 4 / 2 passed, and no successor is
+queued. This tooling update grants no broader product or release qualification.
+## Three-feature integration closure — 2026-11-15
+
+[CIS-0004 verification](../../docs/changes/CIS-0004/verification.md) is the compact
+per-feature closure record. The actual instruction authorized one shared outcome
+and one concrete Healthcheck task, including supporting checks, guides and review.
+The verified installed CIS `672fd39c569f16c6edc18c25985f78ab72eec8b6` was reused.
+
+Logging and Type Manager retain their accepted package-consumer evidence without
+replay. Healthcheck's actual CountryList source now has clean exact-package build
+and folder-publish checks, shared original startup/failure/refresh/drain assertions,
+and matching same-identity pipe/probe coverage. Actual Windows and Ubuntu each
+passed 6 package rows plus 4 affected source rows, with zero final failures/skips.
+The retained `de794baf…d93e` candidate and all shipping Core inputs are unchanged.
+
+Historical cache currentness remains held with no reconstructable original
+per-input/environment inventory. The new Windows package result also reports an
+unidentified aggregate-identity difference; its passing report and settled work
+remain retained. Linux receipts and the Windows source plan initially reported
+current. Post-closeout checks additionally held Windows source and Linux package
+reuse; no newer Linux source claim is made past that fail-fast hold. No
+fingerprints, reports or completed history were changed to force reuse.
+
+All native executions settled under CIS-0004 with 1,216,113 ms consumed and one
+logical attempt. The prior three owners retain 433,787 / 602,214 / 179,935 ms and
+2 / 1 / 1 used attempts. Temporary consumers/caches were cleaned; necessary native
+results, identities and candidate remain. Ubuntu retains only the selected
+toolchain (640,148,071 bytes), below 2 GiB. Scope ends at developer integration;
+release qualification, coverage/mutation/performance, main merge and publication
+remain separate.
+
+## Saved-result reuse correction — 2026-11-15
+
+The CIS correction separates native inputs from graph-only closeout documents,
+normalizes session transport values at execution and retains compact input
+digests for precise invalidation reasons. The verified development installation
+is recorded in `AGENTS.md`; README's compatible minimum remains unchanged.
+The CIS record is `docs/changes/CIS-0004/verification.md` in the CIS repository.
+
+All seven original profiles were inspected with read-only `plan` and `verify`,
+explicitly using `--layer unit`. Each reports one pending batch and
+`input-detail-unavailable`: its aggregate historical fingerprint cannot establish
+current applicability. None was relabelled or rerun.
+
+| Retained profile | Original passing cases | Current disposition |
+| --- | --- | --- |
+| healthcheck-diagnostic-unit | 2 | Historical basis unavailable |
+| type-manager-package-windows | 4 | Historical basis unavailable |
+| logging-example-package-windows | 2 | Historical basis unavailable |
+| healthcheck-package-windows | 6 | Historical basis unavailable |
+| healthcheck-source-windows | 4 | Historical basis unavailable |
+| healthcheck-package-linux | 6 | Historical basis unavailable; original settlement reference unresolved by the local Windows inspection |
+| healthcheck-source-linux | 4 | Historical basis unavailable |
+
+The single permitted fresh attempt used the same two-case diagnostic scope in
+new ignored `healthcheck-diagnostic-reuse-correction` under CIS-0005/WORK-001.
+It reached build output but produced no native test report. Its process result
+required reconciliation. The recorded controller and driver were absent, and the
+trusted helper confirmed the exact retained Windows job was empty or destroyed.
+The existing `reconcile` disposition then settled the original tree: **600,000 ms
+conservatively charged, one attempt, zero active reservation and no recovery
+hold**. No passing baseline or subsequent consumer reuse is claimed. The attempt
+was not repeated.
+
+All seven original state/report files and all four original owner objects and
+task contracts are unchanged. Consumption/attempts remain 433,787 ms / 2,
+602,214 ms / 1, 179,935 ms / 1 and 1,216,113 ms / 1. All four original tasks remain
+Complete. Production/test source, the retained candidate, approvals, limits and
+shipping behavior are unchanged. The new supporting task is Blocked on practical
+consumer proof.
+
+### Proposed additional diagnostic execution
+
+This proposal was initially unapplied. Andrew Spiteri subsequently approved this
+exact exception; its authorization and observed outcome are recorded below.
+
+Allow one additional execution of only the same two diagnostic cases, in new
+`healthcheck-diagnostic-reuse-continuation`. Its prepared profile copies the
+original diagnostic profile, changes only ID and timeout to 360 seconds, and has
+SHA-256 `ad22abca641dd2585bc5f6266c1a76b5159b8c51cadd28608d1f15f6ce3f767a`.
+Use `--layer unit --max-batches 1 --max-seconds 540`, without force.
+
+Keep the shared 7,200-second / three-attempt total, original storage ceilings and
+180 protected restoration seconds. Preserve inconclusive WORK-001 history at
+600 seconds / one used attempt; assign the remaining consumer 600 seconds and
+one unused shared attempt to a concrete supporting WORK-002. Reduce the CIS
+supporting owner's attempt allocation from two to one, preserving its counted
+attempt. This transfers existing resources rather than granting more. The new
+task must prove closeout, commit and fresh-process reuse without another test
+launch. No other historical profile or release campaign is included.
+
+### Authorized diagnostic continuation
+
+Andrew Spiteri explicitly approved the published additional-execution proposal.
+The original task scope and history remain retained; new WORK-002 owns only this
+approved exception. The CIS supporting task is limited to its one used attempt.
+The consumer retains 1,200 seconds across two attempts: WORK-001 keeps its charged
+600 seconds and used attempt, while WORK-002 receives the remaining 600 seconds
+and one attempt. Shared limits remain 7,200 seconds, three attempts and 180 included
+restoration seconds, with unchanged storage ceilings. Only the prepared two-case
+profile may execute once, bounded at 540 seconds; all subsequent reuse checks are
+read-only. Its observed outcome will be recorded here after execution.
+
+The authorized invocation completed with **2 passed, 0 failed, 0 skipped** and one
+executed unit batch. CIS admitted the report and settled the original new tree at
+**211,151 ms**, one used attempt, zero reservation and no recovery hold. Its report
+SHA-256 is `45610b37a7e249b764e1fc50a5f36d98250758d8e47798565f99b527d662052c`.
+WORK-001 retains its inconclusive 600,000 ms / one attempt; consumer total is
+811,151 ms / two attempts. No other profile ran. Post-closeout reuse is checked
+separately; a fresh pass alone does not establish it.
+
+After closeout commit `97d625bb`, real graph refresh and fresh CLI processes,
+unit plan/status report current scope with zero pending batches; verification
+returns `verified`, exit 0. Sequential plan reasons are empty. Report bytes, the
+accepted unit record, the one native launch and 211,151 ms cost are unchanged.
+All original contracts, reports, costs, attempts, limits and checkpoint facts
+remain intact. Native serialization normalized checkpoint timestamp strings to
+UTC without changing their instants. No original owner was reopened.
+
+One concurrent plan reader briefly included a settlement warning despite current
+scope; status/verification and the subsequent sequential plan were clean. Ledger
+lock contention is a source-supported inference, not a proven captured exception.
+This small concurrent-inspection diagnostic issue is deferred; it required no
+report edit or test replay.
+
+WORK-002 is Complete through the checked lifecycle. Its logical attempt is closed;
+the prior inconclusive WORK-001 remains Deferred with its ended attempt closed,
+without refunding costs or attempts. Neither supporting task queues another
+execution. Release qualification and the parent CIS engineering closeout remain
+separate.
