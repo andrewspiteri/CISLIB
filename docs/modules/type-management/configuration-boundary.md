@@ -32,16 +32,20 @@ Manager never constructs them, invokes application initializers or attributes, o
 automatically registers them in DI. Runtime-controlled module initializers remain
 subject to normal .NET loading semantics.
 
-When Configuration has its own published marker, it can make the corresponding
-`GetImplementations<IConfigurationObject>()` query. This is an illustration of a
-future consumer call, not a declaration of that interface or a dependency from
-Type Manager to Configuration. No such public marker or event contract is added by
-these samples.
+Configuration now supplies `CIS.Configuration.IConfigurationObject` and consumes
+the complete `GetImplementations<IConfigurationObject>()` result. Await
+`ConfigurationRuntime.PrepareAsync` after Type Manager and before the one Build,
+then enroll Configuration activation before dependent Startup participants. See
+[Configuration hosting](../configuration/hosting.md). The examples preserve their
+unconstructible discovery-only markers and add separate valid direct/inherited
+POCOs in the initially unused library; they do not filter unsuitable Configuration
+types out of discovery.
 
-Configuration will own POCO eligibility, construction, retaining its own object
+Configuration owns POCO eligibility, construction, retaining its own object
 instances, storage, common/service-specific merging, overrides, validation,
 locking/checksums and change notifications. Its persisted key and version policy
-also belong there. Exact assembly-qualified lookup in Type Manager neither strips
+also belong there. Its durable keys omit assembly versions and reject collisions;
+Type Manager's exact CLR identity remains unchanged. Exact assembly-qualified lookup in Type Manager neither strips
 assembly versions nor interprets persisted configuration keys or class-name suffixes.
 
 Registering an existing `ITypeManager` as a singleton only reuses the catalog. It
@@ -52,6 +56,7 @@ members or enlarge membership after a later unrelated assembly load.
 
 The host can use existing bootstrap values to choose preparation inputs. Type
 Manager does not initialize or mutate `EnvironmentOptions`, infer the application
-name, orchestrate `IStartable`, or supply a Startup Pipeline. Preparation failures
+name or orchestrate `IStartable`. The separate Startup integration owns sequential
+application initialization. Preparation failures
 must stop host startup before container construction; an immutable report is
 available only after successful preparation.

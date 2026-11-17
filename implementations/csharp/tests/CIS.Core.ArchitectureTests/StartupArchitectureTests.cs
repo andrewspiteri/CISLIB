@@ -16,7 +16,7 @@ public sealed class StartupArchitectureTests
         .ToDictionary(code => code.Value);
 
     [TestMethod]
-    public void CoordinatorAndItsGeneratedWorkCannotReferenceHeartbeat()
+    public void CoordinatorAndItsGeneratedWorkCannotReferenceHeartbeatOrConfiguration()
         => AssertIndependent(typeof(StartupCoordinator));
 
     [TestMethod]
@@ -26,6 +26,7 @@ public sealed class StartupArchitectureTests
     [DataRow(nameof(BodyOnlyDependency))]
     [DataRow(nameof(AsyncBodyOnlyDependency))]
     [DataRow(nameof(TypeTokenDependency))]
+    [DataRow(nameof(ConfigurationFieldDependency))]
     public void BoundaryRejectsRealSignatureFieldAndBodyDependencies(string fixture)
     {
         Type source = typeof(StartupArchitectureTests).GetNestedType(fixture, BindingFlags.NonPublic)!;
@@ -43,9 +44,11 @@ public sealed class StartupArchitectureTests
                 foreach (Type target in ContainedTypes(dependency, new HashSet<Type>()))
                 {
                     if (target.Namespace == "CIS.Heartbeat"
-                        || target.Namespace?.StartsWith("CIS.Heartbeat.", StringComparison.Ordinal) == true)
+                        || target.Namespace?.StartsWith("CIS.Heartbeat.", StringComparison.Ordinal) == true
+                        || target.Namespace == "CIS.Configuration"
+                        || target.Namespace?.StartsWith("CIS.Configuration.", StringComparison.Ordinal) == true)
                     {
-                        throw new InvalidOperationException("Startup coordinator depends on Heartbeat: " + site + " -> " + target.FullName);
+                        throw new InvalidOperationException("Startup coordinator depends on an optional runtime module: " + site + " -> " + target.FullName);
                     }
                 }
             }
@@ -150,6 +153,10 @@ public sealed class StartupArchitectureTests
     private sealed class FieldDependency
     {
         internal HeartbeatRuntime? Runtime { get; set; }
+    }
+    private sealed class ConfigurationFieldDependency
+    {
+        internal global::CIS.Configuration.ConfigurationRuntime? Runtime { get; set; }
     }
     private static class GenericSignatureDependency
     {

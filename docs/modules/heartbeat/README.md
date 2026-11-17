@@ -25,6 +25,13 @@ drains before dependent stopping. The ordinary framework web-host service may
 follow this cooperating pair. Standalone Heartbeat retains its final-service
 ordering rule and `ApplicationStarted` activation behavior shown below.
 
+[Configuration](../configuration/hosting.md) uses this same engine when the host
+explicitly supplies a polling interval. It loads/reconciles directly before
+dependent startup, and its subscriber returns the full refresh task. Configuration
+owns provider-work cancellation because Heartbeat does not cancel callback tokens
+at shutdown. `Startup.Hosting` closes that optional module before awaiting
+Heartbeat and joins their actual work before dependency teardown.
+
 ## Actual owners and hosting
 
 ```csharp

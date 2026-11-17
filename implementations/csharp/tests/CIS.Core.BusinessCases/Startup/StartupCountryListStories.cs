@@ -36,6 +36,18 @@ public sealed class StartupCountryListStories
         Assert.IsFalse(after["refreshCompleted"]!.GetValue<bool>(), "Readiness must not wait for the first refresh.");
         Assert.IsTrue(report["refresh"]!["completed"]!.GetValue<bool>());
         Assert.IsTrue(report["refresh"]!["count"]!.GetValue<int>() >= 1);
+        JsonObject configuration = report["configuration"]!.AsObject();
+        Assert.AreEqual(3, configuration["constructorLimit"]!.GetValue<int>(), "Stage 1 construction receives already-populated settings.");
+        Assert.IsTrue(configuration["rootSharedAcrossScopes"]!.GetValue<bool>());
+        Assert.IsTrue(configuration["rootRetainedAfterReload"]!.GetValue<bool>());
+        Assert.AreEqual(3, configuration["initialLimit"]!.GetValue<int>());
+        Assert.AreEqual(3, configuration["maskedLimit"]!.GetValue<int>());
+        Assert.AreEqual(0, configuration["maskedEventCount"]!.GetValue<int>());
+        Assert.AreEqual(1, configuration["reloadedLimit"]!.GetValue<int>(), "Removing the override exposes the latest common value.");
+        Assert.AreEqual(1, configuration["reloadedEventCount"]!.GetValue<int>(), "The retained subscriber sees one actual effective change.");
+        Assert.AreEqual(1, configuration["businessCountryCount"]!.GetValue<int>());
+        Assert.AreEqual(1, configuration["watchSubscriptions"]!.GetValue<int>());
+        Assert.IsTrue(configuration["watchDetached"]!.GetValue<bool>());
         Assert.IsTrue(report["stopped"]!.GetValue<bool>());
     }
 }

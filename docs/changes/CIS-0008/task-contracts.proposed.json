@@ -1,0 +1,104 @@
+{
+  "tasks": [
+    {
+      "title": "Define Configuration contracts and retained-root read/event ownership",
+      "scopeIds": [
+        "configuration"
+      ],
+      "paths": [
+        "implementations/csharp/src/CIS.Core/Configuration/Contracts",
+        "implementations/csharp/src/CIS.Core/Configuration/Objects",
+        "implementations/csharp/src/CIS.Core/Environment/Resolution",
+        "implementations/csharp/tests/CIS.Core.UnitTests",
+        "implementations/csharp/tests/CIS.Core.ArchitectureTests",
+        "docs/modules/configuration",
+        "planning/configuration",
+        "docs/changes/CIS-0008"
+      ],
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex",
+      "acceptanceCriteria": "Under the selected P01–P08 profile, preserve existing diagnostic names; establish explicit marker/event, provider/result, retained-entry/default/prepared-value and reader contracts without a framework. Reuse actual Type Manager query for concrete closed candidates, report incompatible types, construct exactly once via eligible constructor or explicit exact-type factory and capture defaults once. Own each root/gate per runtime, stable type/assembly storage identity with fixed host scope/collision checks, synchronized short reads and helper-backed direct-interface/base event subscriptions with useful incompatible-wiring detection. Include tests/docs/review in this owner; no mapper, backend or scheduler hidden in contracts.",
+      "validation": "Focused native identity/host isolation/retention, key and host collision/version policy, constructor/eligibility/default capture, exact-instance reader rejection, direct-interface/optional-base event wiring and negative architecture guards. Establish meaningful Core+Unit builds after actual allocation; inspect names against existing CIS.Configuration and approved dependency closure. Freeze shared seams before W2/W3 and record exact symbols/results, scope/review and real cost."
+    },
+    {
+      "title": "Implement presence-aware effective values and prepared retained-object commits",
+      "scopeIds": [
+        "configuration"
+      ],
+      "paths": [
+        "implementations/csharp/src/CIS.Core/Configuration/Mapping",
+        "implementations/csharp/tests/CIS.Core.UnitTests",
+        "implementations/csharp/tests/CIS.Core.BusinessCases",
+        "docs/modules/configuration",
+        "planning/configuration",
+        "docs/changes/CIS-0008"
+      ],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex",
+      "acceptanceCriteria": "Implement defaults/common/application presence composition through W1 seams, nested POCO merge and full collection/dictionary replacement; explicit false/zero/empty/null, omissions and confirmed deletions follow selected P03. Fixed supported passive property mapping, deterministic typed representation/effective SHA-256 and per-type validation precede live writes. Prepared commits preserve root/events under the shared read gate; invalid candidates preserve accepted values/revision, and unexpected live setter failure faults/disables the entry rather than claiming rollback. No general mapper/validation language; own tests/docs/review.",
+      "validation": "Native independent expected-value cases for all scope-presence combinations, override removal, current masked common changes, once-captured defaults, nested/collection/null conversions, duplicate/unknown/ambiguous names, secret-safe failures and representation stability across property order/culture/number/date/enum choices. Controlled slowed commit with synchronized reader proves no mixed state; root and subscriptions survive. Parallel with W3 only in named files after W1; queue shared-seam changes through root. Record mapping/checksum source scope and meaningful affected native/mutation applicability."
+    },
+    {
+      "title": "Implement provider bookkeeping and serialized Configuration refresh/lifetime",
+      "scopeIds": [
+        "configuration"
+      ],
+      "paths": [
+        "implementations/csharp/src/CIS.Core/Configuration/Storage",
+        "implementations/csharp/src/CIS.Core/Configuration/Refresh",
+        "implementations/csharp/tests/CIS.Core.UnitTests",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests",
+        "docs/modules/configuration",
+        "planning/configuration",
+        "docs/changes/CIS-0008"
+      ],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex",
+      "acceptanceCriteria": "Implement host-supplied provider reads and per-entry source cache using Found/Missing/Unchanged/Failure, keeping source tokens separate from accepted effective values and invalid conditional state. One serialized retrieval-to-notification path, bounded pending flags/runners and subscribe/reconcile/reconnect handling serve all triggers. Commit/cancel/stopping admission is coordinated; pre-commit cancellation preserves values and accepted commits finish ordered notifications outside the gate, isolating synchronous handlers. Close triggers/subscriptions, cancel owned provider work and drain actual operations without disposing host-owned adapters/POCOs. W3 owns tests/docs/review, not a production store or a scheduler.",
+      "validation": "Controlled native races for stale local read exclusion, pending-to-idle handoff, watch activation/reconnect gaps, masked source bookkeeping, invalid-token-plus-Unchanged, unsuccessful read versus deletion, no extra initial/unchanged/failed events, after-commit cancellation and handler read/reentrancy/error isolation. Stop while provider/notification held proves actual drain and no post-stop commit; bound work by entries. Use controlled W1 prepared-value seam beside W2, then bind actual pipeline at W4. Record provider fixture truth and exact actual results/cost."
+    },
+    {
+      "title": "Integrate pre-DI Configuration bootstrap with real hosting and package consumers",
+      "scopeIds": [
+        "configuration"
+      ],
+      "paths": [
+        "implementations/csharp/src/CIS.Core/Configuration/Hosting",
+        "implementations/csharp/src/CIS.Core/Configuration",
+        "implementations/csharp/src/CIS.Core/Startup/Hosting",
+        "implementations/csharp/tests",
+        "implementations/csharp/examples/type-manager",
+        "implementations/csharp/examples/startup",
+        "implementations/csharp/verification/qualification",
+        "implementations/csharp/verification/mutation",
+        "implementations/csharp/CisLib.slnx",
+        "docs/modules/startup",
+        "docs/modules/heartbeat",
+        "docs/modules/type-management/configuration-boundary.md",
+        "docs/catalog.yml",
+        "README.md",
+        "docs/modules/configuration",
+        "planning/configuration",
+        "docs/changes/CIS-0008"
+      ],
+      "dependsOn": [
+        "WORK-002",
+        "WORK-003"
+      ],
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex",
+      "acceptanceCriteria": "Bind W1–W3 into explicit async preparation after the actual prepared Type Manager before the one root Build; concrete POCO resolutions/constructors get populated retained roots across scopes. Enroll Configuration activation before dependent IStartable work, subscribe/reconcile or reconcile/register actual Heartbeat polling with explicit interval, and preserve startup/readiness ownership. Startup.Hosting closes optional Configuration/cancels owned provider work before HB cutoff/drain and joins actual module/startup/HB work before teardown; coordinator stays independent. Demonstrate actual notifications/provider boundary and existing Console/Web source/package consumers with genuine inventory/SDK, compact health/status and clear host-owned production-backend boundary. Include affected six-category evidence, docs/review and settled closeout; no separate QA campaign.",
+      "validation": "Real host and actual Type Manager/inventory tests prove constructor-ready initial values, same root across scopes/reload, masked common update/removal, actual scheduler/notification convergence and bootstrap/watch gaps. Held provider/poll callback/event-handler tests prove normal and canceled StopAsync cannot deadlock or dispose dependencies before true Config+HB+startup settlement. Run affected existing Unit/Integration/Architecture/Compatibility/Business projects serially, actual existing package-consumer lanes and applicable bounded mutation using existing tools within the shared grant; identify exact executed bytes/platform/scope, retain release gaps and avoid double-credit from historical Type Manager evidence. Review necessity of the narrow hosting change and preserve all old module contracts/source/user files."
+    }
+  ]
+}

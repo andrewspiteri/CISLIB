@@ -1,6 +1,6 @@
 # CisLib
 
-CisLib implements Logging, Type Manager, Healthcheck and Heartbeat in one C# `CIS.Core` package and assembly. It targets .NET 10; Core uses the approved Microsoft runtime dependencies and `Microsoft.AspNetCore.App`. Applications own runtime startup, shutdown and resources. The library does not depend on Change Impact Studio.
+CisLib implements Logging, Type Manager, Healthcheck, Heartbeat, Startup and Configuration in one C# `CIS.Core` package and assembly. It targets .NET 10; Core uses the approved Microsoft runtime dependencies and `Microsoft.AspNetCore.App`. Applications own runtime startup, shutdown and resources. The library does not depend on Change Impact Studio.
 
 Run commands from `implementations/csharp` so `global.json` selects SDK **10.0.401**. The selected qualification runtime is **10.0.12**; install its ASP.NET Core shared framework as well.
 
@@ -39,6 +39,7 @@ A local development package is not a published release. Scoped checks and curren
 | Healthcheck | [Usage and transports](docs/modules/healthcheck/README.md), [technical intent](planning/healthcheck/technical-intent.md), [contracts](planning/healthcheck/contract-catalog.md) |
 | Heartbeat | [Owners, scheduling and hosting](docs/modules/heartbeat/README.md), [Polling example](implementations/csharp/examples/heartbeat/Polling/README.md), [implementation record](docs/changes/CIS-0006/verification.md) |
 | Startup and DI | [Sequential startup and runnable country-list example](docs/modules/startup/README.md), [enrollment and lifetime contract](docs/modules/startup/core.md), [requirements](planning/startup/README.md) |
+| Configuration | [Preparation and hosting](docs/modules/configuration/hosting.md), [retained reads/events](docs/modules/configuration/core.md), [mapping](docs/modules/configuration/mapping.md), [refresh lifetime](docs/modules/configuration/refresh.md), [requirements](planning/configuration/README.md) |
 | Shared behavior | [Logging contracts](contracts/logging/README.md), [Healthcheck contracts](contracts/healthcheck/v1/README.md), native fixtures under `conformance/` |
 | Architecture | [Dependencies](docs/architecture/csharp-dependency-policy.md), [compatibility](docs/architecture/compatibility-policy.md), [assembly identity](docs/architecture/csharp-assembly-policy.md) |
 

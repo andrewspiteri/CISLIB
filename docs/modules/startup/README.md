@@ -39,7 +39,8 @@ WebApplication app = builder.Build();
 ```
 
 The complete [example composition](../../../implementations/csharp/examples/startup/CountryList/Program.cs)
-includes the Healthcheck service, availability monitor and Heartbeat owner needed
+also awaits [Configuration preparation](../configuration/hosting.md) before Build
+and enrolls its activation before the sample aliases. It includes the Healthcheck service, availability monitor and Heartbeat owner needed
 by these sample services. The factory aliases enroll the same concrete
 singletons. They also avoid the mixed supplied-instance validation limitation
 documented in the [core contract](core.md). Neither validation option proves the
@@ -83,7 +84,11 @@ closes Heartbeat admission before entering the coordinator's stopping gate. The
 hosted barrier joins actual startup work and Heartbeat callbacks, handlers and
 cleanup before dependent lifecycle stopping or root disposal. A canceled host
 stop budget does not release those dependencies early. The coordinator itself
-joins startup work; it does not own the Heartbeat drain.
+joins startup work; it does not own the Heartbeat drain. With prepared Configuration,
+hosting closes its provider-work admission before Heartbeat and joins its actual
+activation, watch/provider/notification and polling work in the same barrier.
+The first host-start token closes this admission while later initialization is
+held. The coordinator remains independent of both optional modules.
 
 Install the existing reserved health branch before every business side effect:
 

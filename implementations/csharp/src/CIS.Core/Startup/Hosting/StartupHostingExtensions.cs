@@ -1,4 +1,5 @@
 using CIS.Healthcheck;
+using CIS.Configuration;
 using CIS.Heartbeat;
 using CIS.Heartbeat.Hosting;
 using Microsoft.AspNetCore.Hosting;
@@ -33,6 +34,7 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
 {
     private readonly StartupCoordinator coordinator;
     private readonly HeartbeatRuntime? heartbeat;
+    private readonly ConfigurationRuntime? configuration;
     private readonly StartupHostingOrder order;
     private readonly IHostApplicationLifetime lifetime;
     private readonly IOptions<HostOptions> hostOptions;
@@ -48,6 +50,7 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
         this.lifetime = lifetime;
         this.hostOptions = hostOptions;
         heartbeat = root.GetService<HeartbeatRuntime>();
+        configuration = root.GetService<ConfigurationRuntime>();
         coordinator = new StartupCoordinator(root, order.Descriptors,
             root.GetService<HealthcheckService>(), root.GetService<ILogger<StartupCoordinator>>(),
             ConfirmStartupCompletion);
@@ -65,8 +68,8 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
         {
             stopping = lifetime.ApplicationStopping.UnsafeRegister(static value => ((StartupHostedService)value!).BeginStopping(), this);
             // Close admission even while an initializer ignores startup cancellation.
-            startupStopping = heartbeat is null ? default : cancellationToken.UnsafeRegister(
-                static value => ((HeartbeatRuntime)value!).BeginStopping(), heartbeat);
+            startupStopping = heartbeat is null && configuration is null ? default : cancellationToken.UnsafeRegister(
+                static value => ((StartupHostedService)value!).CloseModuleAdmission(), this);
         }
         return Task.CompletedTask;
     }
@@ -83,37 +86,51 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
 
     private bool ConfirmStartupCompletion(CancellationToken cancellationToken)
     {
-        if (heartbeat is null) { return true; }
+        if (heartbeat is null && configuration is null) { return true; }
         // This callback closes dispatch independently of the coordinator gate if
         // the first host startup token is canceled during actual activation.
         completionStopping = cancellationToken.UnsafeRegister(
-            static value => ((HeartbeatRuntime)value!).BeginStopping(), heartbeat);
-        return heartbeat.ActivateForStartup();
+            static value => ((StartupHostedService)value!).CloseModuleAdmission(), this);
+        return heartbeat?.ActivateForStartup() ?? true;
     }
 
     private void BeginStopping()
     {
         coordinator.RequestStopping();
+        CloseModuleAdmission();
+        coordinator.BeginStopping();
+    }
+
+    private void CloseModuleAdmission()
+    {
+        // Configuration owns cancellation for provider work inside HB callbacks.
+        // Publish its cutoff before either module's actual drain is awaited.
+        configuration?.BeginStopping();
         // Close dispatch before waiting for the final startup publication gate.
         heartbeat?.BeginStopping();
-        coordinator.BeginStopping();
     }
 
     private async Task StopCoreAsync()
     {
         BeginStopping();
+        Task configurationDrain = configuration?.StopAsync() ?? Task.CompletedTask;
         Task heartbeatDrain = heartbeat?.StopAsync() ?? Task.CompletedTask;
-        await coordinator.StopAsync().ConfigureAwait(false);
-        await heartbeatDrain.ConfigureAwait(false);
+        await Task.WhenAll(coordinator.StopAsync(), configurationDrain, heartbeatDrain).ConfigureAwait(false);
     }
 
     public async ValueTask DisposeAsync()
     {
-        await StopCoreAsync().ConfigureAwait(false);
-        await coordinator.DisposeAsync().ConfigureAwait(false);
-        completionStopping.Dispose();
-        startupStopping.Dispose();
-        stopping.Dispose();
+        try { await StopCoreAsync().ConfigureAwait(false); }
+        finally
+        {
+            try { await coordinator.DisposeAsync().ConfigureAwait(false); }
+            finally
+            {
+                completionStopping.Dispose();
+                startupStopping.Dispose();
+                stopping.Dispose();
+            }
+        }
     }
 }
 

@@ -1,5 +1,7 @@
 using System.Net.Http.Json;
 using System.Text.Json;
+using CIS.Configuration;
+using CIS.Configuration.Hosting;
 using CIS.Healthcheck;
 using CIS.Healthcheck.AspNetCore;
 using CIS.Heartbeat;
@@ -19,6 +21,14 @@ internal static class Program
 
         // Preparation is real and complete before the one root provider is built.
         ITypeManager prepared = await TypeManager.CreateAsync(new TypeManagerOptions(typeof(Program).Assembly)).ConfigureAwait(false);
+        var configurationStore = new CountryConfigurationStore("CountryList");
+        await using ConfigurationRuntime configuration = await ConfigurationRuntime.PrepareAsync(prepared,
+            new ConfigurationOptions("CountryList", configurationStore)
+            {
+                IsHealthCritical = true,
+                Validators = new Dictionary<Type, Action<IConfigurationObject>>
+                { [typeof(CountryListSettings)] = configurationStore.ValidateCandidate }
+            }).ConfigureAwait(false);
         WebApplicationBuilder builder = WebApplication.CreateBuilder(hostArgs);
         builder.Host.UseDefaultServiceProvider(options =>
         {
@@ -43,6 +53,9 @@ internal static class Program
         builder.Services.AddSingleton<IAvailabilityMonitor>(provider => provider.GetRequiredService<HealthcheckService>()
             .CreateAvailability(new AvailabilityMonitorOptions { Name = "Usable country list", IsCritical = true }));
         builder.Services.AddSingleton(provider => provider.GetRequiredService<HeartbeatRuntime>().CreateOwner());
+        // Enroll Configuration before dependent initializers. Its concrete roots
+        // were already populated before this single provider construction.
+        builder.Services.AddCisConfiguration(configuration);
         builder.Services.AddSingleton<CountryCatalog>();
         builder.Services.AddSingleton<CountryReader>();
         // Explicit factory aliases enroll these same concrete singleton objects,
@@ -75,7 +88,8 @@ internal static class Program
             startup = app.StartAsync();
             if (selfTest)
             {
-                report = await ObserveAsync(app, startup, source, health, prepared, () => Volatile.Read(ref businessRequests)).ConfigureAwait(false);
+                report = await ObserveAsync(app, startup, source, health, prepared, configurationStore,
+                    () => Volatile.Read(ref businessRequests)).ConfigureAwait(false);
             }
             else
             {
@@ -99,17 +113,23 @@ internal static class Program
                 }
             }
             await app.DisposeAsync().ConfigureAwait(false);
+            await configuration.DisposeAsync().ConfigureAwait(false);
         }
 
         if (report is not null)
         {
-            Console.WriteLine(JsonSerializer.Serialize(report with { Stopped = true }, new JsonSerializerOptions(JsonSerializerDefaults.Web)));
+            Require(configurationStore.WatchDetached, "Configuration observation must detach before completed shutdown is reported.");
+            Console.WriteLine(JsonSerializer.Serialize(report with
+            {
+                Stopped = true,
+                Configuration = report.Configuration with { WatchDetached = true }
+            }, new JsonSerializerOptions(JsonSerializerDefaults.Web)));
         }
         return 0;
     }
 
     private static async Task<SelfTestReport> ObserveAsync(WebApplication app, Task startup, CountrySource source,
-        HealthcheckService health, ITypeManager prepared, Func<int> businessRequests)
+        HealthcheckService health, ITypeManager prepared, CountryConfigurationStore configurationStore, Func<int> businessRequests)
     {
         using var budget = new CancellationTokenSource(TimeSpan.FromSeconds(20));
         await Task.WhenAny(source.PrimeEntered, startup).WaitAsync(budget.Token).ConfigureAwait(false);
@@ -140,7 +160,51 @@ internal static class Program
         await source.FirstRefreshEntered.WaitAsync(budget.Token).ConfigureAwait(false);
         source.ReleaseRefresh();
         await catalog.FirstRefreshCompleted.WaitAsync(budget.Token).ConfigureAwait(false);
-        return new SelfTestReport("Startup.CountryList", before, after, new RefreshObservation(true, catalog.RefreshCount), false);
+        ConfigurationObservation configuration = await ObserveConfigurationAsync(app, client, reader, configurationStore, budget.Token).ConfigureAwait(false);
+        return new SelfTestReport("Startup.CountryList", before, after, new RefreshObservation(true, catalog.RefreshCount), configuration, false);
+    }
+
+    private static async Task<ConfigurationObservation> ObserveConfigurationAsync(WebApplication app, HttpClient client,
+        CountryReader reader, CountryConfigurationStore store, CancellationToken cancellationToken)
+    {
+        CountryListSettings settings = app.Services.GetRequiredService<CountryListSettings>();
+        IConfigurationReader synchronized = app.Services.GetRequiredService<IConfigurationReader>();
+        await using AsyncServiceScope first = app.Services.CreateAsyncScope();
+        await using AsyncServiceScope second = app.Services.CreateAsyncScope();
+        bool shared = ReferenceEquals(settings, reader.Settings)
+            && ReferenceEquals(settings, first.ServiceProvider.GetRequiredService<CountryListSettings>())
+            && ReferenceEquals(settings, second.ServiceProvider.GetRequiredService<CountryListSettings>());
+        int initial = synchronized.Read(settings, current => current.ResultLimit);
+        int changes = 0;
+        bool retainedSender = true;
+        var reloaded = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        EventHandler<ConfigurationChangedEventArgs> changed = (sender, _) =>
+        {
+            Interlocked.Increment(ref changes);
+            retainedSender &= ReferenceEquals(sender, settings);
+            if (synchronized.Read(settings, current => current.ResultLimit) == 1) { reloaded.TrySetResult(); }
+        };
+        settings.ConfigurationChanged += changed;
+        try
+        {
+            await store.ChangeCommonLimitAsync(1).WaitAsync(cancellationToken).ConfigureAwait(false);
+            int masked = synchronized.Read(settings, current => current.ResultLimit);
+            int maskedChanges = Volatile.Read(ref changes);
+            store.RemoveApplicationOverride();
+            await reloaded.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+            Country[] response = await client.GetFromJsonAsync<Country[]>("/countries", cancellationToken).ConfigureAwait(false)
+                ?? throw new InvalidOperationException("The reloaded countries response was empty.");
+            int current = synchronized.Read(settings, value => value.ResultLimit);
+            bool retained = retainedSender && ReferenceEquals(settings, app.Services.GetRequiredService<CountryListSettings>())
+                && ReferenceEquals(settings, second.ServiceProvider.GetRequiredService<CountryListSettings>());
+            Require(reader.ConstructorResultLimit == 3 && initial == 3 && shared && retained,
+                "Consumers must receive initialized configuration and retain the exact root through scopes and reload.");
+            Require(masked == 3 && maskedChanges == 0 && current == 1 && changes == 1 && response.Length == 1,
+                "A masked common change must remain silent; removing the override must expose the latest common value once.");
+            return new(reader.ConstructorResultLimit, shared, retained, initial, masked, maskedChanges, current,
+                changes, response.Length, store.Subscriptions, false);
+        }
+        finally { settings.ConfigurationChanged -= changed; }
     }
 
     private static async Task<int> StatusAsync(HttpClient client, string path, CancellationToken cancellationToken)
@@ -157,5 +221,9 @@ internal static class Program
     private sealed record BeforeObservation(int ReadinessStatus, int BusinessStatus, int BusinessRequests, bool StartupPending);
     private sealed record AfterObservation(int ReadinessStatus, int BusinessStatus, int CountryCount, bool ReaderStarted, bool SameTypeManager, bool RefreshCompleted);
     private sealed record RefreshObservation(bool Completed, int Count);
-    private sealed record SelfTestReport(string Example, BeforeObservation Before, AfterObservation After, RefreshObservation Refresh, bool Stopped);
+    private sealed record ConfigurationObservation(int ConstructorLimit, bool RootSharedAcrossScopes, bool RootRetainedAfterReload,
+        int InitialLimit, int MaskedLimit, int MaskedEventCount, int ReloadedLimit, int ReloadedEventCount,
+        int BusinessCountryCount, int WatchSubscriptions, bool WatchDetached);
+    private sealed record SelfTestReport(string Example, BeforeObservation Before, AfterObservation After,
+        RefreshObservation Refresh, ConfigurationObservation Configuration, bool Stopped);
 }
