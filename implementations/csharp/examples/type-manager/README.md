@@ -1,8 +1,9 @@
 # Type Manager examples
 
-These development examples use the same `CIS.Core` project as logging. They do not
-construct any discovered objects. `IDiscoveryExample` is a sample-only contract;
-it is not a proposed Configuration API.
+These development examples use the same `CIS.Core` project as logging. They first
+prepare the real Type Manager, then load retained Configuration objects before
+building the actual host. `IDiscoveryExample` remains a discovery-only contract;
+its original throwing-constructor fixtures are never constructed.
 
 Use SDK **10.0.401**, .NET runtime **10.0.12** and ASP.NET Core shared framework
 **10.0.12**. Run the source-reference examples from `implementations/csharp`:
@@ -16,18 +17,45 @@ Both examples require the .NET and ASP.NET Core shared frameworks because the si
 
 Both hosts explicitly supply their own assembly, await `TypeManager.CreateAsync`,
 print the completed preparation report, and show each candidate's type and defining
-assembly identity. The implementation library is referenced for deployment but
-none of its classes is referenced by host code. It is initially unloaded and its
+assembly identity. The implementation library is initially unloaded and its
 two concrete candidates are discovered, including an inherited, nonpublic class
 with a private constructor. Such types are valid discovery results, not a promise
 that a consumer can construct them.
 
-The console reaches `APPLICATION_READY` only after preparation. The Web sample
-creates even its builder after preparation, registers the completed manager with
+Separate passive `DirectConfiguration` and `InheritedConfiguration` classes now
+live in that same initially-unused library. Configuration queries the complete
+prepared `IConfigurationObject` result without filtering out incompatible types.
+The hosts' strongly typed references are isolated in non-inlined shared helpers
+called after preparation, preserving the fresh-process initial-loading check.
+
+Both hosts prepare Configuration before even creating their builder, register
+it first with `AddCisConfiguration`, then register dependent consumers and the
+existing Startup adapter. Standard DI scope/build validation is enabled on the
+one actual root. The console reaches `APPLICATION_READY` only after actual host
+start and a successful refresh. The Web sample registers the completed manager with
 `AddSingleton<ITypeManager>(manager)`, then builds the container. Two different
 scoped consumers and the root provider must resolve that exact instance and the
 same cached query result. `GET /catalog` demonstrates the same relationship from
-a real request scope. No discovered class is automatically registered in DI.
+a real request scope and returns a synchronized Configuration snapshot too.
+
+The finite `LiteralConfigurationStore` is a host-owned demonstration adapter,
+not a production backend. It explicitly selects reliable watch notifications,
+so these hosts need no polling interval, Heartbeat or Healthcheck installation.
+Literal application records provide greeting `configured-before-construction`
+and batch size `42`; the dependent startable captures those values in its
+constructor, before Stage 2. Two scoped consumers receive the same concrete roots.
+After activation, one real watch invalidation changes the values to
+`refreshed-after-startup` and `84`. Original event subscriptions observe one change
+per object, and the roots remain the same across scopes and refresh.
+
+Both hosts await Configuration and host stop before root disposal. An explicit
+async owner around the prepared runtime also handles Build failures before DI
+captures it. Runtime disposal joins the same operation when DI and that owner
+both dispose it. The watch is released by Configuration; the outer application
+disposes its store afterward. The JSON verification report retains the original
+discovery fields and adds literal constructor values, scoped identity, refresh,
+event count and watch/store ownership observations. Web `--verify` starts and
+stops the actual Kestrel host rather than inspecting an unstarted provider.
 
 ## Folder publication and broken deployment
 
@@ -72,7 +100,9 @@ For a clean example consumer, copy `Console`, `Web`, `Contracts`, `Unused` and
 and old `packages.lock.json` files. Keep `Program.cs`, `CatalogConsumer.cs`, the
 sample Contracts/Unused references and shared verification code. Remove each
 host's Core `ProjectReference`, source target import and broad `RuntimeIdentifiers`
-list. Replace the Console project with:
+list. Also replace Unused's Core `ProjectReference` with an ordinary exact matching
+`PackageReference`; the child must not retain a path into the source checkout.
+Replace the Console project with:
 
 ```xml
 <Project Sdk="Microsoft.NET.Sdk">
@@ -87,6 +117,7 @@ list. Replace the Console project with:
     <ProjectReference Include="../Contracts/Contracts.csproj" />
     <ProjectReference Include="../Unused/Unused.csproj" />
     <Compile Include="../Shared/SampleVerification.cs" Link="SampleVerification.cs" />
+    <Compile Include="../Shared/ConfigurationExample.cs" Link="ConfigurationExample.cs" />
   </ItemGroup>
 </Project>
 ```
@@ -95,7 +126,10 @@ For Web, use the same project structure with `Sdk="Microsoft.NET.Sdk.Web"` and
 `AssemblyName` set to `CIS.TypeManager.Examples.Web`. Use the actual candidate
 version in both `Sdk` elements; `0.1.0-dev.1` is the current development version.
 Do not add a Core `PackageReference`: the SDK supplies the exact matching runtime
-dependency from the same package. `CIS.TypeManager.Build.dll` belongs to its build
+dependency from the same package. Unused is an ordinary library rather than a
+host SDK consumer: retain its Contracts project reference and use
+`<PackageReference Include="CIS.Core" Version="[0.1.0-dev.1]" />` there, replacing
+that version with the same exact candidate. `CIS.TypeManager.Build.dll` belongs to its build
 assets and must not appear in the application's runtime output.
 
 Place this `Directory.Build.props` beside the copied directories, so Contracts and
@@ -174,6 +208,9 @@ applies to a disposable package-consumer publish output.
 
 These instructions describe the supported package route. Actual Windows 11 x64
 and Ubuntu 24.04 x64 outcomes are recorded in [CIS-0002 verification](../../../../docs/changes/CIS-0002/verification.md).
+Those historical discovery checks predate the new Configuration consumer path;
+Configuration results and remaining provider/platform limits belong to
+[CIS-0008 verification](../../../../docs/changes/CIS-0008/verification.md).
 Cross-publishing alone does not establish a platform pass, publication or full
 release qualification. Visual Studio/MSBuild.exe, `PublishUrl`, custom helper
 output layouts, AOT, trimming, single-file, self-contained output, plugins and

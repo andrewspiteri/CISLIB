@@ -51,7 +51,10 @@ public sealed class ConfigurationAmbientStateTests
     {
         Assembly core = Assembly.LoadFrom(Path.Combine(AppContext.BaseDirectory, "CIS.Core.dll"));
         int checkedMethods = 0;
-        foreach (Type type in core.GetTypes().Where(type => IsStartupType(type)))
+        Type[] pureTypes = core.GetTypes().Where(IsPureStartupType).ToArray();
+        CollectionAssert.IsSubsetOf(new[] { typeof(CIS.EnvironmentOptions), typeof(CIS.Configuration.ConfigurationCatalog),
+            typeof(CIS.Configuration.ConfigurationValuePipeline) }, pureTypes);
+        foreach (Type type in pureTypes)
         {
             const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly;
             IEnumerable<MethodBase> methods = type.GetMethods(flags).Cast<MethodBase>().Concat(type.GetConstructors(flags));
@@ -73,7 +76,7 @@ public sealed class ConfigurationAmbientStateTests
     {
         MethodInfo probe = typeof(ConfigurationAmbientStateTests).GetMethod(nameof(InfrastructureProbe), BindingFlags.NonPublic | BindingFlags.Static)!;
         string[] actual = Calls(probe).Where(IsInfrastructureCall).Select(called => called.DeclaringType?.FullName + "." + called.Name).ToArray();
-        foreach (string expected in new[] { "System.IO.Directory.CreateDirectory", "System.IO.File.OpenWrite", "System.IO.File.Exists", "System.Net.Http.HttpClient..ctor", "System.Threading.Thread..ctor", "System.Threading.Thread.Start", "System.Threading.ThreadPool.QueueUserWorkItem", "System.Threading.Tasks.Task.Run" })
+        foreach (string expected in new[] { "System.IO.Directory.CreateDirectory", "System.IO.File.OpenWrite", "System.IO.File.Exists", "System.Net.Http.HttpClient..ctor", "System.Threading.Thread..ctor", "System.Threading.Thread.Start", "System.Threading.ThreadPool.QueueUserWorkItem", "System.Threading.ThreadPool.UnsafeQueueUserWorkItem", "System.Threading.Tasks.Task.Run" })
         {
             Assert.IsTrue(actual.Contains(expected, StringComparer.Ordinal), expected);
         }
@@ -137,6 +140,19 @@ public sealed class ConfigurationAmbientStateTests
         type == typeof(CIS.Heartbeat.HeartbeatOptions) || type == typeof(CIS.Heartbeat.HeartbeatRegistrationOptions) ||
         type == typeof(CIS.Logging.LoggingOptions) || type == typeof(CIS.Logging.EventMetadata);
 
+    // Configuration now includes an explicitly owned I/O/refresh lifetime. Keep
+    // the ambient-variable/presentation ban broad, while applying this pure-code
+    // boundary to legacy validation/getters and all new contracts/objects/mapping.
+    private static bool IsPureStartupType(Type type)
+    {
+        if (!IsStartupType(type)) { return false; }
+        Type root = type;
+        while (root.DeclaringType is { } parent) { root = parent; }
+        return root != typeof(CIS.Configuration.ConfigurationRuntime)
+            && root != typeof(CIS.Configuration.ConfigurationRefreshCoordinator)
+            && root != typeof(CIS.Configuration.ConfigurationSourceCache);
+    }
+
     private static bool IsInfrastructureCall(MethodBase called)
     {
         Type? type = called.DeclaringType;
@@ -166,6 +182,7 @@ public sealed class ConfigurationAmbientStateTests
         var worker = new Thread(static () => { });
         worker.Start();
         ThreadPool.QueueUserWorkItem(static _ => { });
+        ThreadPool.UnsafeQueueUserWorkItem(static _ => { }, (object?)null, preferLocal: false);
         _ = Task.Run(static () => { });
     }
 

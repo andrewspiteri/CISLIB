@@ -1,3 +1,4 @@
+using CIS.Configuration;
 using CIS.Healthcheck;
 using CIS.Heartbeat;
 using CIS.Heartbeat.Healthcheck;
@@ -54,8 +55,11 @@ internal sealed class CountryCatalog(CountrySource source, ITypeManager typeMana
     public Task OnErrorAsync(Exception exception) => Task.CompletedTask;
 }
 
-internal sealed class CountryReader(CountryCatalog catalog, ITypeManager typeManager) : IStartable
+internal sealed class CountryReader(CountryCatalog catalog, ITypeManager typeManager,
+    CountryListSettings settings, IConfigurationReader configurationReader) : IStartable
 {
+    internal int ConstructorResultLimit { get; } = configurationReader.Read(settings, current => current.ResultLimit);
+    internal CountryListSettings Settings => settings;
     internal bool Started { get; private set; }
     internal bool UsesPreparedTypeManager { get; private set; }
 
@@ -73,7 +77,8 @@ internal sealed class CountryReader(CountryCatalog catalog, ITypeManager typeMan
     }
 
     internal IReadOnlyList<Country> ReadCountries()
-        => Started ? catalog.Countries : throw new InvalidOperationException("CountryReader has not started.");
+        => Started ? catalog.Countries.Take(configurationReader.Read(settings, current => current.ResultLimit)).ToArray()
+            : throw new InvalidOperationException("CountryReader has not started.");
 }
 
 // A small local asynchronous source keeps the example runnable without an
