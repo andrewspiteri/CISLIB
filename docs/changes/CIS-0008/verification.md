@@ -7,6 +7,28 @@ change_id: CIS-0008
 
 # Verification
 
+## User-authorized merge and dossier closure — 17 November 2026
+
+Andrew Spiteri subsequently explicitly requested merging the Configuration branch
+and closing it before the next module. This later instruction authorizes publishing
+the reviewed branch to the existing CISLIB GitHub repository, merging into `main`
+and deleting the finished feature branch. The earlier implementation-only merge
+exclusion remains historical; no package release or next-module implementation is
+implied.
+
+Merge preparation verified implementation commit
+`e44688456b37590b506f57a65f9cf02ca00a3df2`, all four tasks Complete, no open logical
+attempt, active reservation or recovery hold, and fetched remote `main` unchanged
+at `4206a870130f577621277847788022e76f1dbe8f`. The user-owned launch settings remain
+untracked and unchanged. The documented 1,587-case Windows matrix and normal-build
+recovery are retained; the failed 27/35 mutation canary and unexecuted platform,
+adapter and full-release obligations remain explicit. Independent read-only
+closeout review confirmed the six TRX counters, tested Core/package and supplied
+source hashes, settled ownership and absence of generated binaries in the commit.
+Metadata-only closure does
+not warrant another native run or reset of prior costs/attempts. The GitHub pull
+request records the actual merge and branch-deletion outcome.
+
 | Task ID | Check | Command or artifact | Result | Notes |
 | --- | --- | --- | --- | --- |
 | Intake | Actual checkout | `main` at `4206a870130f577621277847788022e76f1dbe8f`, then local `codex/configuration-retained-pocos` | Inspected | Existing user launch settings remain untracked and untouched. No earlier feature branch was reopened. |

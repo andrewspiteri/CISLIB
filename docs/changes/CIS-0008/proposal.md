@@ -2,7 +2,7 @@
 title: "Retained POCO Configuration with coordinated refresh"
 type: change-proposal
 record_format: proportionate
-status: Proposed
+status: "Closed"
 change_id: CIS-0008
 outcome: "Deliver type-identified retained Configuration POCOs through DI: discover through prepared Type Manager, apply defaults/common/host overrides before consumer construction, and refresh the same instances with synchronized reads, effective checksums, ordered ConfigurationChanged, actual Startup/Heartbeat/lifetime integration and truthful provider/package evidence under the selected contract decisions."
 baseline_kind: git
