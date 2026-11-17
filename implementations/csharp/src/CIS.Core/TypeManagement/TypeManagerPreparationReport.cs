@@ -1,3 +1,5 @@
+using CIS.Metrics;
+
 namespace CIS.TypeManagement;
 
 /// <summary>Immutable preparation facts; these are not live query-cache counters.</summary>
@@ -28,4 +30,18 @@ public sealed class TypeManagerPreparationReport
     public IReadOnlyList<string> LoadedAssemblyIdentities { get; }
     /// <summary>Gets selected identities already present in the default context before the load phase.</summary>
     public IReadOnlyList<string> ReusedAssemblyIdentities { get; }
+
+    // Immutable terminal facts may be borrowed by independent hosts. This report
+    // retains neither a runtime nor an attachment claim, and never repeats discovery.
+    internal void AttachMetrics(MetricsRuntime runtime)
+    {
+        ArgumentNullException.ThrowIfNull(runtime);
+        runtime.RegisterObservableGauge(new("cis.typemanager.assemblies"), ObserveAssemblies);
+        runtime.RegisterObservableGauge(new("cis.typemanager.types"), ObserveTypes);
+        runtime.RegisterObservableGauge(new("cis.typemanager.initialization.duration", MetricUnit.Seconds), ObserveDuration);
+    }
+
+    private IReadOnlyList<MetricObservation> ObserveAssemblies() => [new(SelectedAssemblyCount)];
+    private IReadOnlyList<MetricObservation> ObserveTypes() => [new(TypeCount)];
+    private IReadOnlyList<MetricObservation> ObserveDuration() => [new(Elapsed.TotalSeconds)];
 }

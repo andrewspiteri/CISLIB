@@ -1,0 +1,23 @@
+{
+  "tasks": [
+    {
+      "complexity": "low",
+      "acceptanceCriteria": "Apply only the explicitly approved five OpenTelemetry package source-mapping entries in the existing NuGet.config; preserve all previous sources/mappings, Core dependency closure and finite limits. This is supporting package-configuration work under the existing Metrics outcome, not a new delivery outcome or budget.",
+      "title": "Enable the approved optional Metrics NuGet source mappings",
+      "assignee": "Codex",
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "validation": "Parse the actual XML; independently compare the five added IDs and all pre-existing source/mapping entries against main. Retain the actual optional-package restore/build result from WORK-002 as integration evidence without duplicate execution. No new source, wildcard or disabled package mapping.",
+      "category": "implementation",
+      "paths": [
+        "implementations/csharp/NuGet.config",
+        "docs/changes/CIS-0009"
+      ],
+      "scopeIds": [
+        "metrics",
+        "metrics-package-sources"
+      ]
+    }
+  ]
+}

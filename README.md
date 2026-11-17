@@ -1,6 +1,6 @@
 # CisLib
 
-CisLib implements Logging, Type Manager, Healthcheck, Heartbeat, Startup and Configuration in one C# `CIS.Core` package and assembly. It targets .NET 10; Core uses the approved Microsoft runtime dependencies and `Microsoft.AspNetCore.App`. Applications own runtime startup, shutdown and resources. The library does not depend on Change Impact Studio.
+CisLib implements Logging, Type Manager, Healthcheck, Heartbeat, Startup, Configuration and portable Metrics in the C# `CIS.Core` package and assembly. The optional `CIS.Metrics.OpenTelemetry` package adds bounded Prometheus collection and native HTTP integration. It targets .NET 10; Core uses the approved Microsoft runtime dependencies and `Microsoft.AspNetCore.App`. Applications own runtime startup, shutdown and resources. The library does not depend on Change Impact Studio.
 
 Run commands from `implementations/csharp` so `global.json` selects SDK **10.0.401**. The selected qualification runtime is **10.0.12**; install its ASP.NET Core shared framework as well.
 
@@ -28,6 +28,7 @@ Pack the library and its Type Manager build assets directly:
 
 ```powershell
 dotnet pack src/CIS.Core/CIS.Core.csproj -c Release -o ../../.artifacts/packages
+dotnet pack src/CIS.Metrics.OpenTelemetry/CIS.Metrics.OpenTelemetry.csproj -c Release -o ../../.artifacts/packages
 ```
 
 A local development package is not a published release. Scoped checks and current cleanup results are recorded in [cleanup disposition](planning/cis/cleanup-disposition.md). Direct coverage/mutation commands are documented in [native verification](implementations/csharp/verification/mutation/README.md). Complete platform, coverage, mutation, compatibility and release qualification remain separate obligations in [current decisions](planning/decisions.md). The removed preparation, custody, replay and recovery command protocols are retired; they do not require reimplementation in CIS.
@@ -40,6 +41,7 @@ A local development package is not a published release. Scoped checks and curren
 | Heartbeat | [Owners, scheduling and hosting](docs/modules/heartbeat/README.md), [Polling example](implementations/csharp/examples/heartbeat/Polling/README.md), [implementation record](docs/changes/CIS-0006/verification.md) |
 | Startup and DI | [Sequential startup and runnable country-list example](docs/modules/startup/README.md), [enrollment and lifetime contract](docs/modules/startup/core.md), [requirements](planning/startup/README.md) |
 | Configuration | [Preparation and hosting](docs/modules/configuration/hosting.md), [retained reads/events](docs/modules/configuration/core.md), [mapping](docs/modules/configuration/mapping.md), [refresh lifetime](docs/modules/configuration/refresh.md), [requirements](planning/configuration/README.md) |
+| Metrics | [Portable API](docs/modules/metrics/core.md), [collection policy](docs/modules/metrics/collection.md), [host lifetime](docs/modules/metrics/hosting.md), [HTTP policy](docs/modules/metrics/http.md), [real example](docs/modules/metrics/example.md), [requirements and evidence](planning/metrics/README.md) |
 | Shared behavior | [Logging contracts](contracts/logging/README.md), [Healthcheck contracts](contracts/healthcheck/v1/README.md), native fixtures under `conformance/` |
 | Architecture | [Dependencies](docs/architecture/csharp-dependency-policy.md), [compatibility](docs/architecture/compatibility-policy.md), [assembly identity](docs/architecture/csharp-assembly-policy.md) |
 
@@ -76,7 +78,7 @@ cis test incremental status --repo . --profile .cis/local/testing/profiles/healt
 cis test incremental verify --repo . --profile .cis/local/testing/profiles/healthcheck-diagnostic-unit.json --layer unit --format json
 ```
 
-The completed CIS-0001 profile selects two existing `HealthDiagnosticRuntimeAcceptanceBoundaryTests` cases covering real Unicode sanitization and explicit-message projection. It pins this installation's absolute executable/tool paths locally; on another installation, create a complete local profile using the reviewed CIS schema and actual tools. CIS-0002 uses a separate scoped Type Manager package profile; its task record owns that result. Other suites are configured and unverified through CIS. The canonical [suite bindings](docs/references/test-suite-profile.md) do not turn fixtures/examples into independent product modules.
+The completed CIS-0001 profile selects two existing `HealthDiagnosticRuntimeAcceptanceBoundaryTests` cases covering real Unicode sanitization and explicit-message projection. It pins this installation's absolute executable/tool paths locally; on another installation, create a complete local profile using the reviewed CIS schema and actual tools. CIS-0002 uses a separate scoped Type Manager package profile; its task record owns that result. Subsequent owners retain their own scoped results and currentness; for Metrics, read [CIS-0009 verification](docs/changes/CIS-0009/verification.md). A configured suite or an earlier checkpoint is not proof that another scope passed. The canonical [suite bindings](docs/references/test-suite-profile.md) do not turn fixtures/examples into independent product modules.
 
 `definition status` preserves selected working direction separately from approved product records. `brd validate` reports current canonical approval readiness. `change list` and `technical-intent status` locate current work and foundation state. The completed CIS-0001 unit result needs only read-only plan/status/verification in its original Windows execution context; that owner has used both authorized attempts. A different effective environment can correctly report pending work. New native work uses its own legitimate approved owner and remaining finite allocation. Use `cis test incremental run` only within that authority, with **`--layer unit`**, the real `--change`, `--task`, `--authority`, and authorized `--actor`, preserving any inherited `--parent-execution`. Do not use `--force`. Inspect read-only plan/status for current results and pending work, and `cis artifacts inventory` with that same association. Profile limits do not allocate work. Security, standards and optional capability setup remain explicit follow-up work; no full starter reconciliation or release qualification is implied.
 

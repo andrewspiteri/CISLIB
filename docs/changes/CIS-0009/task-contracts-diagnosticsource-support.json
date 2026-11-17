@@ -1,0 +1,23 @@
+{
+  "tasks": [
+    {
+      "complexity": "low",
+      "acceptanceCriteria": "Add only the separately approved System.Diagnostics.DiagnosticSource exact source-mapping entry to existing nuget.org; preserve all prior sources, all five approved OpenTelemetry mappings, Core closure, SDK/runtime pins and shared limits. This supports the same optional Metrics package and creates no new delivery outcome or resource allowance.",
+      "title": "Permit the approved DiagnosticSource transitive package mapping",
+      "assignee": "Codex",
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "validation": "Parse actual XML and compare against the completed WORK-006 five-ID mapping: exactly one additional System.Diagnostics.DiagnosticSource ID, no source or earlier mapping changes. Reuse actual WORK-002 locked restore/build/native results as integration evidence without duplicate execution; confirm the optional consumer deploys DiagnosticSource11 while Core-only closure remains unchanged.",
+      "category": "implementation",
+      "paths": [
+        "implementations/csharp/NuGet.config",
+        "docs/changes/CIS-0009"
+      ],
+      "scopeIds": [
+        "metrics",
+        "metrics-package-sources"
+      ]
+    }
+  ]
+}

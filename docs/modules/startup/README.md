@@ -90,6 +90,16 @@ activation, watch/provider/notification and polling work in the same barrier.
 The first host-start token closes this admission while later initialization is
 held. The coordinator remains independent of both optional modules.
 
+When the optional Metrics integration is installed, hosting activates its one
+provider before initialization and attaches the coordinator before the real
+startup operation. The same hosted barrier closes Metrics callback admission and
+joins actual callbacks before dependency stopping, including when automatic Core
+module collection is disabled. This keeps application observable owners usable
+after an expired scrape or canceled host stop budget. See
+[Metrics hosting](../metrics/hosting.md) for supported registration order and
+the reserved branch before the business gate. The coordinator has no SDK or
+concrete provider dependency.
+
 Install the existing reserved health branch before every business side effect:
 
 ```csharp

@@ -5,7 +5,7 @@ namespace CIS.Heartbeat;
 
 /// <summary>The application-owned shared Heartbeat engine. Construction and registration are inactive until hosting signals readiness.</summary>
 /// <remarks>Use the hosting adapter and actual owner boundaries. This infrastructure object never disposes subscribers or replaces their scopes.</remarks>
-public sealed class HeartbeatRuntime : IAsyncDisposable
+public sealed partial class HeartbeatRuntime : IAsyncDisposable
 {
     internal readonly object Gate = new();
     internal readonly TimeProvider Clock;

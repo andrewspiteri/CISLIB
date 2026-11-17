@@ -471,6 +471,14 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
 
     internal LogWriteResult Write(string component, CoreLogLevel level, LogEventData? data, Func<LogEventData>? factory)
     {
+        LoggingMetrics? observed = Volatile.Read(ref metrics);
+        LogWriteResult result = WriteCore(component, level, data, factory);
+        observed?.Call(result.Outcome);
+        return result;
+    }
+
+    private LogWriteResult WriteCore(string component, CoreLogLevel level, LogEventData? data, Func<LogEventData>? factory)
+    {
         ValidateLevel(level);
         if (EventProcessing.IsCallbackActive) { return Invalid("RecursiveProcessing"); }
         if (incoming is not null) { return WriteIncoming(component, level, data, factory); }

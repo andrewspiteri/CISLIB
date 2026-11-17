@@ -1,14 +1,19 @@
 using System.Diagnostics;
 using CIS.Healthcheck;
+using CIS.Metrics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace CIS.Startup;
 
 // One actual root and one retained startup operation. No participant code runs under gate.
-internal sealed class StartupCoordinator : IAsyncDisposable
+internal sealed class StartupCoordinator : IAsyncDisposable, IMetricsSource
 {
     private readonly object gate = new();
+    private readonly object metricsGate = new();
+    private readonly MetricsAttachment metricsAttachment = new();
+    private StartupMetrics? metrics;
+    private int startupCompleted;
     private readonly IServiceProvider root;
     private readonly ServiceDescriptor[] descriptors;
     private readonly HealthcheckService? health;
@@ -19,6 +24,18 @@ internal sealed class StartupCoordinator : IAsyncDisposable
     private IConditionMonitor? failureMonitor;
     private int stopRequested;
     private bool stopping;
+
+    void IMetricsSource.AttachMetrics(MetricsRuntime runtime) => AttachMetrics(runtime);
+
+    internal void AttachMetrics(MetricsRuntime runtime)
+    {
+        lock (metricsGate)
+        {
+            if (!metricsAttachment.Attach(runtime)) { return; }
+            var attached = new StartupMetrics(runtime, () => Volatile.Read(ref startupCompleted) != 0);
+            Volatile.Write(ref metrics, attached);
+        }
+    }
 
     internal StartupCoordinator(IServiceProvider root, IReadOnlyList<ServiceDescriptor> descriptors,
         HealthcheckService? health = null, ILogger<StartupCoordinator>? logger = null,
@@ -58,6 +75,10 @@ internal sealed class StartupCoordinator : IAsyncDisposable
         CancellationToken applicationStopping)
     {
         long started = Stopwatch.GetTimestamp();
+        StartupMetrics? observation = Volatile.Read(ref metrics);
+        long stageStarted = started;
+        string measuredStage = "construction";
+        bool measuring = true;
         Exception? failure = null;
         bool canceled = false;
         CancellationToken token = default;
@@ -89,6 +110,8 @@ internal sealed class StartupCoordinator : IAsyncDisposable
             { throw new InvalidOperationException("An IStartable registration resolved to null."); }
             var seen = new HashSet<IStartable>(ReferenceEqualityComparer.Instance);
             IStartable[] participants = scheduled.Where(seen.Add).ToArray();
+            observation?.Record(measuredStage, "success", stageStarted);
+            measuring = false;
             Log(LogLevel.Information, "Construction", "Completed", 0, null, started);
             for (int index = 0; index < participants.Length;)
             {
@@ -98,12 +121,20 @@ internal sealed class StartupCoordinator : IAsyncDisposable
                 stage = "Initialization";
                 currentIndex = index;
                 participantType = name;
+                measuredStage = "initialization";
+                stageStarted = Stopwatch.GetTimestamp();
+                measuring = true;
                 Log(LogLevel.Information, "Initialization", "Invoking", index, name, started);
                 Task? task = participant.StartAsync(token);
                 if (task is null) { throw new InvalidOperationException("An IStartable returned a null startup task."); }
                 await task.ConfigureAwait(false);
+                observation?.Record(measuredStage, "success", stageStarted);
+                measuring = false;
                 Log(LogLevel.Information, "Initialization", "Completed", index, name, started);
             }
+            measuredStage = "completion";
+            stageStarted = Stopwatch.GetTimestamp();
+            measuring = true;
             lock (gate)
             {
                 stage = "Completion";
@@ -112,17 +143,22 @@ internal sealed class StartupCoordinator : IAsyncDisposable
                 ThrowIfStopping(token); // Cancellation during completion must never publish readiness.
                 if (!confirmed) { throw new InvalidOperationException("Required startup completion could not be confirmed."); }
                 health?.MarkStartupCompleted();
+                Volatile.Write(ref startupCompleted, 1);
             }
+            observation?.Record(measuredStage, "success", stageStarted);
+            measuring = false;
             Log(LogLevel.Information, "Startup", "Completed", participants.Length, null, started);
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested || Volatile.Read(ref stopRequested) != 0)
         {
             canceled = true;
+            if (measuring) { observation?.Record(measuredStage, "cancelled", stageStarted); }
             Log(LogLevel.Information, stage, "Canceled", currentIndex, participantType, started);
         }
         catch (Exception error)
         {
             failure = error;
+            if (measuring) { observation?.Record(measuredStage, "failed", stageStarted); }
             try
             {
                 failureMonitor?.Flag(HealthDiagnostic.FromException(error, "Startup.Failed",

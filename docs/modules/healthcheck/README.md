@@ -20,3 +20,18 @@ cis:
 The working [technical intent](../../../planning/healthcheck/technical-intent.md), [catalog](../../../planning/healthcheck/contract-catalog.md), [collection addendum](../../../planning/healthcheck/collection-contract-amendment.md), [execution addendum](../../../planning/healthcheck/execution-contract-amendment.md) and [registration diagnostics](../../../planning/healthcheck/registration-diagnostic-amendment.md) preserve accepted behavior. The [source definition](../../../planning/healthcheck/sources/CIS_Healthcheck_Library_Definition_v0_1.md) specifies the full acceptance scope.
 
 HTTP uses the user-approved `Microsoft.AspNetCore.App` framework inside Core. The CountryList example uses explicit source references. Actual external Heartbeat/startup integration and current complete platform/package/coverage/mutation release qualification remain pending. Historical campaign receipts are retired and establish no current acceptance claim. Use the native commands in [README](../../../README.md) and the [current gap record](../../../planning/decisions.md).
+
+## Metrics
+
+When attached by the optional Metrics integration, actual collector evaluations
+record duration through result acceptance. A successfully evaluated unhealthy
+result has a successful evaluation outcome; the existing monitor policy still
+determines health. Lease disposal remains outside that evaluation duration.
+Separate observable gauges read the existing readiness rule and aggregate active
+monitor states. Collection invokes no collector, weak-owner sweep or notification
+and never changes readiness. No monitor identity or diagnostic text is a label.
+
+Each actual evaluation captures its binding once; later attachment does not
+replay it. Metric failures preserve the original evaluation and policy behavior.
+See the [runtime observation catalog](../../../contracts/metrics/runtime-services.md)
+for exact names and the host collection-drain ownership boundary.

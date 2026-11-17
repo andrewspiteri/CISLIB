@@ -10,6 +10,7 @@
     <ProjectReference Include="../fixtures/DiscoveryHost/CIS.Core.DiscoveryFixture.csproj" />
     <ProjectReference Include="../../examples/healthcheck/CountryList/CountryList.csproj" ReferenceOutputAssembly="false" Private="false" PrivateAssets="all" />
     <ProjectReference Include="../../examples/startup/CountryList/CountryList.csproj" ReferenceOutputAssembly="false" Private="false" PrivateAssets="all" />
+    <ProjectReference Include="../../examples/metrics/MetricApi/MetricApi.csproj" ReferenceOutputAssembly="false" Private="false" PrivateAssets="all" />
   </ItemGroup>
   <Target Name="CopyLoggingBusinessFixture" AfterTargets="Build">
     <ItemGroup>
@@ -28,5 +29,11 @@
       <StartupBusinessExampleFiles Include="../../examples/startup/CountryList/bin/$(Configuration)/$(TargetFramework)/*" />
     </ItemGroup>
     <Copy SourceFiles="@(StartupBusinessExampleFiles)" DestinationFolder="$(TargetDir)startup-country-list" />
+  </Target>
+  <Target Name="CopyMetricsBusinessExample" AfterTargets="Build">
+    <ItemGroup>
+      <MetricsBusinessExampleFiles Include="../../examples/metrics/MetricApi/bin/$(Configuration)/$(TargetFramework)/*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(MetricsBusinessExampleFiles)" DestinationFolder="$(TargetDir)metrics-api" />
   </Target>
 </Project>

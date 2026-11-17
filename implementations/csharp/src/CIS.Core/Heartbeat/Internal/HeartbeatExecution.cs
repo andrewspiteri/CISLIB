@@ -5,6 +5,8 @@ internal sealed class HeartbeatExecution
 {
     private readonly HeartbeatRuntime runtime;
     private readonly long admittedTimestamp;
+    private readonly HeartbeatMetrics? metricsBinding;
+    private HeartbeatMetrics.Operation? metricsOperation;
     private HeartbeatBinding? binding;
     private IHeartbeatSubscriber? target;
     private HeartbeatNotification facts;
@@ -24,6 +26,7 @@ internal sealed class HeartbeatExecution
         IHeartbeatSubscriber target, HeartbeatOwner owner, long executionId, long timestamp)
     {
         this.runtime = runtime;
+        metricsBinding = runtime.CurrentMetrics;
         Registration = registration;
         this.binding = binding;
         this.target = target;
@@ -84,34 +87,45 @@ internal sealed class HeartbeatExecution
         using IDisposable execution = HeartbeatExecutionContext.Enter(runtime, Registration.Id, Owner!.Id);
         try
         {
-            if (binding!.Condition is not null)
+            try
             {
-                bool? allowed = await InvokeAsync(HeartbeatPhase.Condition).ConfigureAwait(false);
-                if (allowed == false) { result = HeartbeatResult.Skipped; }
-                else if (allowed == true) { await InvokeCallbackAsync().ConfigureAwait(false); }
+                if (binding!.Condition is not null)
+                {
+                    bool? allowed = await InvokeAsync(HeartbeatPhase.Condition).ConfigureAwait(false);
+                    if (allowed == false) { result = HeartbeatResult.Skipped; }
+                    else if (allowed == true) { await InvokeCallbackAsync().ConfigureAwait(false); }
+                }
+                else { await InvokeCallbackAsync().ConfigureAwait(false); }
             }
-            else { await InvokeCallbackAsync().ConfigureAwait(false); }
-        }
-        catch (Exception error)
-        {
-            // Infrastructure seams are trusted, but a fault must still leave a
-            // tracked terminal task and must not abandon other executions.
-            runtime.FailInfrastructure("Heartbeat.ExecutionBoundary", error);
-            if (userStarted) { result = HeartbeatResult.Failed; facts = facts with { OriginalError = facts.OriginalError ?? error }; }
-        }
-        if (facts.ErrorHandlingStatus == HeartbeatStep.NotStarted) { facts = facts with { ErrorHandlingStatus = HeartbeatStep.NotApplicable }; }
-        await CleanupAsync().ConfigureAwait(false);
-        if (result.HasValue)
-        {
-            runtime.Report(Registration, facts with
+            catch (Exception error)
             {
-                Kind = HeartbeatEvent.Outcome,
-                OccurredAtUtc = facts.WorkCompletedAtUtc!.Value,
-                SourcePhase = lastPhase,
-                Outcome = result
+                // Infrastructure seams are trusted, but a fault must still leave a
+                // tracked terminal task and must not abandon other executions.
+                runtime.FailInfrastructure("Heartbeat.ExecutionBoundary", error);
+                if (userStarted) { result = HeartbeatResult.Failed; facts = facts with { OriginalError = facts.OriginalError ?? error }; }
+            }
+            if (facts.ErrorHandlingStatus == HeartbeatStep.NotStarted) { facts = facts with { ErrorHandlingStatus = HeartbeatStep.NotApplicable }; }
+            await CleanupAsync().ConfigureAwait(false);
+            if (result.HasValue)
+            {
+                runtime.Report(Registration, facts with
+                {
+                    Kind = HeartbeatEvent.Outcome,
+                    OccurredAtUtc = facts.WorkCompletedAtUtc!.Value,
+                    SourcePhase = lastPhase,
+                    Outcome = result
+                });
+            }
+            await runtime.FlushAsync(Registration).ConfigureAwait(false);
+        }
+        finally
+        {
+            metricsOperation?.Complete(result switch
+            {
+                HeartbeatResult.Succeeded => "success", HeartbeatResult.Failed => "error",
+                HeartbeatResult.ExpectedCancellation => "cancelled", HeartbeatResult.Skipped => "skipped", _ => "suppressed"
             });
         }
-        await runtime.FlushAsync(Registration).ConfigureAwait(false);
     }
 
     private async Task InvokeCallbackAsync()
@@ -127,6 +141,7 @@ internal sealed class HeartbeatExecution
             Suppress(phase);
             return null;
         }
+        if (!userStarted) { metricsOperation = metricsBinding?.Start(); }
         userStarted = true;
         lastPhase = phase;
         long started = runtime.ReadTimestamp();
