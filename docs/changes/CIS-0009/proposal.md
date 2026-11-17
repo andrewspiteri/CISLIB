@@ -2,7 +2,7 @@
 title: "Bounded portable Metrics and Prometheus integration"
 type: change-proposal
 record_format: proportionate
-status: Proposed
+status: "Closed"
 change_id: CIS-0009
 outcome: "Deliver portable CIS Metrics primitives and an optional OpenTelemetry Prometheus integration exposing /_metrics with authoritative identity and finite collection/scrape limits; automatically observe real existing service and incoming HTTP boundaries while preserving startup, readiness, constructors and shutdown; include contracts, focused conformance/tests, one footprint observation, example, docs and agent routing without implementing future RestClient/database services."
 baseline_kind: git

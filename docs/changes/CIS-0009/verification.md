@@ -344,3 +344,19 @@ This completes the bounded local implementation and documentation, with the
 qualification and product-approval limits above preserved.
 | WORK-007 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1142; failed=167; possibleTokenSavings=310; ledgerDigest=sha256:eca6f14cca9bb00c5b7c8a13bd9cee352b7b08afeb583b992cdfa04a0f6fd499 |
 | WORK-005 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1143; failed=167; possibleTokenSavings=310; ledgerDigest=sha256:09b0f04c98b7a8c256e1efc1c4f31bed6660d9f3f16f7c2af044668b130d004c |
+
+## Authorized branch merge — 17 November 2026
+
+Andrew Spiteri explicitly requested merging the Metrics branch and closing it
+before the next module. CIS-0009 was closed with the supported `change close`
+command after confirming all seven tasks Complete and the implementation attempt
+settled. Remote main still equals the reviewed implementation baseline
+`1f72e9ea4d8630edacb59c01795ebc8467807cd8`; implementation commit `17c83924`
+is its direct successor, so no source conflict or integration change is required.
+
+This closeout adds only dossier metadata. The recorded actual native passes,
+costs and footprint remain their original scoped observations; no completed test
+owner is reopened and no forced cache-currentness claim is made. The explicit
+merge decision authorizes this branch integration, not release qualification or
+publication. Existing coverage/platform limitations remain open. The user's
+pre-existing startup launchSettings file remains unchanged and excluded.
