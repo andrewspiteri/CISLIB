@@ -11,6 +11,8 @@ internal sealed class IncomingRingBuffer
     private readonly AtomicLogCounter[] evictedByLevel = Enumerable.Range(0, 6).Select(_ => new AtomicLogCounter()).ToArray();
     private long cursor = -1, publishers, waiting;
     private int closed;
+    private LoggingMetrics? metrics;
+    internal void AttachMetrics(LoggingMetrics binding) => Volatile.Write(ref metrics, binding);
 
     internal IncomingRingBuffer(int capacity, LoggingOptions options)
     {
@@ -83,6 +85,7 @@ internal sealed class IncomingRingBuffer
 
     internal IncomingPublication Exchange(int index, IncomingEvent item, int probes)
     {
+        LoggingMetrics? observedMetrics = Volatile.Read(ref metrics);
         IncomingEvent? displaced = Interlocked.Exchange(ref slots[index], item);
         admitted.Increment();
         if (displaced is null) { Interlocked.Increment(ref waiting); }
@@ -90,6 +93,7 @@ internal sealed class IncomingRingBuffer
         {
             evicted.Increment();
             evictedByLevel[(int)displaced.Level].Increment();
+            observedMetrics?.Discarded("overwritten");
         }
         return new(index, probes, displaced);
     }
@@ -107,8 +111,10 @@ internal sealed class IncomingRingBuffer
     // Only the sole consumer/cleanup coordinator calls this, never a producer or a timer callback.
     internal IncomingEvent? AbandonSlot(int index)
     {
+        LoggingMetrics? observedMetrics = Volatile.Read(ref metrics);
         IncomingEvent? removed = Interlocked.Exchange(ref slots[index], null);
         if (removed is not null) { abandoned.Increment(); Interlocked.Decrement(ref waiting); }
+        if (removed is not null) { observedMetrics?.Discarded("shutdown"); }
         return removed;
     }
 

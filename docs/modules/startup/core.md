@@ -103,3 +103,21 @@ its disposal, so an observable failed application keeps its startup diagnostic.
 The host bridge and runnable example supply automatic invocation and actual
 probe/request ordering. This document describes the core contract, not a claim
 that native tests or release qualification have completed.
+
+## Automatic Metrics observations
+
+When the optional Metrics integration is active, the host attaches the existing
+coordinator before ordinary startup. `cis.startup.operation.duration` observes
+construction, each sequential initializer, and the final completion confirmation
+with finite `stage` and `outcome` dimensions. Participants aggregate under
+`stage=initialization`; their CLR names and registration indexes stay out of
+labels. `cis.startup.completed` exposes the actual completion flag as zero/one.
+
+Applications do not wrap their `IStartable` methods or register another startup
+operation for these observations. The original retained task, exception,
+cancellation, readiness gate and shutdown barrier remain authoritative. An
+operation captures one complete binding before work; attaching during startup
+exposes its eventual completion state without replaying earlier stage events.
+The [portable catalog](../../../contracts/metrics/README.md#bootstrap-and-startup-catalog)
+defines the exact logical names and meanings. Collection callbacks read owned
+state only; the host must drain them before destroying the coordinator's owners.

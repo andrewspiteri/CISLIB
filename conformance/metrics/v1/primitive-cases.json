@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "verification": "Required literal expectations; executed scope and input currentness are recorded in docs/changes/CIS-0009/verification.md.",
+  "measurementCases": [
+    {
+      "id": "COUNTER-INT64",
+      "kind": "counter", "name": "app.fixture.counter", "unit": "count", "allowedDimensionKeys": [],
+      "operations": [{ "value": "9223372036854775807", "dimensions": [] }, { "value": "0", "dimensions": [] }, { "value": "-1", "dimensions": [] }],
+      "expectedEmissions": [{ "value": "9223372036854775807", "dimensions": [] }, { "value": "0", "dimensions": [] }],
+      "expectedDropped": 1
+    },
+    {
+      "id": "UPDOWN-SIGNED",
+      "kind": "upDownCounter", "name": "app.fixture.active", "unit": "count", "allowedDimensionKeys": [],
+      "operations": [{ "value": "2", "dimensions": [] }, { "value": "-3", "dimensions": [] }, { "value": "0", "dimensions": [] }],
+      "expectedEmissions": [{ "value": "2", "dimensions": [] }, { "value": "-3", "dimensions": [] }, { "value": "0", "dimensions": [] }],
+      "expectedDropped": 0
+    },
+    {
+      "id": "GAUGE-FINITE",
+      "kind": "gauge", "name": "app.fixture.level", "unit": "ratio", "allowedDimensionKeys": [],
+      "operations": [{ "value": "2.5", "dimensions": [] }, { "value": "-3", "dimensions": [] }, { "value": "NaN", "dimensions": [] }, { "value": "Infinity", "dimensions": [] }, { "value": "-Infinity", "dimensions": [] }],
+      "expectedEmissions": [{ "value": "2.5", "dimensions": [] }, { "value": "-3", "dimensions": [] }],
+      "expectedDropped": 3
+    },
+    {
+      "id": "HISTOGRAM-BYTES",
+      "kind": "histogram", "name": "app.fixture.payload", "unit": "bytes", "allowedDimensionKeys": [], "histogramBounds": [0, 64, 1024],
+      "operations": [{ "value": "0", "dimensions": [] }, { "value": "128", "dimensions": [] }, { "value": "-1", "dimensions": [] }, { "value": "NaN", "dimensions": [] }],
+      "expectedEmissions": [{ "value": "0", "dimensions": [] }, { "value": "128", "dimensions": [] }],
+      "expectedDropped": 2
+    },
+    {
+      "id": "TIMER-DIRECT-SECONDS",
+      "kind": "timer", "name": "app.fixture.duration", "unit": "seconds", "allowedDimensionKeys": [],
+      "operations": [{ "value": "0", "dimensions": [] }, { "value": "0.25", "dimensions": [] }, { "value": "-0.25", "dimensions": [] }, { "value": "Infinity", "dimensions": [] }],
+      "expectedEmissions": [{ "value": "0", "dimensions": [] }, { "value": "0.25", "dimensions": [] }],
+      "expectedDropped": 2
+    },
+    {
+      "id": "DIMENSIONS-ATOMIC-DROP",
+      "kind": "counter", "name": "app.fixture.tagged", "unit": "count", "allowedDimensionKeys": ["outcome"],
+      "operations": [
+        { "value": "1", "dimensions": [] },
+        { "value": "2", "dimensions": [["outcome", "success"]] },
+        { "value": "3", "dimensions": [["outcome", "success"], ["outcome", "error"]] },
+        { "value": "4", "dimensions": [["outcome", "success"], ["unknown", "fixed"]] },
+        { "value": "5", "dimensions": [["application", "attempted-override"]] }
+      ],
+      "expectedEmissions": [{ "value": "1", "dimensions": [] }, { "value": "2", "dimensions": [["outcome", "success"]] }],
+      "expectedDropped": 3
+    }
+  ],
+  "timingScopeCases": [
+    {
+      "id": "TIMING-FIRST-STOP",
+      "name": "app.fixture.scope", "allowedDimensionKeys": ["operation", "outcome"],
+      "timestampFrequency": "1000", "startedAt": "1000", "initialDimensions": [["operation", "load"]],
+      "completions": [{ "operation": "stop", "timestamp": "1250", "dimensions": [["outcome", "success"]] }, { "operation": "stop", "timestamp": "2000", "dimensions": [["outcome", "error"]] }, { "operation": "dispose", "timestamp": "3000", "dimensions": [] }],
+      "expectedStopSeconds": [0.25, 0.25],
+      "expectedEmissions": [{ "value": "0.25", "dimensions": [["operation", "load"], ["outcome", "success"]] }],
+      "expectedDropped": 0
+    },
+    {
+      "id": "TIMING-INVALID-COMPLETION-CANNOT-RETRY",
+      "name": "app.fixture.invalid_scope", "allowedDimensionKeys": ["operation", "outcome"],
+      "timestampFrequency": "1000", "startedAt": "1000", "initialDimensions": [["operation", "load"]],
+      "completions": [{ "operation": "stop", "timestamp": "1125", "dimensions": [["operation", "save"]] }, { "operation": "stop", "timestamp": "2000", "dimensions": [["outcome", "success"]] }, { "operation": "dispose", "timestamp": "3000", "dimensions": [] }],
+      "expectedStopSeconds": [0.125, 0.125], "expectedEmissions": [], "expectedDropped": 1
+    },
+    {
+      "id": "TIMING-DISPOSE-INFERS-NO-OUTCOME",
+      "name": "app.fixture.dispose_scope", "allowedDimensionKeys": ["operation", "outcome"],
+      "timestampFrequency": "1000", "startedAt": "1000", "initialDimensions": [["operation", "load"]],
+      "completions": [{ "operation": "dispose", "timestamp": "1500", "dimensions": [] }, { "operation": "stop", "timestamp": "2000", "dimensions": [["outcome", "success"]] }],
+      "expectedStopSeconds": [0.5],
+      "expectedEmissions": [{ "value": "0.5", "dimensions": [["operation", "load"]] }], "expectedDropped": 0
+    }
+  ],
+  "observableCases": [
+    { "id": "OBSERVABLE-UNAVAILABLE", "name": "app.fixture.unavailable", "unit": "count", "allowedDimensionKeys": [], "observations": [], "throws": false, "expectedEmissions": [] },
+    { "id": "OBSERVABLE-FAILURE", "name": "app.fixture.failed", "unit": "count", "allowedDimensionKeys": [], "observations": [], "throws": true, "expectedEmissions": [] },
+    { "id": "OBSERVABLE-KNOWN-ZERO", "name": "app.fixture.empty_queue", "unit": "count", "allowedDimensionKeys": [], "observations": [{ "value": "0", "dimensions": [] }], "throws": false, "expectedEmissions": [{ "value": "0", "dimensions": [] }] }
+  ],
+  "definitionCases": [
+    { "id": "DEFINITION-COUNT-COUNTER", "kind": "counter", "name": "app.orders.completed", "unit": "count", "allowedDimensionKeys": ["outcome"], "expectedValid": true },
+    { "id": "DEFINITION-CASE", "kind": "counter", "name": "App.orders.completed", "unit": "count", "allowedDimensionKeys": [], "expectedValid": false },
+    { "id": "DEFINITION-RESERVED-KEY", "kind": "gauge", "name": "app.fixture.state", "unit": "count", "allowedDimensionKeys": ["environment"], "expectedValid": false },
+    { "id": "DEFINITION-TRANSLATED-KEY-COLLISION", "kind": "gauge", "name": "app.fixture.route", "unit": "count", "allowedDimensionKeys": ["http.route", "http_route"], "expectedValid": false },
+    { "id": "DEFINITION-TIMER-UNIT", "kind": "timer", "name": "app.fixture.timer", "unit": "bytes", "allowedDimensionKeys": [], "expectedValid": false },
+    { "id": "DEFINITION-COUNT-HISTOGRAM-NEEDS-BOUNDS", "kind": "histogram", "name": "app.fixture.batch", "unit": "count", "allowedDimensionKeys": [], "expectedValid": false },
+    { "id": "DEFINITION-BYTES-PROFILE", "kind": "histogram", "name": "app.fixture.bytes", "unit": "bytes", "allowedDimensionKeys": [], "histogramBounds": [0, 64, 1024], "expectedValid": true },
+    { "id": "DEFINITION-DUPLICATE-BOUND", "kind": "histogram", "name": "app.fixture.repeated_bound", "unit": "count", "allowedDimensionKeys": [], "histogramBounds": [1, 1], "expectedValid": false }
+  ],
+  "exportedFamilies": [
+    { "id": "EXPORT-COUNT-COUNTER", "logicalName": "app.orders.completed", "kind": "counter", "unit": "count", "expectedPrometheusType": "counter", "expectedSampleNames": ["app_orders_completed_total"] },
+    { "id": "EXPORT-BYTES-COUNTER", "logicalName": "app.payload.downloaded", "kind": "counter", "unit": "bytes", "expectedPrometheusType": "counter", "expectedSampleNames": ["app_payload_downloaded_bytes_total"] },
+    { "id": "EXPORT-TIMER", "logicalName": "cis.heartbeat.execution.duration", "kind": "timer", "unit": "seconds", "expectedPrometheusType": "histogram", "expectedSampleNames": ["cis_heartbeat_execution_duration_seconds_bucket", "cis_heartbeat_execution_duration_seconds_sum", "cis_heartbeat_execution_duration_seconds_count"] },
+    { "id": "EXPORT-COUNT-HISTOGRAM", "logicalName": "app.batch.size", "kind": "histogram", "unit": "count", "histogramBounds": [0, 1, 10], "expectedPrometheusType": "histogram", "expectedSampleNames": ["app_batch_size_bucket", "app_batch_size_sum", "app_batch_size_count"] },
+    { "id": "EXPORT-BYTES-HISTOGRAM", "logicalName": "app.payload.size", "kind": "histogram", "unit": "bytes", "histogramBounds": [0, 64, 1024], "expectedPrometheusType": "histogram", "expectedSampleNames": ["app_payload_size_bytes_bucket", "app_payload_size_bytes_sum", "app_payload_size_bytes_count"] },
+    { "id": "EXPORT-UPDOWN", "logicalName": "app.work.active", "kind": "upDownCounter", "unit": "count", "expectedPrometheusType": "gauge", "expectedSampleNames": ["app_work_active"] },
+    { "id": "EXPORT-GAUGE", "logicalName": "cis.healthcheck.ready", "kind": "gauge", "unit": "count", "expectedPrometheusType": "gauge", "expectedSampleNames": ["cis_healthcheck_ready"] },
+    { "id": "EXPORT-NATIVE-DURATION", "logicalName": "http.server.request.duration", "kind": "nativeHistogram", "unit": "seconds", "expectedPrometheusType": "histogram", "expectedSampleNames": ["http_server_request_duration_seconds_bucket", "http_server_request_duration_seconds_sum", "http_server_request_duration_seconds_count"] }
+  ]
+}

@@ -519,19 +519,24 @@ public sealed class HealthCollectorRunner : IAsyncDisposable
                     if (!state.TryEnter(operation.Reservation)) { operation.Reason = HealthCollectionCompletionReason.RetiredBeforeInvocation; }
                     else
                     {
+                        var metricBinding = ((HealthStateCoordinator)state).CurrentMetrics;
+                        var metricTiming = metricBinding?.Start();
+                        string metricOutcome = "error";
                         try
                         {
                             Task<HealthCollectionResult>? evaluation = operation.Lease!.CollectAsync(operation.Reservation.LifetimeCancellation);
                             if (evaluation is null) { throw new InvalidOperationException("The owner returned no evaluation task."); }
                             HealthCollectionResult result = await evaluation.ConfigureAwait(false);
                             operation.Attempt = state.CommitResult(operation.Reservation, result);
+                            metricOutcome = operation.Attempt.EvaluationFailed ? "error" : "success";
                         }
-                        catch (OperationCanceledException) when (operation.Reservation.LifetimeCancellation.IsCancellationRequested) { }
+                        catch (OperationCanceledException) when (operation.Reservation.LifetimeCancellation.IsCancellationRequested) { metricOutcome = "cancelled"; }
                         catch (Exception exception)
                         {
                             operation.Attempt = state.CommitEvaluationFailure(operation.Reservation,
                                 HealthDiagnostic.FromException(exception, "Healthcheck.CollectionEvaluation"));
                         }
+                        finally { HealthcheckMetrics.Complete(metricTiming, metricOutcome); }
                     }
                 }
             }

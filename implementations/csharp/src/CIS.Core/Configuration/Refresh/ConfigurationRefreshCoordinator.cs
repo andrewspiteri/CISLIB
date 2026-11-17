@@ -1,8 +1,11 @@
+using System.Diagnostics;
+using CIS.Metrics;
+
 namespace CIS.Configuration;
 
 // Owns real refresh work. Periodic scheduling, DI and application readiness are
 // deliberately supplied by the existing integrations rather than recreated here.
-internal sealed class ConfigurationRefreshCoordinator : IAsyncDisposable
+internal sealed class ConfigurationRefreshCoordinator : IAsyncDisposable, IMetricsSource
 {
     private sealed class EntryState(ConfigurationEntry entry, string host)
     {
@@ -20,6 +23,10 @@ internal sealed class ConfigurationRefreshCoordinator : IAsyncDisposable
     }
 
     private readonly object gate = new();
+    private readonly object metricsGate = new();
+    private readonly MetricsAttachment metricsAttachment = new();
+    private ConfigurationMetrics? metrics;
+    private double? initialElapsedSeconds;
     private readonly ConfigurationCatalog catalog;
     private readonly IConfigurationValuePipeline pipeline;
     private readonly EntryState[] entries;
@@ -48,6 +55,58 @@ internal sealed class ConfigurationRefreshCoordinator : IAsyncDisposable
     }
 
     internal bool IsStopping => Volatile.Read(ref stopRequested) != 0;
+
+    void IMetricsSource.AttachMetrics(MetricsRuntime runtime) => AttachMetrics(runtime);
+
+    internal void AttachMetrics(MetricsRuntime runtime)
+    {
+        lock (metricsGate)
+        {
+            if (!metricsAttachment.Attach(runtime)) { return; }
+            var attached = new ConfigurationMetrics(runtime, ObservePrepared, ObserveEntries, ObserveInitialDuration, ObserveLastSuccess);
+            Volatile.Write(ref metrics, attached);
+        }
+    }
+
+    private IReadOnlyList<MetricObservation> ObservePrepared()
+    {
+        lock (gate) { return [new(loaded ? 1 : 0)]; }
+    }
+
+    private IReadOnlyList<MetricObservation> ObserveInitialDuration()
+    {
+        lock (gate) { return initialElapsedSeconds is { } elapsed ? [new(elapsed)] : []; }
+    }
+
+    private IReadOnlyList<MetricObservation> ObserveEntries()
+    {
+        lock (gate) { if (!loaded) { return []; } }
+        int valid = 0, invalid = 0, disabled = 0;
+        foreach (EntryState entry in entries)
+        {
+            lock (entry.Gate)
+            {
+                if (entry.Disabled) { disabled++; }
+                else if (entry.IsValid) { valid++; }
+                else { invalid++; }
+            }
+        }
+        return [new(valid, new(("state", "valid"))), new(invalid, new(("state", "invalid"))),
+            new(disabled, new(("state", "disabled")))];
+    }
+
+    private IReadOnlyList<MetricObservation> ObserveLastSuccess()
+    {
+        DateTimeOffset? latest = null;
+        foreach (EntryState entry in entries)
+        {
+            lock (entry.Gate)
+            {
+                if (entry.LastSuccess is { } success && (latest is null || success > latest.Value)) { latest = success; }
+            }
+        }
+        return latest is { } known ? [new(known.ToUnixTimeMilliseconds() / 1_000d)] : [];
+    }
 
     // The hosting health adapter may install one observer after bootstrap. Its
     // synchronous execution remains inside the tracked attempt, outside gates.
@@ -92,6 +151,7 @@ internal sealed class ConfigurationRefreshCoordinator : IAsyncDisposable
 
     private async Task LoadCoreAsync(TaskCompletionSource completion, CancellationToken cancellationToken)
     {
+        long started = Stopwatch.GetTimestamp();
         try
         {
             using CancellationTokenRegistration registration = cancellationToken.UnsafeRegister(
@@ -109,12 +169,26 @@ internal sealed class ConfigurationRefreshCoordinator : IAsyncDisposable
             {
                 ThrowIfStopping();
                 loaded = true;
+                initialElapsedSeconds = Stopwatch.GetElapsedTime(started).TotalSeconds;
                 completion.TrySetResult();
             }
         }
-        catch (OperationCanceledException) when (IsStopping) { completion.TrySetCanceled(new CancellationToken(canceled: true)); }
-        catch (CoreConfigurationException error) { completion.TrySetException(error); }
-        catch (Exception) { completion.TrySetException(Error("Configuration.InitialLoad", "Initial configuration loading failed.")); }
+        catch (OperationCanceledException) when (IsStopping)
+        {
+            RetainInitialDuration(started);
+            completion.TrySetCanceled(new CancellationToken(canceled: true));
+        }
+        catch (CoreConfigurationException error) { RetainInitialDuration(started); completion.TrySetException(error); }
+        catch (Exception)
+        {
+            RetainInitialDuration(started);
+            completion.TrySetException(Error("Configuration.InitialLoad", "Initial configuration loading failed."));
+        }
+    }
+
+    private void RetainInitialDuration(long started)
+    {
+        lock (gate) { initialElapsedSeconds = Stopwatch.GetElapsedTime(started).TotalSeconds; }
     }
 
     internal Task ActivateAsync(CancellationToken cancellationToken)
@@ -281,6 +355,11 @@ internal sealed class ConfigurationRefreshCoordinator : IAsyncDisposable
 
     private async Task<bool> AttemptAsync(EntryState state, bool initial)
     {
+        // An attachment made during this attempt starts with the next operation;
+        // a pre-container attempt is never replayed into a later host provider.
+        ConfigurationMetrics? observation = Volatile.Read(ref metrics);
+        long started = Stopwatch.GetTimestamp();
+        string outcome = "failed";
         try
         {
             ThrowIfStopping();
@@ -314,9 +393,10 @@ internal sealed class ConfigurationRefreshCoordinator : IAsyncDisposable
                     lock (state.Gate) { state.NotificationFailureCode = "Configuration.Notification"; }
                 });
             }
+            outcome = "success";
             return true;
         }
-        catch (OperationCanceledException) when (IsStopping) { return false; }
+        catch (OperationCanceledException) when (IsStopping) { outcome = "cancelled"; return false; }
         catch (Exception)
         {
             bool disabled;
@@ -324,6 +404,7 @@ internal sealed class ConfigurationRefreshCoordinator : IAsyncDisposable
             SetFailure(state, disabled ? "Configuration.CommitDisabled" : "Configuration.Refresh", disabled);
             return false;
         }
+        finally { observation?.Record(initial ? "initial_load" : "refresh", outcome, started); }
     }
 
     private static void SetFailure(EntryState entry, string code, bool disabled = false)

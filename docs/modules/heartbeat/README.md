@@ -176,3 +176,25 @@ See the [Polling example](../../../implementations/csharp/examples/heartbeat/Pol
 [actual verification record](../../changes/CIS-0006/verification.md).
 Scoped native passes do not establish all-platform, coverage, mutation or release
 qualification.
+
+## Metrics
+
+The optional Metrics integration observes started executions automatically. The
+duration begins at the first actual condition/callback invocation and ends after
+awaited error handling, cleanup and reporting. Active executions use that same
+boundary; queued or fully suppressed unstarted work adds nothing. The existing
+final result supplies the finite outcome label, with a separate `suppressed`
+value for a started condition whose callback is gated off.
+
+An admitted execution captures one binding, so later attachment cannot replay it
+or create an unmatched active decrement. Recording failures do not become
+subscriber errors or Heartbeat infrastructure failures. There are no subscriber,
+registration or work-name labels. See the [runtime observation catalog](../../../contracts/metrics/runtime-services.md)
+for exact names and outcomes; Metrics does not change scheduling or drain rules.
+
+The host adapter also joins actual Metrics callback drain before dependent
+lifecycle stopping, including application callbacks when automatic Core module
+collection is disabled. This applies to the Heartbeat-only bridge and the
+combined Startup bridge. An expired scrape/canceled host budget does not release
+callback owners. Follow the [Metrics hosting order](../metrics/hosting.md) and
+await real host stop before disposing protected dependencies.

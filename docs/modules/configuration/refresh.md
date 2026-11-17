@@ -123,3 +123,29 @@ not establish a production backend, real mapper qualification or actual periodic
 Heartbeat integration. Those composed paths and exact native results belong to
 the existing integration/package work and the
 [CIS-0008 verification record](../../changes/CIS-0008/verification.md).
+
+## Automatic Metrics observations
+
+With the optional Metrics integration, real serialized entry attempts publish
+`cis.configuration.operation.duration` using only `operation=initial_load|refresh`
+and `outcome=success|failed|cancelled`. The boundary includes both source reads,
+mapping/validation, commit and any accepted synchronous notification. It does not
+start another refresh, change the store, or alter the existing failure policy.
+Notification-handler failure remains a notification diagnostic when the accepted
+reconciliation itself is valid.
+
+Current snapshot gauges report `cis.configuration.prepared`, aggregate
+`cis.configuration.entries` counts by `state=valid|invalid|disabled`, retained
+`cis.configuration.initialization.duration`, and the latest already-owned
+`cis.configuration.last.success` timestamp as Unix seconds. Unknown durations,
+last-success timestamps and pre-preparation entry states are omitted. Snapshot
+collection reads no POCO value or store and executes no subscriber.
+
+Preparation normally precedes DI/provider activation. Its terminal duration is
+retained once, without recording a historical load into a later histogram or
+running it again. The same operation binding is retained through every actual
+attempt; attaching while it is held does not create a partial/replayed event.
+Mutable refresh state belongs to one host. Applications need no additional
+instrumentation calls, and hosting drains collection callbacks before destructive
+owner teardown. See the [portable catalog](../../../contracts/metrics/README.md#bootstrap-and-startup-catalog)
+for fixed names and dimensions; native Metrics results are separate evidence.

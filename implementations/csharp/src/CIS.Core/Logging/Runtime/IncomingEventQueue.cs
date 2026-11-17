@@ -20,6 +20,9 @@ internal sealed class IncomingEventQueue
     private long tickets;
     private bool abandonRequested, drained, backendActive;
     private string? failure;
+    private LoggingMetrics? metrics;
+    // Only the sole backend worker sets this while preparing/committing one occurrence.
+    private bool processingSuppressed;
     private TaskCompletionSource controlWake = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     internal IncomingEventQueue(int capacity, object gate, TimeProvider clock,
@@ -39,10 +42,12 @@ internal sealed class IncomingEventQueue
     }
 
     internal Task Completion { get; }
+    internal void AttachMetrics(LoggingMetrics binding)
+    { Volatile.Write(ref metrics, binding); ring.AttachMetrics(binding); }
     internal bool IsClosed => ring.IsClosed;
     internal void RecordWriterRejection() => rejectedByWriters.Increment();
     internal void RecordSuppressed(bool duplicate)
-    { suppressed.Increment(); if (duplicate) { duplicateSuppressed.Increment(); } }
+    { processingSuppressed = true; suppressed.Increment(); if (duplicate) { duplicateSuppressed.Increment(); } }
     internal void RecordDuplicateKeyEviction() => duplicateKeyEvictions.Increment();
 
     internal long? TryAdmit(CoreLogLevel level, CapturedEventFacts facts)
@@ -172,9 +177,11 @@ internal sealed class IncomingEventQueue
             {
                 IncomingBatchIndex.Entry entry = index.At(position);
                 if (entry.Item is not { } item) { continue; }
+                LoggingMetrics? observedMetrics = Volatile.Read(ref metrics);
+                bool removed;
                 lock (gate)
                 {
-                    bool removed = ring.TryAbandon(entry.Slot, item);
+                    removed = ring.TryAbandon(entry.Slot, item);
                     if (current?.Batch is { } counts)
                     {
                         current.Batch = counts with
@@ -185,6 +192,7 @@ internal sealed class IncomingEventQueue
                         };
                     }
                 }
+                if (removed) { observedMetrics?.Discarded("shutdown"); }
                 index.Clear(position);
             }
             do
@@ -232,11 +240,13 @@ internal sealed class IncomingEventQueue
                 IncomingBatchIndex.Entry entry = index.At(position);
                 IncomingEvent item = entry.Item!;
                 bool claimed;
+                bool abandoned;
+                LoggingMetrics? observedMetrics = Volatile.Read(ref metrics);
                 long observedAt = clock.GetTimestamp();
                 lock (gate)
                 {
                     if (stopBudget is { } budget && !budget.Contains(observedAt)) { abandonRequested = true; }
-                    bool abandoned = abandonRequested && ring.TryAbandon(entry.Slot, item);
+                    abandoned = abandonRequested && ring.TryAbandon(entry.Slot, item);
                     claimed = !abandonRequested && ring.TryClaim(entry.Slot, item);
                     if (claimed) { backendActive = true; }
                     if (batch?.Batch is { } counts)
@@ -250,9 +260,11 @@ internal sealed class IncomingEventQueue
                         };
                     }
                 }
+                if (abandoned) { observedMetrics?.Discarded("shutdown"); }
                 index.Clear(position);
                 if (!claimed) { continue; }
                 bool success = false;
+                processingSuppressed = false;
                 try { Action commit = prepare(item); commit(); success = true; }
                 catch (Exception problem) when (problem is not (OutOfMemoryException or StackOverflowException)) { }
                 lock (gate)
@@ -260,6 +272,7 @@ internal sealed class IncomingEventQueue
                     if (success) { processed.Increment(); } else { failed.Increment(); }
                     backendActive = false;
                 }
+                observedMetrics?.Processed(success ? processingSuppressed ? "suppressed" : "routed" : "failed");
             }
             index.Release();
             if (batch is not null) { Resolve(batch); }

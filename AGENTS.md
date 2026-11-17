@@ -12,6 +12,18 @@ Read [README.md](README.md) for the current native development commands and [pla
 - Do not overwrite user edits, publish releases, merge main, transmit source externally or approve product records without applicable authorization. Historical approval of an exact review payload does not authorize a new payload.
 - Coordinate builds sharing project/output directories. Keep generated output out of Git. Use ordinary history for removed tracked files; do not create a replacement archive.
 
+## Metrics in modules and applications
+
+For Metrics work, read the [Metrics skill](.github/skills/cislib-metrics/SKILL.md),
+[portable contract](contracts/metrics/README.md) and actual
+[Core API](docs/modules/metrics/core.md) / [collection policy](docs/modules/metrics/collection.md).
+Use implemented APIs and current verified examples; authored integration source
+alone is not passing evidence. Keep CIS-owned abstractions in consumer/module
+code and SDK/exporter dependencies in the optional integration. Preserve central
+application/environment identity, bounded dimensions, real operation boundaries
+and callback-owner drain. Reuse native HTTP observations and aggregation. Do not
+add duplicate timing, metric histories or speculative future services.
+
 <!-- cis:repository-guidance:start -->
 ## CIS integration
 

@@ -87,3 +87,18 @@ Flush validates positive finite timeout before registration. Precancelled caller
 At the shutdown deadline, abandon only queued work that has not started. Request cancellation of in-flight I/O, retaining unresolved work as Pending. Cancellation does not prove a writer stopped. Do not dispose underneath unresolved I/O, launch replacement writes or automatically recover faulted outputs. Close safely owned resources when outstanding I/O resolves. Store one immutable stop result in LastStopResult; later live diagnostics may change without rewriting that result. Repeated Dispose is safe, including after the original deadline.
 
 Accepted means enqueued, Written means complete encoded record handed to the writer, and Flushed means its userspace buffer flush succeeded. These results promise neither fsync/crash durability nor collector acknowledgement/exactly-once delivery. Abrupt termination can lose buffered records.
+
+## Metrics
+
+When the optional Metrics integration attaches this runtime, automatic counters
+separate frontend return dispositions, actual backend preparation/dispatch,
+frontend overwrite/shutdown removal and output write/flush failures. An accepted
+frontend call still does not promise writer admission or delivery. Policy
+suppression remains intentional processing; it is not reported as overwrite.
+No logger category, event content or writer name becomes a metric label.
+
+Each stage captures its binding at entry; attachment does not replay that stage.
+Metric recording failures preserve the logging operation and original writer
+exception. The [runtime observation catalog](../../../contracts/metrics/runtime-services.md)
+defines the finite names, units and boundaries. Existing flush, stop and resource
+ownership rules continue to govern logging independently of collection.

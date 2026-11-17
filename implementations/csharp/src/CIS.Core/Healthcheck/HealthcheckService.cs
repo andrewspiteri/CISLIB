@@ -4,7 +4,7 @@ namespace CIS.Healthcheck;
 
 /// <summary>Owns application health facts and independent, explicitly retained monitor lifetimes.</summary>
 /// <remarks>Construction starts no collectors, application work or reporting endpoints.</remarks>
-public sealed class HealthcheckService : IHealthMonitorFactory, IHealthSnapshotSource, IAsyncDisposable, IHealthStateAccess
+public sealed partial class HealthcheckService : IHealthMonitorFactory, IHealthSnapshotSource, IAsyncDisposable, IHealthStateAccess
 {
     private readonly HealthStateCoordinator state;
 

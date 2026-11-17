@@ -17,6 +17,7 @@ namespace CIS.Logging.MicrosoftLogger;
 public sealed class CoreLoggerProvider : ILoggerProvider, ISupportExternalScope
 {
     private readonly CoreLogRuntime runtime;
+    internal CoreLogRuntime MetricsSource => runtime;
     private int disposed;
     private readonly object scopeProviderGate = new();
     private IExternalScopeProvider? externalScopes;

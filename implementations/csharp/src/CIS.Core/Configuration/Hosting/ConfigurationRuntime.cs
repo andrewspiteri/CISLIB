@@ -1,5 +1,6 @@
 using CIS.Healthcheck;
 using CIS.Heartbeat;
+using CIS.Metrics;
 using CIS.TypeManagement;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -53,6 +54,8 @@ public sealed class ConfigurationRuntime : IAsyncDisposable
     /// <summary>Captures detached current status without reading storage or configuration values.</summary>
     public ConfigurationRefreshStatus CaptureStatus()
         => refresh.CaptureStatus() with { ActivationCompleted = Volatile.Read(ref activationCompleted) != 0, IsStopping = IsStopping };
+
+    internal void AttachMetrics(MetricsRuntime runtime) => refresh.AttachMetrics(runtime);
 
     /// <summary>Copies at most 32 recent bounded name-only mapping warnings, including warnings observed before DI logging existed.</summary>
     public IReadOnlyList<ConfigurationIssue> CaptureDiagnostics()

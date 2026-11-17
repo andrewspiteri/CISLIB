@@ -1,0 +1,26 @@
+{
+  "tasks": [
+    {
+      "paths": [
+        "contracts/metrics",
+        "conformance/metrics",
+        "implementations/csharp/src/CIS.Core/Metrics",
+        "implementations/csharp/src/CIS.Core/CIS.Core.csproj",
+        "implementations/csharp/tests/CIS.Core.UnitTests",
+        "implementations/csharp/tests/CIS.Core.ArchitectureTests",
+        "docs/modules/metrics",
+        "docs/changes/CIS-0009",
+        "planning/metrics"
+      ],
+      "assignee": "Codex",
+      "category": "implementation",
+      "acceptanceCriteria": "Implement the approved portable CIS-owned metric definitions, finite units/string dimensions, counter/up-down/gauge/histogram/timer/observable semantics as thin BCL adapters. Stable registrations reuse handles, incompatible translated definitions fail, invalid recordings drop with bounded diagnostics, timer first Stop/Dispose fixes exactly one attempt. Establish host-owned Meter/attachment and actual callback admission/drain seams preserving existing constructors/pre-DI services, disabled behavior and Core closure; no aggregate engine/global latest-provider. Own portable contracts/fixtures, meaningful tests/docs/review and freeze APIs/catalog before dependent work.",
+      "title": "Establish portable Metrics primitives and host-owned recording contracts",
+      "validation": "Native independent values and BCL listener cases for MET01/02 and A01-04: numeric semantics, timer race and invalid completion no retry, schema/name/translated child collisions and bounded capacity/invalid-input behavior. Verify public consumer API excludes BCL/SDK instrumentation types, Core dependency closure unchanged and proposed optional binding can use host-owned references. Inspect actual six-module attachment/lifetime seams before freezing; no speculative service or collector.",
+      "scopeIds": [
+        "metrics"
+      ],
+      "complexity": "medium"
+    }
+  ]
+}

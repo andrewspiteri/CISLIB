@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using CIS.Startup.Hosting;
+using CIS.Metrics;
 
 namespace CIS.Heartbeat.Hosting;
 
@@ -24,9 +25,10 @@ public static class HeartbeatHostingExtensions
 }
 
 internal sealed class HeartbeatHostedService(HeartbeatRuntime runtime, IHostApplicationLifetime lifetime,
-    HeartbeatHostingOrder order, IOptions<HostOptions> hostOptions) : IHostedLifecycleService, IAsyncDisposable
+    HeartbeatHostingOrder order, IOptions<HostOptions> hostOptions, IServiceProvider root) : IHostedLifecycleService, IAsyncDisposable
 {
     private CancellationTokenRegistration started, stopping;
+    private readonly MetricsRuntime? metrics = root.GetService<IMetrics>() as MetricsRuntime;
 
     public Task StartingAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
@@ -36,7 +38,7 @@ internal sealed class HeartbeatHostedService(HeartbeatRuntime runtime, IHostAppl
         {
             throw new InvalidOperationException("Install AddCisHeartbeat after dependent hosted services and disable concurrent hosted stopping so its barrier precedes dependency teardown.");
         }
-        stopping = lifetime.ApplicationStopping.UnsafeRegister(static value => ((HeartbeatRuntime)value!).BeginStopping(), runtime);
+        stopping = lifetime.ApplicationStopping.UnsafeRegister(static value => ((HeartbeatHostedService)value!).BeginStopping(), this);
         started = lifetime.ApplicationStarted.UnsafeRegister(static value => ((HeartbeatRuntime)value!).Activate(), runtime);
         return Task.CompletedTask;
     }
@@ -45,13 +47,25 @@ internal sealed class HeartbeatHostedService(HeartbeatRuntime runtime, IHostAppl
 
     // A canceled host budget cannot authorize subsequent dependency teardown.
     // External callers may cancel their own StopAsync wait on the runtime instead.
-    public Task StoppingAsync(CancellationToken cancellationToken) => runtime.StopAsync();
-    public Task StopAsync(CancellationToken cancellationToken) => runtime.StopAsync();
+    public Task StoppingAsync(CancellationToken cancellationToken) => StopCoreAsync();
+    public Task StopAsync(CancellationToken cancellationToken) => StopCoreAsync();
     public Task StoppedAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+    private void BeginStopping()
+    {
+        runtime.BeginStopping();
+        metrics?.BeginStopping();
+    }
+
+    private Task StopCoreAsync()
+    {
+        BeginStopping();
+        return Task.WhenAll(runtime.StopAsync(), metrics?.StopAsync() ?? Task.CompletedTask);
+    }
 
     public async ValueTask DisposeAsync()
     {
-        await runtime.StopAsync().ConfigureAwait(false);
+        await StopCoreAsync().ConfigureAwait(false);
         started.Dispose();
         stopping.Dispose();
     }

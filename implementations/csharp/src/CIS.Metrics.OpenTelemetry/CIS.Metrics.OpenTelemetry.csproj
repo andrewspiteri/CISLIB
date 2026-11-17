@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>CIS.Metrics.OpenTelemetry</AssemblyName>
+    <RootNamespace>CIS.Metrics.OpenTelemetry</RootNamespace>
+    <IsPackable>true</IsPackable>
+    <PackageId>CIS.Metrics.OpenTelemetry</PackageId>
+    <Version>0.1.0-dev.1</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Description>Optional bounded OpenTelemetry Prometheus collection for CIS metrics.</Description>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="../CIS.Core/CIS.Core.csproj" />
+    <PackageReference Include="OpenTelemetry" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+    <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" />
+    <InternalsVisibleTo Include="CIS.Core.IntegrationTests" />
+    <InternalsVisibleTo Include="CIS.Core.UnitTests" />
+  </ItemGroup>
+</Project>

@@ -2,6 +2,7 @@ using CIS.Healthcheck;
 using CIS.Configuration;
 using CIS.Heartbeat;
 using CIS.Heartbeat.Hosting;
+using CIS.Metrics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -35,6 +36,8 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
     private readonly StartupCoordinator coordinator;
     private readonly HeartbeatRuntime? heartbeat;
     private readonly ConfigurationRuntime? configuration;
+    private readonly MetricsRuntime? metrics;
+    private readonly MetricsRuntime? moduleMetrics;
     private readonly StartupHostingOrder order;
     private readonly IHostApplicationLifetime lifetime;
     private readonly IOptions<HostOptions> hostOptions;
@@ -51,6 +54,8 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
         this.hostOptions = hostOptions;
         heartbeat = root.GetService<HeartbeatRuntime>();
         configuration = root.GetService<ConfigurationRuntime>();
+        metrics = root.GetService<IMetrics>() as MetricsRuntime;
+        moduleMetrics = root.GetService<MetricsRuntime>();
         coordinator = new StartupCoordinator(root, order.Descriptors,
             root.GetService<HealthcheckService>(), root.GetService<ILogger<StartupCoordinator>>(),
             ConfirmStartupCompletion);
@@ -68,7 +73,7 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
         {
             stopping = lifetime.ApplicationStopping.UnsafeRegister(static value => ((StartupHostedService)value!).BeginStopping(), this);
             // Close admission even while an initializer ignores startup cancellation.
-            startupStopping = heartbeat is null && configuration is null ? default : cancellationToken.UnsafeRegister(
+            startupStopping = heartbeat is null && configuration is null && metrics is null ? default : cancellationToken.UnsafeRegister(
                 static value => ((StartupHostedService)value!).CloseModuleAdmission(), this);
         }
         return Task.CompletedTask;
@@ -77,7 +82,13 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
     // All ordinary IHostedService.StartAsync calls (including the listener) have
     // completed; ApplicationStarted is still held until this real task finishes.
     public Task StartedAsync(CancellationToken cancellationToken)
-        => coordinator.StartAsync(cancellationToken, lifetime.ApplicationStopping);
+    {
+        // Metrics' Starting phase has already activated the existing provider.
+        // The optional alias enables automatic modules; ordinary callbacks use
+        // the separate facade binding even when that collection is disabled.
+        if (moduleMetrics is not null) { coordinator.AttachMetrics(moduleMetrics); }
+        return coordinator.StartAsync(cancellationToken, lifetime.ApplicationStopping);
+    }
 
     // A host wait budget cannot certify actual startup/Heartbeat settlement.
     public Task StoppingAsync(CancellationToken cancellationToken) => StopCoreAsync();
@@ -86,7 +97,7 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
 
     private bool ConfirmStartupCompletion(CancellationToken cancellationToken)
     {
-        if (heartbeat is null && configuration is null) { return true; }
+        if (heartbeat is null && configuration is null && metrics is null) { return true; }
         // This callback closes dispatch independently of the coordinator gate if
         // the first host startup token is canceled during actual activation.
         completionStopping = cancellationToken.UnsafeRegister(
@@ -108,6 +119,7 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
         configuration?.BeginStopping();
         // Close dispatch before waiting for the final startup publication gate.
         heartbeat?.BeginStopping();
+        metrics?.BeginStopping();
     }
 
     private async Task StopCoreAsync()
@@ -115,7 +127,8 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
         BeginStopping();
         Task configurationDrain = configuration?.StopAsync() ?? Task.CompletedTask;
         Task heartbeatDrain = heartbeat?.StopAsync() ?? Task.CompletedTask;
-        await Task.WhenAll(coordinator.StopAsync(), configurationDrain, heartbeatDrain).ConfigureAwait(false);
+        Task metricsDrain = metrics?.StopAsync() ?? Task.CompletedTask;
+        await Task.WhenAll(coordinator.StopAsync(), configurationDrain, heartbeatDrain, metricsDrain).ConfigureAwait(false);
     }
 
     public async ValueTask DisposeAsync()

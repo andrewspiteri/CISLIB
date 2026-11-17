@@ -38,7 +38,8 @@ internal sealed class StartupHost : IAsyncDisposable
     private int businessCalls;
     internal int BusinessCalls => Volatile.Read(ref businessCalls);
 
-    internal StartupHost(Action<IServiceCollection>? configure = null, Action<IServiceCollection>? afterStartup = null)
+    internal StartupHost(Action<IServiceCollection>? configure = null, Action<IServiceCollection>? afterStartup = null,
+        Action<WebApplication>? configureApp = null)
     {
         options = new() { PipeEnabled = true, PipeName = TransportTestSupport.NewPipeName() };
         Health = new(options);
@@ -57,6 +58,7 @@ internal sealed class StartupHost : IAsyncDisposable
         builder.Services.AddCisStartup();
         afterStartup?.Invoke(builder.Services);
         App = builder.Build();
+        configureApp?.Invoke(App);
         App.UseCisHealthcheck(Health, options);
         App.Use(async (context, next) =>
         {

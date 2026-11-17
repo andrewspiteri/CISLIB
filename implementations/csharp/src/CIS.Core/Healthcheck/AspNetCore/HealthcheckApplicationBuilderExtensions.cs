@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using CIS.Metrics.Hosting;
 
 namespace CIS.Healthcheck.AspNetCore;
 
@@ -27,12 +28,18 @@ public static class HealthcheckApplicationBuilderExtensions
             throw new ArgumentException("Supply an explicit details authorization predicate when details are enabled.", nameof(authorizeDetails));
         }
 
-        return app.Use(next => context =>
+        return app.Use(next =>
         {
-            PathString path = context.Request.Path;
-            return path.StartsWithSegments("/_health", StringComparison.OrdinalIgnoreCase)
-                ? HandleAsync(context, path.Value!, source, settings, authorizeDetails)
-                : next(context);
+            // Build this pipeline after hosted Starting activation, before the
+            // listener. Metrics hosting owns the optional alias and host claim.
+            MetricsHostAttachment.Attach(source, app.ApplicationServices);
+            return context =>
+            {
+                PathString path = context.Request.Path;
+                return path.StartsWithSegments("/_health", StringComparison.OrdinalIgnoreCase)
+                    ? HandleAsync(context, path.Value!, source, settings, authorizeDetails)
+                    : next(context);
+            };
         });
     }
 

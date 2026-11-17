@@ -6,6 +6,8 @@ namespace CIS.Logging.Runtime;
 // One queue and one awaited writer operation. Only trusted internal composition supplies the writer.
 internal sealed class OutputEventQueue : ILogOutputAdmission
 {
+    private LoggingMetrics? metrics;
+    internal void AttachMetrics(LoggingMetrics binding) => Volatile.Write(ref metrics, binding);
     private readonly object admissionGate;
     private readonly TimeProvider clock;
     private ElapsedBudget? stopBudget;
@@ -741,7 +743,9 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
                 if (request is not null)
                 {
                     // Flush at this fixed boundary before starting a later record. All I/O is outside the gate.
-                    await flush!(ioCancellation?.Token ?? CancellationToken.None).ConfigureAwait(false);
+                    LoggingMetrics? observedMetrics = Volatile.Read(ref metrics);
+                    try { await flush!(ioCancellation?.Token ?? CancellationToken.None).ConfigureAwait(false); }
+                    catch { observedMetrics?.WriterFailed(); throw; }
                     observedAt = clock.GetTimestamp();
                     lock (admissionGate)
                     {
@@ -753,7 +757,9 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
                 else
                 {
                     // Complete record confirmation only; a dequeued/partially emitted write is still pending.
-                    await write(admitted, ioCancellation?.Token ?? CancellationToken.None).ConfigureAwait(false);
+                    LoggingMetrics? observedMetrics = Volatile.Read(ref metrics);
+                    try { await write(admitted, ioCancellation?.Token ?? CancellationToken.None).ConfigureAwait(false); }
+                    catch { observedMetrics?.WriterFailed(); throw; }
                     observedAt = clock.GetTimestamp();
                     lock (admissionGate)
                     {
