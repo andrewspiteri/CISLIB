@@ -1,0 +1,23 @@
+{
+  "tasks": [
+    {
+      "assignee": "Codex",
+      "title": "Refresh Configuration source-host build prerequisites",
+      "scopeIds": [
+        "rest-client"
+      ],
+      "complexity": "medium",
+      "dependsOn": [
+        "WORK-007"
+      ],
+      "validation": "Run the two reported ConfigurationSourceConsumerTests through an ordinary Integration build with refreshed restore graph and locked restore. Require exact current Core hashes and actual child reports for both hosts, zero failed/skipped cases. Preserve earlier completion/history, original shared limits and all three user launchSettings files.",
+      "paths": [
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/packages.lock.json",
+        "docs/changes/CIS-0010"
+      ],
+      "acceptanceCriteria": "Make an ordinary Integration project build refresh both actual Configuration Console/Web source consumers and ExampleLate using three existing-style build-only ProjectReferences. Preserve the exact-Core-byte assertion and all runtime behavior. Include generated lock changes, focused native verification, concise documentation and independent review; no testhost build, DLL replacement workaround, harness or new product responsibility.",
+      "category": "implementation"
+    }
+  ]
+}

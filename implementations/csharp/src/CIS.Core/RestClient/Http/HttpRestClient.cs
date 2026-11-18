@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+
 namespace CIS.RestClient.Http;
 
 /// <summary>A typed REST client sharing one long-lived transport and an awaited operation owner.</summary>
@@ -11,6 +13,12 @@ public sealed class HttpRestClient : IRestClient, IAsyncDisposable
     /// <remarks>Standalone clients support RetryPolicy.None. Register the optional retry adapter in
     /// an existing host to use named policies. Always await disposal before disposing borrowed resources.</remarks>
     public HttpRestClient(RestClientOptions options, RestHttpTransport? borrowed = null, TimeProvider? clock = null)
+        : this(options, borrowed, clock, null) { }
+
+    /// <summary>Creates a standalone client borrowing an optional application logger factory.</summary>
+    /// <remarks>The logger factory and supplied transport remain application-owned. The original
+    /// three-argument constructor remains available; a null factory disables automatic call summaries.</remarks>
+    public HttpRestClient(RestClientOptions options, RestHttpTransport? borrowed, TimeProvider? clock, ILoggerFactory? loggerFactory)
     {
         RestClientSnapshot snapshot = RestClientSnapshot.Capture(options);
         if (snapshot.RetryPolicy.PolicyName is not null)
@@ -20,7 +28,8 @@ public sealed class HttpRestClient : IRestClient, IAsyncDisposable
         RestHttpTransport transport = borrowed ?? RestHttpTransport.Create();
         try
         {
-            runtime = new RestClientRuntime(composition, [new(snapshot, transport, borrowed is null)], clock ?? TimeProvider.System);
+            runtime = new RestClientRuntime(composition, [new(snapshot, transport, borrowed is null)], clock ?? TimeProvider.System,
+                logger: RestCallLogging.CreateLogger(loggerFactory));
         }
         catch
         {

@@ -174,3 +174,39 @@ validation precede caller transport factories. No child provider is constructed.
 Idempotency-Key is ordinary stable request data and cannot be declared a credential
 field. Replay assurance represents the real provider contract; the library does
 not generate keys or infer idempotency from an arbitrary header.
+
+## Logical completion logging
+
+Hosted clients use the configured `ILogger` pipeline, including an existing CIS
+Logging provider, for one final logical completion line:
+
+```text
+[REST] METHOD URI RESULT durationms (Attempt n/m)
+```
+
+Success uses Information; returned failures, caller cancellation and faults use
+Error. Result labels have a finite status/kind form, for example `200 Ok`,
+`500 Technical Error` or `200 Business Error`. Duration covers the complete logical
+operation through actual cleanup. Here n is actual primary dispatches and m is
+the selected policy's maximum retries plus one. The attempt suffix appears only
+when retry is configured and at least one dispatch occurred.
+
+URI contains scheme, authority and escaped path; query, user information and
+fragment are omitted. The line includes no payload or exception details. Logger
+filters and disabled logging are honored; an ordinary logger failure cannot
+replace the operation's result, cancellation or original fault.
+
+A standalone client can borrow the application's existing factory explicitly:
+
+```csharp
+ILoggerFactory loggerFactory = host.Services.GetRequiredService<ILoggerFactory>();
+await using var client = new CIS.RestClient.Http.HttpRestClient(
+    new RestClientOptions("orders") { BaseUrl = "https://orders.example/" },
+    borrowed: null, clock: null, loggerFactory: loggerFactory);
+```
+
+This four-argument constructor borrows the factory; the original three-argument
+constructor remains available. Neither creates a global Logging runtime. The
+completion-logging addition passed the focused Windows integration checks;
+its actual scope and remaining release limits are recorded in
+[CIS-0010 verification](../../changes/CIS-0010/verification.md).

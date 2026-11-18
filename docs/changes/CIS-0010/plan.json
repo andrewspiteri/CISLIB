@@ -438,6 +438,115 @@
         }
       ],
       "contractErrors": []
+    },
+    {
+      "id": "WORK-008",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-008.md",
+      "title": "Refresh Configuration source-host build prerequisites",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-007"
+      ],
+      "acceptanceCriteria": "Make an ordinary Integration project build refresh both actual Configuration Console/Web source consumers and ExampleLate using three existing-style build-only ProjectReferences. Preserve the exact-Core-byte assertion and all runtime behavior. Include generated lock changes, focused native verification, concise documentation and independent review; no testhost build, DLL replacement workaround, harness or new product responsibility.",
+      "validation": "Run the two reported ConfigurationSourceConsumerTests through an ordinary Integration build with refreshed restore graph and locked restore. Require exact current Core hashes and actual child reports for both hosts, zero failed/skipped cases. Preserve earlier completion/history, original shared limits and all three user launchSettings files.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:c9b80f1f641640459192800474f210a5",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "rest-client"
+      ],
+      "authorizationScopeBasis": "sha256:95f1d24bf874be08964edc019f8c7ce8af6e9ce1eb9c6ac1be7c75934ddb0136",
+      "workPaths": [
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/packages.lock.json",
+        "docs/changes/CIS-0010"
+      ],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "Make an ordinary Integration project build refresh both actual Configuration Console/Web source consumers and ExampleLate using three existing-style build-only ProjectReferences. Preserve the exact-Core-byte assertion and all runtime behavior. Include generated lock changes, focused native verification, concise documentation and independent review; no testhost build, DLL replacement workaround, harness or new product responsibility."
+          ],
+          "description": "Run the two reported ConfigurationSourceConsumerTests through an ordinary Integration build with refreshed restore graph and locked restore. Require exact current Core hashes and actual child reports for both hosts, zero failed/skipped cases. Preserve earlier completion/history, original shared limits and all three user launchSettings files.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Run the two reported ConfigurationSourceConsumerTests through an ordinary Integration build with refreshed restore graph and locked restore. Require exact current Core hashes and actual child reports for both hosts, zero failed/skipped cases. Preserve earlier completion/history, original shared limits and all three user launchSettings files."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-009",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-009.md",
+      "title": "Log completed REST calls through the existing logger",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-007"
+      ],
+      "acceptanceCriteria": "Automatically emit one final logical REST call summary through the existing configured ILogger/Core provider after actual cleanup and terminal commit:Information success,Error finite failure/cancellation/fault; METHOD safeURI RESULT logicaldurationms and actual dispatched Attempt n/max when retries are selected. Preserve existing faults, results, caller cancellation, metrics and host lifetimes; ordinary logging failures cannot replace them. Strip credentials/query/fragment/payload/error details from rendered and structured data. Preserve original standalone constructor and add only a borrowed-factory four-argument overload. Include focused public tests, docs and independent review; no new logger/runtime/provider/dependency or framework.",
+      "validation": "Verify public success/error formatting and severity, actual2of3 retry summary without intermediate summary lines, business200 failure, invariant elapsed duration, finalmethod/path, privacy in both rendered/structured fields, heldcleanup/cancellation/originalfault preservation and disabled/throwing logger. Prove one existing CIS provider bridge and borrowed standalone factory. Run affected REST integration plus both ConfigurationSourceConsumerTests with current locked inputs; record actual scope/currentness/cost and preserve all three user launchSettings. Source correction old2-casepass/currentnesshold remains historical.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:8b6e00da32d44c57865d550a503612cf",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "rest-client-logging"
+      ],
+      "authorizationScopeBasis": "sha256:766707c87cec9dc8e50fa061fb114a914b90bcb1edcca5d0f65009bdd786518d",
+      "workPaths": [
+        "implementations/csharp/src/CIS.Core/RestClient/Runtime",
+        "implementations/csharp/src/CIS.Core/RestClient/Internal",
+        "implementations/csharp/src/CIS.Core/RestClient/Http/HttpRestClient.cs",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/RestClient",
+        "docs/modules/rest-client/core.md",
+        "docs/changes/CIS-0010"
+      ],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "Automatically emit one final logical REST call summary through the existing configured ILogger/Core provider after actual cleanup and terminal commit:Information success,Error finite failure/cancellation/fault; METHOD safeURI RESULT logicaldurationms and actual dispatched Attempt n/max when retries are selected. Preserve existing faults, results, caller cancellation, metrics and host lifetimes; ordinary logging failures cannot replace them. Strip credentials/query/fragment/payload/error details from rendered and structured data. Preserve original standalone constructor and add only a borrowed-factory four-argument overload. Include focused public tests, docs and independent review; no new logger/runtime/provider/dependency or framework."
+          ],
+          "description": "Verify public success/error formatting and severity, actual2of3 retry summary without intermediate summary lines, business200 failure, invariant elapsed duration, finalmethod/path, privacy in both rendered/structured fields, heldcleanup/cancellation/originalfault preservation and disabled/throwing logger. Prove one existing CIS provider bridge and borrowed standalone factory. Run affected REST integration plus both ConfigurationSourceConsumerTests with current locked inputs; record actual scope/currentness/cost and preserve all three user launchSettings. Source correction old2-casepass/currentnesshold remains historical.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Verify public success/error formatting and severity, actual2of3 retry summary without intermediate summary lines, business200 failure, invariant elapsed duration, finalmethod/path, privacy in both rendered/structured fields, heldcleanup/cancellation/originalfault preservation and disabled/throwing logger. Prove one existing CIS provider bridge and borrowed standalone factory. Run affected REST integration plus both ConfigurationSourceConsumerTests with current locked inputs; record actual scope/currentness/cost and preserve all three user launchSettings. Source correction old2-casepass/currentnesshold remains historical."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
     }
   ],
   "source": null

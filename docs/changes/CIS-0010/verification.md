@@ -542,4 +542,140 @@ WORK-007 Complete. All seven canonical tasks are now Complete; the outcome's
 original approval, allocation and historical records remain preserved. There is
 no open logical attempt or active native reservation. The implementation remains
 on its local branch for review; this task does not close or merge that branch.
+
+## Configuration source-consumer correction — 18 November 2026
+
+Andrew reported both Console/Web rows of ConfigurationSourceConsumerTests failing
+their exact-Core-byte guard after rebuilding the candidate. Review confirmed the
+guard was valid: both source-host output directories contained an older 650,240-byte
+Core assembly, while the current Release candidate was 904,704 bytes. The retained
+before-state hashes are in `.cis/local/rest-client-intake/configuration-source-before.json`.
+The Integration project had no build dependency on either source host or ExampleLate;
+the earlier Configuration preparation script had built those separately, masking
+this missing permanent dependency. The previous 1915-case delivery selection did
+not include these two root-namespace source-consumer cases.
+
+The correction adds three ordinary build-only ProjectReferences to the Integration
+project, matching its existing fixture pattern. ReferenceOutputAssembly=false,
+Private=false and PrivateAssets=all keep these as build prerequisites. Existing
+Type Manager targets select the native RID and regenerate the host inventories.
+The test, exact-byte assertion and runtime source remain unchanged; no testhost
+build, hand-copied Core replacement, new harness or lifecycle change is introduced.
+Independent review confirmed this is the smallest durable correction.
+
+WORK-007 remains Complete. The attempted Complete-to-InProgress transition was
+rejected without changing it; Ready was also rejected as an unsupported status.
+Supported task organization added WORK-008 under the existing delegated outcome.
+It receives 900 existing seconds and the unused WORK-007 attempt, reducing that
+owner's distribution to 8100 seconds/one already-used attempt. The total 43,200
+seconds, 16 attempts, 1200 restoration seconds, 6-GiB ceiling and 64-MiB reserve remain
+unchanged; all original spent work and completed owners are preserved.
+
+The focused native invocation refreshes the new restore graph, verifies locked
+restore, then builds the ordinary Integration project and runs exactly the two
+reported cases. Its changed Integration lock is a generated restore output for
+this initial correction; the existing Core/optional locks and source inputs stay
+fingerprinted. Actual result and final settlement follow below.
+
+### Actual source correction observations
+
+The initial filter-template submission was rejected before execution (887 ms),
+followed by a stale-graph rejection (91,896ms); no product test ran in either.
+The refreshed invocation `native/incremental/e7fc3745ed9745d1b0f66c2ee2c73772`
+then passed both actual Console/Web cases with matching current Core SHA256
+`9fa0b615db448bf24b7f98ff7729ad3ebe2d82eb14ecda13816a5cffbbfe1bc3`.
+Its retained TRX is `.cis/local/rest-client-intake/configuration-source-correction-pass.trx`.
+The native pass was held for reuse because force-evaluation regenerated the five
+fixture lock files during execution. Git shows no semantic lock/dependency change;
+their exact input bytes changed. This remains a held receipt, without forced reuse.
+WORK-008 consumed 642,260 ms in its single open logical attempt. The final logging
+run below repeats both cases against the now-current locks and new Core bytes.
+
+## Automatic REST completion logging
+
+Andrew explicitly requested the REST log format and approved one additional shared
+active hour for this correction and logging: **46,800 seconds/13 hours total**,
+with 16 logical attempts, 1200 restoration seconds, 6 GiB counted storage and 64 MiB
+restoration reserve unchanged. The same authorization retains its original
+decision/history. A first representation changed global outcome constraints and
+held allocation against old scope bindings. The corrected additive
+rest-client-logging scope preserves original task bindings; its numeric time
+amendment and later explicit user decision supersede the original 12-hour time
+statement. This is the same human approval, with a corrected structured record,
+not another approval or a reset. WORK-009 receives the 3600 added seconds and one
+unused WORK-005 attempt; all containing attempt/storage/restoration totals stay fixed.
+
+Runtime reuses its existing borrowed ILogger and emits one settled logical-call
+summary outside the terminal gate, after cleanup and outcome commit, before
+public-task publication. Success is Information; finite failures, cancellation
+and faults are Error. The final dispatched method and bounded scheme/authority/
+escaped path are recorded without query, credentials, fragment, payload, provider
+explanation or exception details in either message or structured state. Existing
+elapsed duration and actual dispatch count supply the duration and optional retry
+suffix. Ordinary logger/factory failures cannot replace the REST result or cause.
+The original standalone constructor remains; a distinct four-argument overload
+borrows an application's ILoggerFactory. No provider, global Logging runtime,
+new dependency, extra clock/metric or lifecycle framework was introduced.
+
+Example message bodies (using actual runtime values):
+
+```text
+[REST] POST https://apiexample.com/ 200 Ok 10ms
+[REST] POST https://apiexample.com/ 500 Technical Error 10ms (Attempt 2/3)
+```
+
+The first new logging build compiled production and found CS1503 in the bridge
+test: JsonLine is UTF-8 memory. Converting its span to string fixed that test;
+execution `native/incremental/2420b1fd056d4e25827616cb8fff9a3b` retains 450,273 ms
+measured cost and its original build log; no testcases ran and no missing TRX is
+represented as a test pass. The same WORK-009:1 attempt continued.
+
+The subsequent native run passed **98/98**, zero failed/skipped, on the pinned
+Windows SDK 10.0.401/runtime 10.0.12. This includes all 11 new logging cases, both
+Configuration source consumers and 85 existing REST runtime/retry/hosting cases;
+the existing package-consumer story was excluded. The retained report is
+`.cis/local/rest-client-intake/rest-client-logging-final-pass.trx`, with the native
+build/test output beside it. Success/error severity, actual final POST/URI,
+fr-FR invariant 10.25 ms rendering, one 2-of-3 retry summary, business HTTP 200 failure,
+bounded safe structured state, held-cleanup success/cancel/original fault,
+disabled/throwing loggers, borrowed factory and the actual queued CIS provider
+bridge all passed. No new test harness or mirrored implementation test was added.
+
+Both source consumers again passed their unchanged exact-byte assertion, now
+against Core SHA256 `71b63838445c1a0d22756739f2d3836f7715bd6498ea6afcc02be9d1a4108392`.
+This second normal project build updates their prerequisites without hand-copying
+candidate DLLs. The earlier held locks and receipt remain historical evidence;
+final currentness/accounting and owner settlement are recorded below.
 | WORK-007 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1311; failed=191; possibleTokenSavings=591; ledgerDigest=sha256:79b9ef1dce5e892b2f98d8207f1a89b95f2e1f0110b5b473c1eacb1dc9fa69f1 |
+
+### Current proof and settlement
+
+Execution `native/incremental/1d0881d9e9904c6197b68356c32ccf10` completed the 98-case
+selection with scopeComplete=true, unitCurrent=true, zero pending batches and no
+failed/skipped cases. The unit-layer pilot advisory remains qualified=false; this
+is actual bounded Windows behavior evidence, not whole-release qualification.
+The final proof covers both WORK-008's source-build correction and WORK-009's
+logging through the same real Integration build and unchanged child-host guards.
+
+Inclusive measured native work is 11,075,768 ms shared: 642,260 ms for WORK-008 and
+809,929 ms for WORK-009, each using one logical attempt, eight used of 16 overall.
+The broader original results, original authority/history, failed preparations,
+compile error and held receipt remain preserved. All agents, native work,
+controller activity, documentation/review and restoration share the approved 13
+active hours; the conservative completion estimate is 12.9 shared active hours,
+not a measured ledger remainder or another allowance. Storage and restoration
+limits are unchanged. All three current user launchSettings files are excluded
+from staging; the RestApi file's recorded SHA256 is
+`496e4bfdfc50d218c6811f947c26dfe72984782fe51a21916cb113f7d5f08f85`.
+Native result currentness describes these checked inputs; later commits do not
+turn historical receipts into unconditional reuse. Full platform/coverage/mutation,
+publication, push and main merge remain outside this correction.
+| WORK-008 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1346; failed=199; possibleTokenSavings=591; ledgerDigest=sha256:4ce7129adfb72db652e36d81411b1d945d971d32764e71dfe3e564816e06a3da |
+| WORK-009 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1348; failed=199; possibleTokenSavings=591; ledgerDigest=sha256:f2b11946bd45980b137a2d02b468fdefb64f9a4a43b4fb75ff26ecde1d57a9c8 |
+
+WORK-008 and WORK-009 are now Complete through supported CIS transitions; all nine
+canonical tasks are Complete. Their real logical attempts are closed, with zero
+active native reservations and no recovery uncertainty. Strict documentation
+validation passes171/171 with zero warnings/errors. No further native execution
+is queued; all three protected user files and both original supplied sources
+retain their recorded hashes.

@@ -78,7 +78,7 @@ internal sealed class RestClientRuntime : IRestClientRuntime, IAsyncDisposable
         if (!bindings.TryGetValue(clientName, out RestClientBinding? binding))
         { throw new ArgumentException("Select an explicitly registered client alias.", nameof(clientName)); }
         if (!RestContractRules.Method(method)) { throw new ArgumentException("Use a valid HTTP method token.", nameof(method)); }
-        _ = RestUri.Resolve(binding.Options.BaseUrl, url);
+        Uri initialDestination = RestUri.Resolve(binding.Options.BaseUrl, url);
         TimeSpan timeout = options?.Timeout ?? binding.Options.Timeout;
         RestContractRules.Timeout(timeout, nameof(options));
         // Snapshotting is pure. The timer below uses the remaining entry budget,
@@ -107,12 +107,12 @@ internal sealed class RestClientRuntime : IRestClientRuntime, IAsyncDisposable
             return Task.FromResult(BuildResult<T>(SourceFailure<T>(kind), call, clientName, 0, elapsed, trace, null));
         }
         IRestOperationObservation? observation = capturedMetrics?.Begin(clientName, call.OperationName);
-        _ = RunAsync(binding, call, policy, method, url, caller, entry, trace, observation, unknownOperation, completion);
+        _ = RunAsync(binding, call, policy, method, url, initialDestination, caller, entry, trace, observation, unknownOperation, completion);
         return completion.Task;
     }
 
     private async Task RunAsync<T>(RestClientBinding binding, RestCallSnapshot call, RestRetryPolicy? policy,
-        string method, string url, CancellationToken caller, long entry, string? trace,
+        string method, string url, Uri initialDestination, CancellationToken caller, long entry, string? trace,
         IRestOperationObservation? observation, bool unknownOperation, TaskCompletionSource<RestResult<T>> completion)
     {
         CancellationTokenSource? total = null, linked = null;
@@ -123,9 +123,11 @@ internal sealed class RestClientRuntime : IRestClientRuntime, IAsyncDisposable
         ReplayIdentity? replay = null;
         RestBody? replayBody = null;
         int dispatches = 0;
+        string loggedMethod = method, loggedUri = string.Empty;
         TimeSpan elapsed = TimeSpan.Zero;
         try
         {
+            if (logger is not null) { loggedUri = RestCallLogging.SafeUri(initialDestination); }
             TimeSpan remaining = call.Timeout - Elapsed(entry);
             total = new CancellationTokenSource(remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero, clock);
             totalToken = total.Token;
@@ -203,6 +205,8 @@ internal sealed class RestClientRuntime : IRestClientRuntime, IAsyncDisposable
             }
             try { observation?.Complete(metricOutcome, elapsed); }
             catch (Exception error) when (MetricsRuntime.IsOrdinary(error)) { }
+            RestCallLogging.Write(logger, loggedMethod, loggedUri, metricOutcome, result?.Context.HttpStatusCode,
+                elapsed, dispatches, policy?.MaxRetries + 1 ?? 1);
             if (fault is not null) { completion.TrySetException(fault.SourceException); }
             else if (canceled) { completion.TrySetCanceled(caller); }
             else { completion.TrySetResult(result!); }
@@ -360,6 +364,7 @@ internal sealed class RestClientRuntime : IRestClientRuntime, IAsyncDisposable
                     }, captureUnexpectedCancellation: true, knownCallerToken: caller).ConfigureAwait(false);
                 if (failure is not null) { throw new AttemptRejected(failure); }
                 RestNativeRequest.Finalize(message!, actual);
+                string dispatchedUri = logger is null ? string.Empty : RestCallLogging.SafeUri(message!.RequestUri!);
                 return await binding.Transport.SendAsync(message!, () =>
                 {
                     // Timer delivery can lag a monotonic deadline. Check the
@@ -373,6 +378,7 @@ internal sealed class RestClientRuntime : IRestClientRuntime, IAsyncDisposable
                         if (stopping)
                         { throw new AttemptRejected(new(RestFailureKind.Stopping, "client.stopping", "The REST client is stopping."), false); }
                         dispatches++;
+                        loggedMethod = actual.Method; loggedUri = dispatchedUri;
                     }
                 }, token).ConfigureAwait(false);
             }
