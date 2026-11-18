@@ -759,3 +759,20 @@ canonical tasks are now Complete. Its actual logical attempt is closed, with no
 active native reservation or recovery uncertainty. Final strict docs validation
 passes172/172. Original supplied sources and all three user launchSettings files
 still match their recorded hashes and remain outside this commit's changes.
+
+## Authorized branch merge — 18 November 2026
+
+Andrew Spiteri explicitly requested merging the RestClient branch and closing it
+before the next module. CIS-0010 was closed with the supported `change close`
+command after confirming all ten canonical tasks Complete and no active native
+reservation or recovery uncertainty. Fetched remote main remains the original
+baseline `7b5923c031027b932f730e1cf45b2d51270b17cc`; implementation head
+`8696ca7659ff933a5444ac9cf6322c780ef560db` descends directly from it without
+integration divergence.
+
+This closeout adds dossier metadata only. The actual native passes, measured
+costs, shared limits and qualification gaps above retain their original scope.
+No completed test owner is reopened and no forced cache-currentness claim is
+made. The explicit merge decision authorizes branch integration and closure;
+release qualification and package publication remain separate. All three user
+launchSettings files remain unchanged and excluded from the merge commits.

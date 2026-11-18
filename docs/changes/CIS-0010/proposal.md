@@ -2,7 +2,7 @@
 title: "Bounded RestClient execution and outgoing HTTP integration"
 type: change-proposal
 record_format: proportionate
-status: Proposed
+status: "Closed"
 change_id: CIS-0010
 outcome: "Prepare REST-01 through REST-10 and A01 through A22 for a portable CIS RestClient, native HTTP/content and effective cancellation, separately optional explicit retry execution, bounded automatic Metrics and real consumers. Preserve current module contracts and source inputs; implementation requires a later decision on the concrete plan, scope and finite shared allocation."
 baseline_kind: git
