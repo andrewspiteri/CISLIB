@@ -310,3 +310,19 @@ part of this completion.
 Final hygiene observed a newly untracked CountryData/Properties/launchSettings.json
 created during IDE activity. It is outside the authored implementation and is left
 untouched and unstaged; the three original retired-example files remain preserved.
+
+## Authorized branch integration — 18 November 2026
+
+Andrew Spiteri subsequently authorized pushing the completed changes and merging
+codex/cisapplication-countrydata. All six CIS-0011 tasks and all four follow-up
+CIS-0012 tasks are Complete. Supported change close recorded explicit closure of
+both dossiers after confirming known recovery and zero active reservations.
+Fetched origin/main remains86a97e047e2a17590c8187cfeb7f441ea0e7646f; the verified
+implementation head723c582ead5ff73555b8af8a7747a090c5526a10 descends from it
+without integration divergence and was pushed to its existing remote branch.
+
+This closeout changes dossier metadata only. The native observations, actual
+costs, estimates and qualification limits above retain their original scope; no
+completed execution owner is reopened or test result forced current. Merge is
+authorized separately from release qualification and package publication. The
+untracked CountryData launch settings remain unchanged and excluded.

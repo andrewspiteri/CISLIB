@@ -167,6 +167,22 @@ restoration reserve plus274.823seconds. The three bounded delivery attempts stay
 within ten; CIS records two native logical attempts and the final ordinary
 WORK-003 delivery is explicitly recorded separately. Source estimates are not
 presented as exact automated measurements, and failed work is not reset.
+
+## Authorized branch integration — 18 November 2026
+
+Andrew Spiteri subsequently authorized pushing these completed changes and
+merging the branch. CIS-0011 and CIS-0012 were closed through supported change
+close after confirming every task Complete, known recovery and zero active work
+reservations. Origin/main remains the original branch base86a97e047e2a17590c8187cfeb7f441ea0e7646f,
+and verified implementation head723c582ead5ff73555b8af8a7747a090c5526a10 was pushed
+to origin/codex/cisapplication-countrydata without divergence from main.
+
+This administrative closeout does not change runtime/test source, reopen owners,
+rerun passing tests or force CIS cache currentness. Earlier no-push/no-merge
+statements describe their implementation checkpoints; the later explicit user
+decision supplies integration authority. All evidence/resource estimates and
+unchanged-Main/Linux/release limitations remain. No package release is authorized
+or performed, and the user's launch settings remain untouched and unstaged.
 | WORK-001 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1540; failed=227; possibleTokenSavings=591; ledgerDigest=sha256:651ff9b0fdf0c71e6ce59fe9a70532c4e5a37e6b2e9091cb90a6099db1fda60a |
 | WORK-004 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1543; failed=227; possibleTokenSavings=591; ledgerDigest=sha256:d0bf647b99625c65683d9f90e011b3467943a9be604f43bb7e467936a5614bce |
 | WORK-002 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1558; failed=230; possibleTokenSavings=591; ledgerDigest=sha256:8d8b18a70f65deda4970ef79f224443542f5d8f7349c11b3bf7ee42ca4e30f50 |

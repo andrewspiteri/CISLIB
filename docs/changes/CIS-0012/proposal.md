@@ -2,7 +2,7 @@
 title: "Public application testing boundaries and safe CountryData diagnostics"
 type: change-proposal
 record_format: proportionate
-status: Proposed
+status: "Closed"
 change_id: CIS-0012
 outcome: "Deliver readable CountryData code and bounded frequent-callback diagnostics, public substitutable Heartbeat owner and monitored-registration boundaries with ownership-safe Healthcheck aliases, a small optional framework-independent CIS.CommonTesting package with genuine outside-friend consumer proof, and cleanup of the one actual provider after late failed host Build. Preserve all existing runtime/startup/configuration/REST/metrics/cancellation contracts and consolidated examples; include focused tests, documentation and review without a framework, release, push or merge."
 baseline_kind: git

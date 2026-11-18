@@ -2,7 +2,7 @@
 title: "CISApplication, CountryData and complete example consolidation"
 type: change-proposal
 record_format: proportionate
-status: Proposed
+status: "Closed"
 change_id: CIS-0011
 outcome: "Deliver a small CISApplication over the existing host, one provider, sequential Startup and existing module ownership; one real REST-backed CountryData application with atomic local lookup and hourly Heartbeat refresh; remove superseded runnable tutorials and migrate all active consumers to the canonical app or minimal distinct test fixtures. Include focused tests, docs and review without a new framework, backend, harness or release campaign."
 baseline_kind: git
