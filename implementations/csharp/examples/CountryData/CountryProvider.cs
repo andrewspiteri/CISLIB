@@ -5,18 +5,52 @@ namespace CIS.Examples.CountryData;
 
 internal sealed class CountriesEnvelope
 {
-    public CountriesEnvelope() { }
-    [JsonPropertyName("error")] public bool? Error { get; init; }
-    [JsonPropertyName("msg")] public string? Message { get; init; }
-    [JsonPropertyName("data")] public ProviderCountry?[]? Data { get; init; }
+    public CountriesEnvelope()
+    {
+    }
+
+    [JsonPropertyName("error")]
+    public bool? Error
+    {
+        get; init;
+    }
+
+    [JsonPropertyName("msg")]
+    public string? Message
+    {
+        get; init;
+    }
+
+    [JsonPropertyName("data")]
+    public ProviderCountry?[]? Data
+    {
+        get; init;
+    }
 }
 
 internal sealed class ProviderCountry
 {
-    public ProviderCountry() { }
-    [JsonPropertyName("name")] public string? Name { get; init; }
-    [JsonPropertyName("Iso2")] public string? Iso2 { get; init; }
-    [JsonPropertyName("Iso3")] public string? Iso3 { get; init; }
+    public ProviderCountry()
+    {
+    }
+
+    [JsonPropertyName("name")]
+    public string? Name
+    {
+        get; init;
+    }
+
+    [JsonPropertyName("Iso2")]
+    public string? Iso2
+    {
+        get; init;
+    }
+
+    [JsonPropertyName("Iso3")]
+    public string? Iso3
+    {
+        get; init;
+    }
 }
 
 internal sealed class CountryProviderMapper : IRestResponseMapper

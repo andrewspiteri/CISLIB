@@ -68,3 +68,12 @@ SDK/runtime pins remain 10.0.401/10.0.12. Core/None consumers do not acquire Pol
 `CIS.TypeManager.Build` is the non-runtime MSBuild helper delivered inside the Core package with its SDK/build imports. Its build-only reference must not introduce a runtime assembly dependency. Test frameworks, adapters, fixtures and coverage/mutation/API tooling remain development dependencies and never ship in the runtime closure.
 
 The existing native test framework is MSTest. SDK and package versions are pinned locally in the C# implementation. Native restore/build/test/pack are the operating route in [README](../../README.md). The retired project census, checker protocols and generated inspection receipts are not package/API contracts; useful runtime/package behavior remains covered by native tests.
+
+`CIS.CommonTesting` is the optional consumer-test package approved in
+[CIS-0012](../changes/CIS-0012/implementation-plan.md). Its sole package dependency
+is the matching Core version, alongside the approved `Microsoft.AspNetCore.App`
+framework. It adds no test framework, mock library, collector SDK or retry package.
+Runtime projects never reference it. Nonpackable TestSupport forwards its old
+manual-clock type to this one implementation; process runners and internal probes
+remain nonpackable. Public helper recordings and manual triggers are bounded
+consumer support, not production scheduler, health-policy or HTTP implementations.

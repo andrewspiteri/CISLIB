@@ -11,21 +11,36 @@ internal sealed record CountrySnapshot(FrozenDictionary<string, Country> Index, 
     internal static bool TryCreate(ProviderCountry?[]? rows, DateTimeOffset publishedAt, out CountrySnapshot snapshot)
     {
         snapshot = Empty;
-        if (rows is null || rows.Length == 0) { return false; }
+        if (rows is null || rows.Length == 0)
+        {
+            return false;
+        }
+
         var index = new Dictionary<string, Country>(StringComparer.OrdinalIgnoreCase);
         var unique = new HashSet<Country>();
         foreach (ProviderCountry? row in rows)
         {
             if (row is null || string.IsNullOrWhiteSpace(row.Name) || !Code(row.Iso2, 2) || !Code(row.Iso3, 3))
-            { return false; }
+            {
+                return false;
+            }
+
             var country = new Country(row.Name, row.Iso2!.ToUpperInvariant(), row.Iso3!.ToUpperInvariant());
             // Consistently reject duplicate records rather than choosing a later winner.
-            if (!unique.Add(country)) { return false; }
+            if (!unique.Add(country))
+            {
+                return false;
+            }
+
             foreach (string alias in new[] { country.Name.Trim(), country.Iso2, country.Iso3 })
             {
-                if (!index.TryAdd(alias, country) && !ReferenceEquals(index[alias], country)) { return false; }
+                if (!index.TryAdd(alias, country) && !ReferenceEquals(index[alias], country))
+                {
+                    return false;
+                }
             }
         }
+
         snapshot = new(index.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase), unique.Count, publishedAt);
         return true;
     }

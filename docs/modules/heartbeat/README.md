@@ -95,6 +95,26 @@ All users of shared dependencies must honor the enclosing owner's barrier.
 For a shorter-lived object within a protected scope, await its `UnregisterAsync`
 before disposing it. Registration never transfers subscriber disposal to Heartbeat.
 
+Application services may depend on `IHeartbeatOwnerFactory` and retain an
+`IHeartbeatOwner`, rather than depend on the concrete scheduler. The factory
+registered by `AddCisHeartbeat` and `CISApplication` resolves the same
+`HeartbeatRuntime`; each created owner forwards to that engine. The existing
+concrete `CreateOwner(): HeartbeatOwner` API remains available. `CloseAsync`
+and `DisposeAsync` retain the actual work barrier through either interface.
+
+`CISApplication` offers its default aliases before the application callback, so
+normal `Replace`, `RemoveAll` and explicit registrations remain meaningful.
+Disabling a module removes its owned defaults, while explicit business-facing
+replacements remain registered. A replacement owner factory does not replace
+the hosted engine, its readiness or shutdown integration. `HeartbeatScope`
+continues to protect an actual production DI scope with its concrete runtime.
+
+Known caller-owned concrete instances retain instance aliases, preventing an
+automatic factory alias from transferring disposal ownership to DI. In manual
+hosting, register a borrowed `HeartbeatRuntime` before `AddCisHeartbeat`; do not
+replace its concrete registration afterward while retaining an older factory
+alias. Owned default aliases share the singleton and its idempotent cleanup.
+
 ## Schedule and configuration
 
 | Setting | Contract |
@@ -130,6 +150,21 @@ safely. A managed reference cannot prevent independent destructive disposal.
 
 ## Results and monitoring
 
+Monitored registration uses the optional public
+`CIS.Heartbeat.Healthcheck.IHeartbeatHealthcheckService` capability. The existing
+`IHeartbeatService.Register(subscriber, options, monitoring, condition)` extension
+dispatches to it; the original two-member `IHeartbeatService` contract is unchanged.
+Services without that capability still support ordinary registration and reject
+monitored registration clearly.
+
+The production owner service retains atomic Core monitor binding, validation,
+weak ownership and actual settlement. It requires suitable Core monitors or the
+Core factory for typed policies. A public manual implementation, such as the
+optional `CIS.CommonTesting` helper, can accept its recording monitors through
+the same extension. This supported manual/recording pair is not a promise that
+arbitrary foreign monitors bind into the production scheduler. Business factory
+substitution does not replace the complete hosted module or its health policy.
+
 Callback true means success; callback false is a negative result without calling
 `OnErrorAsync`. A false condition skips both callback and handler. Unexpected
 escaping condition/callback exceptions invoke the usable subscriber's handler once
@@ -148,6 +183,26 @@ Existing external monitors remain caller-owned; binding-created monitors retire
 with the registration. The audited Core binding remains available for retirement
 without rooting the subscriber or owner. Infrastructure/reporting faults surface
 through the runtime's bounded detached `InfrastructureFailure` awaitable.
+
+## Frequent-callback diagnostics
+
+`OnElapsedAsync`, `OnErrorAsync`, conditions and directly invoked helpers must be
+safe at a 10 ms interval. Routine successes must not produce an Information,
+Warning or Error stream. Keep optional per-execution detail at Debug/Trace and
+avoid expensive formatting or payload capture while that level is disabled.
+
+Report the first failure promptly, then bound repeated failure and recovery
+summaries per registration using monotonic time and bounded suppressed counts.
+Keep those budgets across recovery/failure flaps; do not key them by changing
+messages, URLs or exception text, or use delay to throttle logs. Release reporting
+state with its registration/owner. Sink-side `LogDuplicateSuppression` can provide
+additional protection after capture, but does not remove producer work.
+
+Expected shutdown cancellation produces no failure warning/error. Suppressed
+diagnostics must never skip work, alter its result, omit health/metric facts,
+delay cancellation or hide an unexpected fault from lifecycle accounting. A
+business owner chooses the scope and measurable reporting budget; Heartbeat does
+not globally suppress application logs.
 
 ## Shutdown and verification
 

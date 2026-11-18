@@ -61,6 +61,22 @@ Expected application stopping cancels owned REST work without an unexpected
 upstream-error log. Ctrl+C requests normal shutdown; the existing owner/module
 barriers join the actual callback and cleanup before dependencies are disposed.
 
+Initial load and publication are logged once at Information during normal
+startup. Routine successful callbacks emit no normal-level event. The first
+expected failure is Warning; an unexpected exception is Error. Failure event
+2101 and recovery event 2102 have separate monotonic one-minute budgets: after
+their first eligible reports, at least one minute separates reports in each
+category. Each summary includes its category's suppressed count. Rapid flaps
+retain both budgets, UTC changes do not reset them, and no delay throttles work.
+Reporting faults do not change refresh results, health handoff or original faults.
+
+Program explicitly sets `LogCalls = false` on the countries REST profile to
+avoid producing a separate automatic REST event on every callback. The option
+defaults to true for other clients and is captured at registration. It does not
+change REST outcomes, cancellation, metrics or unrelated application logging.
+The one-hour refresh default remains unchanged; the diagnostic policy is also
+safe for frequent callbacks, including deterministic 10 ms test sequences.
+
 Operational endpoints precede the business gate:
 
 - /_health/ready: existing 500 while NotReady, 200 while Ready.

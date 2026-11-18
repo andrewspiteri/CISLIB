@@ -13,6 +13,7 @@ internal static class Program
         {
             var countries = new RestClientOptions("countries")
             {
+                LogCalls = false,
                 ResponseMapper = new CountryProviderMapper(),
                 RetryPolicy = RestRetrySelection.Named(RestRetryPolicy.TransientHttp.Name)
             };

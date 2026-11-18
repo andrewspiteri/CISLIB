@@ -81,6 +81,12 @@ and builder.AuthorizeHealthDetails, an application-owned
 Func<HttpContext, ValueTask<bool>>. Omitted authorization denies access; HTTP
 authorization does not authorize local pipe clients.
 
+The health branch and business gate read the selected IHealthSnapshotSource.
+Its default alias shares the concrete HealthcheckService. Replacing this
+snapshot-only interface changes those observations; it does not replace hosted
+health mutation, Startup, Heartbeat or their lifetime barriers. The native
+ApplicationStarted/ApplicationStopping gate remains mandatory.
+
 Lazy defaults are present before customization. Use normal Replace/RemoveAll and
 logging ClearProviders deliberately; AddSingleton appends a registration and does
 not replace all IEnumerable entries. Retain ordinary service lifetimes and explicit
@@ -91,9 +97,12 @@ classes as singleton workers.
 
 StartAsync completes real Type Manager preparation, initial Configuration,
 final registration and one Build before required startup. Constructors of
-configuration-consuming roots see initialized values. Configuration activation
-runs first, then the existing coordinator constructs all scheduled startup roots
-before sequential starts. Same-reference aliases start once.
+configuration-consuming roots see initially loaded values. Stage 1 of the existing
+coordinator constructs all scheduled startup roots and dependencies before invoking
+any participant. Stage 2 then starts those roots sequentially, with Configuration
+activation prepended before application participants. Same-reference aliases start
+once. Initial Configuration loading happens before construction; its later
+activation establishes refresh observation and reconciles the bootstrap gap.
 
 The web listener may serve operational requests while a later initializer is
 still held. Native routing and supported optional operational integration precede
@@ -122,8 +131,14 @@ Retain cooperative cancellation in application work.
 
 Always await DisposeAsync, including after preparation, Build, route mapping or
 startup failure. It joins the shared stop/disposal operations and cleans up
-resources prepared before DI ownership. Repeated alias disposal must be
-idempotent; native DI does not promise to call aliased objects only once.
+resources prepared before DI ownership. The facade captures the one actual native
+provider when the configured factory returns it. If host resolution fails later
+inside Build, asynchronous disposal still owns that provider and its already
+created services; cleanup does not resolve additional services. When Build returns
+a host, that host owns provider disposal instead. Validation failure before a
+provider is returned retains the existing pre-container cleanup path. Repeated
+alias disposal must be idempotent; native DI does not promise to call aliased
+objects only once.
 Externally supplied stores and instance resources keep their existing ownership.
 A DI-created CoreLogRuntime joins its actual Completion after module/host stopping
 and before root disposal, including a timed-out bounded logging stop. An instance
@@ -133,5 +148,7 @@ A failed stop wait does not authorize independent root disposal.
 DisposeAsync errors propagate independently and cannot retroactively change a
 returned RunAsync value. Read the current
 [verification record](../../changes/CIS-0011/verification.md) for actual native
-results and remaining platform/package/release limits. These examples and
-authored tests alone establish no execution result.
+results and remaining platform/package/release limits. The failed-Build provider
+capture follow-up is tracked separately in [CIS-0012](../../changes/CIS-0012/proposal.md);
+prior results are not verification of that new diff. These examples and authored
+tests alone establish no execution result.

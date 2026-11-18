@@ -5,6 +5,7 @@ using CIS.Logging;
 using CIS.Logging.MicrosoftLogger;
 using CIS.RestClient;
 using CIS.RestClient.Http;
+using CIS.RestClient.Hosting;
 using CIS.TestSupport;
 using CIS.Tests.UnitTests.RestClient;
 using Microsoft.AspNetCore.Http;
@@ -24,11 +25,18 @@ public sealed class RestClientLoggingTests
     public async Task FinalSummaryUsesActualDispatchMethodSafeUriInvariantDurationAndNoSensitiveState(int status, LogLevel level, string result)
     {
         await using RestHttpLocalServer server = await RestHttpLocalServer.StartAsync(async context =>
-        { await context.Request.Body.CopyToAsync(Stream.Null); context.Response.StatusCode = status; await context.Response.WriteAsync("response-secret"); });
+        {
+            await context.Request.Body.CopyToAsync(Stream.Null);
+            context.Response.StatusCode = status;
+            await context.Response.WriteAsync("response-secret");
+        });
         var capture = new CaptureProvider();
         using ILoggerFactory factory = LoggerFactory.Create(builder => builder.AddProvider(capture));
         var clock = Clock();
-        await using var client = new HttpRestClient(new("orders") { BaseUrl = server.Address + "/" }, null, clock, factory);
+        await using var client = new HttpRestClient(new("orders")
+        {
+            BaseUrl = server.Address + "/"
+        }, null, clock, factory);
         CultureInfo previous = CultureInfo.CurrentCulture;
         try
         {
@@ -38,9 +46,11 @@ public sealed class RestClientLoggingTests
                 Body = RestBody.Text("payload-secret"),
                 ConfigureRequest = (context, _) =>
                 {
-                    context.Method = "POST"; context.Url = server.Address + "/final?token=query-secret#fragment-secret";
+                    context.Method = "POST";
+                    context.Url = server.Address + "/final?token=query-secret#fragment-secret";
                     context.Headers.Set("Authorization", "Bearer header-secret");
-                    clock.Advance(TimeSpan.FromTicks(102_500)); return Task.CompletedTask;
+                    clock.Advance(TimeSpan.FromTicks(102_500));
+                    return Task.CompletedTask;
                 }
             }).WaitAsync(RestHttpTestSupport.Deadline);
             Assert.AreEqual(status == 200, actual.Success);
@@ -57,18 +67,25 @@ public sealed class RestClientLoggingTests
     {
         int received = 0;
         await using RestHttpLocalServer server = await RestHttpLocalServer.StartAsync(context =>
-        { context.Response.StatusCode = Interlocked.Increment(ref received) == 1 ? 503 : 500; return Task.CompletedTask; });
-        var capture = new CaptureProvider(); var clock = Clock();
+        {
+            context.Response.StatusCode = Interlocked.Increment(ref received) == 1 ? 503 : 500;
+            return Task.CompletedTask;
+        });
+        var capture = new CaptureProvider();
+        var clock = Clock();
         var policy = new RestRetryPolicy("logging", 2, TimeSpan.Zero, TimeSpan.Zero, [503], useJitter: false);
         var options = new RestClientOptions("orders")
         {
-            BaseUrl = server.Address + "/", RetryPolicy = RestRetrySelection.Named("logging"),
+            BaseUrl = server.Address + "/",
+            RetryPolicy = RestRetrySelection.Named("logging"),
             ConfigureRequest = (_, _) => { clock.Advance(TimeSpan.FromMilliseconds(5)); return Task.CompletedTask; }
         };
         await using var host = RuntimeTestSupport.Root(options, clock, policy);
         host.Services.GetRequiredService<ILoggerFactory>().AddProvider(capture);
         RestResult<RestNoValue> result = await host.Services.GetRequiredKeyedService<IRestClient>("orders").Get<RestNoValue>("orders").WaitAsync(RestHttpTestSupport.Deadline);
-        Assert.IsFalse(result.Success); Assert.AreEqual(2, received); Assert.AreEqual(2, result.Context.AttemptCount);
+        Assert.IsFalse(result.Success);
+        Assert.AreEqual(2, received);
+        Assert.AreEqual(2, result.Context.AttemptCount);
         Entry entry = One(capture, LogLevel.Error);
         Assert.AreEqual("[REST] GET " + server.Address + "/orders 500 Technical Error 10ms (Attempt 2/3)", entry.Message);
         Safe(entry);
@@ -80,9 +97,14 @@ public sealed class RestClientLoggingTests
         await using RestHttpLocalServer server = await RestHttpLocalServer.StartAsync(context => context.Response.WriteAsync("response-secret"));
         var capture = new CaptureProvider();
         using ILoggerFactory factory = LoggerFactory.Create(builder => builder.AddProvider(capture));
-        await using var client = new HttpRestClient(new("orders") { BaseUrl = server.Address + "/", ResponseMapper = new DeclinedMapper() }, null, Clock(), factory);
+        await using var client = new HttpRestClient(new("orders")
+        {
+            BaseUrl = server.Address + "/",
+            ResponseMapper = new DeclinedMapper()
+        }, null, Clock(), factory);
         RestResult<RestNoValue> result = await client.Get<RestNoValue>("orders").WaitAsync(RestHttpTestSupport.Deadline);
-        Assert.IsFalse(result.Success); Assert.AreEqual(RestFailureKind.Business, result.Context.FailureKind);
+        Assert.IsFalse(result.Success);
+        Assert.AreEqual(RestFailureKind.Business, result.Context.FailureKind);
         Entry entry = One(capture, LogLevel.Error);
         Assert.AreEqual("[REST] GET " + server.Address + "/orders 200 Business Error 0ms", entry.Message);
         Safe(entry);
@@ -94,52 +116,108 @@ public sealed class RestClientLoggingTests
         await using RestHttpLocalServer server = await RestHttpLocalServer.StartAsync(context => { context.Response.StatusCode = 204; return Task.CompletedTask; });
         var capture = new CaptureProvider();
         using ILoggerFactory factory = LoggerFactory.Create(builder => builder.AddProvider(capture));
-        await using var client = new HttpRestClient(new("orders") { BaseUrl = server.Address + "/" }, null, Clock(), factory);
+        await using var client = new HttpRestClient(new("orders")
+        {
+            BaseUrl = server.Address + "/"
+        }, null, Clock(), factory);
         Assert.IsTrue((await client.Get<RestNoValue>("long/" + new string('a', 700) + "?token=query-secret").WaitAsync(RestHttpTestSupport.Deadline)).Success);
-        Entry entry = One(capture, LogLevel.Information); Safe(entry);
+        Entry entry = One(capture, LogLevel.Information);
+        Safe(entry);
         string uri = (string)entry.State.Single(pair => pair.Key == "Uri").Value!;
         Assert.IsTrue(uri.StartsWith(server.Address + "/long/", StringComparison.Ordinal));
         Assert.IsTrue(uri.Length <= 512);
     }
 
     [TestMethod]
-    [DataRow("success")]
-    [DataRow("cancel")]
-    [DataRow("fault")]
-    public async Task FinalEntryWaitsForActualCleanupAndPreservesCallerCancellationOrTheOriginalFault(string outcome)
+    [DataRow("success", true)]
+    [DataRow("success", false)]
+    [DataRow("http-failure", true)]
+    [DataRow("http-failure", false)]
+    [DataRow("cancel", true)]
+    [DataRow("cancel", false)]
+    [DataRow("fault", true)]
+    [DataRow("fault", false)]
+    public async Task FinalEntryWaitsForActualCleanupAndPreservesCallerCancellationOrTheOriginalFault(string outcome, bool logCalls)
     {
         await using RestHttpLocalServer server = await RestHttpLocalServer.StartAsync(async context =>
-        { await context.Request.Body.CopyToAsync(Stream.Null); context.Response.StatusCode = 200; });
-        var capture = new CaptureProvider(); var clock = Clock(); var input = new RuntimeHeldInput();
+        {
+            await context.Request.Body.CopyToAsync(Stream.Null);
+            context.Response.StatusCode = outcome == "http-failure" ? 503 : 200;
+        });
+        var capture = new CaptureProvider();
+        var clock = Clock();
+        var input = new RuntimeHeldInput();
         using ILoggerFactory factory = LoggerFactory.Create(builder => builder.AddProvider(capture));
         using var caller = new CancellationTokenSource();
-        var entered = RestHttpTestSupport.Signal(); var defect = new InvalidOperationException("exception-secret");
-        var options = new RestClientOptions("orders") { BaseUrl = server.Address + "/" };
-        if (outcome == "cancel") { options.Authenticate = async (_, token) => { entered.TrySetResult(); await Task.Delay(Timeout.Infinite, token); }; }
-        if (outcome == "fault") { options.Authenticate = (_, _) => throw defect; }
+        var entered = RestHttpTestSupport.Signal();
+        var defect = new InvalidOperationException("exception-secret");
+        var options = new RestClientOptions("orders") { BaseUrl = server.Address + "/", LogCalls = logCalls };
+        if (outcome == "cancel")
+        {
+            options.Authenticate = async (_, token) => { entered.TrySetResult(); await Task.Delay(Timeout.Infinite, token); };
+        }
+        if (outcome == "fault")
+        {
+            options.Authenticate = (_, _) => throw defect;
+        }
         await using var client = new HttpRestClient(options, null, clock, factory);
         Task<RestResult<RestNoValue>> run = client.Post<RestNoValue>("orders?token=query-secret", new()
-        { Body = RestHttpBody.Reopen(_ => ValueTask.FromResult<Stream>(input)) }, caller.Token);
+        {
+            Body = RestHttpBody.Reopen(_ => ValueTask.FromResult<Stream>(input))
+        }, caller.Token);
         try
         {
-            if (outcome == "cancel") { await entered.Task.WaitAsync(RestHttpTestSupport.Deadline); caller.Cancel(); }
+            if (outcome == "cancel")
+            {
+                await entered.Task.WaitAsync(RestHttpTestSupport.Deadline);
+                caller.Cancel();
+            }
             await input.Cleaning.Task.WaitAsync(RestHttpTestSupport.Deadline);
-            Assert.IsFalse(run.IsCompleted); Assert.AreEqual(0, capture.Entries.Count);
-            clock.Advance(TimeSpan.FromMilliseconds(25)); input.Release.TrySetResult();
+            Assert.IsFalse(run.IsCompleted);
+            Assert.AreEqual(0, capture.Entries.Count);
+            clock.Advance(TimeSpan.FromMilliseconds(25));
+            input.Release.TrySetResult();
             if (outcome == "cancel")
             {
                 OperationCanceledException actual = await Assert.ThrowsAsync<OperationCanceledException>(() => run.WaitAsync(RestHttpTestSupport.Deadline));
-                Assert.AreEqual(caller.Token, actual.CancellationToken); Assert.IsTrue(run.IsCanceled);
+                Assert.AreEqual(caller.Token, actual.CancellationToken);
+                Assert.IsTrue(run.IsCanceled);
             }
             else if (outcome == "fault")
             {
                 InvalidOperationException actual = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => run.WaitAsync(RestHttpTestSupport.Deadline));
-                Assert.AreSame(defect, actual); Assert.IsTrue(run.IsFaulted);
+                Assert.AreSame(defect, actual);
+                Assert.IsTrue(run.IsFaulted);
             }
-            else { Assert.IsTrue((await run.WaitAsync(RestHttpTestSupport.Deadline)).Success); }
-            Entry entry = One(capture, outcome == "success" ? LogLevel.Information : LogLevel.Error);
-            StringAssert.Contains(entry.Message, outcome switch { "success" => " 200 Ok 25ms", "cancel" => " Cancelled 25ms", _ => " Unexpected Error 25ms" });
-            Safe(entry); Assert.AreEqual(1, input.Disposals);
+            else
+            {
+                RestResult<RestNoValue> result = await run.WaitAsync(RestHttpTestSupport.Deadline);
+                Assert.AreEqual(outcome == "success", result.Success);
+                Assert.AreEqual(1, result.Context.AttemptCount);
+                if (outcome == "http-failure")
+                {
+                    Assert.AreEqual(RestFailureKind.Http, result.Context.FailureKind);
+                    Assert.AreEqual(503, result.Context.HttpStatusCode);
+                }
+            }
+            if (logCalls)
+            {
+                Entry entry = One(capture, outcome == "success" ? LogLevel.Information : LogLevel.Error);
+                StringAssert.Contains(entry.Message, outcome switch
+                {
+                    "success" => " 200 Ok 25ms",
+                    "http-failure" => " 503 Technical Error 25ms",
+                    "cancel" => " Cancelled 25ms",
+                    _ => " Unexpected Error 25ms"
+                });
+                Safe(entry);
+            }
+            else
+            {
+                Assert.AreEqual(0, capture.Writes);
+                Assert.AreEqual(0, capture.Entries.Count);
+            }
+            Assert.AreEqual(1, input.Disposals);
         }
         finally { caller.Cancel(); input.Release.TrySetResult(); await RuntimeTestSupport.SettleAsync(run, defect); }
     }
@@ -152,11 +230,17 @@ public sealed class RestClientLoggingTests
         await using RestHttpLocalServer server = await RestHttpLocalServer.StartAsync(context => { context.Response.StatusCode = 204; return Task.CompletedTask; });
         var capture = new CaptureProvider { ThrowOnWrite = throwing };
         using ILoggerFactory factory = LoggerFactory.Create(builder => builder.SetMinimumLevel(throwing ? LogLevel.Information : LogLevel.None).AddProvider(capture));
-        await using var client = new HttpRestClient(new("orders") { BaseUrl = server.Address + "/" }, null, Clock(), factory);
+        await using var client = new HttpRestClient(new("orders")
+        {
+            BaseUrl = server.Address + "/"
+        }, null, Clock(), factory);
         RestResult<RestNoValue> result = await client.Get<RestNoValue>("orders").WaitAsync(RestHttpTestSupport.Deadline);
-        Assert.IsTrue(result.Success); Assert.AreEqual(1, result.Context.AttemptCount);
-        await client.DisposeAsync(); Assert.IsFalse(capture.Disposed);
-        Assert.AreEqual(throwing ? 1 : 0, capture.Writes); Assert.AreEqual(0, capture.Entries.Count);
+        Assert.IsTrue(result.Success);
+        Assert.AreEqual(1, result.Context.AttemptCount);
+        await client.DisposeAsync();
+        Assert.IsFalse(capture.Disposed);
+        Assert.AreEqual(throwing ? 1 : 0, capture.Writes);
+        Assert.AreEqual(0, capture.Entries.Count);
     }
 
     [TestMethod]
@@ -170,7 +254,10 @@ public sealed class RestClientLoggingTests
             new LoggingOptions { ConsoleLevel = CoreLogLevel.Information, FileLevel = CoreLogLevel.None },
             admitted => { lines.Enqueue(System.Text.Encoding.UTF8.GetString(admitted.Event.JsonLine.Span)); return ValueTask.CompletedTask; }, null);
         using ILoggerFactory factory = LoggerFactory.Create(builder => builder.AddProvider(new CoreLoggerProvider(core)));
-        await using var client = new HttpRestClient(new("orders") { BaseUrl = server.Address + "/" }, null, Clock(), factory);
+        await using var client = new HttpRestClient(new("orders")
+        {
+            BaseUrl = server.Address + "/"
+        }, null, Clock(), factory);
         Assert.IsTrue((await client.Get<RestNoValue>("orders?token=query-secret").WaitAsync(RestHttpTestSupport.Deadline)).Success);
         await core.StopAsync(CancellationToken.None).WaitAsync(RestHttpTestSupport.Deadline);
         Assert.AreEqual(1, lines.Count);
@@ -179,12 +266,112 @@ public sealed class RestClientLoggingTests
         Assert.IsFalse(lines.Single().Contains("query-secret", StringComparison.Ordinal));
     }
 
+    [TestMethod]
+    public async Task ScopedCallLoggingUsesCapturedClientFlagsWithoutChangingSharedRuntimeMetrics()
+    {
+        await using RestHttpLocalServer server = await RestHttpLocalServer.StartAsync(context =>
+        {
+            context.Response.StatusCode = context.Request.Path.StartsWithSegments("/failure") ? 503 : 204;
+            return Task.CompletedTask;
+        });
+        var lines = new ConcurrentQueue<string>();
+        var metadata = new EventMetadata("Rest.ScopedLogging", "build-1", "1.0.0", "test", EnvironmentKind.Console,
+            "11111111-1111-1111-1111-111111111111", null, new(2026, 11, 18, 0, 0, 0, TimeSpan.Zero),
+            "unknown", null, null, null, null, null, null, null, null);
+        await using CoreLogRuntime core = CoreLogRuntime.CreateQueued(metadata,
+            new LoggingOptions { ConsoleLevel = CoreLogLevel.Trace, FileLevel = CoreLogLevel.None },
+            admitted =>
+            {
+                lines.Enqueue(System.Text.Encoding.UTF8.GetString(admitted.Event.JsonLine.Span));
+                return ValueTask.CompletedTask;
+            }, null, consoleFlush: static () => ValueTask.CompletedTask);
+        using var provider = new CoreLoggerProvider(core);
+        var clock = Clock();
+        var visible = new RestClientOptions("visible") { BaseUrl = server.Address + "/" };
+        var quiet = new RestClientOptions("quiet") { BaseUrl = server.Address + "/", LogCalls = false };
+        Assert.IsTrue(visible.LogCalls, "Existing clients retain automatic diagnostics by default.");
+        await using var host = RestClientMetricsHost.Create(quiet, metricsFirst: true, configure: services =>
+        {
+            services.AddSingleton<TimeProvider>(clock);
+            services.AddSingleton<ILoggerProvider>(provider);
+            services.Configure<LoggerFilterOptions>(settings =>
+            {
+                settings.Rules.Clear();
+                settings.MinLevel = LogLevel.Trace;
+                settings.Rules.Add(new LoggerFilterRule(null, null, null,
+                    (_, category, _) => category == "CIS.RestClient.RestClientRuntime"));
+            });
+            services.AddCisRestClient(visible);
+        });
+
+        // Registration captured both immutable profiles before the one root was built.
+        visible.LogCalls = false;
+        quiet.LogCalls = true;
+        await host.StartAsync();
+        IRestClient quietClient = host.Rest("quiet");
+        IRestClient visibleClient = host.Rest("visible");
+
+        RestResult<RestNoValue> quietSuccess = await quietClient.Get<RestNoValue>("quiet",
+            new()
+            {
+                OperationName = "unregistered-quiet"
+            }).WaitAsync(RestHttpTestSupport.Deadline);
+        Assert.IsTrue(quietSuccess.Success);
+        Assert.AreEqual("request", quietSuccess.Context.OperationName);
+        Assert.IsTrue((await core.FlushAsync(RestHttpTestSupport.Deadline, CancellationToken.None)).Succeeded);
+        Assert.AreEqual(0, lines.Count, "The opted-out client must emit neither its unknown-operation warning nor a completion summary.");
+
+        RestResult<RestNoValue> visibleSuccess = await visibleClient.Get<RestNoValue>("visible",
+            new()
+            {
+                OperationName = "unregistered-visible"
+            }).WaitAsync(RestHttpTestSupport.Deadline);
+        RestResult<RestNoValue> quietFailure = await quietClient.Get<RestNoValue>("failure/quiet").WaitAsync(RestHttpTestSupport.Deadline);
+        RestResult<RestNoValue> visibleFailure = await visibleClient.Get<RestNoValue>("failure/visible").WaitAsync(RestHttpTestSupport.Deadline);
+        Assert.IsTrue(visibleSuccess.Success);
+        Assert.IsFalse(quietFailure.Success);
+        Assert.IsFalse(visibleFailure.Success);
+        Assert.AreEqual(RestFailureKind.Http, quietFailure.Context.FailureKind);
+        Assert.AreEqual(RestFailureKind.Http, visibleFailure.Context.FailureKind);
+        foreach (RestResult<RestNoValue> result in new[] { quietSuccess, visibleSuccess, quietFailure, visibleFailure })
+        {
+            Assert.AreEqual(1, result.Context.AttemptCount);
+        }
+
+        string[] samples = await host.ScrapeAsync();
+        Assert.AreEqual(2d, RestClientMetricSamples.Sum(samples, "cis_restclient_operation_duration_seconds_count", "client=\"quiet\""));
+        Assert.AreEqual(2d, RestClientMetricSamples.Sum(samples, "cis_restclient_operation_duration_seconds_count", "client=\"visible\""));
+        Assert.AreEqual(0d, RestClientMetricSamples.Sum(samples, "cis_restclient_active_operations"));
+        Assert.AreEqual(4d, RestClientMetricSamples.Sum(samples, "http_client_request_duration_seconds_count"));
+
+        Assert.IsTrue((await core.FlushAsync(RestHttpTestSupport.Deadline, CancellationToken.None)).Succeeded);
+        JsonNode[] records = lines.Select(line => JsonNode.Parse(line)!).ToArray();
+        string[] completed = records.Where(record => record["event_name"]!.GetValue<string>() == "restclient.completed")
+            .Select(record => record["message"]!.GetValue<string>()).ToArray();
+        Assert.AreEqual(2, completed.Length);
+        Assert.IsTrue(completed.Any(message => message.Contains("/visible 204 Ok", StringComparison.Ordinal)));
+        Assert.IsTrue(completed.Any(message => message.Contains("/failure/visible 503 Technical Error", StringComparison.Ordinal)));
+        Assert.AreEqual(1, records.Count(record => record["message"]!.GetValue<string>()
+            == "An unregistered REST operation alias was normalized to request."),
+            "A quiet unknown operation must not consume the shared warning budget before the enabled client.");
+        Assert.AreEqual(3, records.Length);
+        Assert.IsFalse(lines.Any(line => line.Contains("/quiet", StringComparison.Ordinal)
+            || line.Contains("unregistered-quiet", StringComparison.Ordinal)));
+
+        await host.StopAsync().WaitAsync(RestHttpTestSupport.Deadline);
+        await core.StopAsync(CancellationToken.None).WaitAsync(RestHttpTestSupport.Deadline);
+        await core.Completion.WaitAsync(RestHttpTestSupport.Deadline);
+    }
+
     private static ManualTimeProvider Clock() => new(new DateTimeOffset(2026, 11, 18, 0, 0, 0, TimeSpan.Zero));
     private static Entry One(CaptureProvider capture, LogLevel level)
     {
         Assert.AreEqual(1, capture.Entries.Count);
-        Entry entry = capture.Entries.Single(); Assert.AreEqual(level, entry.Level); Assert.AreEqual("restclient.completed", entry.Event.Name);
-        Assert.IsNull(entry.Exception); return entry;
+        Entry entry = capture.Entries.Single();
+        Assert.AreEqual(level, entry.Level);
+        Assert.AreEqual("restclient.completed", entry.Event.Name);
+        Assert.IsNull(entry.Exception);
+        return entry;
     }
     private static void Safe(Entry entry)
     {
@@ -192,16 +379,25 @@ public sealed class RestClientLoggingTests
         Assert.IsTrue(entry.State.All(pair => pair.Value is string));
         string retained = entry.Message + " " + string.Join(" ", entry.State.Select(pair => pair.Value));
         foreach (string secret in new[] { "entry-secret", "query-secret", "fragment-secret", "payload-secret", "header-secret", "response-secret", "exception-secret" })
-        { Assert.IsFalse(retained.Contains(secret, StringComparison.Ordinal), "Log message/state cannot retain " + secret); }
+        {
+            Assert.IsFalse(retained.Contains(secret, StringComparison.Ordinal), "Log message/state cannot retain " + secret);
+        }
         string uri = (string)entry.State.Single(pair => pair.Key == "Uri").Value!;
-        Assert.IsTrue(uri.Length <= 512); Assert.IsFalse(uri.Contains('?') || uri.Contains('#') || uri.Contains('@'));
+        Assert.IsTrue(uri.Length <= 512);
+        Assert.IsFalse(uri.Contains('?') || uri.Contains('#') || uri.Contains('@'));
     }
     private sealed record Entry(LogLevel Level, EventId Event, string Message, KeyValuePair<string, object?>[] State, Exception? Exception);
     private sealed class CaptureProvider : ILoggerProvider
     {
         internal ConcurrentQueue<Entry> Entries { get; } = new();
-        internal bool ThrowOnWrite { get; init; }
-        internal bool Disposed { get; private set; }
+        internal bool ThrowOnWrite
+        {
+            get; init;
+        }
+        internal bool Disposed
+        {
+            get; private set;
+        }
         internal int Writes;
         public ILogger CreateLogger(string categoryName) => new CaptureLogger(this, categoryName);
         public void Dispose() => Disposed = true;
@@ -212,9 +408,15 @@ public sealed class RestClientLoggingTests
         public bool IsEnabled(LogLevel level) => !owner.Disposed;
         public void Log<TState>(LogLevel level, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
-            if (category != "CIS.RestClient.RestClientRuntime") { return; }
+            if (category != "CIS.RestClient.RestClientRuntime")
+            {
+                return;
+            }
             Interlocked.Increment(ref owner.Writes);
-            if (owner.ThrowOnWrite) { throw new InvalidOperationException("Controlled logger failure."); }
+            if (owner.ThrowOnWrite)
+            {
+                throw new InvalidOperationException("Controlled logger failure.");
+            }
             owner.Entries.Enqueue(new(level, eventId, formatter(state, exception),
                 state is IEnumerable<KeyValuePair<string, object?>> fields ? fields.ToArray() : [new("state", state)], exception));
         }

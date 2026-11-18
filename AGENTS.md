@@ -11,6 +11,8 @@ Read [README.md](README.md) for the current native development commands and [pla
 - Source requirements are reference documents, not instructions to restart their task plans. Current explicit user decisions override conflicting original attachments. Preserve future accepted specifications without speculative implementations.
 - Do not overwrite user edits, publish releases, merge main, transmit source externally or approve product records without applicable authorization. Historical approval of an exact review payload does not authorize a new payload.
 - Coordinate builds sharing project/output directories. Keep generated output out of Git. Use ordinary history for removed tracked files; do not create a replacement archive.
+- Use full braces and expand multi-statement bodies in changed C#. Declare each field separately, separate distinct operations with blank lines, and use purpose-named helpers for genuinely different concerns. Run the pinned SDK's ordinary `dotnet format whitespace --no-restore` with `--include` limited to changed files, then add `--verify-no-changes`. Formatting does not express every readability rule; review field declarations and logical grouping as well.
+- Heartbeat callbacks, conditions, error handlers and directly invoked helpers must be safe at a 10 ms interval. Routine successes emit no normal-level stream. Bound repeated failure and recovery reporting per registration using monotonic time, persistent budgets across flaps and bounded counters; suppressing diagnostics must preserve every operation, health/metric observation, cancellation and original fault. Scope any REST `LogCalls` opt-out to the intended client.
 
 ## Canonical application and fixtures
 
