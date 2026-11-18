@@ -40,7 +40,9 @@ internal sealed class ConfigurationSettings
         if (!Enum.IsDefined(mode)) { throw Error("The store notification guarantee is undefined."); }
         if (interval is { } selected && (selected <= TimeSpan.Zero || selected > HeartbeatRegistrationOptions.MaximumDuration))
         { throw Error("Polling requires a positive interval no greater than HeartbeatRegistrationOptions.MaximumDuration."); }
-        if (mode != ConfigurationNotificationMode.Reliable && interval is null)
+        if (options.IsDefaultsOnly && interval is not null)
+        { throw Error("Defaults-only configuration has no external updates and cannot select polling."); }
+        if (!options.IsDefaultsOnly && mode != ConfigurationNotificationMode.Reliable && interval is null)
         { throw Error("This store guarantee requires an explicit positive polling/reconciliation interval."); }
         return new(hostApplicationName, store, mode, interval, isHealthCritical,
             Snapshot(options.Factories), Snapshot(options.Validators));

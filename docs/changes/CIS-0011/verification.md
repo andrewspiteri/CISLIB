@@ -58,3 +58,60 @@ and 1,200 included restoration seconds; these remain proposals, not allocations.
 Strict docs validation passes 176/176 with zero warnings/errors after correcting
 an unsupported catalog authority label. Both source hashes and all three user-file
 hashes remain unchanged. No product implementation/native work is claimed.
+
+## Approved implementation and AP1 checkpoint
+
+Andrew Spiteri approved the six-task plan and 43,200 shared active seconds /
+16 logical attempts, including 1,200 restoration seconds and 64 MiB within the
+same physical 6 GiB ceiling. Supported CIS authorization is
+`cislib:CIS-0011:outcome:ad93dd647e1f41ad9dac004ce6061dda`, decision
+`CISLIB-APPLICATION-2026-11-18:USER-APPROVED-PLAN-ALLOCATION`, digest
+`sha256:922e5ba2af5e498be6452cddfa843734a665da363e6b81f2eb2d936b2ba04663`.
+The first request needed the existing native-scratch representation for
+`.artifacts` and its actual decision reference; rejected requests granted no
+authority. Paths, limits and historical protection did not change.
+
+Six medium work owners were derived and allocated through supported commands.
+AP1 adds the thin public builder/facade/integration seam, Core composition,
+explicit defaults-only Configuration and internal activation-prepend hook, and
+Core no-op Metrics. Public Configuration registration remains strict. Lazy module
+defaults precede customization; removed Heartbeat is not restored. Independent
+review identified pre-host-start route-failure ownership, which now retains and
+directly cuts off/drains effective module owners before root teardown.
+
+Native observations (Windows, SDK 10.0.401/runtime 10.0.12):
+
+- `native/incremental/b6ec2445a6f84fdc8a123069126dbafe`: preparation exhausted
+  its usable 600-second window before any build/test launch; 605,787 ms retained.
+- `native/incremental/e1d00a3c8a754d5d9e48f04baecf0d9f`: Core and Unit projects
+  compiled, then VSTest aborted after failing to connect to testhost. Zero tests
+  executed; cost retained. The attempted native cancellation later returned
+  unchanged because the original invocation had already settled safely.
+- `native/incremental/aff98128b819495295f4666da67d020b`: running the same
+  focused checks outside the restricted process sandbox passed **17/17**, zero
+  failed/skipped/aborted. Defaults/retained-reader/activation/order cases, Core
+  no-op metrics and constructor/no-build cases passed. Result admission reports
+  scopeComplete=true, unitCurrent=true and zero pending batches; qualified=false
+  remains the separate pilot advisory.
+
+Evidence is `.cis/local/application-intake/core-escalated-observed.trx` and
+`core-escalated-native.log`; the aborted stdout/stderr/TRX and first preparation
+failure are retained separately. Inclusive measured native consumption is
+2,099,203 ms in one still-open logical delivery attempt; the earlier failures
+and actual overrun remain counted, with zero native reservation/recovery hold.
+The focused source root was restored to the project boundary to select all 17
+authored tests, rather than the graph's three constructor cases alone.
+
+Native setup also rejected duplicate input paths, a stale graph and the relative
+authority value before admission. Normal graph refresh and the exact repository
+authority corrected those invocations; no CIS code, SDK or test framework changed.
+An attempted narrowing of a started task's paths was rejected, so its contract
+and history remain intact. AP1's original task distribution was raised to 9,000
+seconds using 1,200 unreserved seconds each from AP2/AP5 under the delegated
+12-hour total; attempt and restoration reserves are unchanged.
+
+The component checkpoint does not prove full facade/web readiness, exporter or
+CountryData behavior. Those actual integrated proofs remain successors. Pending
+source/test/doc patches were prepared independently in ignored intake storage
+while Core inputs were frozen; their authoring is not passing evidence.
+| WORK-001 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1434; failed=215; possibleTokenSavings=591; ledgerDigest=sha256:5370b1567a50e3157780b8a9ef48dd590b41db5e0e549b979fe154c4f0d7c0a8 |

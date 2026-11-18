@@ -1,7 +1,7 @@
 ---
 title: CISApplication and CountryData bounded implementation plan
 type: delivery-plan
-status: Proposed
+status: Approved
 change_id: CIS-0011
 ---
 
@@ -10,11 +10,10 @@ change_id: CIS-0011
 Deliver APP-01–APP-07, DATA-01–DATA-06, CLEAN-01–CLEAN-03 and A01–A14 from the
 [preserved specification](../../../planning/application/sources/CISLIB_CISApplication_and_CountryData_Specification_v1.0.md),
 as [reconciled](../../../planning/application/README.md) with merged main.
-The user has requested this delivery and its cleanup; this proposal does not
-invent the new finite execution allocation still required by repository policy.
-Canonical executable tasks will be created through supported CIS operations once
-the shared outcome and limits are authorized. The six leaves below are medium;
-each includes its tests, documentation and independent review.
+Andrew Spiteri approved this six-task plan and shared allocation on 18 November
+2026. Supported CIS operations recorded the authorization and six canonical work
+owners; no previous module grant was reopened. The leaves include their tests,
+documentation and independent review.
 
 The proposed builder collects existing finite named `RestClientOptions` through
 `RestClients`; zero selections create no REST owner. It invents no backend or
@@ -24,7 +23,7 @@ registration seam. The facade owns module ordering/lifetime; retry selection
 remains an application choice. Unknown or unavailable configured policy fails
 startup rather than silently selecting None.
 
-## Proposed shared allocation
+## Approved shared allocation
 
 One allocation: **12 active hours (43,200 seconds), 16 logical attempts**, including
 **1,200 restoration seconds**, shared by the controller, all agents, native work,
@@ -36,11 +35,11 @@ allowance is reopened, and there is no extra agent/worktree pool.
 
 | Leaf | Coherent outcome / owned files | Dependencies | Seconds / attempts / restoration seconds |
 | --- | --- | --- | --- |
-| AP1 | Core builder/composition and bootstrap: Application setup/registration code; narrow Configuration defaults/prepend seam; Core Metrics no-op; related unit/architecture tests and guides. Freeze shared signatures and replacement rules. | None | 6,600 / 2 / 180 |
-| AP2 | Facade lifecycle and web: Application lifetime/pipeline code and narrow existing hosting seams; retained start/stop/dispose operations, preparation ownership and readiness; focused real-host tests and API guide. | AP1 | 9,000 / 3 / 240 |
+| AP1 | Core builder/composition and bootstrap: Application setup/registration code; narrow Configuration defaults/prepend seam; Core Metrics no-op; related unit/architecture tests and guides. Freeze shared signatures and replacement rules. | None | 9,000 / 2 / 180 |
+| AP2 | Facade lifecycle and web: Application lifetime/pipeline code and narrow existing hosting seams; retained start/stop/dispose operations, preparation ownership and readiness; focused real-host tests and API guide. | AP1 | 7,800 / 3 / 240 |
 | AP3 | Optional adapter composition: one Core registrar contract and optional Metrics registrar/options bridge, existing provider and pipeline; Core-only/optional/disabled/replacement and two-host checks; adapter guide. Coordinate the shared contract with AP1. | AP1 | 4,800 / 2 / 120 |
 | AP4 | CountryData: Program, settings, provider mapping, catalog, routes, README and dedicated application tests. Real REST, atomic cache, actual Heartbeat, safe availability, cancellation and two gauges. | AP1; integrated proof after AP2/AP3 | 8,400 / 3 / 180 |
-| AP5 | Minimal consumer migration: existing test/package/process/assembly fixtures and distinct replacement source stories; preserve unique module and genuine package boundaries, remove redundant tutorial-report tests. | AP1; final consumers after AP4 | 7,800 / 3 / 240 |
+| AP5 | Minimal consumer migration: existing test/package/process/assembly fixtures and distinct replacement source stories; preserve unique module and genuine package boundaries, remove redundant tutorial-report tests. | AP1; final consumers after AP4 | 6,600 / 3 / 240 |
 | AP6 | Complete consolidation: solution/shared project/copy targets, example removals, active profiles/scripts, contract routing and root/module/skill guides; final affected build/source/package checks and active-reference review. | AP2, AP3, AP4, AP5 | 6,600 / 3 / 240 |
 
 One controller owns all shared solution/project/package/lock/copy-target edits and
@@ -50,6 +49,12 @@ The runtime sequence always remains preparation → configuration → one Build 
 pipeline → construct all startup roots → sequential starts → readiness.
 Integration checks wait for the actual dependencies. No task is a separate test
 harness, tooling campaign, approval-only phase or deferred cleanup ticket.
+
+The current distribution transfers 1,200 unreserved seconds each from AP2/AP5 to
+AP1 for its actual bounded verification continuation. The original 43,200-second,
+16-attempt totals and every restoration reserve remain unchanged. See
+work-allocation-core-continuation.json; this is delegated distribution, not a new
+human limit increase.
 
 Provide concise implementation checkpoints when core defaults/startup/ownership
 work, and when real web/optional integration works. Count failed attempts and

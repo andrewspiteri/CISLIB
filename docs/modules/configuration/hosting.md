@@ -11,8 +11,9 @@ cis:
 `CIS.Configuration` supplies retained concrete POCOs in the existing `CIS.Core`
 package. Prepare initial values before constructing consumers, then activate
 refresh through sequential Startup. The host supplies its bootstrap-capable
-`IConfigurationStore`, fixed host-project name, polling interval when needed and
-health criticality. No production backend or default interval is selected.
+`IConfigurationStore` when external updates are selected, fixed host-project name,
+polling interval when needed and health criticality. No production backend or
+default interval is selected.
 
 ## Prepare before Build
 
@@ -55,6 +56,23 @@ hosts prepare separate roots. POCO instance descriptors preserve user disposal
 ownership. The runtime factory gives DI ownership of shared async disposal once
 resolved. Keep the caller's `await using` scope too: Build/validation may fail
 before that factory is resolved. Repeated disposal joins the same barrier.
+
+## Explicit defaults-only mode
+
+Use `new ConfigurationOptions(hostAssembly.GetName().Name!)` when the initialized
+objects are the complete configuration source. This one-argument constructor
+selects an internal absence-only adapter: preparation still discovers, validates
+and retains the same roots and synchronized reader, but reads no external storage,
+acquires no watcher and schedules no polling. `PollingInterval` is rejected in
+this mode. Set `IsHealthCritical` explicitly if Healthcheck is connected, as for an
+external store.
+
+The existing two-argument constructor always selects external-store semantics.
+A `None` or `RequiresReconciliation` store still requires an explicit interval;
+a real storage failure never falls back to initialized defaults. The facade's
+internal composition hook can prepend Configuration activation after collecting
+application registrations while preserving their descriptor order. The public
+`AddCisConfiguration` method keeps its before-all-startup-participants requirement.
 
 ## Activate and observe
 
