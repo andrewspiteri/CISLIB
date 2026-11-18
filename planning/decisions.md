@@ -82,7 +82,7 @@ adds no Heartbeat scheduler, generic startup coordination or publication.
 
 Andrew Spiteri authorized the Heartbeat v0.2 implementation under [CIS-0006](../docs/changes/CIS-0006/authorization.json), preserving the actual EnvironmentOptions architecture, single Core assembly and approved dependencies. The engine uses weak idle ownership, counted real lifetime holds, monotonic fixed delay, bounded FIFO dispatch and true unregister/shutdown settlement. A separate adapter reports detached facts through existing Healthcheck policy logic. Applications retain responsibility for their actual scope/root lifecycle and business deadlines.
 
-Use the [Heartbeat guide](../docs/modules/heartbeat/README.md), [Polling example](../implementations/csharp/examples/heartbeat/Polling/README.md) and [verification record](../docs/changes/CIS-0006/verification.md) for implemented usage and actual evidence. This checkpoint does not alter earlier owners or historical results, establish Ubuntu/full-release qualification, or allocate coverage, mutation, performance, publication or a generic startup framework.
+Use the [Heartbeat guide](../docs/modules/heartbeat/README.md), [CountryData example](../implementations/csharp/examples/CountryData/README.md) and [verification record](../docs/changes/CIS-0006/verification.md) for implemented usage and actual evidence. This checkpoint does not alter earlier owners or historical results, establish Ubuntu/full-release qualification, or allocate coverage, mutation, performance, publication or a generic startup framework.
 
 ## RestClient implementation — 18 November 2026
 

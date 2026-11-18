@@ -1,0 +1,257 @@
+{
+  "authorizationId": "cislib:CIS-0012:outcome:0c9a2fe77bba4a18a1c212c9197d54f2",
+  "actor": "Codex",
+  "workItems": [
+    {
+      "id": "WORK-001",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-001.md",
+      "title": "Deliver public application service boundaries and ownership-safe aliases",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [],
+      "acceptanceCriteria": "P02-P04: public owner factory/owner and optional monitored-registration capability preserve concrete APIs and existing IHeartbeatService implementations. The ordinary extension dispatches publicly; production keeps all atomic Core binding/weak-ownership/settlement checks. Default monitor/snapshot/owner-factory aliases share actual state, respect explicit overrides/removal/disable choices and borrowed instances without multiplying cleanup. Existing guarded REST context/result construction and existing disabled Metrics become publicly usable. Include tests/docs/independent review.",
+      "validation": "Alias identity/default/replace/borrowed ownership and idempotent cleanup tests; existing public implementations still compile, Core public result invariants/absence versus present-null remain, real monitored binding negative and actual drain tests retain semantics. Document manual-plus-recording substitute pair versus unchanged production binder/hosted lifecycle boundaries.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:f8341823620746be88fe48990b95d170",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "public-boundaries"
+      ],
+      "authorizationScopeBasis": "sha256:709b0e620959df1f9c5222616e7bd81d771d3cd72fee6008303f4898ae74fefa",
+      "workPaths": [
+        "docs/changes/CIS-0012",
+        "docs/modules",
+        "docs/catalog.yml",
+        "planning/application/follow-up",
+        ".cis/local/application-followup-intake",
+        ".cis/local/testing",
+        "implementations/csharp/src/CIS.Core/Heartbeat",
+        "implementations/csharp/src/CIS.Core/Healthcheck",
+        "implementations/csharp/src/CIS.Core/Application/CISApplicationComposition.cs",
+        "implementations/csharp/src/CIS.Core/Application/CISApplicationBuilder.cs",
+        "implementations/csharp/src/CIS.Core/RestClient/Contracts",
+        "implementations/csharp/src/CIS.Core/Metrics",
+        "implementations/csharp/tests"
+      ],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "P02-P04: public owner factory/owner and optional monitored-registration capability preserve concrete APIs and existing IHeartbeatService implementations. The ordinary extension dispatches publicly; production keeps all atomic Core binding/weak-ownership/settlement checks. Default monitor/snapshot/owner-factory aliases share actual state, respect explicit overrides/removal/disable choices and borrowed instances without multiplying cleanup. Existing guarded REST context/result construction and existing disabled Metrics become publicly usable. Include tests/docs/independent review."
+          ],
+          "description": "Alias identity/default/replace/borrowed ownership and idempotent cleanup tests; existing public implementations still compile, Core public result invariants/absence versus present-null remain, real monitored binding negative and actual drain tests retain semantics. Document manual-plus-recording substitute pair versus unchanged production binder/hosted lifecycle boundaries.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Alias identity/default/replace/borrowed ownership and idempotent cleanup tests; existing public implementations still compile, Core public result invariants/absence versus present-null remain, real monitored binding negative and actual drain tests retain semantics. Document manual-plus-recording substitute pair versus unchanged production binder/hosted lifecycle boundaries."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-002",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-002.md",
+      "title": "Deliver optional bounded CommonTesting helpers and promote the single manual clock",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "acceptanceCriteria": "P05: small packable framework-independent Core-only CommonTesting: manual owner/service with explicit triggering and actual accepted-task publication/drain; recording public health monitors/configured snapshot stub; scripted typed/JSON terminal REST results/fault/cancel-pending; bounded structured logger; one promoted manual clock and thin compatibility forwarding type if needed. Keep process/internal probes nonpackable and no friend/reflection/test-host/policy/scheduler/runner clone. Include focused helper tests, package closure, usage/docs/review.",
+      "validation": "Public helpers handle condition/callback/error-handler/unregister/close lifetimes, cancellation only ends owner waits, trigger cancellation terminates fake operations, no new timer-driven scheduler. Recordings are capacity/clear bounded; unconfigured script fails clearly; JSON scripts can supply internal requested DTO T via normal BCL deserialization. Same clock behavior remains for existing repository tests. Current Core/CommonTesting package deployment/closure proven through existing infrastructure; final compiled CountryCatalog outsider proof is WORK-003.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:3756d40061de47188032ae1efed91e95",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "common-testing"
+      ],
+      "authorizationScopeBasis": "sha256:229e99956fbef78fe9a246086a3c4641e7a3962d9de2023f35853bd7922994da",
+      "workPaths": [
+        "docs/changes/CIS-0012",
+        "docs/modules",
+        "docs/catalog.yml",
+        "planning/application/follow-up",
+        ".cis/local/application-followup-intake",
+        ".cis/local/testing",
+        "implementations/csharp/src/CIS.CommonTesting",
+        "implementations/csharp/tests",
+        "implementations/csharp/CisLib.slnx",
+        "implementations/csharp/Directory.Build.props",
+        "implementations/csharp/Directory.Packages.props",
+        "implementations/csharp/support",
+        "README.md",
+        "docs/architecture/csharp-dependency-policy.md"
+      ],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "P05: small packable framework-independent Core-only CommonTesting: manual owner/service with explicit triggering and actual accepted-task publication/drain; recording public health monitors/configured snapshot stub; scripted typed/JSON terminal REST results/fault/cancel-pending; bounded structured logger; one promoted manual clock and thin compatibility forwarding type if needed. Keep process/internal probes nonpackable and no friend/reflection/test-host/policy/scheduler/runner clone. Include focused helper tests, package closure, usage/docs/review."
+          ],
+          "description": "Public helpers handle condition/callback/error-handler/unregister/close lifetimes, cancellation only ends owner waits, trigger cancellation terminates fake operations, no new timer-driven scheduler. Recordings are capacity/clear bounded; unconfigured script fails clearly; JSON scripts can supply internal requested DTO T via normal BCL deserialization. Same clock behavior remains for existing repository tests. Current Core/CommonTesting package deployment/closure proven through existing infrastructure; final compiled CountryCatalog outsider proof is WORK-003.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Public helpers handle condition/callback/error-handler/unregister/close lifetimes, cancellation only ends owner waits, trigger cancellation terminates fake operations, no new timer-driven scheduler. Recordings are capacity/clear bounded; unconfigured script fails clearly; JSON scripts can supply internal requested DTO T via normal BCL deserialization. Same clock behavior remains for existing repository tests. Current Core/CommonTesting package deployment/closure proven through existing infrastructure; final compiled CountryCatalog outsider proof is WORK-003."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-003",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-003.md",
+      "title": "Make CountryData readable and bound callback diagnostics through public substitutes",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-001",
+        "WORK-002"
+      ],
+      "acceptanceCriteria": "P01/P06/P07/P09/P10: readable purpose-named sample methods/individual fields, public health/owner dependencies, once-only initial milestones/publication and no routine normal-level success. Private monotonic state bounds failure and recovery summaries independently to one/minute with first failure, saturated suppressed counts and persistent budgets across flaps; no outcome/health/metric/cancellation suppression. Captured per-client LogCalls defaults true; explicit countries false gates URI/log work locally. Keep all runtime contracts and one maintained app. Include scoped formatter/maintainer rules, native and deterministic public tests, genuine compiled outside-friend CountryCatalog package proof, docs/review.",
+      "validation": "10ms-equivalent sequences,59.99/60s boundaries,UTC jumps,expected/unexpected/recovery/flaps/suppressed counts,expected-stop neutrality and foreign-OCE identity with every actual outcome preserved. Real shared-runtime two-client logging default/false/capture tests; existing real HTTP/scheduling/binding/drain remain. Outsider assembly outside all IVTs uses actual Core/CommonTesting nupkgs plus hashed compiled CountryData, no copied Catalog/reflection; initial JSON,1h registration,MT/MLT/Malta,failed refresh retention and clean close without HTTP/sleeps. Unchanged Main smoke only if existing supported controlled configuration permits; otherwise precise limit. Format changed files only and strict docs.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:c630376872b04abfb6dbbf190beafe2e",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "country-diagnostics",
+        "common-testing"
+      ],
+      "authorizationScopeBasis": "sha256:103d9b0d92ff2cf45659773b15187de078651f83341077bc7185b044a971e0cf",
+      "workPaths": [
+        "docs/changes/CIS-0012",
+        "docs/modules",
+        "docs/catalog.yml",
+        "planning/application/follow-up",
+        ".cis/local/application-followup-intake",
+        ".cis/local/testing",
+        "implementations/csharp/examples/CountryData",
+        "implementations/csharp/src/CIS.Core/RestClient",
+        "implementations/csharp/tests",
+        "implementations/csharp/CisLib.slnx",
+        "AGENTS.md",
+        ".editorconfig",
+        ".github/instructions",
+        ".github/skills/cislib-metrics/SKILL.md",
+        "README.md",
+        "docs/architecture/csharp-dependency-policy.md"
+      ],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "P01/P06/P07/P09/P10: readable purpose-named sample methods/individual fields, public health/owner dependencies, once-only initial milestones/publication and no routine normal-level success. Private monotonic state bounds failure and recovery summaries independently to one/minute with first failure, saturated suppressed counts and persistent budgets across flaps; no outcome/health/metric/cancellation suppression. Captured per-client LogCalls defaults true; explicit countries false gates URI/log work locally. Keep all runtime contracts and one maintained app. Include scoped formatter/maintainer rules, native and deterministic public tests, genuine compiled outside-friend CountryCatalog package proof, docs/review."
+          ],
+          "description": "10ms-equivalent sequences,59.99/60s boundaries,UTC jumps,expected/unexpected/recovery/flaps/suppressed counts,expected-stop neutrality and foreign-OCE identity with every actual outcome preserved. Real shared-runtime two-client logging default/false/capture tests; existing real HTTP/scheduling/binding/drain remain. Outsider assembly outside all IVTs uses actual Core/CommonTesting nupkgs plus hashed compiled CountryData, no copied Catalog/reflection; initial JSON,1h registration,MT/MLT/Malta,failed refresh retention and clean close without HTTP/sleeps. Unchanged Main smoke only if existing supported controlled configuration permits; otherwise precise limit. Format changed files only and strict docs.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "10ms-equivalent sequences,59.99/60s boundaries,UTC jumps,expected/unexpected/recovery/flaps/suppressed counts,expected-stop neutrality and foreign-OCE identity with every actual outcome preserved. Real shared-runtime two-client logging default/false/capture tests; existing real HTTP/scheduling/binding/drain remain. Outsider assembly outside all IVTs uses actual Core/CommonTesting nupkgs plus hashed compiled CountryData, no copied Catalog/reflection; initial JSON,1h registration,MT/MLT/Malta,failed refresh retention and clean close without HTTP/sleeps. Unchanged Main smoke only if existing supported controlled configuration permits; otherwise precise limit. Format changed files only and strict docs."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-004",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-004.md",
+      "title": "Retain and dispose the actual provider after late failed native host Build",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [],
+      "acceptanceCriteria": "P08: one delegating native default provider factory captures exactly the raw provider returned before host resolution; install correct web/nonweb hooks, transfer fallback ownership only after actual host returns. Failed Build joins actual owned async cleanup; no second provider, eager service resolution, lifecycle/disposal engine or borrowed-instance disposal. Retain original startup cause and separate cleanup failure aggregation. Include focused regressions, lifetime guide/correct preparation wording and independent review.",
+      "validation": "Actual web/nonweb IHostLifetime factory resolves held async DI-owned dependency plus borrowed instance then throws original sentinel. Repeated Dispose joins actual held cleanup once, borrowed disposal remains0, original Start/Failure identity retained; separate cleanup-fault row observable. Existing graph-validation, successful root/module/logging lifetime and caller-wait cancellation checks pass.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:22e19c84a1404557bd1c773cc1b2c96b",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "provider-cleanup"
+      ],
+      "authorizationScopeBasis": "sha256:0def5951a9b31a4e31b521e76f7b7a51ced75c1200a02b46fd124a61fec0b979",
+      "workPaths": [
+        "docs/changes/CIS-0012",
+        "docs/modules",
+        "docs/catalog.yml",
+        "planning/application/follow-up",
+        ".cis/local/application-followup-intake",
+        ".cis/local/testing",
+        "implementations/csharp/src/CIS.Core/Application/CISApplication.cs",
+        "implementations/csharp/src/CIS.Core/Application/CISApplicationServiceProviderFactory.cs",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Application"
+      ],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "P08: one delegating native default provider factory captures exactly the raw provider returned before host resolution; install correct web/nonweb hooks, transfer fallback ownership only after actual host returns. Failed Build joins actual owned async cleanup; no second provider, eager service resolution, lifecycle/disposal engine or borrowed-instance disposal. Retain original startup cause and separate cleanup failure aggregation. Include focused regressions, lifetime guide/correct preparation wording and independent review."
+          ],
+          "description": "Actual web/nonweb IHostLifetime factory resolves held async DI-owned dependency plus borrowed instance then throws original sentinel. Repeated Dispose joins actual held cleanup once, borrowed disposal remains0, original Start/Failure identity retained; separate cleanup-fault row observable. Existing graph-validation, successful root/module/logging lifetime and caller-wait cancellation checks pass.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Actual web/nonweb IHostLifetime factory resolves held async DI-owned dependency plus borrowed instance then throws original sentinel. Repeated Dispose joins actual held cleanup once, borrowed disposal remains0, original Start/Failure identity retained; separate cleanup-fault row observable. Existing graph-validation, successful root/module/logging lifetime and caller-wait cancellation checks pass."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    }
+  ],
+  "source": null
+}

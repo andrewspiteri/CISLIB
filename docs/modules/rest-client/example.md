@@ -1,60 +1,58 @@
 ---
-title: RestClient application and package example
+title: RestClient in CountryData
 type: document
 status: draft
 cis:
   stable_id: cislib.document.modules.rest-client.example
 ---
 
-# RestClient application and package example
+# RestClient in CountryData
 
-The actual [RestApi project](../../../implementations/csharp/examples/rest-client/RestApi/RestApi.csproj)
-uses public keyed `IRestClient`, the optional retry registration and the existing
-Metrics collector. Its [gateway](../../../implementations/csharp/examples/rest-client/RestApi/OrderGateway.cs)
-keeps request/response DTOs in application code. The source story and isolated
-package consumers passed on Windows with SDK 10.0.401 and runtime 10.0.12; see
-[verification](../../changes/CIS-0010/verification.md) for their retained scope.
+[CountryData](../../../implementations/csharp/examples/CountryData/README.md) is
+the single runnable example. Its [Program](../../../implementations/csharp/examples/CountryData/Program.cs)
+selects public keyed IRestClient and the explicit transient GET preset while
+CISApplication composes the existing owners and host lifetime:
 
-From `implementations/csharp`, run:
-
-```powershell
-$env:CORE_SERVICE_NAME = 'RestClient.Example'
-$env:CORE_ENVIRONMENT = 'development'
-dotnet run --project examples/rest-client/RestApi/RestApi.csproj -- --self-test
+```csharp
+var countries = new RestClientOptions("countries")
+{
+    ResponseMapper = new CountryProviderMapper(),
+    RetryPolicy = RestRetrySelection.Named(RestRetryPolicy.TransientHttp.Name)
+};
+countries.Operations.Add("refresh");
+builder.RestClients.Add(countries);
+builder.Services.AddCisRestClientResilience(RestRetryPolicy.TransientHttp);
 ```
 
-Self-test mode starts a real loopback origin before capturing the client's base
-URL and credential origin. It prepares Type Manager once before DI, starts the
-consumer's real Web host, exercises its gateway and scrapes `/_metrics`.
-Both owned hosts stop and dispose before one JSON report is printed.
+Use CIS.RestClient and CIS.RestClient.Resilience. CountryProviderMapper is the
+application's actual provider mapper; its DTOs are separate from the public
+Country contract. CountryCatalog uses the countries keyed client to prime directly
+in IStartable and refresh through the same operation in Heartbeat. The overall
+request timeout defaults to 30 seconds across attempts, waits and body/mapping
+work. Actual cleanup must still settle; there is no sample-owned retry loop or
+detached timed-out request.
 
-The five operations demonstrate:
+The provider's error:true envelope fails the logical result even at HTTP 200.
+Null, empty and invalid datasets cannot replace the snapshot. Business rejection
+and invalid data do not become transient transport-retry candidates. Failed
+refresh leaves usable data and its publication time intact. Country lookups,
+misses, health reports and scrapes perform no remote request.
 
-- JSON POST with the default None policy and an awaited authentication callback.
-- Explicit transient GET policy, with 503/503/200 and three owned dispatches.
-- An HTTP 200 envelope mapped to `orders.declined`, with no successful value.
-- HTTP 204 success with absent value.
-- Caller cancellation during admitted preparation, with no primary dispatch.
+From implementations/csharp with the pinned SDK/frameworks:
 
-The report observes five logical completions, balanced active work and at least
-six native HTTP observations. Those native observations end at headers; their
-count is not a packet count or a substitute for the result's owned dispatch count.
-The more detailed runtime cases separately verify body/encoder cancellation and
-actual shutdown cleanup.
+```powershell
+dotnet run --project examples/CountryData/CountryData.csproj -c Release -- --urls http://127.0.0.1:5087
+```
 
-Normal mode requires `REST_BASE_URL` for a backend implementing the demonstrated
-order endpoints. `REST_ACCESS_TOKEN` supplies the bearer value; the example's
-placeholder is for demonstration. No production backend is selected. The public
-consumer routes are POST `/orders` and GET `/orders/{id}`; `/exercise` and the
-local origin exist only in self-test mode. Keep deployment access policy on the
-management endpoint as described in [Metrics hosting](../metrics/hosting.md).
+GET /country/MT, /country/MLT and /country/Malta return equivalent country data.
+The normal application uses the live provider. Controlled origins/cancellation
+belong in tests; there is no order workflow or embedded self-test origin/report.
 
-The [package case](../../../implementations/csharp/tests/CIS.Core.IntegrationTests/RestClient/RestClientPackageConsumerTests.cs)
-packs the actual current Core, Resilience and Metrics assemblies into a local feed.
-Two initially empty caches restore versioned packages without project references.
-The first consumer uses Core's public None client without optional dependencies;
-the second compiles the exact example sources against the versioned Core SDK and
-the two optional PackageReferences. Each builds, folder-publishes and executes
-its deployed output. Assertions compare package/current/deployed DLL hashes,
-actual loaded paths, the pinned runtime and optional Polly/DiagnosticSource assets.
-These checks do not establish Ubuntu, full coverage or full mutation qualification.
+Core-only None remains available without an optional retry or Metrics package.
+The small [Core-only package consumer](../../../implementations/csharp/tests/CIS.Core.IntegrationTests/RestClient/RestClientPackageConsumerTests.cs)
+retains that genuine public boundary. CountryData's package route uses the
+versioned Core SDK plus exact optional Resilience and Metrics references, actual
+build/folder-publish execution and payload checks. See the canonical guide and
+[retry contract](resilience.md). Earlier
+[CIS-0010 results](../../changes/CIS-0010/verification.md) retain their historical
+inputs, not new CountryData verification or release qualification.

@@ -1,0 +1,154 @@
+{
+  "proposalOnly": true,
+  "taskIdentityNote": "AP1–AP6 map to planned WORK-001–WORK-006 after supported derivation; these are not current executable owners.",
+  "tasks": [
+    {
+      "title": "Compose Core application setup and pre-DI configuration defaults",
+      "dependsOn": [],
+      "scopeIds": [
+        "application-facade"
+      ],
+      "paths": [
+        "implementations/csharp/src/CIS.Core/Application",
+        "implementations/csharp/src/CIS.Core/Configuration",
+        "implementations/csharp/src/CIS.Core/Metrics",
+        "implementations/csharp/src/CIS.Core/Logging",
+        "implementations/csharp/src/CIS.Core/Healthcheck",
+        "implementations/csharp/tests",
+        "docs/modules",
+        "docs/changes/CIS-0011",
+        "planning/application"
+      ],
+      "acceptanceCriteria": "AP1 / APP-01,APP-03–APP-06: freeze a thin CIS.Hosting.CISApplication builder and required constructor/web/lifecycle signatures; collect normal services/host and existing module options/named REST choices without starting work or temporary providers. Compose explicit Core defaults and supported replacements, prepare exact Type Manager and retained Configuration roots before one final Build, put Configuration activation before user participants preserving order. Add an explicit defaults-only Configuration mode using existing catalog/reader/validation with no external read/watch/polling and a Core no-op IMetrics fallback after optional contributions. Preserve all real-store modes/failures and Core closure. Include focused unit/architecture tests, guide and independent review.",
+      "validation": "A01–A03/A05: constructor forms compile, setup causes no async/module/listener work; defaults-only constructor data and exact prepared/root identities; external store failures never fallback, existing None/RequiresReconciliation requirements remain; supported Replace/RemoveAll/disable semantics and all root enrollment order. Core-only closure has no SDK/Polly dependency. Freeze shared seams before dependent parallel work.",
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex"
+    },
+    {
+      "title": "Implement retained application lifecycle and real web readiness integration",
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "scopeIds": [
+        "application-facade"
+      ],
+      "paths": [
+        "implementations/csharp/src/CIS.Core/Application",
+        "implementations/csharp/src/CIS.Core/Startup/Hosting",
+        "implementations/csharp/src/CIS.Core/Heartbeat/Hosting",
+        "implementations/csharp/tests",
+        "docs/modules",
+        "docs/changes/CIS-0011"
+      ],
+      "acceptanceCriteria": "AP2 / APP-02,APP-03,APP-06,APP-07: retain one start/stop/dispose operation and one host/provider. Start joins preparation and actual host/CIS startup; Run starts, waits for ordinary shutdown and stops, returning an exit result only for observed outcomes with retained cause. Stop signals owned work before actual startup/configuration/heartbeat/REST/metrics drains; disposal handles partial Build/start acquisition and propagates cleanup faults safely. Use native routing/operational branches and existing health/business readiness statuses, real early listener access, required sequential tail bridge order and one host disposal path. Include real-host/ownership tests, docs and review.",
+      "validation": "A02–A05/A10: all startup roots constructed before sequential identity-deduplicated starts; repeated/concurrent calls share retained outcomes and terminal stop cannot restart/readiness-reopen. Held real initializer proves health500/business503 then ready200 without side effects. Held work/canceled waits/partial build prove no dependency disposal before actual settlement; original start/cancel/fault and later disposal errors surface correctly.",
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex"
+    },
+    {
+      "title": "Automatically attach the installed optional Metrics integration",
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "scopeIds": [
+        "application-facade"
+      ],
+      "paths": [
+        "implementations/csharp/src/CIS.Core/Application",
+        "implementations/csharp/src/CIS.Core/Metrics",
+        "implementations/csharp/src/CIS.Metrics.OpenTelemetry",
+        "implementations/csharp/tests",
+        "docs/modules",
+        "docs/changes/CIS-0011"
+      ],
+      "acceptanceCriteria": "AP3 / APP-04,APP-05: implement only the narrow prepared-TypeManager registrar seam needed for supported optional Metrics service registration and existing web integration. Parameterless passive contributors run once in deterministic type order, deduplicate and reject conflicting contributions before one Build. Honor adapter enablement/custom profile/replacement choices; Core no-op cannot preempt installed Metrics. Keep one actual existing SDK/provider and central identity, exact host isolation and real callback-owner drain. Include tests, integration guide and review; no scanning/runtime plugin or lifecycle graph.",
+      "validation": "A04/A05/A11: a Core-only facade runs without optional packages/endpoint; installed adapter automatically exposes real metrics in the web host; disabled/customized modes are respected without manual sample AddCisMetrics. Real scrape/two-host/root identities and existing relevant lifetime checks pass; contributor duplication/conflicts fail clearly and no contributor performs I/O/provider creation.",
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex"
+    },
+    {
+      "title": "Deliver real REST-backed CountryData with atomic refresh and state gauges",
+      "dependsOn": [
+        "WORK-001",
+        "WORK-002",
+        "WORK-003"
+      ],
+      "scopeIds": [
+        "country-data"
+      ],
+      "paths": [
+        "implementations/csharp/examples/CountryData",
+        "implementations/csharp/tests",
+        "docs/modules",
+        "docs/changes/CIS-0011",
+        "planning/application"
+      ],
+      "acceptanceCriteria": "AP4 / DATA-01–DATA-06: a small normal Program uses facade, intentional app/named client and explicit existing TransientHttp policy choices, native route and RunAsync. One catalog implements startup and heartbeat; capture retained settings once, fetch actual provider envelope with accepted keyed REST/RestResult and overall30second timeout, map business failure, validate complete data and atomically swap one immutable snapshot. Serve exact case-insensitive name/ISO aliases locally with stable errors. Initial successful publication precedes readiness; both default Heartbeat delay/interval1hour, no overlap/duplicate prime. Failed refresh preserves data/time and expected stop cancels real work/drains neutrally. Add only two dimensionless snapshot gauges with proper unknown omission. Include focused controlled-HTTP/timing/scrape tests, concise real run guide and review; no test modes in app.",
+      "validation": "A01/A05–A11: equivalent Malta variants and zero lookup I/O, invalid identifiers400/unknown404, malformed/null/empty/business/HTTP/conflict failures, atomic complete alias replacement and old state/time retention. Real Heartbeat scheduling/failed-result recovery; actual in-flight REST/body shutdown and callback barrier. Real exporter names/central labels/count vs aliases/time omission/retention and no collection I/O. Defaultsonehour/30seconds; no public internet test dependency.",
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex"
+    },
+    {
+      "title": "Migrate distinct consumer coverage into minimal existing test fixtures",
+      "dependsOn": [
+        "WORK-001",
+        "WORK-004"
+      ],
+      "scopeIds": [
+        "example-consolidation"
+      ],
+      "paths": [
+        "implementations/csharp/tests",
+        "docs/modules",
+        "docs/changes/CIS-0011"
+      ],
+      "acceptanceCriteria": "AP5 / CLEAN-01–CLEAN-03: migrate only distinct TypeManager discovery/deployment, Configuration constructor/reload identity, Healthcheck HTTP/pipe/probe process, Logging flush, Heartbeat failure/recovery/drain, Metrics optional deployment and REST genuine Core-only/optional package boundaries. Use existing minimal Host/Contracts/Transitive/Unused/Runtime, HealthcheckHttpHost/CisHealthProbe and Logging/Heartbeat native fixtures, plus the canonical app where appropriate. Remove redundant full tutorial/self-test report assertions after mapping useful requirements. Update exact candidate-byte guards to surviving processes. No whole old programs copied into fixture/archive/legacy flags. Include native real-package build/publish evidence, fixture rationale/docs and independent review.",
+      "validation": "A12–A14: each retained fixture has a named process/assembly/packaging purpose; exact-version SDK build/folder publish, missing selected DLL, ordinary PackageReference and Core-only optional closure checks remain genuine. Module behavior is exercised through focused native tests without obsolete reports, duplicate apps or weakened byte guards.",
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex"
+    },
+    {
+      "title": "Remove superseded examples and settle active integration references",
+      "dependsOn": [
+        "WORK-002",
+        "WORK-003",
+        "WORK-004",
+        "WORK-005"
+      ],
+      "scopeIds": [
+        "example-consolidation"
+      ],
+      "paths": [
+        "implementations/csharp/examples",
+        "implementations/csharp/tests",
+        "implementations/csharp/CisLib.slnx",
+        "implementations/csharp/support",
+        "implementations/csharp/build",
+        "implementations/csharp/verification",
+        "implementations/csharp/eng/fixtures",
+        ".cis/local/testing",
+        ".cis/local/application-intake",
+        ".github/skills/cislib-metrics/SKILL.md",
+        ".github/instructions",
+        "AGENTS.md",
+        "README.md",
+        "docs/modules",
+        "docs/references",
+        "docs/catalog.yml",
+        "docs/changes/CIS-0011",
+        "planning/application",
+        "planning/decisions.md"
+      ],
+      "acceptanceCriteria": "AP6 / CLEAN-01–CLEAN-03: after migration delete all seven named old tutorial projects, newer RestApi and redundant type-manager support; CountryData is the only maintained runnable tutorial. Coordinate solution/project/lock/copy-target edits, replace or retire active profile/script paths, module/root guides and existing skill/instruction routing. Preserve the three exact untracked user launch files reversibly with hashes outside removed examples before directory removal. Preserve historical records/results/accounting as history and unrelated user work. Resolve all active old references, document minimal surviving fixtures and exact run command. Include final affected native source/architecture/compatibility/package checks and independent review without another framework/tool campaign.",
+      "validation": "A12–A14: solution and affected projects build through current eligible CIS owner; selected facade/CountryData/module preservation/source and real Core-only/optional package cases pass on actual Windows. Final rg classifies old paths/names/outputs/self-test flags and leaves no unresolved active refs or copied apps. User/source hashes unchanged, no active reservations/recovery uncertainty at settlement; real platform/smoke gaps remain explicit.",
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex"
+    }
+  ]
+}

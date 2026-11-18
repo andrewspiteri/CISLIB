@@ -1,0 +1,33 @@
+Implement the attached CISLIB_CISApplication_and_CountryData_Specification_v1.0.md in the existing CISLIB repository.
+
+This is one delivery with three required outcomes:
+1. A small CISApplication facade that automatically wires the standard CIS modules, DI, startup, selected HTTP hosting and shutdown.
+2. One canonical CountryData application using that facade and the real CIS REST client, serving the same country for /country/MT, /country/MLT and /country/Malta, with an initial load before readiness and hourly Heartbeat refresh.
+3. Complete consolidation and removal of the superseded example applications, including all active references affected by that removal.
+
+Start from the actual checkout. Read AGENTS.md, the current dependency policy, native development/CIS instructions and the affected module contracts. Use the installed CIS workflow to import this document as a new feature input, create a concise dependency-aware plan and implement tasks no larger than medium. Do not replace the product-wide BRD, recreate the workspace, reopen completed work owners or upgrade/rebuild CIS as a side project. Reuse existing authorization and accepted decisions; follow actual current work-owner/allocation requirements without inventing approval records.
+
+Use the .NET host, Microsoft DI and the existing CIS startup coordinator. Keep one host and one root provider. Complete Type Manager preparation and initial Configuration/default loading before configuration-consuming constructors; construct all scheduled root startup services before invoking starts, then await IStartable.StartAsync in registration order. Preserve readiness gating, module ordering, cancellation, ownership and actual shutdown drains. Constructors collect setup; StartAsync/RunAsync perform async work. RunAsync keeps the app alive and returns an exit result for its observed start/run/stop outcome; await using completes cleanup and disposal failures propagate.
+
+Keep the public entry point small. The sample's Main contains CISApplication, application service registrations, native ASP.NET route mapping and RunAsync. Move reusable infrastructure wiring into CISLIB itself, not a helper beside the sample. Preserve Core/optional-package separation, including CIS.Metrics.OpenTelemetry. Apply the specification's defaults-only configuration policy when no external store is selected. Use the narrowest necessary integration hook; do not create a DI, plugin, lifecycle, routing, scheduler or configuration framework.
+
+Build CountryData by evolving the existing startup CountryList implementation where useful. Use one catalog instance for startup, lookups and refresh. Read the configured world-data endpoint through the accepted CIS REST client and RestResult<T>, validate provider business success and country data, build a complete replacement snapshot and publish it atomically. Lookups are local, exact and case-insensitive by name/ISO2/ISO3. Failed refreshes retain the old snapshot and last-success time. Set BOTH Heartbeat InitialDelay and Interval to one hour by default. Use explicitly configured REST retries and a real operation-canceling timeout; propagate application shutdown cancellation and await the actual running callback before disposal. Do not implement your own REST client or retry loop. If the approved REST module is not yet available, identify and sequence that dependency while completing independent work; do not claim the integrated app complete with a hardcoded source.
+
+COMPLETE THE CLEANUP IN THIS CHANGE. Remove the superseded runnable projects under implementations/csharp/examples:
+- startup/CountryList
+- healthcheck/CountryList
+- heartbeat/Polling
+- logging/ConsoleHuman
+- metrics/MetricApi
+- type-manager/Console
+- type-manager/Web
+
+Review type-manager/Contracts, Unused and Shared too. Retain only the smallest pieces required by a specifically identified surviving test, under the existing test structure. Preserve distinct module behaviour through focused native tests and minimal process/assembly/package fixtures. Do not copy whole old applications into tests/fixtures, archive or legacy folders, excluded projects or compatibility flags merely to keep old tests unchanged. Do not leave duplicate tutorials temporarily in the completed change or defer cleanup to another task. Git history already retains removed implementations.
+
+Update the solution, project references/copy targets, test launchers, real package-consumer fixtures, active profiles/scripts, README/module guides and repository skill/instruction links. Remove obsolete tests/helpers where equivalent meaningful coverage exists; preserve unique requirements. Remove embedded self-test flags, controlled failures, barriers and verification reports from the canonical application. Search for old paths and assembly names and resolve every active reference. Preserve historical evidence and completed-work accounting as history; do not relabel prior results as evidence for the new code. The explicit cleanup direction supersedes earlier preservation instructions for these tutorial sources, while public contracts and historical records remain protected.
+
+Use the current CISLIB Metrics skill and actual APIs. Reuse automatic incoming/outgoing HTTP and module metrics, retain central application/environment labels and bounded dimensions, and add only the specified cache-state gauges. Do not duplicate native timings or add telemetry histories. Keep sample code readable and the guide concise.
+
+After establishing the shared API, parallelize independent tasks with explicit file ownership. One owner coordinates solution/project/package edits and builds that share outputs. Include focused native MSTest coverage, documentation and review within implementation outcomes. Verify the specification's acceptance matrix using controlled local HTTP responses and existing timing facilities; no real-hour waits, public-internet-dependent automated tests, replacement test harness or broad mutation/benchmark campaign. Run affected build/test/package checks through the current CIS workflow and report their actual scope. Do not force reuse or rerun unrelated completed suites merely to clear a status warning.
+
+Finish with the implemented API and exact sample run command, applications removed, active references updated, minimal fixtures retained and why, actual focused verification results/platforms, and any concrete remaining gaps. Completion requires the working facade, the real integrated CountryData application and the cleanup; adding a new example alongside the old ones is not completion.

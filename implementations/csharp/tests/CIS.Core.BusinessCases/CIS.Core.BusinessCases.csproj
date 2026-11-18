@@ -8,39 +8,11 @@
     <ProjectReference Include="../../src/CIS.Core/CIS.Core.csproj" />
     <ProjectReference Include="../CIS.Core.TestSupport/CIS.Core.TestSupport.csproj" />
     <ProjectReference Include="../fixtures/DiscoveryHost/CIS.Core.DiscoveryFixture.csproj" />
-    <ProjectReference Include="../../examples/healthcheck/CountryList/CountryList.csproj" ReferenceOutputAssembly="false" Private="false" PrivateAssets="all" />
-    <ProjectReference Include="../../examples/startup/CountryList/CountryList.csproj" ReferenceOutputAssembly="false" Private="false" PrivateAssets="all" />
-    <ProjectReference Include="../../examples/metrics/MetricApi/MetricApi.csproj" ReferenceOutputAssembly="false" Private="false" PrivateAssets="all" />
-    <ProjectReference Include="../../examples/rest-client/RestApi/RestApi.csproj" ReferenceOutputAssembly="false" Private="false" PrivateAssets="all" />
   </ItemGroup>
   <Target Name="CopyLoggingBusinessFixture" AfterTargets="Build">
     <ItemGroup>
       <LoggingBusinessFixtureFiles Include="../fixtures/DiscoveryHost/bin/$(Configuration)/$(TargetFramework)/*" />
     </ItemGroup>
     <Copy SourceFiles="@(LoggingBusinessFixtureFiles)" DestinationFolder="$(TargetDir)logging-fixture" />
-  </Target>
-  <Target Name="CopyHealthcheckBusinessFixture" AfterTargets="Build">
-    <ItemGroup>
-      <HealthcheckBusinessFiles Include="../../examples/healthcheck/CountryList/bin/$(Configuration)/$(TargetFramework)/*" />
-    </ItemGroup>
-    <Copy SourceFiles="@(HealthcheckBusinessFiles)" DestinationFolder="$(TargetDir)healthcheck-country-list" />
-  </Target>
-  <Target Name="CopyStartupBusinessExample" AfterTargets="Build">
-    <ItemGroup>
-      <StartupBusinessExampleFiles Include="../../examples/startup/CountryList/bin/$(Configuration)/$(TargetFramework)/*" />
-    </ItemGroup>
-    <Copy SourceFiles="@(StartupBusinessExampleFiles)" DestinationFolder="$(TargetDir)startup-country-list" />
-  </Target>
-  <Target Name="CopyMetricsBusinessExample" AfterTargets="Build">
-    <ItemGroup>
-      <MetricsBusinessExampleFiles Include="../../examples/metrics/MetricApi/bin/$(Configuration)/$(TargetFramework)/*" />
-    </ItemGroup>
-    <Copy SourceFiles="@(MetricsBusinessExampleFiles)" DestinationFolder="$(TargetDir)metrics-api" />
-  </Target>
-  <Target Name="CopyRestClientBusinessExample" AfterTargets="Build">
-    <ItemGroup>
-      <RestClientBusinessExampleFiles Include="../../examples/rest-client/RestApi/bin/$(Configuration)/$(TargetFramework)/*" />
-    </ItemGroup>
-    <Copy SourceFiles="@(RestClientBusinessExampleFiles)" DestinationFolder="$(TargetDir)rest-client-api" />
   </Target>
 </Project>

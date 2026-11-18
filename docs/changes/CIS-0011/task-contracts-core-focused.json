@@ -1,0 +1,28 @@
+{
+  "tasks": [
+    {
+      "title": "Compose Core application setup and pre-DI configuration defaults",
+      "dependsOn": [],
+      "scopeIds": [
+        "application-facade"
+      ],
+      "paths": [
+        "implementations/csharp/src/CIS.Core/Application",
+        "implementations/csharp/src/CIS.Core/Configuration",
+        "implementations/csharp/src/CIS.Core/Metrics/DisabledMetrics.cs",
+        "implementations/csharp/tests/CIS.Core.UnitTests/Application",
+        "implementations/csharp/tests/CIS.Core.UnitTests/Configuration/ConfigurationDefaultsTests.cs",
+        "implementations/csharp/tests/CIS.Core.UnitTests/Metrics/DisabledMetricsTests.cs",
+        "docs/modules/application",
+        "docs/modules/configuration/hosting.md",
+        "docs/changes/CIS-0011",
+        "planning/application"
+      ],
+      "acceptanceCriteria": "AP1 / APP-01,APP-03–APP-06: freeze a thin CIS.Hosting.CISApplication builder and required constructor/web/lifecycle signatures; collect normal services/host and existing module options/named REST choices without starting work or temporary providers. Compose explicit Core defaults and supported replacements, prepare exact Type Manager and retained Configuration roots before one final Build, put Configuration activation before user participants preserving order. Add an explicit defaults-only Configuration mode using existing catalog/reader/validation with no external read/watch/polling and a Core no-op IMetrics fallback after optional contributions. Preserve all real-store modes/failures and Core closure. Include focused unit/architecture tests, guide and independent review.",
+      "validation": "A01–A03/A05: constructor forms compile, setup causes no async/module/listener work; defaults-only constructor data and exact prepared/root identities; external store failures never fallback, existing None/RequiresReconciliation requirements remain; supported Replace/RemoveAll/disable semantics and all root enrollment order. Core-only closure has no SDK/Polly dependency. Freeze shared seams before dependent parallel work.",
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex"
+    }
+  ]
+}

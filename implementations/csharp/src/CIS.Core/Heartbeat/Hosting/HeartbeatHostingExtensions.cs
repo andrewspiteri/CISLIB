@@ -12,11 +12,30 @@ namespace CIS.Heartbeat.Hosting;
 public static class HeartbeatHostingExtensions
 {
     /// <summary>Installs Heartbeat after dependent hosted services, with nonconcurrent stopping.</summary>
-    /// <remarks>Required subscriber initialization must finish before ApplicationStarted. Stopping handlers must retain dependencies until the barrier; always stop the host before disposing its root provider.</remarks>
+    /// <remarks>Required subscriber initialization must finish before ApplicationStarted. Stopping handlers must retain dependencies until the barrier;
+    /// always stop the host before disposing its root provider. The owner-factory alias shares this runtime. Register a borrowed concrete instance
+    /// before this call so its alias also remains caller-owned; do not replace that instance afterward while retaining the older alias.</remarks>
     public static IServiceCollection AddCisHeartbeat(this IServiceCollection services, HeartbeatOptions? options = null)
+        => AddCisHeartbeatCore(services, options, registerOwnerFactory: true);
+
+    internal static IServiceCollection AddCisHeartbeatCore(this IServiceCollection services,
+        HeartbeatOptions? options, bool registerOwnerFactory)
     {
         ArgumentNullException.ThrowIfNull(services);
         services.TryAddSingleton(_ => new HeartbeatRuntime(options));
+        if (registerOwnerFactory)
+        {
+            ServiceDescriptor? runtime = services.LastOrDefault(item => !item.IsKeyedService
+                && item.ServiceType == typeof(HeartbeatRuntime));
+            if (runtime?.ImplementationInstance is HeartbeatRuntime borrowed)
+            {
+                services.TryAddSingleton<IHeartbeatOwnerFactory>(borrowed);
+            }
+            else
+            {
+                services.TryAddSingleton<IHeartbeatOwnerFactory>(root => root.GetRequiredService<HeartbeatRuntime>());
+            }
+        }
         services.TryAddSingleton(_ => new HeartbeatHostingOrder(
             services.LastOrDefault(item => !item.IsKeyedService && item.ServiceType == typeof(IHostedService))?.ImplementationType == typeof(HeartbeatHostedService)
             || StartupHostingOrder.FollowsHeartbeat(services)));
@@ -28,7 +47,8 @@ public static class HeartbeatHostingExtensions
 internal sealed class HeartbeatHostedService(HeartbeatRuntime runtime, IHostApplicationLifetime lifetime,
     HeartbeatHostingOrder order, IOptions<HostOptions> hostOptions, IServiceProvider root) : IHostedLifecycleService, IAsyncDisposable
 {
-    private CancellationTokenRegistration started, stopping;
+    private CancellationTokenRegistration started;
+    private CancellationTokenRegistration stopping;
     private readonly MetricsRuntime? metrics = root.GetService<IMetrics>() as MetricsRuntime;
     private readonly IRestClientRuntime? rest = root.GetService<IRestClientRuntime>();
 

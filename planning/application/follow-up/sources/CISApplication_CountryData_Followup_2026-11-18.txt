@@ -1,0 +1,156 @@
+CISLIB — CISApplication / CountryData follow-up implementation prompt
+Prepared 18 November 2026
+
+Repository: https://github.com/andrewspiteri/CISLIB
+Branch: codex/cisapplication-countrydata
+Reviewed baseline: cb464a477996e2c19162bf740e73e73c3b28a85d
+
+Implement the following focused follow-up to the CISApplication and CountryData work. Read the repository's current instructions and inspect changes since the reviewed baseline before editing. Preserve user changes and the existing approved startup, configuration, readiness, cancellation, metrics, REST, and ownership contracts. This prompt extends the previous specification; it does not replace those contracts. Do not publish a release or merge the branch as part of this work.
+
+The primary goals are readable example code, safe logging for frequent Heartbeat callbacks, genuinely substitutable public service boundaries, and a small optional CIS.CommonTesting package. Also fix the specific failed-Build cleanup gap identified below.
+
+1. READABILITY AND MAINTAINER RULES
+
+Reformat CountryCatalog.cs and the directly affected CountryData files for ordinary human reading. Expand compressed if/try/catch/finally/lock bodies, split multiple statements on a line, and declare fields individually. Use blank lines between distinct operations and lay out multi-property initializers clearly. Keep short expression-bodied forwarding members when they remain easy to understand.
+
+The constructor currently mixes configuration capture, validation, health-monitor creation and metric registration. Separate those concerns with a few purpose-named private methods where this improves reading. Do not introduce a service locator, dependency bag, generic abstraction layer, or a class per operation merely to reduce the constructor's visible dependencies. Preserve the consistent configuration read, atomic snapshot publication, and exception/cancellation distinctions.
+
+Add concise maintainership rules to the relevant AGENTS.md guidance and formatting configuration. In the existing C# section, use the supported formatter options:
+
+    csharp_new_line_before_open_brace = all
+    csharp_preserve_single_line_blocks = false
+    csharp_preserve_single_line_statements = false
+
+Use the repository's existing formatting verification path; IDE0055 can provide the normal formatting diagnostic if needed. Specify one declaration per field and logical grouping in written guidance because formatting options do not express all readability decisions. Apply formatting to the files being changed; avoid unrelated repository-wide churn. Formatting alone needs no new behavioral tests.
+
+2. HEARTBEAT LOGGING CONTRACT
+
+Document this rule in the Heartbeat guidance and relevant contributor instructions: OnElapsedAsync, OnErrorAsync, conditions, and their directly invoked hot-path helpers must be safe when callbacks run frequently, including a 10 ms interval. Logging volume must not scale without a bound at Information, Warning, or Error for routine repeated outcomes.
+
+The current CountryData default is one hour. Keep that default. It nevertheless teaches an unsafe general pattern: every refresh success logs Information, every expected refresh failure logs Warning, and every OnErrorAsync invocation logs Error.
+
+Use this policy:
+
+* Log application/startup milestones and the initial successful country publication once at Information.
+* Routine successful callbacks emit no normal-level log. If a per-execution diagnostic is useful, keep it explicitly opt-in at Debug/Trace and avoid expensive formatting or payload capture when disabled.
+* Report the first observed failure promptly at Warning for an expected provider/validation failure, or Error for an unexpected exception. Subsequent repeated failure diagnostics are bounded per registration; use a one-minute default reporting window for the example.
+* Recovery is a transition event, not a success message for every callback. Bound recovery reporting as well. Preserve the reporting budget across failure/recovery changes so a rapidly flapping dependency cannot reset the limit every tick.
+* Give the policy an explicit measurable bound, for example at most one failure summary and one recovery summary per registration per minute after their first eligible events. Include counts of suppressed repetitions when a summary is emitted. The exact concise implementation may combine these budgets, but must preserve prompt first-failure visibility and an equivalent finite bound.
+* Keep counters/state bounded per registration and release them with that registration or owner. Use injected monotonic time for elapsed reporting windows. Do not retain an unbounded dictionary of exception messages, URLs, identifiers, or stack traces.
+* Expected shutdown cancellation is not a Warning/Error. Preserve the existing distinction between expected cancellation and an unrelated OperationCanceledException or programming fault.
+* Suppressing a log must never suppress the actual operation outcome, change the callback result, skip health reporting, delay cancellation, or hide a fault from lifecycle accounting. Existing metrics and health observations continue to represent every actual outcome.
+* Never add sleep/delay to throttle logs. Use stable event identities and structured fields; a timestamp or changing exception message must not make every event a new suppression key.
+
+CIS.Logging already has optional bounded LogDuplicateSuppression. Reuse it when sink-side duplicate protection is useful; do not invent a competing logging pipeline. It runs in incoming-event processing, so it does not remove all costs of generating each event. The sample must avoid producing normal-level success events and unnecessary repeated diagnostic work in the callback itself. A small local reporting state/helper is sufficient for the example; introduce a public reusable helper only if a demonstrated second consumer needs it.
+
+Do not globally suppress unrelated application errors or silently change all logger categories. Any reporting policy must have a clear scope and be documented.
+
+3. PUBLIC SERVICE CONTRACTS AND DI
+
+Healthcheck already exposes IHealthMonitorFactory and IHealthSnapshotSource, plus public monitor interfaces. HealthcheckService implements them. CountryCatalog should depend on IHealthMonitorFactory instead of HealthcheckService. Snapshot-only consumers should depend on IHealthSnapshotSource. Register the default interface aliases to the same HealthcheckService singleton, and respect normal consumer overrides. Do not create a redundant all-purpose IHealthcheckService solely to mirror the class name.
+
+Heartbeat already exposes IHeartbeatService for registration. Its missing consumer boundary is owner creation/lifetime: HeartbeatRuntime.CreateOwner returns a sealed concrete HeartbeatOwner. Introduce narrow public contracts along these lines:
+
+    public interface IHeartbeatOwnerFactory
+    {
+        IHeartbeatOwner CreateOwner();
+    }
+
+    public interface IHeartbeatOwner : IAsyncDisposable
+    {
+        IHeartbeatService Service { get; }
+
+        Task CloseAsync(CancellationToken waitCancellation = default);
+    }
+
+Use repository-consistent naming if an existing contract covers this role. Keep existing concrete APIs compatible where practical, for example through explicit interface implementation. Change CountryCatalog's constructor and retained owner field to public contracts. Default aliases must resolve the same runtime/owner state, not create a second scheduler or a separate lifecycle owner.
+
+Important: interface extraction alone is insufficient. HeartbeatHealthcheckExtensions.Register currently accepts public interfaces but requires internal IHeartbeatOwnerFacade and IHealthStateAccess implementations. A fake heartbeat service or fake health monitor is rejected before normal registration can finish.
+
+Provide a public dispatch boundary for monitored registration, such as a narrow optional capability interface implemented by the production owner service and the testing implementation. The existing extension can dispatch through it. Keep the real implementation's atomic monitor binding, validation, accepted-work tracking and settlement checks inside the production path. Do not simply remove those checks and assume an arbitrary monitor implements Core's internal execution accounting. Avoid breaking existing IHeartbeatService implementers unnecessarily.
+
+The consumer must be able to execute the ordinary monitored-registration path with public substitutes. It must not need reflection, internal interfaces, special test-only branches in CountryCatalog, or a special bypass API that production code never uses.
+
+Preserve owner-close semantics: close stops admission and joins actual accepted work; canceling a wait does not mean the work has completed; disposal remains safe and idempotent. Default DI aliases must share state and must not multiply actual cleanup.
+
+Document the substitution boundary precisely. Replacing a business-facing factory does not automatically replace the complete hosted module, its scheduler, or its readiness integration. Keep production lifecycle orchestration coherent. Add broader lifecycle contracts only if a real supported consumer requires whole-module replacement; do not pretend that adding a factory alias already provides it.
+
+4. OPTIONAL CIS.CommonTesting PROJECT/PACKAGE
+
+Add a small consumer-facing, packable CIS.CommonTesting project using the existing package conventions. Applications may reference it from their tests. Runtime projects must never depend on it. Keep it independent of MSTest/xUnit/NUnit and avoid requiring Moq or NSubstitute; consumers remain free to use those tools with public contracts.
+
+Start with the helpers needed to test CountryData and the new contracts:
+
+* Manual Heartbeat: records subscriber/options/monitoring registrations, explicitly triggers and awaits callbacks, and supports cancellation, unregister and owner close. Closing joins the callbacks that the fake actually started. It uses no real background timer and does not recreate the production scheduler.
+* Recording health factory and monitors: capture creation and reports, including publication, refresh failure, invalidation and disposal. A snapshot stub can return configured snapshots when needed; do not clone the production health-policy engine.
+* Scripted REST client: provides configured results, failures and cancellation-aware pending operations for consumer tests. Reuse any suitable existing public helper before adding one. Unconfigured calls must fail clearly rather than fabricate success.
+* Recording logging support: captures structured event identity, level, fields and exceptions so tests can assert diagnostic behavior. Bound retained events or give capacity/clear semantics appropriate to repeated-callback tests.
+* Manual time: reuse/promote the existing public ManualTimeProvider where suitable, avoiding two competing clock implementations.
+
+tests/CIS.Core.TestSupport already exists and is not packable. Promote only generally useful public helpers. Leave process runners, internal scheduler probes and repository-specific fixtures in internal test support. Keep remaining dependencies easy to supply through their existing interfaces or production no-op/default implementations; add further common doubles only when the first real consumer demonstrates a need.
+
+Do not create mocks for every CIS class in advance, a universal fake host, a new test runner, or a parallel verification framework. Publish a short usage example showing CountryCatalog tested with public contracts and the package's helpers.
+
+5. FAILED HOST BUILD CLEANUP
+
+CISApplication currently assigns its host field only after Build returns. With the reviewed .NET 10 hosting implementation, Build creates the real root provider before resolving IHost. If host resolution throws after instantiating DI-owned disposable services, the facade has no host reference and therefore no reference to the provider that owns those services. Its current fallback only disposes individually retained modules/configuration.
+
+Retain the one actual provider at its real creation boundary so a partially failed Build can dispose it. Do not build a second provider, replace the native host lifecycle, or dispose caller-owned external instances. Preserve asynchronous cleanup, module drains, original failure identity and aggregation of separate cleanup failures. Avoid duplicate actual cleanup when ownership has successfully passed to the host.
+
+Add one focused regression: an IHostLifetime or logging-provider factory resolves a DI-owned disposable dependency and then throws. After awaiting application disposal, the dependency must have completed cleanup and the original startup failure must remain observable. The existing failed-Build test covers graph-validation failure, which does not exercise this later boundary. Account for both web and non-web construction where their ownership paths differ, using the smallest meaningful coverage.
+
+6. RETAIN THE EXAMPLE CONSOLIDATION
+
+The reviewed tree already has CountryData as the only runnable C# example, and the previous tutorial applications have been removed. Preserve that result. Do not restore or relocate them as whole applications under tests, fixtures or archives. Keep only distinct minimal test fixtures, update any newly affected active links, and preserve historical verification records.
+
+Keep the normal CountryData Program free of embedded test/failure modes. Preserve the short startup facade, the hourly refresh, same-result MT/MLT/Malta lookup, atomic cache replacement and retention of the last usable snapshot after a failed refresh.
+
+7. FOCUSED VERIFICATION AND DOCUMENTATION
+
+Use the existing native test framework, package-consumer infrastructure and applicable current execution authorization. Keep verification proportional to the changed behavior. Do not rerun broad campaigns merely to refresh bookkeeping or replace previous real-runtime coverage with fakes.
+
+Acceptance checks:
+
+* A consumer outside Core's friend assemblies can construct and exercise CountryCatalog through public contracts with CIS.CommonTesting. It can load initial data, inspect the one-hour registration, trigger refresh, verify equivalent aliases and last-good-data retention, and close cleanly without real HTTP or wall-clock sleeps. Use existing package-consumer infrastructure rather than creating a general harness.
+* Default interface aliases share the correct singleton; consumer replacements work at the documented boundary. Monitored registration accepts the manual implementation through the same public dispatch used by application code.
+* A deterministic sequence equivalent to a 10 ms callback interval produces no routine Information success stream. Repeated failures, recovery and rapid failure/recovery alternation obey the documented reporting bound, including at the window boundary. Expected shutdown produces no failure diagnostic. Health/operation results still reflect each outcome.
+* The partial-Build disposal regression passes without a second provider.
+* Existing relevant real-runtime tests continue to cover actual scheduling, health binding, cancellation and drain semantics. CommonTesting does not claim to prove those production mechanisms.
+
+The current package test copies the application sources but replaces Program.cs with a test entry point. It is useful component/package evidence, not proof of running the unchanged documented Main. If a bounded unchanged-entrypoint smoke is practical under the existing setup and authorization, use the normal supported configuration path and a controlled provider. Otherwise state this precise evidence limit; do not add a test-only mode to Program or describe a modified entry point as unchanged.
+
+Correct the application guide's preparation wording: initial Configuration loading occurs before construction; stage 1 constructs all scheduled startup roots; stage 2 invokes sequential startup, with Configuration activation prepended. The current implementation follows this order; the guide conflates loading and activation.
+
+Report the changes, tests actually executed and their scope, any API compatibility impact, and remaining evidence limits. Previously recorded Windows results are not results for this new diff. Do not claim Linux, a live public-provider run, performance, or release qualification without corresponding evidence.
+
+SOURCE REFERENCES FOR THE REVIEWED FINDINGS
+
+All CISLIB references below are pinned to the reviewed commit. Inspect the current branch before applying changes.
+
+CountryCatalog:
+https://github.com/andrewspiteri/CISLIB/blob/cb464a477996e2c19162bf740e73e73c3b28a85d/implementations/csharp/examples/CountryData/CountryCatalog.cs
+
+Healthcheck contracts:
+https://github.com/andrewspiteri/CISLIB/blob/cb464a477996e2c19162bf740e73e73c3b28a85d/implementations/csharp/src/CIS.Core/Healthcheck/Contracts/HealthMonitorContracts.cs
+
+Monitored Heartbeat registration:
+https://github.com/andrewspiteri/CISLIB/blob/cb464a477996e2c19162bf740e73e73c3b28a85d/implementations/csharp/src/CIS.Core/Heartbeat/Healthcheck/HeartbeatHealthcheckExtensions.cs
+
+Existing logging suppression:
+https://github.com/andrewspiteri/CISLIB/blob/cb464a477996e2c19162bf740e73e73c3b28a85d/implementations/csharp/src/CIS.Core/Logging/LogProcessingOptions.cs
+
+Existing internal test support:
+https://github.com/andrewspiteri/CISLIB/blob/cb464a477996e2c19162bf740e73e73c3b28a85d/implementations/csharp/tests/CIS.Core.TestSupport/CIS.Core.TestSupport.csproj
+
+Application ownership:
+https://github.com/andrewspiteri/CISLIB/blob/cb464a477996e2c19162bf740e73e73c3b28a85d/implementations/csharp/src/CIS.Core/Application/CISApplication.cs
+
+Native .NET 10 host construction:
+https://github.com/dotnet/runtime/blob/v10.0.0/src/libraries/Microsoft.Extensions.Hosting/src/HostApplicationBuilder.cs
+https://github.com/dotnet/runtime/blob/v10.0.0/src/libraries/Microsoft.Extensions.Hosting/src/HostBuilder.cs
+
+Formatting options:
+https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/csharp-formatting-options
+
+Current verification record:
+https://github.com/andrewspiteri/CISLIB/blob/cb464a477996e2c19162bf740e73e73c3b28a85d/docs/changes/CIS-0011/verification.md

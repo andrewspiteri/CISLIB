@@ -1,170 +1,78 @@
 ---
-title: Startup hosting and country-list example
+title: Startup hosting and CountryData
 type: document
 status: draft
 cis:
   stable_id: cislib.document.modules.startup.usage
 ---
 
-# Startup hosting and country-list example
+# Startup hosting and CountryData
 
-`CIS.Startup` runs explicitly enrolled root singletons once, sequentially, through
-the actual Generic Host. It belongs to the existing `CIS.Core` assembly. See the
-[core contract](core.md) for enrollment, identity, cancellation and failure rules.
+CIS.Startup runs explicitly enrolled root singletons once, sequentially, through
+the actual Generic Host in CIS.Core. See the [core contract](core.md) for identity,
+enrollment, cancellation and failure. The canonical
+[CountryData](../../../implementations/csharp/examples/CountryData/README.md)
+uses [CISApplication](../application/core.md) for the existing module composition.
 
-Prepare Type Manager before building the real provider. Register that exact
-prepared `ITypeManager`; it supplies a type catalog and does not discover or
-enroll startup services. Configure Microsoft's ordinary provider validation on
-the same builder that constructs the application:
+Application enrollment stays ordinary DI:
 
 ```csharp
-ITypeManager prepared = await TypeManager.CreateAsync(
-    new TypeManagerOptions(typeof(Program).Assembly));
-WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
-builder.Host.UseDefaultServiceProvider(options =>
-{
-    options.ValidateScopes = true;
-    options.ValidateOnBuild = true;
-});
-builder.Services.AddSingleton(prepared);
-
 builder.Services.AddSingleton<CountryCatalog>();
-builder.Services.AddSingleton<CountryReader>();
-builder.Services.AddSingleton<IStartable>(sp => sp.GetRequiredService<CountryCatalog>());
-builder.Services.AddSingleton<IStartable>(sp => sp.GetRequiredService<CountryReader>());
-// Register module instances and all other dependent hosted services first.
-builder.Services.AddCisHeartbeat();
-builder.Services.AddCisStartup();
-WebApplication app = builder.Build();
+builder.Services.AddSingleton<IStartable>(root => root.GetRequiredService<CountryCatalog>());
 ```
 
-The complete [example composition](../../../implementations/csharp/examples/startup/CountryList/Program.cs)
-also awaits [Configuration preparation](../configuration/hosting.md) before Build
-and enrolls its activation before the sample aliases. It includes the Healthcheck service, availability monitor and Heartbeat owner needed
-by these sample services. The factory aliases enroll the same concrete
-singletons. They also avoid the mixed supplied-instance validation limitation
-documented in the [core contract](core.md). Neither validation option proves the
-safety of arbitrary service factories; singleton services must not capture scoped
-dependencies.
+CountryCatalog is the real app service; its complete
+[Program](../../../implementations/csharp/examples/CountryData/Program.cs) also
+selects the keyed REST profile and explicit retry policy it requires. The facade
+prepares Type Manager and Configuration, builds one validated provider, installs
+native routes and starts the host. Configuration activation precedes application
+participants. All enrolled roots are constructed before sequential StartAsync
+calls; reference aliases start once. Discovery itself does not enroll services.
 
-`AddCisStartup` is in `CIS.Startup.Hosting`. Register it after dependent hosted
-services and immediately after `AddCisHeartbeat` when Heartbeat is installed.
-Only the framework web-host service appended by `WebApplicationBuilder.Build`
-may follow it. Concurrent hosted starting or stopping is unsupported and fails
-startup before participant invocation. This position makes the adapter's stopping
-barrier precede dependent lifecycle teardown; an application must still await
-actual host stop before disposing its root or external dependencies.
+Manual composition still uses AddCisStartup in CIS.Startup.Hosting. Register
+dependent hosted services first and put Startup immediately after AddCisHeartbeat
+when installed. Only the known framework web-host service may follow the final
+lifecycle bridge. Concurrent hosted starting/stopping is unsupported. ValidateScopes
+and ValidateOnBuild apply to the actual provider; arbitrary factories must still
+respect singleton/scoped ownership.
 
-The bridge awaits initialization in `IHostedLifecycleService.StartedAsync`, after
-all ordinary hosted-service starts have completed and before `ApplicationStarted`.
-Kestrel can therefore answer health requests while a required initializer remains
-incomplete. Readiness-critical initialization belongs in `IStartable`; another
-hosted service's lifecycle callback must not rely on unfinished CIS startup.
+Initialization is awaited in IHostedLifecycleService.StartedAsync, after ordinary
+hosted-service starts and before ApplicationStarted. Kestrel can answer health
+requests during a held initializer. Other lifecycle callbacks must not depend on
+unfinished CIS startup. Load required data directly in IStartable rather than
+awaiting a Heartbeat callback still gated by startup.
 
-When registered, the real `HealthcheckService` and `HeartbeatRuntime` are connected
-automatically by hosting. The coordinator remains independent of Heartbeat:
-hosting owns its concrete activation and supplies one internal Boolean completion
-callback. The coordinator invokes that callback inside its retained startup
-operation, checks cancellation/stopping again, and then publishes Healthcheck
-startup completion. An activation failure therefore remains a retained startup
-failure with the existing critical diagnostic, without rerunning participants.
-This acknowledges scheduler activation, without waiting for its first callback
-or aggregate healthy readiness. An unhealthy application remains NotReady under
-the existing Healthcheck policy. An initializer must prime required data directly,
-rather than await a Heartbeat callback still disabled during startup.
+Hosting owns concrete Heartbeat activation through the retained completion
+callback, then checks stopping/cancellation before publishing Healthcheck startup
+completion. Failure stays observable without rerunning participants. Readiness
+does not wait for the first scheduled callback or require every independent
+monitor healthy before startup can settle.
 
-Hosting connects the original operation token to Heartbeat's stopping cutoff and
-keeps that connection through actual startup settlement. It also connects the
-first host-start token before participant construction: cancellation immediately
-rejects new owners and new or duplicate registrations while an initializer is
-still held, without waiting for application stopping. Cancellation during timer
-creation must close dispatch before activation can make work runnable. Later
-startup callers cannot replace the first operation's tokens. Application stopping
-closes Heartbeat admission before entering the coordinator's stopping gate. The
-hosted barrier joins actual startup work and Heartbeat callbacks, handlers and
-cleanup before dependent lifecycle stopping or root disposal. A canceled host
-stop budget does not release those dependencies early. The coordinator itself
-joins startup work; it does not own the Heartbeat drain. With prepared Configuration,
-hosting closes its provider-work admission before Heartbeat and joins its actual
-activation, watch/provider/notification and polling work in the same barrier.
-The first host-start token closes this admission while later initialization is
-held. The coordinator remains independent of both optional modules.
+The original host-start token closes new Heartbeat owners/registrations and
+Configuration admission while initialization is held. Stopping closes admission
+before joining actual startup, provider/watch/notification work, Heartbeat
+callbacks/error handling/cleanup and Metrics callback materialization. Existing
+REST hosting closes its operations before those joins. Canceled stop waits do
+not permit early dependency disposal. The coordinator remains independent of
+concrete module and collector implementations.
 
-When the optional Metrics integration is installed, hosting activates its one
-provider before initialization and attaches the coordinator before the real
-startup operation. The same hosted barrier closes Metrics callback admission and
-joins actual callbacks before dependency stopping, including when automatic Core
-module collection is disabled. This keeps application observable owners usable
-after an expired scrape or canceled host stop budget. See
-[Metrics hosting](../metrics/hosting.md) for supported registration order and
-the reserved branch before the business gate. The coordinator has no SDK or
-concrete provider dependency.
+Management branches precede the business gate: readiness returns 500 while
+NotReady and 200 while Ready; business returns 503 while closed. Reporting never
+runs initialization/refresh. See [Healthcheck](../healthcheck/README.md) and
+[Metrics hosting](../metrics/hosting.md) for transport and callback-owner rules.
 
-Install the existing reserved health branch before every business side effect:
-
-```csharp
-app.UseCisHealthcheck(health, healthOptions, _ => ValueTask.FromResult(false));
-app.Use(async (context, next) =>
-{
-    if (!health.CaptureSnapshot().Ready)
-    {
-        context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
-        return;
-    }
-    await next(context);
-});
-```
-
-The real `/_health/ready` probe returns HTTP 500 while NotReady and HTTP 200 when
-Ready. The separate business gate returns HTTP 503 and skips business work while
-closed. The example denies health details and installs no pipe transport; use the
-existing [Healthcheck guide](../healthcheck/README.md) for optional reporting and
-authorization. Reporting reads do not execute startup or refresh work.
-
-## Running the example
-
-From `implementations/csharp`, with SDK 10.0.401 and the .NET/ASP.NET Core 10.0.12
-shared frameworks installed:
+From implementations/csharp with the pinned SDK/frameworks:
 
 ```powershell
-dotnet run --project examples/startup/CountryList/CountryList.csproj -c Release -- --urls http://127.0.0.1:5087
+dotnet run --project examples/CountryData/CountryData.csproj -c Release -- --urls http://127.0.0.1:5087
 ```
 
-Visit `/countries` and `/_health/ready`. Ctrl+C performs normal host shutdown.
-The executable imports the existing Type Manager build targets to generate its
-real inventory. The supported build shape is an untrimmed, framework-dependent
-Windows x64 or Linux x64 host; see the [inventory build guide](../../../implementations/csharp/build/type-manager/README.md).
+Visit /country/MT, /country/MLT or /country/Malta after readiness. Initial loading
+uses the real provider. The initialized catalog has an hourly first delay and
+completion-based interval. Later failure preserves usable data. Ctrl+C follows
+normal awaited shutdown; no embedded holds, observation report or self-test mode
+exists. Controlled lifecycle checks stay in dedicated tests.
 
-[CountryCatalog](../../../implementations/csharp/examples/startup/CountryList/CountryCatalog.cs)
-awaits its small local asynchronous source, publishes usable country data, and
-registers a refresh with its retained root Heartbeat owner. The later
-`CountryReader` checks that data and the shared prepared TypeManager. Constructors
-only capture dependencies. Every 15 seconds the sample refreshes through the same
-source; replace it with application I/O as needed. Healthcheck's existing
-availability policy preserves previously published usable data across failed
-refreshes. The root provider owns the monitor and Heartbeat owner.
-
-```powershell
-dotnet run --project examples/startup/CountryList/CountryList.csproj -c Release -- --self-test
-```
-
-This bounded demonstration binds a real loopback listener while holding required
-priming. It observes readiness 500, business 503, zero business executions and a
-pending host-start task. Releasing priming completes the ordered reader and opens
-readiness/business responses at 200 with three countries and the same TypeManager.
-The first Heartbeat refresh is held separately, proving readiness does not await
-it; the demonstration then releases and observes that actual callback. Only this
-mode uses a 1 ms refresh interval. It uses signals and bounded observation waits,
-without sleep-based ordering.
-
-One JSON line reports `example`, `before`, `after`, `refresh` and `stopped` after
-successful cleanup. `after.refreshCompleted` is false; `refresh.completed` is true
-and its count is at least one. `stopped: true` appears only after actual host stop,
-startup-task settlement and asynchronous root disposal have succeeded. Even on
-assertion/timeout failure, the application releases its holds and awaits real
-shutdown before disposing dependencies. A failed stop barrier prevents destructive
-root disposal; an observation timeout alone never proves work has ended.
-
-The [CIS-0007 verification record](../../changes/CIS-0007/verification.md) describes
-actual scoped native evidence and outstanding qualification. These usage
-instructions do not claim package publication or full platform/release coverage.
+[CIS-0007 verification](../../changes/CIS-0007/verification.md) retains its original
+scoped observations and limits. Current results must identify their actual
+inputs; these instructions claim no package publication or broader qualification.

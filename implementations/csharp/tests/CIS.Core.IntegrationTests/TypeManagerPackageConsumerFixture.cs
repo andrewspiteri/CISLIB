@@ -12,12 +12,13 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CIS.Tests.IntegrationTests;
 
-// One candidate and isolated feed/cache serve the existing sample sources and four native cases.
+// One actual package and isolated feed/cache serve a minimal fixture and ordinary package control.
 internal sealed class TypeManagerPackageConsumerFixture : IDisposable
 {
     private readonly TemporaryDirectory directory = new();
     private readonly Dictionary<string, string?> environment;
-    private readonly Dictionary<string, string> published = new(StringComparer.Ordinal);
+    private string? published;
+    private bool cleanupConfirmed = true;
     private readonly string language;
     private readonly string configuration;
     private string version = "", packageHash = "", coreHash = "";
@@ -25,7 +26,8 @@ internal sealed class TypeManagerPackageConsumerFixture : IDisposable
     private string Root => directory.Path;
     private string Cache => Path.Combine(Root, "packages");
     private string Rid => OperatingSystem.IsWindows() ? "win-x64" : "linux-x64";
-    private string Late => Path.Combine(Root, "tests/fixtures/TypeManager/ExampleLate/bin/Release/net10.0/CIS.TypeManager.Examples.Late.dll");
+    private const string HostAssembly = "CIS.TypeManager.Fixture.Host";
+    private const string UnusedAssembly = "CIS.TypeManager.Fixture.Unused";
 
     private TypeManagerPackageConsumerFixture()
     {
@@ -55,7 +57,7 @@ internal sealed class TypeManagerPackageConsumerFixture : IDisposable
     {
         packageVersion = version, packageSha256 = packageHash, coreSha256 = coreHash,
         runtime = RuntimeInformation.FrameworkDescription, os = Rid, commands,
-        scope = "One package; isolated first SDK restore; Console/Web build and folder publication; ordinary package control."
+        scope = "One package; isolated first SDK restore; minimal fixture build and folder publication; ordinary package control."
     });
 
     private async Task PrepareAsync()
@@ -121,43 +123,32 @@ internal sealed class TypeManagerPackageConsumerFixture : IDisposable
             File.WriteAllText(Path.Combine(retained, "type-manager-candidate.json"), Summary);
         }
 
-        foreach (string name in new[] { "Console", "Web", "Contracts", "Unused", "Shared" })
-        { CopySources(Path.Combine(language, "examples/type-manager", name), Path.Combine(Root, "examples/type-manager", name)); }
-        CopySources(Path.Combine(language, "tests/fixtures/TypeManager/ExampleLate"), Path.Combine(Root, "tests/fixtures/TypeManager/ExampleLate"));
-        foreach (string host in new[] { "Console", "Web" })
-        {
-            string project = Project(host);
-            var xml = XDocument.Load(project);
-            xml.Descendants("ProjectReference").Where(item => ((string?)item.Attribute("Include"))?.Replace('\\', '/').EndsWith("src/CIS.Core/CIS.Core.csproj", StringComparison.Ordinal) == true).Remove();
-            xml.Descendants("Import").Where(item => ((string?)item.Attribute("Project"))?.EndsWith("CIS.TypeManager.targets", StringComparison.Ordinal) == true).Remove();
-            xml.Descendants("RuntimeIdentifiers").Remove();
-            xml.Root!.AddFirst(new XElement("Sdk", new XAttribute("Name", "CIS.Core"), new XAttribute("Version", version)));
-            xml.Save(project);
-            Assert.IsFalse(Directory.Exists(Path.Combine(Path.GetDirectoryName(project)!, "obj")));
-        }
-        // The initially unused library now contains real Configuration POCOs too.
-        // Its Core dependency must come from the same candidate, never a checkout fallback.
-        string unusedProject = Path.Combine(Root, "examples/type-manager/Unused/Unused.csproj");
+        foreach (string name in new[] { "Host", "Contracts", "Transitive", "Unused" })
+        { CopySources(Path.Combine(language, "tests/fixtures/TypeManager", name), Path.Combine(Root, "tests/fixtures/TypeManager", name)); }
+        var host = XDocument.Load(Project);
+        RemoveCoreProjectReference(host);
+        host.Descendants("Import").Where(item => ((string?)item.Attribute("Project"))?.EndsWith("CIS.TypeManager.targets", StringComparison.Ordinal) == true).Remove();
+        host.Descendants("RuntimeIdentifiers").Remove();
+        host.Root!.AddFirst(new XElement("Sdk", new XAttribute("Name", "CIS.Core"), new XAttribute("Version", version)));
+        host.Save(Project);
+        string unusedProject = Path.Combine(Root, "tests/fixtures/TypeManager/Unused/Unused.csproj");
         var unused = XDocument.Load(unusedProject);
-        unused.Descendants("ProjectReference").Where(item => ((string?)item.Attribute("Include"))?.Replace('\\', '/')
-            .EndsWith("src/CIS.Core/CIS.Core.csproj", StringComparison.Ordinal) == true).Remove();
+        RemoveCoreProjectReference(unused);
         unused.Root!.Add(new XElement("ItemGroup", new XElement("PackageReference",
             new XAttribute("Include", "CIS.Core"), new XAttribute("Version", "[" + version + "]"))));
         unused.Save(unusedProject);
         Assert.IsFalse(Directory.Exists(Cache) && Directory.EnumerateFileSystemEntries(Cache).Any(), "The candidate cache must begin empty.");
-        // Restore both real package SDK hosts before preparing the separate late-load fixture.
-        foreach (string host in new[] { "Console", "Web" })
-        {
-            await RestoreAsync(Project(host));
-            AssertRestoredCandidate(Project(host));
-            var unusedAssets = JsonNode.Parse(File.ReadAllBytes(Path.Combine(Path.GetDirectoryName(unusedProject)!, "obj/project.assets.json")))!;
-            Assert.AreEqual("package", unusedAssets["libraries"]!["CIS.Core/" + version]!["type"]!.GetValue<string>(),
-                "The real Unused child must reference the exact packed Core rather than a Core project.");
-            await RunAsync(["build", Project(host), "-c", "Release", "--no-restore"]);
-        }
-        await RunAsync(["build", Path.Combine(Root, "tests/fixtures/TypeManager/ExampleLate/ExampleLate.csproj"), "-c", "Release"]);
-        Assert.IsTrue(File.Exists(Late));
+        await RestoreAsync(Project);
+        AssertRestoredCandidate(Project);
+        var unusedAssets = JsonNode.Parse(File.ReadAllBytes(Path.Combine(Path.GetDirectoryName(unusedProject)!, "obj/project.assets.json")))!;
+        Assert.AreEqual("package", unusedAssets["libraries"]!["CIS.Core/" + version]!["type"]!.GetValue<string>(),
+            "The initially unused configuration library must consume the exact package, never a checkout fallback.");
+        await RunAsync(["build", Project, "-c", "Release", "--no-restore"]);
     }
+
+    private static void RemoveCoreProjectReference(XDocument project)
+        => project.Descendants("ProjectReference").Where(item => ((string?)item.Attribute("Include"))?.Replace('\\', '/')
+            .EndsWith("src/CIS.Core/CIS.Core.csproj", StringComparison.Ordinal) == true).Remove();
 
     private void CopyApprovedDependencies(string feed)
     {
@@ -182,77 +173,81 @@ internal sealed class TypeManagerPackageConsumerFixture : IDisposable
         Assert.AreEqual(packageHash, Hash(Path.Combine(Cache, "cis.core", version, "cis.core." + version + ".nupkg")));
     }
 
-    internal async Task VerifyHostAsync(string host, TestContext context)
+    internal async Task VerifyHostAsync(TestContext context)
     {
-        string output = BuildOutput(host), manifest = Path.Combine(output, AssemblyName(host) + ".types.json");
-        await VerifyPreparedAsync(host, output);
+        string output = BuildOutput, manifest = Path.Combine(output, HostAssembly + ".types.json");
+        await VerifyPreparedAsync(output);
         byte[] before = File.ReadAllBytes(manifest);
         var stamp = new DateTime(2001, 2, 3, 4, 5, 6, DateTimeKind.Utc);
         File.SetLastWriteTimeUtc(manifest, stamp);
-        await RunAsync(["build", Project(host), "-c", "Release", "--no-restore"]);
+        await RunAsync(["build", Project, "-c", "Release", "--no-restore"]);
         CollectionAssert.AreEqual(before, File.ReadAllBytes(manifest));
         Assert.AreEqual(stamp, File.GetLastWriteTimeUtc(manifest), "Unchanged inventory must not be rewritten.");
-        await VerifyPreparedAsync(host, await PublishAsync(host));
-        string noBuild = Path.Combine(Root, "published", host, "no-build");
-        await RunAsync(["publish", Project(host), "-c", "Release", "--no-build", "--no-restore", "-o", noBuild]);
-        await VerifyPreparedAsync(host, noBuild);
-        context.WriteLine("CIS-TYPE-MANAGER-CASE " + JsonSerializer.Serialize(new { host, modes = new[] { "build", "publish", "publish-no-build" }, packageHash, runtime = RuntimeInformation.FrameworkDescription, os = Rid }));
+        await VerifyPreparedAsync(await PublishAsync());
+        string noBuild = Path.Combine(Root, "published/no-build");
+        await RunAsync(["publish", Project, "-c", "Release", "--no-build", "--no-restore", "-o", noBuild]);
+        await VerifyPreparedAsync(noBuild);
+        context.WriteLine("CIS-TYPE-MANAGER-CASE " + JsonSerializer.Serialize(new
+        { fixture = HostAssembly, modes = new[] { "build", "publish", "publish-no-build" }, packageHash, runtime = RuntimeInformation.FrameworkDescription, os = Rid }));
     }
 
-    private async Task VerifyPreparedAsync(string host, string output)
+    private async Task VerifyPreparedAsync(string output)
     {
-        AssertRuntimeBoundary(host, output);
-        var inventory = JsonNode.Parse(File.ReadAllBytes(Path.Combine(output, AssemblyName(host) + ".types.json")))!;
+        AssertRuntimeBoundary(HostAssembly, output);
+        var inventory = JsonNode.Parse(File.ReadAllBytes(Path.Combine(output, HostAssembly + ".types.json")))!;
         string[] selected = inventory["assemblies"]!.AsArray().Select(item => item!["relativePath"]!.GetValue<string>()).ToArray();
-        foreach (string file in new[] { AssemblyName(host) + ".dll", "CIS.Core.dll", "CIS.TypeManager.Examples.Contracts.dll", "CIS.TypeManager.Examples.Unused.dll" })
+        foreach (string file in new[] { HostAssembly + ".dll", "CIS.Core.dll", "CIS.TypeManager.Fixture.Contracts.dll",
+            "CIS.TypeManager.Fixture.Transitive.dll", UnusedAssembly + ".dll" })
         { CollectionAssert.Contains(selected, file); }
-        var result = await RunAsync(["exec", "--fx-version", "10.0.12", "--roll-forward", "Disable", Path.Combine(output, AssemblyName(host) + ".dll"), "--verify", Late]);
-        AssertBefore(result.StandardOutput, "PREPARING", "PREPARATION_COMPLETE");
-        AssertBefore(result.StandardOutput, "PREPARATION_COMPLETE", host == "Web" ? "BUILDER_CREATING" : "APPLICATION_READY");
-        AssertBefore(result.StandardOutput, "PREPARATION_COMPLETE", "CONFIGURATION_PREPARED");
-        AssertBefore(result.StandardOutput, "CONFIGURATION_PREPARED", "CONTAINER_BUILDING");
-        if (host == "Web") { AssertBefore(result.StandardOutput, "BUILDER_CREATING", "CONTAINER_BUILDING"); AssertBefore(result.StandardOutput, "CONTAINER_BUILDING", "CONTAINER_BUILT"); }
-        string json = result.StandardOutput.Split('\n').Last(line => line.TrimStart().StartsWith('{'));
-        var report = JsonNode.Parse(json)!;
+        Assert.IsTrue(File.Exists(Path.Combine(output, "content-only.dll")));
+        Assert.IsTrue(File.Exists(Path.Combine(output, "fr", UnusedAssembly + ".resources.dll")));
+        Assert.IsFalse(selected.Any(path => path == "content-only.dll" || path.EndsWith(".resources.dll", StringComparison.Ordinal)),
+            "Content-only and satellite DLLs are not discovery candidates.");
+        var result = await RunAsync(["exec", "--fx-version", "10.0.12", "--roll-forward", "Disable", Path.Combine(output, HostAssembly + ".dll")]);
+        Assert.AreEqual("", result.StandardError);
+        JsonNode report = Report(result);
         Assert.IsFalse(report["unusedInitiallyLoaded"]!.GetValue<bool>());
-        Assert.IsTrue(report["fixedMembershipChecked"]!.GetValue<bool>());
-        CollectionAssert.AreEquivalent(new[] { "CIS.TypeManagement.Examples.Unused.DirectExample", "CIS.TypeManagement.Examples.Unused.InheritedExample" },
-            report["candidates"]!.AsArray().Select(item => item!["type"]!.GetValue<string>()).ToArray());
-        Assert.IsTrue(report["report"]!["LoadedAssemblyIdentities"]!.AsArray().Any(item => item!.GetValue<string>().StartsWith("CIS.TypeManager.Examples.Unused,", StringComparison.Ordinal)));
-        JsonNode configuration = report["configuration"]!;
-        Assert.AreEqual("configured-before-construction", configuration["constructorGreeting"]!.GetValue<string>());
-        Assert.AreEqual(42, configuration["constructorBatchSize"]!.GetValue<int>());
-        Assert.IsTrue(configuration["rootAndScopesShareConfiguration"]!.GetValue<bool>());
-        Assert.IsTrue(configuration["startupReaderObservedConfiguration"]!.GetValue<bool>());
-        Assert.IsTrue(configuration["startupReaderObservedWatch"]!.GetValue<bool>());
-        Assert.IsFalse(configuration["watchActiveInConstructor"]!.GetValue<bool>());
-        Assert.IsTrue(configuration["sameRootsAfterRefresh"]!.GetValue<bool>());
-        Assert.AreEqual("refreshed-after-startup", configuration["currentGreeting"]!.GetValue<string>());
-        Assert.AreEqual(84, configuration["currentBatchSize"]!.GetValue<int>());
-        Assert.AreEqual(2, configuration["changedEvents"]!.GetValue<int>());
-        Assert.IsTrue(configuration["watchActivated"]!.GetValue<bool>());
-        CollectionAssert.AreEquivalent(new[] { "CIS.TypeManagement.Examples.Unused.DirectConfiguration", "CIS.TypeManagement.Examples.Unused.InheritedConfiguration" },
-            configuration["discovered"]!.AsArray().Select(item => item!["type"]!.GetValue<string>()).ToArray());
-        Assert.IsTrue(report["configurationWatchDisposed"]!.GetValue<bool>());
-        Assert.IsFalse(report["configurationStoreDisposedByRuntime"]!.GetValue<bool>());
-        if (host == "Web") { Assert.IsTrue(report["rootAndScopesShareManager"]!.GetValue<bool>()); Assert.IsTrue(report["queryIdentityStable"]!.GetValue<bool>()); }
+        Assert.IsTrue(report["containerConstructed"]!.GetValue<bool>());
+        Assert.IsTrue(report["configurationDefaults"]!.GetValue<bool>());
+        Assert.IsTrue(report["sameConfigurationAcrossScopes"]!.GetValue<bool>());
+        Assert.AreEqual(1, report["startupCalls"]!.GetValue<int>());
+        Assert.IsTrue(report["stopped"]!.GetValue<bool>());
     }
 
     internal async Task VerifyBrokenDeploymentAsync(TestContext context)
     {
-        string original = await PublishAsync("Web"), broken = Path.Combine(Root, "broken-web");
-        CopyDirectory(original, broken);
-        Assert.IsTrue(File.Exists(Path.Combine(broken, "CIS.TypeManager.Examples.Unused.dll")));
-        File.Delete(Path.Combine(broken, "CIS.TypeManager.Examples.Unused.dll"));
-        var result = await RunAsync(["exec", "--fx-version", "10.0.12", "--roll-forward", "Disable", Path.Combine(broken, AssemblyName("Web") + ".dll"), "--verify", Late], requireSuccess: false);
+        string broken = Path.Combine(Root, "broken-fixture");
+        CopyDirectory(await PublishAsync(), broken);
+        string removed = Path.Combine(broken, UnusedAssembly + ".dll");
+        Assert.IsTrue(File.Exists(removed));
+        File.Delete(removed);
+        var result = await RunAsync(["exec", "--fx-version", "10.0.12", "--roll-forward", "Disable",
+            Path.Combine(broken, HostAssembly + ".dll")], requireSuccess: false);
         Assert.AreEqual(1, result.ExitCode, result.StandardOutput + result.StandardError);
         StringAssert.Contains(result.StandardError, "PREPARATION_FAILED: InvalidInventory");
-        StringAssert.Contains(result.StandardError, "CIS.TypeManager.Examples.Unused.dll");
+        StringAssert.Contains(result.StandardError, UnusedAssembly + ".dll");
         StringAssert.Contains(result.StandardError, "FileNotFoundException");
-        foreach (string marker in new[] { "PREPARATION_COMPLETE", "CONFIGURATION_PREPARED", "BUILDER_CREATING", "CONTAINER_BUILDING", "CONTAINER_BUILT" })
-        { Assert.IsFalse(result.StandardOutput.Contains(marker, StringComparison.Ordinal)); }
-        context.WriteLine("CIS-TYPE-MANAGER-CASE missing-selected-assembly: failed before Web construction.");
+        Assert.IsFalse(Report(result)["containerConstructed"]!.GetValue<bool>());
+        Assert.IsFalse(result.StandardOutput.Contains("CONSUMER_CONSTRUCTED", StringComparison.Ordinal));
+        context.WriteLine("CIS-TYPE-MANAGER-CASE missing-selected-assembly: failed before consumer construction.");
     }
+
+    internal async Task VerifyCanceledPreparationAsync(TestContext context)
+    {
+        var result = await RunAsync(["exec", "--fx-version", "10.0.12", "--roll-forward", "Disable",
+            Path.Combine(BuildOutput, HostAssembly + ".dll"), "cancel-during-load"]);
+        Assert.AreEqual("", result.StandardError);
+        JsonNode report = Report(result);
+        Assert.IsFalse(report["unusedInitiallyLoaded"]!.GetValue<bool>());
+        Assert.IsTrue(report["canceledDuringLoad"]!.GetValue<bool>());
+        Assert.IsFalse(report["containerConstructed"]!.GetValue<bool>());
+        Assert.IsTrue(report["stopped"]!.GetValue<bool>());
+        Assert.IsFalse(result.StandardOutput.Contains("CONSUMER_CONSTRUCTED", StringComparison.Ordinal));
+        context.WriteLine("CIS-TYPE-MANAGER-CASE selected-load-cancellation: no consumer construction.");
+    }
+
+    private static JsonNode Report(ProcessResult result)
+        => JsonNode.Parse(result.StandardOutput.Split('\n').Last(line => line.TrimStart().StartsWith('{')))!;
 
     internal async Task VerifyOrdinaryConsumerAsync(TestContext context)
     {
@@ -273,23 +268,23 @@ internal sealed class TypeManagerPackageConsumerFixture : IDisposable
         context.WriteLine("CIS-TYPE-MANAGER-CASE ordinary-package: usable without inventory.");
     }
 
-    private void AssertRuntimeBoundary(string host, string output)
+    private void AssertRuntimeBoundary(string assembly, string output)
     {
         Assert.AreEqual(coreHash, Hash(Path.Combine(output, "CIS.Core.dll")), "The child must use this exact package's runtime.");
         Assert.IsFalse(Directory.GetFiles(output, "CIS.TypeManager.Build*", SearchOption.AllDirectories).Any());
-        Assert.IsFalse(File.ReadAllText(Path.Combine(output, AssemblyName(host) + ".deps.json")).Contains("CIS.TypeManager.Build", StringComparison.Ordinal));
-        var config = JsonNode.Parse(File.ReadAllBytes(Path.Combine(output, AssemblyName(host) + ".runtimeconfig.json")))!;
+        Assert.IsFalse(File.ReadAllText(Path.Combine(output, assembly + ".deps.json")).Contains("CIS.TypeManager.Build", StringComparison.Ordinal));
+        var config = JsonNode.Parse(File.ReadAllBytes(Path.Combine(output, assembly + ".runtimeconfig.json")))!;
         var frameworks = config["runtimeOptions"]!["frameworks"]!.AsArray();
         foreach (string name in new[] { "Microsoft.NETCore.App", "Microsoft.AspNetCore.App" })
         { Assert.AreEqual("10.0.12", frameworks.Single(item => item!["name"]!.GetValue<string>() == name)!["version"]!.GetValue<string>()); }
     }
 
-    private async Task<string> PublishAsync(string host)
+    private async Task<string> PublishAsync()
     {
-        if (published.TryGetValue(host, out string? existing)) { return existing; }
-        string output = Path.Combine(Root, "published", host, "normal");
-        await RunAsync(["publish", Project(host), "-c", "Release", "--no-restore", "-o", output]);
-        published.Add(host, output);
+        if (published is not null) { return published; }
+        string output = Path.Combine(Root, "published/normal");
+        await RunAsync(["publish", Project, "-c", "Release", "--no-restore", "-o", output]);
+        published = output;
         return output;
     }
 
@@ -301,24 +296,29 @@ internal sealed class TypeManagerPackageConsumerFixture : IDisposable
         commands++;
         var variables = isolated ? environment : new Dictionary<string, string?>
         { ["MSBUILDDISABLENODEREUSE"] = "1", ["DOTNET_CLI_USE_MSBUILD_SERVER"] = "0", ["UseSharedCompilation"] = "false" };
-        var result = await ProcessRunner.RunAsync("dotnet", arguments, working ?? Root, TimeSpan.FromSeconds(180), variables);
+        ProcessResult result;
+        try
+        {
+            result = await ProcessRunner.RunAsync("dotnet", arguments, working ?? Root,
+                TimeSpan.FromSeconds(arguments[0] == "exec" ? 45 : 180), variables);
+        }
+        catch (ProcessTimeoutException error) when (!error.CleanupCompleted)
+        { cleanupConfirmed = false; throw; }
         Assert.IsTrue(result.OutputDrained);
+        Assert.IsFalse(result.CaptureTruncated);
         if (requireSuccess) { Assert.AreEqual(0, result.ExitCode, string.Join(" ", arguments) + "\n" + result.StandardOutput + result.StandardError); }
         return result;
     }
 
-    private string Project(string host) => Path.Combine(Root, "examples/type-manager", host, host + ".csproj");
-    private string BuildOutput(string host) => Path.Combine(Path.GetDirectoryName(Project(host))!, "bin/Release/net10.0", Rid);
-    private static string AssemblyName(string host) => host == "Ordinary" ? host : "CIS.TypeManager.Examples." + host;
+    private string Project => Path.Combine(Root, "tests/fixtures/TypeManager/Host/Host.csproj");
+    private string BuildOutput => Path.Combine(Path.GetDirectoryName(Project)!, "bin/Release/net10.0", Rid);
     private static string Hash(string path) { using var stream = File.OpenRead(path); return Convert.ToHexStringLower(SHA256.HashData(stream)); }
-    private static void AssertBefore(string output, string first, string second)
-    { int start = output.IndexOf(first, StringComparison.Ordinal), end = output.IndexOf(second, StringComparison.Ordinal); Assert.IsTrue(start >= 0 && end > start, output); }
     private static void CopyPackage(string source, string destination)
     { if (!string.Equals(Path.GetFullPath(source), Path.GetFullPath(destination), OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal)) { File.Copy(source, destination, overwrite: true); } }
     private static void CopySources(string source, string destination)
     {
         Directory.CreateDirectory(destination);
-        foreach (string file in Directory.GetFiles(source, "*", SearchOption.TopDirectoryOnly).Where(file => Path.GetExtension(file) is ".cs" or ".csproj"))
+        foreach (string file in Directory.GetFiles(source, "*", SearchOption.TopDirectoryOnly).Where(file => Path.GetExtension(file) is ".cs" or ".csproj" or ".resx" || Path.GetFileName(file) == "content-only.txt"))
         { File.Copy(file, Path.Combine(destination, Path.GetFileName(file))); }
     }
     private static void CopyDirectory(string source, string destination)
@@ -327,5 +327,5 @@ internal sealed class TypeManagerPackageConsumerFixture : IDisposable
         foreach (string file in Directory.GetFiles(source)) { File.Copy(file, Path.Combine(destination, Path.GetFileName(file))); }
         foreach (string child in Directory.GetDirectories(source)) { CopyDirectory(child, Path.Combine(destination, Path.GetFileName(child))); }
     }
-    public void Dispose() => directory.Dispose();
+    public void Dispose() { if (cleanupConfirmed) { directory.Dispose(); } }
 }

@@ -14,9 +14,9 @@ container. Implementing the interface or registering only another service type
 does not enroll an object. No assembly scan or dependency sorting occurs.
 
 ```csharp
-services.AddSingleton<CountryListService>();
-services.AddSingleton<ICountryListProvider>(sp => sp.GetRequiredService<CountryListService>());
-services.AddSingleton<IStartable>(sp => sp.GetRequiredService<CountryListService>());
+services.AddSingleton<ApplicationService>();
+services.AddSingleton<IApplicationService>(sp => sp.GetRequiredService<ApplicationService>());
+services.AddSingleton<IStartable>(sp => sp.GetRequiredService<ApplicationService>());
 services.AddSingleton<IStartable, DependentReader>();
 ```
 

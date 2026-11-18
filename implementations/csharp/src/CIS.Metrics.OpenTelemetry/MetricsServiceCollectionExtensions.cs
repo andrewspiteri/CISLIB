@@ -16,7 +16,12 @@ public static class MetricsServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(services);
         var options = new MetricsOptions();
         configure?.Invoke(options);
-        var settings = new MetricsSettings(options);
+        return AddCapturedCisMetrics(services, new MetricsSettings(options));
+    }
+
+    // The facade marker and ordinary API share exactly one installer and captured profile.
+    internal static IServiceCollection AddCapturedCisMetrics(IServiceCollection services, MetricsSettings settings)
+    {
         ServiceDescriptor? existing = services.FirstOrDefault(descriptor => descriptor.ServiceType == typeof(MetricsSettings));
         if (existing is not null)
         {

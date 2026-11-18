@@ -8,13 +8,41 @@ cis:
 
 # Usage and configuration
 
-For a runnable application, use the existing [CountryList guide](country-list.md)
-for source development or an isolated consumer of the exact `CIS.Core` package.
+For a runnable application, use the [CountryData guide](country-list.md).
+Healthcheck stays in CIS.Core; CountryData also uses the optional REST retry and
+Metrics packages for its actual application workflow.
 Both routes require SDK 10.0.401 and the .NET and ASP.NET Core 10.0.12 shared
 frameworks. Package consumption does not require an additional Healthcheck package
 or a CIS CLI dependency in the application.
 
 Create one application-owned service and retain each monitor for its actual owner lifetime. Construction starts no endpoint, collector, polling, or business initialization.
+
+Business services that create monitors should depend on `IHealthMonitorFactory`.
+Read-only reporting consumers should depend on `IHealthSnapshotSource`.
+`CISApplication` supplies both default aliases to its one `HealthcheckService`;
+normal explicit interface overrides and removals remain respected. It also uses
+the selected snapshot source for operational HTTP/pipe reporting. Core hosted
+startup, collection and stopping still mutate the selected concrete module; an
+interface replacement alone does not replace that complete lifecycle or policy
+engine. The native application-started/stopping gates remain mandatory.
+
+Default aliases to a known caller-owned `HealthcheckService` use instance
+registration too, so DI does not acquire ownership through an automatic factory
+alias. Explicit interface registrations retain their ordinary DI ownership.
+Owned default aliases share the concrete singleton and its idempotent cleanup.
+For manual composition, use instance aliases for a borrowed service, for example:
+
+```csharp
+services.AddSingleton(health);
+services.AddSingleton<IHealthMonitorFactory>(health);
+services.AddSingleton<IHealthSnapshotSource>(health);
+```
+
+The application retains that instance and disposes it after actual owned work
+settles. Snapshot substitution is a read-only projection choice; it does not
+automatically connect a recording monitor factory to the production Heartbeat
+binder. See the [public monitored-registration boundary](../heartbeat/README.md#results-and-monitoring)
+for the supported manual/recording pair and retained production restrictions.
 
 ```csharp
 using CIS.Healthcheck;

@@ -16,8 +16,10 @@ the bootstrap/startup catalog in the portable contract.
 
 Inspect current code and [CIS-0009 evidence](../../../docs/changes/CIS-0009/verification.md)
 before treating a hosting API, example, exported name or acceptance claim as
-verified. The initial skill delivery preceded the WORK-005 integration proof.
-Use the [current compiling example](../../../docs/modules/metrics/example.md)
+verified. CIS-0009 preserves its exact historical module/collector inputs, not
+CountryData verification. Check the current application work separately.
+Use the [canonical CountryData example](../../../implementations/csharp/examples/CountryData/README.md)
+and [application metrics guide](../../../docs/modules/metrics/example.md)
 and [hosting guide](../../../docs/modules/metrics/hosting.md) with the actual
 recorded native checkpoints; do not invent APIs from the supplied sketches.
 Authored source or a fixture alone does not establish a passing scrape. Check
@@ -48,6 +50,8 @@ stable, and let the exporter apply unit/counter suffixes. Check translated names
 and generated histogram children for collisions; distinct logical spellings do
 not guarantee distinct exported families. Do not create per-request definitions,
 callbacks, event histories, an aggregator, serializer or sampling scheduler.
+CountryData adds only two dimensionless cache-state gauges; reuse native/module
+observations. Keep test controls outside the runnable application.
 
 ## Preserve bounds and identity
 
@@ -106,7 +110,7 @@ gate and retain deployment access policy. Metrics/health requests are excluded
 from completed business duration statistics, while native active requests still
 include management work.
 
-For RestClient, use its [actual example](../../../docs/modules/rest-client/example.md)
+For RestClient, use the [CountryData integration guide](../../../docs/modules/rest-client/example.md)
 and [fixed catalog](../../../contracts/metrics/rest-client.md). Its captured logical
 binding includes retries, body work and actual cleanup, with completed application
 byte observations. Outgoing Auto uses final known REST composition and the exact

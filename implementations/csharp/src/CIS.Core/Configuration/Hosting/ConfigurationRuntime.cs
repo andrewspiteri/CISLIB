@@ -65,20 +65,33 @@ public sealed class ConfigurationRuntime : IAsyncDisposable
 
     private bool IsStopping => Volatile.Read(ref stopRequested) != 0;
 
-    internal void Register(IServiceCollection services)
+    internal void Register(IServiceCollection services, bool prependStartup = false)
     {
+        ArgumentNullException.ThrowIfNull(services);
         lock (gate)
         {
             if (registration is not null || IsStopping)
             { throw Error("Configuration.Registration", "Install a fresh prepared Configuration runtime exactly once for one host."); }
             if (services.Any(item => item.ServiceType == typeof(ConfigurationRuntime)
-                || !item.IsKeyedService && item.ServiceType == typeof(CIS.Startup.IStartable)))
+                || !item.IsKeyedService && item.ServiceType == typeof(CIS.Startup.IStartable)
+                    && (!prependStartup || item.ImplementationType == typeof(Hosting.ConfigurationStartable))))
             { throw Error("Configuration.Registration", "Install Configuration before all unkeyed IStartable registrations and without a conflicting runtime registration."); }
             // Catalog preflights every concrete/reader conflict before adding any descriptor.
             catalog.Register(services);
             registration = services;
             services.AddSingleton(provider => ClaimRoot(provider));
-            services.AddSingleton<CIS.Startup.IStartable, Hosting.ConfigurationStartable>();
+            var activation = ServiceDescriptor.Singleton<CIS.Startup.IStartable, Hosting.ConfigurationStartable>();
+            int firstStartable = -1;
+            if (prependStartup)
+            {
+                for (int index = 0; index < services.Count; index++)
+                {
+                    if (!services[index].IsKeyedService && services[index].ServiceType == typeof(CIS.Startup.IStartable))
+                    { firstStartable = index; break; }
+                }
+            }
+            if (prependStartup && firstStartable >= 0) { services.Insert(firstStartable, activation); }
+            else { services.Add(activation); }
         }
     }
 

@@ -6,8 +6,9 @@ namespace CIS.Heartbeat.Healthcheck;
 /// <summary>Binds recurring execution facts to existing Healthcheck policy APIs.</summary>
 public static class HeartbeatHealthcheckExtensions
 {
-    /// <summary>Registers work through its actual owner and atomically binds the selected monitor before it can run.</summary>
-    /// <remarks>Valid duplicates reuse the original binding. Monitor factories and policy options are not retained by idle scheduler entries.</remarks>
+    /// <summary>Dispatches monitored registration through the selected owner's public capability.</summary>
+    /// <remarks>Production requires suitable Core monitors and preserves atomic binding. Public substitutes
+    /// implement IHeartbeatHealthcheckService and define their supported monitor providers.</remarks>
     public static void Register(this IHeartbeatService service, IHeartbeatSubscriber subscriber,
         HeartbeatRegistrationOptions options, HeartbeatHealthcheckOptions monitoring,
         Func<CancellationToken, Task<bool>>? condition = null)
@@ -16,23 +17,47 @@ public static class HeartbeatHealthcheckExtensions
         ArgumentNullException.ThrowIfNull(subscriber);
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(monitoring);
-        if (service is not IHeartbeatOwnerFacade facade) { throw new ArgumentException("Use the actual owner-bound Heartbeat service.", nameof(service)); }
+        if (service is not IHeartbeatHealthcheckService monitored)
+        {
+            throw new ArgumentException("The Heartbeat service does not support public monitored registration.", nameof(service));
+        }
+        monitored.Register(subscriber, options, monitoring, condition);
+    }
+
+    // The real owner keeps the original synchronous Core validation and atomic binding path.
+    internal static void RegisterCore(HeartbeatOwner owner, IHeartbeatSubscriber subscriber,
+        HeartbeatRegistrationOptions options, HeartbeatHealthcheckOptions monitoring,
+        Func<CancellationToken, Task<bool>>? condition)
+    {
+        ArgumentNullException.ThrowIfNull(subscriber);
+        ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(monitoring);
         HeartbeatRegistrationOptions schedule = options.ValidatedCopy();
         int selections = (monitoring.Monitor is null ? 0 : 1) + (monitoring.ConsecutiveFailures is null ? 0 : 1) + (monitoring.Availability is null ? 0 : 1);
-        if (selections != 1) { throw new ArgumentException("Select exactly one monitor or policy.", nameof(monitoring)); }
+        if (selections != 1)
+        {
+            throw new ArgumentException("Select exactly one monitor or policy.", nameof(monitoring));
+        }
         if (monitoring.Monitor is not null)
         {
             if (monitoring.Monitor is not IHealthStateAccess || monitoring.Monitor is not (IConsecutiveFailureMonitor or IAvailabilityMonitor))
-            { throw new ArgumentException("Use a suitable monitor from this Core implementation.", nameof(monitoring)); }
+            {
+                throw new ArgumentException("Use a suitable monitor from this Core implementation.", nameof(monitoring));
+            }
             if (monitoring.Monitor is IAvailabilityMonitor && !monitoring.SuccessPublishesUsableData)
-            { throw new ArgumentException("Availability requires explicit usable-data publication.", nameof(monitoring)); }
+            {
+                throw new ArgumentException("Availability requires explicit usable-data publication.", nameof(monitoring));
+            }
         }
         else
         {
-            if (monitoring.MonitorFactory is not IHealthStateAccess) { throw new ArgumentException("Supply the Core monitor factory for a typed policy.", nameof(monitoring)); }
+            if (monitoring.MonitorFactory is not IHealthStateAccess)
+            {
+                throw new ArgumentException("Supply the Core monitor factory for a typed policy.", nameof(monitoring));
+            }
             HealthExecutionBinder.ValidatePolicy(monitoring.ConsecutiveFailures ?? (HealthMonitorOptions)monitoring.Availability!, monitoring.SuccessPublishesUsableData);
         }
-        facade.Owner.Runtime.Register(facade.Owner, subscriber, schedule, condition, registrationId =>
+        owner.Runtime.Register(owner, subscriber, schedule, condition, registrationId =>
         {
             var bindingOptions = new HealthExecutionBindingOptions
             {

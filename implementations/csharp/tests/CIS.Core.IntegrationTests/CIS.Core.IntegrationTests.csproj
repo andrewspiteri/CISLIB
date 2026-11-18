@@ -6,7 +6,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../CIS.Core.UnitTests/RestClient/RestHttpTestSupport.cs" Link="RestClient/RestHttpTestSupport.cs" />
-    <Compile Include="../CIS.Core.BusinessCases/Healthcheck/CountryListStartupExpectations.cs" Link="Healthcheck/CountryListStartupExpectations.cs" />
     <Compile Include="../fixtures/DiscoveryHost/ProviderReportChecks.cs" Link="Discovery/ProviderReportChecks.cs" />
     <None Include="../../../../contracts/logging/v1/configuration.json" Link="discovery-configuration.json" CopyToOutputDirectory="PreserveNewest" />
     <Compile Include="../fixtures/DiscoveryHost/ProviderHostStoryExpectations.cs" Link="Discovery/ProviderHostStoryExpectations.cs" />
@@ -41,9 +40,8 @@
     <ProjectReference Include="../fixtures/DiscoveryHost/CIS.Core.DiscoveryFixture.csproj" />
     <ProjectReference Include="../fixtures/HealthcheckHttpHost/HealthcheckHttpHost.csproj" ReferenceOutputAssembly="false" Private="false" PrivateAssets="all" />
     <ProjectReference Include="../../tools/CisHealthProbe/CisHealthProbe.csproj" ReferenceOutputAssembly="false" Private="false" PrivateAssets="all" />
-    <ProjectReference Include="../../examples/type-manager/Console/Console.csproj" ReferenceOutputAssembly="false" Private="false" PrivateAssets="all" />
-    <ProjectReference Include="../../examples/type-manager/Web/Web.csproj" ReferenceOutputAssembly="false" Private="false" PrivateAssets="all" />
-    <ProjectReference Include="../fixtures/TypeManager/ExampleLate/ExampleLate.csproj" ReferenceOutputAssembly="false" Private="false" PrivateAssets="all" />
+    <ProjectReference Include="../fixtures/TypeManager/Host/Host.csproj" ReferenceOutputAssembly="false" Private="false" PrivateAssets="all" />
+    <ProjectReference Include="../../examples/CountryData/CountryData.csproj" />
     <Compile Include="../fixtures/DiscoveryHost/ExceptionQualificationExpectations.cs" Link="ExceptionQualificationExpectations.cs" />
     <Compile Include="../fixtures/DiscoveryHost/ExceptionBoundaryExpectations.cs" Link="ExceptionBoundaryExpectations.cs" />
     <Compile Include="../fixtures/DiscoveryHost/ExceptionBoundarySources.cs" Link="ExceptionBoundarySources.cs" />
@@ -101,4 +99,7 @@
     <Copy SourceFiles="@(HealthcheckHttpFiles)" DestinationFolder="$(TargetDir)healthcheck-http-host" />
     <Copy SourceFiles="@(HealthcheckProbeFiles)" DestinationFolder="$(TargetDir)healthcheck-probe" />
   </Target>
+  <ItemGroup>
+    <ProjectReference Include="../../src/CIS.CommonTesting/CIS.CommonTesting.csproj" />
+  </ItemGroup>
 </Project>

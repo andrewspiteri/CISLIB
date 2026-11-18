@@ -23,7 +23,7 @@ public sealed record ConfigurationRecordKey
 /// <summary>Describes the store's notification guarantee; it does not select a transport.</summary>
 public enum ConfigurationNotificationMode
 {
-    /// <summary>Use actual Heartbeat polling with an explicit host interval.</summary>
+    /// <summary>An external store requires actual Heartbeat polling with an explicit host interval.</summary>
     None,
     /// <summary>Usable watch/reconnect signals support reconciliation without periodic polling.</summary>
     Reliable,

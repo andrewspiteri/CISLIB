@@ -235,3 +235,5 @@ Native implicit HTTP propagation is disabled so it cannot bypass this policy;
 native outgoing HTTP Metrics remain available. The result's existing correlation
 ID capture is unchanged. Actual focused results are in
 [CIS-0010 verification](../../changes/CIS-0010/verification.md).
+
+Automatic call diagnostics are controlled by captured per-client `RestClientOptions.LogCalls` (default true). Set it false for a client whose frequent operations have their own bounded reporting policy, such as CountryData. It gates automatic completion and unknown-operation diagnostics plus diagnostic URI preparation for that profile. Other profiles, application logs, actual results, metrics, cancellation and cleanup retain their behavior. Changes to the original options after registration do not change the captured profile.
