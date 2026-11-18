@@ -54,6 +54,17 @@ packaged-consumer deployment, and the default footprint observation remain
 WORK-005 obligations. See the [verification record](../changes/CIS-0009/verification.md);
 the focused collection result does not establish release qualification.
 
+`CIS.RestClient.Resilience` is separately optional under the user-approved
+[CIS-0010 plan](../changes/CIS-0010/implementation-plan.md) and P07. Its selected
+third-party dependency is **Polly.Core 8.9.1**, with an empty net10.0 dependency
+group. The exact source mapping, central pin and generated lock are included in
+that approval; Core acquires no Polly or other new NuGet. Locked native validation
+passed 25 policy cases plus 11 collector cases in execution
+`native/incremental/46d18a0a9e05422487ef910281f60937`. This establishes the adapter
+and package closure, while actual RestClient operation/host and package-consumer
+composition remains in [the verification record](../changes/CIS-0010/verification.md).
+SDK/runtime pins remain 10.0.401/10.0.12. Core/None consumers do not acquire Polly.
+
 `CIS.TypeManager.Build` is the non-runtime MSBuild helper delivered inside the Core package with its SDK/build imports. Its build-only reference must not introduce a runtime assembly dependency. Test frameworks, adapters, fixtures and coverage/mutation/API tooling remain development dependencies and never ship in the runtime closure.
 
 The existing native test framework is MSTest. SDK and package versions are pinned locally in the C# implementation. Native restore/build/test/pack are the operating route in [README](../../README.md). The retired project census, checker protocols and generated inspection receipts are not package/API contracts; useful runtime/package behavior remains covered by native tests.

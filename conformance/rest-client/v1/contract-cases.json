@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "verification": "Independent literal expectations; authored inputs are not passing evidence. Runtime transport/execution/retry proof remains pending under CIS-0010.",
+  "resultProperties": ["Success", "ErrorCode", "ErrorMessage", "Value", "Context"],
+  "constructionFixture": "result-cases.json",
+  "responseCases": [
+    { "id": "JSON-ZERO-BYTES", "format": "Json", "resultType": "int32", "httpStatusCode": 204, "bodyUtf8": "", "requireValue": false,
+      "expected": { "success": true, "hasValue": false, "value": 0, "failureKind": "None" } },
+    { "id": "JSON-ZERO", "format": "Json", "resultType": "int32", "httpStatusCode": 200, "bodyUtf8": "0", "requireValue": true,
+      "expected": { "success": true, "hasValue": true, "value": 0, "failureKind": "None" } },
+    { "id": "JSON-FALSE", "format": "Json", "resultType": "boolean", "httpStatusCode": 200, "bodyUtf8": "false", "requireValue": true,
+      "expected": { "success": true, "hasValue": true, "value": false, "failureKind": "None" } },
+    { "id": "JSON-EMPTY-STRING", "format": "Json", "resultType": "string", "httpStatusCode": 200, "bodyUtf8": "\"\"", "requireValue": true,
+      "expected": { "success": true, "hasValue": true, "value": "", "failureKind": "None" } },
+    { "id": "JSON-EMPTY-ARRAY", "format": "Json", "resultType": "int32Array", "httpStatusCode": 200, "bodyUtf8": "[]", "requireValue": true,
+      "expected": { "success": true, "hasValue": true, "value": [], "failureKind": "None" } },
+    { "id": "JSON-PRESENT-NULL", "format": "Json", "resultType": "nullableString", "httpStatusCode": 200, "bodyUtf8": "null", "requireValue": true,
+      "expected": { "success": true, "hasValue": true, "value": null, "failureKind": "None" } },
+    { "id": "JSON-UNREPRESENTABLE-NULL", "format": "Json", "resultType": "int32", "httpStatusCode": 200, "bodyUtf8": "null", "requireValue": false,
+      "expected": { "success": false, "hasValue": false, "value": 0, "failureKind": "InvalidResponse" } },
+    { "id": "JSON-MALFORMED", "format": "Json", "resultType": "int32", "httpStatusCode": 200, "bodyUtf8": "{", "requireValue": false,
+      "expected": { "success": false, "hasValue": false, "value": 0, "failureKind": "InvalidResponse" } },
+    { "id": "TEXT-ZERO-BYTES", "format": "Text", "resultType": "string", "httpStatusCode": 200, "bodyUtf8": "", "requireValue": false,
+      "expected": { "success": true, "hasValue": false, "value": null, "failureKind": "None" } },
+    { "id": "TEXT-LITERAL-NULL", "format": "Text", "resultType": "string", "httpStatusCode": 200, "bodyUtf8": "null", "requireValue": true,
+      "expected": { "success": true, "hasValue": true, "value": "null", "failureKind": "None" } },
+    { "id": "BYTES-ZERO-BYTES", "format": "Bytes", "resultType": "byteArray", "httpStatusCode": 200, "bodyHex": "", "requireValue": false,
+      "expected": { "success": true, "hasValue": false, "value": null, "failureKind": "None" } },
+    { "id": "BYTES-PRESENT", "format": "Bytes", "resultType": "byteArray", "httpStatusCode": 200, "bodyHex": "00ff", "requireValue": true,
+      "expected": { "success": true, "hasValue": true, "valueHex": "00ff", "failureKind": "None" } },
+    { "id": "REQUIRED-ABSENCE", "format": "Text", "resultType": "string", "httpStatusCode": 204, "bodyUtf8": "", "requireValue": true,
+      "expected": { "success": false, "hasValue": false, "value": null, "failureKind": "InvalidResponse" } },
+    { "id": "ERROR-DOES-NOT-DECODE-T", "format": "Json", "resultType": "int32", "httpStatusCode": 503, "bodyUtf8": "{\"provider\":\"busy\"}", "requireValue": false,
+      "expected": { "success": false, "hasValue": false, "value": 0, "failureKind": "Http" } },
+    { "id": "HEAD-NO-DECODE", "format": "NoValue", "resultType": "noValue", "httpStatusCode": 200, "bodyUtf8": "not JSON", "requireValue": false,
+      "expected": { "success": true, "hasValue": false, "failureKind": "None", "consumedSuccessBytes": 0 } }
+  ],
+  "invalidConstructionCases": [
+    { "id": "VALUE-REQUIRES-PRESENCE", "factory": "value", "hasValue": false, "failureKind": "None", "expectedRejection": "argument" },
+    { "id": "EMPTY-REJECTS-PRESENCE", "factory": "empty", "hasValue": true, "failureKind": "None", "expectedRejection": "argument" },
+    { "id": "FAILURE-REQUIRES-CATEGORY", "factory": "failed", "hasValue": false, "failureKind": "None", "code": "http.503", "message": "Unavailable.", "expectedRejection": "argument" },
+    { "id": "FAILED-CONTEXT-REJECTS-PRESENCE", "factory": "context", "hasValue": true, "failureKind": "Http", "expectedRejection": "argument" },
+    { "id": "FAILURE-REQUIRES-CODE", "factory": "failed", "hasValue": false, "failureKind": "Http", "code": "", "message": "Unavailable.", "expectedRejection": "argument" },
+    { "id": "FAILURE-REQUIRES-MESSAGE", "factory": "failed", "hasValue": false, "failureKind": "Http", "code": "http.503", "message": "", "expectedRejection": "argument" }
+  ],
+  "defaultProfile": {
+    "timeoutMilliseconds": 30000,
+    "retryPolicyName": null,
+    "responseFormat": "Json",
+    "requireValue": false,
+    "maxResponseBytes": 16777216,
+    "maxErrorBodyBytes": 16384,
+    "maxErrorMessageScalars": 1024,
+    "allowRedirects": false,
+    "useCookies": false,
+    "maxClients": 16,
+    "maxClientOperationPairsIncludingFallbacks": 32,
+    "fallbackOperation": "request",
+    "maxAliasUtf8Bytes": 256
+  },
+  "retrySelectionCases": [
+    { "id": "NONE-INHERITED", "clientPolicy": null, "requestSelection": "inherit", "expectedPolicy": null },
+    { "id": "NAMED-INHERITED", "clientPolicy": "transient-http", "requestSelection": "inherit", "expectedPolicy": "transient-http" },
+    { "id": "NONE-EXPLICIT", "clientPolicy": "transient-http", "requestSelection": "none", "expectedPolicy": null },
+    { "id": "NAMED-REPLACEMENT", "clientPolicy": "transient-http", "requestSelection": "named", "requestPolicy": "safe-read", "expectedPolicy": "safe-read" },
+    { "id": "MISSING-EXECUTOR", "clientPolicy": "transient-http", "requestSelection": "inherit", "executorAvailable": false, "expectedConfigurationError": true }
+  ],
+  "retryPreset": {
+    "name": "transient-http", "maxRetries": 2, "maximumDispatches": 3,
+    "methods": ["GET", "HEAD", "OPTIONS"], "statusCodes": [408, 429, 502, 503, 504],
+    "initialDelayMilliseconds": 500, "maxLocalDelayMilliseconds": 5000,
+    "backoff": "Exponential", "useJitter": true, "honorRetryAfter": true,
+    "attemptTimeoutMilliseconds": null, "transportFailures": [], "retryBodyFailures": false
+  },
+  "retryEligibilityCases": [
+    { "id": "PRESET-503", "method": "GET", "statusCode": 503, "failureKind": "Http", "bodyProcessingStarted": false, "expectedEligible": true },
+    { "id": "PRESET-500-EXCLUDED", "method": "GET", "statusCode": 500, "failureKind": "Http", "bodyProcessingStarted": false, "predicateResult": true, "expectedEligible": false },
+    { "id": "PRESET-WRITE-EXCLUDED", "method": "POST", "statusCode": 503, "failureKind": "Http", "bodyProcessingStarted": false, "expectedEligible": false },
+    { "id": "PRESET-TRANSPORT-EXCLUDED", "method": "GET", "statusCode": null, "failureKind": "Transport", "bodyProcessingStarted": false, "expectedEligible": false },
+    { "id": "PRESET-BODY-EXCLUDED", "method": "GET", "statusCode": 200, "failureKind": "InvalidResponse", "bodyProcessingStarted": true, "expectedEligible": false },
+    { "id": "PREDICATE-VETO", "method": "GET", "statusCode": 503, "failureKind": "Http", "bodyProcessingStarted": false, "predicateResult": false, "expectedEligible": false }
+  ]
+}

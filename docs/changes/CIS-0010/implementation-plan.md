@@ -1,13 +1,13 @@
 ---
-title: RestClient bounded implementation proposal
+title: RestClient bounded implementation plan
 type: delivery-plan
-status: Draft
+status: Approved
 change_id: CIS-0010
 cis:
   stable_id: cislib:change:cis-0010:implementation-plan
 ---
 
-# RestClient bounded implementation proposal
+# RestClient bounded implementation plan
 
 Prepare one portable REST module with native C# transport/content, real deadline
 and resource ownership, explicit optional retry execution and automatic bounded
@@ -17,10 +17,12 @@ defines the profile to review with this plan. Source REST-01–REST-10 and A01�
 remain linked through [the intake](../../../planning/rest-client/README.md) and
 [acceptance map](acceptance.md).
 
-Current authority covers preparation only. CIS has one unauthorised Draft seed,
-not seven approved work owners. RC1–RC7 are proposed labels; future WORK IDs and
-the shared allowance must be recorded through supported CIS operations after an
-explicit implementation decision. No old grant is reused.
+Andrew Spiteri approved this plan and its shared allocation on 17 November 2026
+and directed implementation. CIS recorded outcome authorization
+`cislib:CIS-0010:outcome:23214d429eb5401485eba6e61987f44d`; RC1–RC7 now map to
+WORK-001–WORK-007. WORK-001 is InProgress. The preparation history below describes
+how the proposal reached that decision; the [verification record](verification.md)
+records the actual authority, allocation and implementation checkpoints.
 
 ## Tasks and shared allocation proposal
 
@@ -28,7 +30,8 @@ Recommend one allocation of **12 active hours / 16 logical work attempts**, incl
 **1,200 seconds for restoration**. All agents, native preparation/execution/result
 admission, authoring, tests, documentation and review share these totals. The
 controller may organise tasks and redistribute unused capacity inside the same
-approved total. These numbers are a planning recommendation, not an allocation.
+approved total. These approved totals are now allocated through CIS across the
+seven owners.
 
 | Label | Owned outcome | Start dependencies | Active seconds | Logical attempts | Included restoration seconds |
 | --- | --- | --- | ---: | ---: | ---: |
@@ -218,4 +221,6 @@ Focused validation uses ordinary small DTOs, a two-host/two-concurrent-call
 isolation case and controlled streams at the 16 MiB/16 KiB boundaries plus one byte.
 Avoid duplicating large files or asserting a whole-process memory bound. Retain
 one new shared work ledger with all agents charged to the same approved total;
-current planning has run no native REST restore/build/test/pack or experiment.
+At initial planning no native REST restore/build/test/pack or experiment had run.
+The approved implementation's actual results and limits are now recorded in
+[verification](verification.md).

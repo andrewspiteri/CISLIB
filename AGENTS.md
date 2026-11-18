@@ -24,6 +24,15 @@ application/environment identity, bounded dimensions, real operation boundaries
 and callback-owner drain. Reuse native HTTP observations and aggregation. Do not
 add duplicate timing, metric histories or speculative future services.
 
+For REST work, read the [Core API and ownership](docs/modules/rest-client/core.md),
+[native content](docs/modules/rest-client/http.md), [retry](docs/modules/rest-client/resilience.md)
+and [actual example](docs/modules/rest-client/example.md). Keep None available in
+Core without optional dependencies. Preserve the entry-based deadline, identified
+cancellation sources, original programming faults, exact signing/replay bytes and
+actual encoder/body cleanup. Hosting closes REST before waiting for Heartbeat or
+Configuration; Startup's coordinator stays independent. Use ordinary keyed DI and
+the existing host, never a second provider, retry owner or lifecycle framework.
+
 <!-- cis:repository-guidance:start -->
 ## CIS integration
 

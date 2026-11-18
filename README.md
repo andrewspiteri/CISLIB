@@ -1,6 +1,6 @@
 # CisLib
 
-CisLib implements Logging, Type Manager, Healthcheck, Heartbeat, Startup, Configuration and portable Metrics in the C# `CIS.Core` package and assembly. The optional `CIS.Metrics.OpenTelemetry` package adds bounded Prometheus collection and native HTTP integration. It targets .NET 10; Core uses the approved Microsoft runtime dependencies and `Microsoft.AspNetCore.App`. Applications own runtime startup, shutdown and resources. The library does not depend on Change Impact Studio.
+CisLib implements Logging, Type Manager, Healthcheck, Heartbeat, Startup, Configuration, portable Metrics and typed RestClient in the C# `CIS.Core` package and assembly. The optional `CIS.Metrics.OpenTelemetry` package adds bounded Prometheus collection and native HTTP integration; `CIS.RestClient.Resilience` adds explicitly selected retry policies. It targets .NET 10; Core uses the approved Microsoft runtime dependencies and `Microsoft.AspNetCore.App`. Applications own runtime startup, shutdown and resources. The library does not depend on Change Impact Studio.
 
 Run commands from `implementations/csharp` so `global.json` selects SDK **10.0.401**. The selected qualification runtime is **10.0.12**; install its ASP.NET Core shared framework as well.
 
@@ -29,6 +29,7 @@ Pack the library and its Type Manager build assets directly:
 ```powershell
 dotnet pack src/CIS.Core/CIS.Core.csproj -c Release -o ../../.artifacts/packages
 dotnet pack src/CIS.Metrics.OpenTelemetry/CIS.Metrics.OpenTelemetry.csproj -c Release -o ../../.artifacts/packages
+dotnet pack src/CIS.RestClient.Resilience/CIS.RestClient.Resilience.csproj -c Release -o ../../.artifacts/packages
 ```
 
 A local development package is not a published release. Scoped checks and current cleanup results are recorded in [cleanup disposition](planning/cis/cleanup-disposition.md). Direct coverage/mutation commands are documented in [native verification](implementations/csharp/verification/mutation/README.md). Complete platform, coverage, mutation, compatibility and release qualification remain separate obligations in [current decisions](planning/decisions.md). The removed preparation, custody, replay and recovery command protocols are retired; they do not require reimplementation in CIS.
@@ -42,6 +43,7 @@ A local development package is not a published release. Scoped checks and curren
 | Startup and DI | [Sequential startup and runnable country-list example](docs/modules/startup/README.md), [enrollment and lifetime contract](docs/modules/startup/core.md), [requirements](planning/startup/README.md) |
 | Configuration | [Preparation and hosting](docs/modules/configuration/hosting.md), [retained reads/events](docs/modules/configuration/core.md), [mapping](docs/modules/configuration/mapping.md), [refresh lifetime](docs/modules/configuration/refresh.md), [requirements](planning/configuration/README.md) |
 | Metrics | [Portable API](docs/modules/metrics/core.md), [collection policy](docs/modules/metrics/collection.md), [host lifetime](docs/modules/metrics/hosting.md), [HTTP policy](docs/modules/metrics/http.md), [real example](docs/modules/metrics/example.md), [requirements and evidence](planning/metrics/README.md) |
+| RestClient | [Core API and ownership](docs/modules/rest-client/core.md), [HTTP content](docs/modules/rest-client/http.md), [extensions](docs/modules/rest-client/extensions.md), [optional retry](docs/modules/rest-client/resilience.md), [Metrics](docs/modules/rest-client/metrics.md), [actual example and consumers](docs/modules/rest-client/example.md), [requirements and evidence](planning/rest-client/README.md) |
 | Shared behavior | [Logging contracts](contracts/logging/README.md), [Healthcheck contracts](contracts/healthcheck/v1/README.md), native fixtures under `conformance/` |
 | Architecture | [Dependencies](docs/architecture/csharp-dependency-policy.md), [compatibility](docs/architecture/compatibility-policy.md), [assembly identity](docs/architecture/csharp-assembly-policy.md) |
 

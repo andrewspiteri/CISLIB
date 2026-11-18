@@ -106,9 +106,13 @@ gate and retain deployment access policy. Metrics/health requests are excluded
 from completed business duration statistics, while native active requests still
 include management work.
 
-RestClient/database/transfer remain future modules. Native outbound HTTP duration
-ends at headers; it does not establish logical retry/body/deserialization duration,
-attempt counts or consumed bytes. Do not implement future services to add metrics.
+For RestClient, use its [actual example](../../../docs/modules/rest-client/example.md)
+and [fixed catalog](../../../contracts/metrics/rest-client.md). Its captured logical
+binding includes retries, body work and actual cleanup, with completed application
+byte observations. Outgoing Auto uses final known REST composition and the exact
+root meter factory. Native outbound duration ends at headers; it does not establish
+logical duration, owned dispatches or consumed bytes. Database/transfer remain
+future modules; do not implement them to add metrics.
 
 Update the affected catalog, documentation and meaningful existing native tests.
 Use [portable cases](../../../conformance/metrics/v1/primitive-cases.json) for

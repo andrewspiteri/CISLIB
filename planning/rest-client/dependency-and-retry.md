@@ -1,14 +1,28 @@
 ---
-title: RestClient optional dependency and retry proposal
+title: RestClient optional dependency and retry decision
 type: planning-reference
-status: Draft
+status: Active
 ---
 
-# RestClient dependency and retry decision — proposed
+# RestClient dependency and retry decision
 
-Planning-only draft against supplied v1.0 specification/guide and main 7b5923c0.
-The attachments are reference inputs, not authority to implement or execute.
-No dependency approval, native compatibility pass or new work allocation is claimed.
+Andrew Spiteri approved P07 and the bounded implementation plan on 17 November
+2026. CIS-0010 records that authority separately from the supplied reference
+documents. Actual native proof passed 19 early public-API cases, followed by a
+current locked checkpoint with 25 retry-policy and 11 collector cases. See
+[verification](../../docs/changes/CIS-0010/verification.md) for the preserved
+changed-input observation and actual scope; real operation/host/package consumers
+still require their remaining owners.
+
+The implementation uses the selected upstream iteration/jitter/wait strategy.
+Native millisecond precision is compensated by admitting
+`ceil_ms(max(selected local delay, server minimum))` once, then waiting its
+supplemental remainder plus upstream's unchanged local delay. There is no jitter
+resampling, copied backoff engine, server cap or additional helper dependency.
+
+The following candidate analysis is retained as preparation history against the
+supplied v1.0 documents and main 7b5923c0. Its original planning-only statements
+describe that earlier stage, not the current user approval or native checkpoint.
 
 ## Package boundary
 

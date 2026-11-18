@@ -7,13 +7,46 @@ cis:
   stable_id: cislib:change:cis-0010:acceptance
 ---
 
-# Proposed RestClient acceptance mapping
+# RestClient acceptance and evidence mapping
 
-Planning-only working input for CIS-0010 against main `7b5923c031027b932f730e1cf45b2d51270b17cc`.
-The supplied specification and guide are reference inputs; this mapping grants no
-implementation or execution authority. No RestClient check below is claimed to
-exist, have run or have passed. Canonical documentation and work records remain
-owned by the coordinating agent.
+The approved P01–P12 profile is implemented from baseline main
+`7b5923c031027b932f730e1cf45b2d51270b17cc`. Andrew Spiteri approved the bounded plan
+and its shared allocation on 17 November 2026; RC1–RC7 correspond to
+WORK-001–WORK-007. Supplied documents remain reference material, not execution
+authority. This map records implemented behavior and selected evidence.
+The bounded implementation and scoped checks are complete. [Verification](verification.md) is the authority
+for source identities, execution accounting, currentness and later dispositions.
+
+## Native delivery checkpoint — 18 November 2026
+
+The six retained Windows gates contain **1,915 passed, zero failed and zero
+skipped** cases, using SDK 10.0.401 and runtime 10.0.12. These are selected native
+component/regression, composition and delivery checks, not 1,915 distinct
+RestClient requirements or a full release qualification.
+
+| Gate | Passed | Native execution suffix |
+| --- | ---: | --- |
+| Selected Unit/component regressions | 1,172 | `8483773105df4b37ae67a35e5f7195b9` |
+| Host/runtime/collector integration | 201 | `5f40c6a5bd2a478fbec7ff53a55d6162` |
+| Architecture | 361 | `4019e07d7818487483c0fb6d4e47893b` |
+| Established compatibility | 179 | `7685e02da348474db66a8a729b84e171` |
+| Actual package consumers | 1 | `9852124c6de44d3cab80365c5098d4c6` |
+| Actual source example story | 1 | `a488c003f0d2446cb90e42ca855d7442` |
+
+TRX files are retained as `.cis/local/rest-client-intake/rc7-final-{unit,host,
+architecture,compatibility,package,business}-pass.trx`, with matching run logs.
+The native records report scope complete, zero pending batches and current unit
+inputs at their checkpoints, while retaining `qualified=false` and the runner
+pilot advisory. Later source/profile currentness is a separate check.
+
+The whole-file `RestResponseMapping.cs` mutation canary recorded 15 killed,
+five survived and two ignored mutants: **75%**, below the unchanged 90% gate.
+The subsequent 85% observation and final 90% result are retained in verification:
+18 killed, two surviving, two ignored, denominator 20; zero timeout/no-coverage or
+incomplete outcomes. Normal restoration passed all 134 REST unit cases and Core's
+pre-mutation assembly hash matched. The component threshold is met; the canary
+remains partial/qualified=false and does not establish whole-library or release
+qualification. The selected component and threshold stayed unchanged throughout.
 
 ## Owners and existing test families
 
@@ -27,22 +60,26 @@ owned by the coordinating agent.
 | RC6 | Logical/payload Metrics binding and bounded host-owned outgoing native selection |
 | RC7 | Actual host/DI example and packaged consumers, integrated lifecycle and final public-contract alignment |
 
-Use the existing `CIS.Core.UnitTests` for controlled operation/content/policy cases,
-`CIS.Core.IntegrationTests` for real local HTTP, host composition, exporter and
-actual package consumers, `CIS.Core.ArchitectureTests` for dependency/public API
-boundaries, and `CIS.Core.BusinessCases` for the runnable consumer outcome.
-Extend `CIS.Core.CompatibilityTests` only for genuinely affected established
-contracts. Reuse `CIS.Core.TestSupport`, existing host/temporary-directory/package
-fixtures and ordinary MSTest. No replacement runner or general testing framework.
+Tests use the existing MSTest projects and `CIS.Core.TestSupport`. Necessary
+tests, documentation and review remain with their implementation owners. The
+following real test families supply the evidence referenced below. A case can
+establish several rows; this is not a full combinatorial matrix.
 
-Task labels are proposed boundaries, not allocated CIS work IDs. Each owner keeps
-its necessary tests, documentation, review and completion evidence with the owned
-implementation. A case may establish several rows; this is not one test per row
-or a demand for a full combinatorial matrix.
+| Evidence family | Actual tests |
+| --- | --- |
+| U1 — contract and snapshots | Unit `RestResultContractTests`, `RestSnapshotContractTests`, `RestExecutionContractTests` |
+| U2 — native content and bytes | Unit `RestHttpContentTests`, `RestHttpResponseTests`, `RestHttpTransportTests`, `RestEncodingOwnershipTests`; actual local Kestrel and controlled streams |
+| U3 — ordered extensions | Unit `RestRequestFinalizerTests`, `RestExchangePipelineTests`, `RestResponseMappingTests`, `RestCallbackCancellationTests` |
+| H1 — public runtime | Integration `RuntimeResultTests`, `RuntimeCancellationTests`, `RuntimeBoundaryTests` |
+| R1 — retry and replay | Integration `ResilienceExecutionTests`, `ResilienceDelayTests`, `RuntimeRetryTests` |
+| O1 — composition and shutdown | Integration `RestClientRegistrationTests`, `RestClientShutdownTests` |
+| M1 — logical and native observation | Unit `RestClientModuleMetricsTests`; Integration `RestClientMetricsTests`, `Metrics.RestClientCollectionTests` |
+| D1 — delivered consumers | Integration `RestClientPackageConsumerTests`; Business `RestApiStories`; actual `examples/rest-client/RestApi` sources |
+| G1 — boundaries and preservation | `RestClientArchitectureTests`, shipping dependency/runtime guards, and retained Type Manager/Healthcheck compatibility suites |
 
 ## Explicit acceptance mapping
 
-| Source requirement | Primary proposed owner(s) |
+| Source requirement | Primary implementation owner(s) |
 | --- | --- |
 | REST-01 Native facilities | RC2 |
 | REST-02 Portable semantics and adapter boundaries | RC1, RC7 |
@@ -55,61 +92,59 @@ or a demand for a full combinatorial matrix.
 | REST-09 Actual timeout cancellation and settlement | RC2, RC3, RC4, RC5 |
 | REST-10 Automatic logical/native/payload Metrics | RC5, RC6, RC7 |
 
-| ID | Primary owner(s) | Meaningful focused native evidence to plan |
+| ID | Primary owner(s) | Implemented behavior and focused evidence |
 | --- | --- | --- |
-| A01 | RC1, RC2, RC5 | A small verb/Send matrix observes the actual method, resolved URI, repeated query/header values and declared body at a controlled transport. Verify wrappers share behavior, relative-base trailing-slash resolution, and unsupported CONNECT/upgrade capability returns before dispatch. |
-| A02 | RC1, RC2 | Literal result vectors cover a normal DTO, legitimate `0`/`false`, empty success, representable JSON null, unrepresentable null, required absent value and failure default(T). Distinguish value presence from nullness; property access remains inert and no public construction/copy route can create inconsistent states. Pin Text/Bytes empty-body semantics in the reconciled contract first. |
-| A03 | RC3, RC5 | Non-2xx never decodes into the success DTO; a mapped HTTP-200 rejection retains actual status and a separate remote code. Expected transport/malformed-success cases return documented categories; an unexpected callback exception surfaces. Include a later no-response terminal attempt so its status cannot accidentally inherit an earlier response. |
-| A04 | RC3 | Signal-held async customization precedes authentication; observe final encoded URI, headers and exact signing representation at the real primary-send boundary. Assert effective token propagation, no post-signing ordinary mutation, and A/B/C outward versus C/B/A inward handler order. |
-| A05 | RC1, RC3, RC4 | Two overlapping calls reuse client/options yet retain separate headers, credentials and contexts. Test default inheritance, explicit callback replacement/disable and retry inherit/None/replace without mutating defaults or shared native headers. |
-| A06 | RC2 | Independent wire/value cases cover JSON/text/bytes/no-value response modes and JSON/text/bytes/form/stream requests. Check incompatible T/format validation, malformed nonempty JSON, exact limit versus one byte over, and decompressed read limits without trusting Content-Length. Keep error capture bounded and distinguish its truncation from message truncation. |
-| A07 | RC2, RC5 | Controlled blocked send/upload and body-read cases observe the actual cancellation token, actual task termination and owned disposal before the public timeout result completes. One focused real local HTTP body/send check confirms native cancellation composition. No assertion of exact server disconnect/rollback timing. |
-| A08 | RC3, RC4, RC5 | Hold authentication/customization or an upstream retry delay; expire the total budget and observe cancellation/cleanup with zero additional dispatches. A pre-dispatch preparation failure has AttemptCount zero. |
-| A09 | RC5 | A cooperative operation enters deliberately held asynchronous cleanup after timeout. The public task stays incomplete while its owners remain usable; releasing cleanup allows the timeout result. Every test exit releases and joins its gate in finally. |
-| A10 | RC5 | Controlled cancellation-source cases distinguish caller cancellation (caller-associated token), total deadline and optional attempt timeout. Two-order terminal cases establish cancellation before commit versus cancellation after completed result; concurrent calls prove isolation. Reconcile shutdown/defect precedence before pinning the simultaneous-source matrix. |
-| A11 | RC1, RC4, RC5 | No policy dispatches once; inherited/None/replacement choices have one retry owner. Script 503/503/200 and exhausted 503 to assert fresh dispatch count, terminal status/error and finite stop reason. Selecting retries without an executor fails configuration rather than silently running once. |
-| A12 | RC4 | Native parsed seconds/date Retry-After supplies a server minimum, invalid values use configured backoff with bounded diagnostics, and a long server delay yields the last response plus InsufficientTimeRemaining without early send. Observe one chosen wait for both admission and waiting; assert jitter bounds, not vendor random sequences. |
-| A13 | RC3, RC4 | The preset refuses unapproved write methods, business/decoding failures and post-headers body failure. An explicitly replay-safe write uses the same supported idempotency key and equivalent payload across attempts; adding an arbitrary key header alone does not enable retry. |
-| A14 | RC2, RC3, RC4 | Record distinct native request/content identities, per-attempt callback order and prior response disposal before the next attempt. Exercise one-shot borrowed content versus a fresh owned stream factory; a handler short circuit has zero primary dispatches and still follows decoding/disposal rules. |
-| A15 | RC4, RC5 | A controlled first attempt times out and holds cleanup; the next cannot start until it settles. Advance the same entry-based total budget across work and delays so it never resets, and show total expiration prevents another dispatch. No detached adapter-owned work remains. |
-| A16 | RC2, RC3 | Controlled origin/redirect/cookie cases prove defaults and concurrent-call isolation. TRACE omits inherited auth and rejects explicit body/credential fields, including mutations and configured credential query keys. Validate signed final destination before auth; retain native TLS validation. Bounded diagnostic vectors exclude sensitive URL/body/auth/stack content. |
-| A17 | RC5, RC6 | Actual operation success, returned failure, caller cancellation and thrown defect each complete one logical duration and balanced active work using one entry binding. Retry/wait/cleanup stay inside that boundary. Controlled completed partial reads/writes and repeated transfers establish actual observed payload counts; HEAD Content-Length contributes no consumed bytes. |
-| A18 | RC6, RC7 | A real scrape contains the four logical streams and selected exact host-owned outgoing streams, with application/environment on every sample/child/overflow point. Two actual hosts isolate meters and data; foreign meters and unselected keys drop. Do not equate native histogram count with logical calls or exact owned dispatches. |
-| A19 | RC1, RC6 | Disabled/absent Metrics and small configured capacity overflow leave HTTP results unchanged. Validate the proposed client/pair/fallback bounds and stream reservations before activation; repeated unknown operation names use a bounded fallback without retaining per-URL names. Existing admitted series continue; no new broad footprint campaign. |
-| A20 | RC4, RC7 | A genuine Core-only nupkg consumer runs the None/single-attempt path without optional collector/resilience dependencies. A separate genuine optional-package consumer exercises configured retry and exported Metrics under the pinned runtime. Verify deployed package assets/closure, not just project-reference compilation. |
-| A21 | RC5, RC7 | Stop closes admission, signals client-owned cancellation and waits for actual request/body/callback cleanup before dependent Stopping/disposal. Include a held Heartbeat callback awaiting REST: existing Startup/HB hosting must signal REST cutoff before waiting for HB/Configuration, then join real drains; no new coordinator framework. Borrowed native clients/handlers/streams remain caller-owned. |
-| A22 | RC1, RC7 | Compile/run the real example and public consumers against implemented APIs. Architecture checks reject native HTTP, Polly and OpenTelemetry types from ordinary consumer signatures while permitting explicit platform configuration seams and normal Task/CancellationToken. Preserve supplied source bytes/hashes and align contract, defaults, examples and agent routing. |
+| A01 | RC1, RC2, RC5 | U1/U2/U3/H1 exercise the shared verb path, real POST bytes, resolved URI/query/header behavior and pre-dispatch rejection of CONNECT/upgrade capabilities. |
+| A02 | RC1, RC2 | U1/U2/U3/H1 consume literal result/response vectors and check guarded construction, `0`/`false`, empty JSON/Text/Bytes, present null, malformed/unrepresentable null, required absence and failure default(T). |
+| A03 | RC3, RC5 | U3/H1/R1 check HTTP versus business mapping, safe errors and remote codes, unexpected faults, and a later no-response exchange that cannot reuse the earlier 503 status. |
+| A04 | RC3 | U2/U3/R1 check awaited ordering, final encoded destinations/native headers, exact bounded signing bytes, sealed ordinary fields and outward/inward handler order. |
+| A05 | RC1, RC3, RC4 | U1/U3/R1 check isolated option/header/query snapshots, overlapping callback state, explicit replacement/disable, and inherited/None/replacement retry choices without changing defaults. |
+| A06 | RC2 | U2/H1 check real JSON/text/bytes/form/native multipart/stream content, absent/no-value results, type/format checks, malformed JSON, exact/one-byte-over limits, decompression, bounded error prefixes and independent message truncation. |
+| A07 | RC2, RC5 | U2/H1 hold actual serialization/body reads and join them through cancellation and disposal. The native flushed-body case proves headers can complete before body settlement; no remote rollback/disconnect-time guarantee is inferred. |
+| A08 | RC3, RC4, RC5 | U3/H1/R1 hold callbacks/signing/retry decisions or waits across the entry deadline, observe token provenance and settlement, and prevent further primary dispatch. Declared pre-dispatch failures retain AttemptCount zero. |
+| A09 | RC5 | H1/R1 hold acquired cleanup after cancellation/timeout and keep public completion incomplete until release; U2 also checks actual asynchronous owned-stream disposal. |
+| A10 | RC5 | H1/R1 establish caller/total/stopping/attempt precedence, caller-associated canceled tasks, foreign or initially unsignaled OCE faults, encoder fault preservation despite later cancellation, isolation and an already committed result remaining complete. |
+| A11 | RC1, RC4, RC5 | U1/R1/O1 check default None, policy inheritance/replacement, 503/503/200, exhaustion/actual dispatch count, and missing named-policy/executor configuration errors. |
+| A12 | RC4 | R1 uses real Polly timers and native Retry-After parsing for seconds/date/past/invalid/missing values, one admitted representable wait, preserved server minimum and InsufficientTimeRemaining without another dispatch. |
+| A13 | RC3, RC4 | R1 checks finite actual-method eligibility, conservative exclusions and replay-assured POST with stable provider key/payload and refreshed credentials. Changing ordinary key/destination or body prevents another send and preserves the prior failure. |
+| A14 | RC2, RC3, RC4 | U2/U3/H1/R1 observe fresh contexts/native content, ordered callbacks and prior disposal, borrowed one-shot versus owned fresh factories, exact prepared signing replay and zero-dispatch owned short circuits. |
+| A15 | RC4, RC5 | R1/H1 prove attempt timeout waits for real cleanup before another attempt, retains the original total budget, and stops dispatch after total expiration. Canceled acquired one-shot content cannot be replayed after disposal. |
+| A16 | RC2, RC3 | U2/U3/R1 check origin/TRACE/credential/query rules, default redirect/cookie behavior, signed ordinary replay identity and safe diagnostic handling. Native TLS validation remains enabled; these are not a general TLS/proxy interoperability qualification. |
+| A17 | RC5, RC6 | M1/U2/H1/R1 check balanced one-shot logical completion across success/failure/cancel/defect, entry-to-cleanup duration, actual partial/retried payload counts, zero signing-buffer upload count and no body count from HEAD Content-Length. |
+| A18 | RC6, RC7 | M1/D1 execute actual exporter scrapes, mandatory identity, exact root-owned native meters, two-host isolation and foreign/unselected stream filtering. Native header timing/count is kept separate from logical calls and owned dispatches. |
+| A19 | RC1, RC6 | U1/M1 check finite client/pair/fallback metadata, conditional profile reservation, old no-REST profile compatibility, disabled collection, capacity overflow and bounded unknown-operation fallback. |
+| A20 | RC4, RC7 | D1 packs actual Core/Resilience/Metrics assemblies and builds, publishes and runs separate Core-only and optional consumers from fresh offline caches; DLL/package hashes, dependency closure and loaded paths are asserted. |
+| A21 | RC5, RC7 | O1/H1/U2 prove closed admission and actual cancellation/drain before dependency teardown, including held HB-awaiting-REST paths for HB-only/Startup and both Metrics orders. Borrowed transports/streams remain external ownership. |
+| A22 | RC1, RC7 | D1 runs the real RestApi source and package consumers; G1 enforces ordinary API/optional dependency boundaries and preserved established contracts. Supplied source hashes remain unchanged; guides reference the implemented APIs. |
 
 ## Cross-row lifecycle evidence
 
-Use one actual host scenario to establish A07/A09/A21 ordering: a dependency stays
-live while a Heartbeat callback awaits REST; shutdown first closes REST admission
-and signals its owned cancellation, then the REST operation enters held cleanup.
-HB/Configuration and host stop remain incomplete, and dependency Stopping/disposal
-must not occur. Releasing actual cleanup settles REST, then the awaiting callback
-and existing module/host barriers. An already-canceled host wait budget must not
-authorize early teardown. Release all test barriers and join their actual tasks
-before disposing the real provider or external owners.
+`RestClientShutdownTests.OrderedHostStopCancelsRestBeforeWaitingForHeartbeatAndKeepsDependenciesThroughCleanup`
+exercises the actual HB-only and Startup bridges in both Metrics registration
+orders. A dependency stays live while HB awaits REST; cutoff signals REST before
+waiting for that callback, and held acquired cleanup prevents host completion and
+dependency Stopping/disposal. Release settles the REST call, then HB and the
+existing host barriers, despite an already-canceled host wait budget.
 
-Keep this wiring in existing hosting composition. Startup's coordinator must not
-acquire transport dependencies; adding a parallel shutdown controller or making
-REST wait for HB while HB waits for REST would violate the intended ownership.
-Explicit stream ownership also needs an acquisition point: proposed admission
-rejection/invalid arguments acquire nothing, while every admitted acquired owned
-stream is settled/disposed even if authentication rejects or a handler shortcuts.
+The wiring stays in hosting composition. StartupCoordinator has no REST dependency
+and no new lifecycle framework is introduced. Admission and valid acquisition are
+distinct: rejected work acquires no caller stream; acquired owned streams are
+settled/disposed after authentication rejection, cancellation and faults. Held
+test barriers are released and their actual tasks joined before provider cleanup.
 
 ## Evidence and platform truth
 
-Native component tests, an actual local server, a real scrape, a source example
-and an actual package consumer establish different facts. Identify which one ran,
-the selected runtime/platform, actual counts and retained result/input identities.
-Never describe a ProjectReference or friend-visible test as a packaged public
-consumer. Do not simulate Ubuntu by changing a platform label on Windows output.
-Run each required platform lane only under its own applicable new finite work
-authority; keep unrun lanes and release qualification explicitly unproven.
+Component/friend-visible tests, real local HTTP, exporter scrapes, source stories
+and actual package consumers establish different facts. Their selected tests and
+receipts support this map; aggregate counts alone do not prove every possible
+case in a requirement. The package gate is actual package-only public consumption,
+not a renamed ProjectReference test.
 
-The seven owners propose focused affected checks and required repository gates.
-There is no default broad performance/mutation/release campaign, no inherited
-execution grant from closed prior modules, and no unrelated Metrics primitive
-expansion. Source inspection and this proposed table are not passing evidence.
-Preserve the user's untracked launchSettings files and all original source inputs.
+Ubuntu execution, complete release/platform coverage, full coverage thresholds,
+whole-library mutation, broad performance qualification and publication remain
+unproven here. The one selected mapping canary does not replace those obligations
+and now meets its own 90% threshold. No runner-pilot qualification,
+forced reuse, new allowance, main merge or branch closure is implied. Subsequent
+execution requires applicable finite capacity and a legitimate current work owner.
+Preserve both user launchSettings files and the original source inputs. This
+document's Draft state does not imply human approval or release qualification.

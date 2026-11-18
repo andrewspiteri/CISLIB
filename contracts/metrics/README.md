@@ -1,5 +1,8 @@
 # Metrics contract — v1
 
+Configured RestClient observations and their conditional catalog are specified
+in the [REST service catalog](rest-client.md).
+
 This is the portable Metrics contract selected for CISLIB v1. It accompanies the
 [supplied requirements](../../planning/metrics/sources/CISLIB_Metrics_Implementation_Specification_v1.0.md)
 and [C# Core binding](../../docs/modules/metrics/core.md). It specifies behavior and

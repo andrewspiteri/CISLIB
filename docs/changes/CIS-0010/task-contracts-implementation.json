@@ -1,0 +1,169 @@
+{
+  "tasks": [
+    {
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "title": "Implement native HTTP content and resource ownership",
+      "category": "implementation",
+      "scopeIds": [
+        "rest-client"
+      ],
+      "paths": [
+        "implementations/csharp/src/CIS.Core/RestClient/Http",
+        "implementations/csharp/tests/CIS.Core.UnitTests/RestClient",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/RestClient",
+        "docs/modules/rest-client",
+        "contracts/rest-client",
+        "conformance/rest-client",
+        "docs/changes/CIS-0010"
+      ],
+      "assignee": "Codex",
+      "complexity": "medium",
+      "validation": "A01/A06/A07/A14/A16: observed wire/value vectors, native format/type validation and empty/malformed/null cases; exactlimit versusonebyteover including decompression, error truncation, borrowed leave-open and owned/factory cleanup after auth rejection/short circuit, distinct native request/content identities and real cancellation tokens/disposal. Use controlled handlers/streams and focused loopbackHTTP, not a new harness.",
+      "acceptanceCriteria": "Bind native HttpClient/SocketsHttpHandler/DelegatingHandler and System.Text.Json to fixed Core seams. Implement fresh per-attempt content, JSON/text/bytes/no-value decoding, form and explicitly borrowed/transferred/reopenable stream bodies, correct URI/header/query placement and exact encoding/signing representation,16MiB actual/decompressed success bound and16KiB detached error prefix. Preserve one consumption owner and real cleanup, actual completed byte observations and no pool per call. Validate supported owned/factory and borrowed transport settings honestly; preserve TLS, redirect/cookie defaults. No HTTP parser, multipart model or implicit upload buffering; include focused tests/docs/review."
+    },
+    {
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "title": "Compose ordered customization authentication and response mapping",
+      "category": "implementation",
+      "scopeIds": [
+        "rest-client"
+      ],
+      "paths": [
+        "implementations/csharp/src/CIS.Core/RestClient/Extensions",
+        "implementations/csharp/tests/CIS.Core.UnitTests/RestClient",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/RestClient",
+        "docs/modules/rest-client",
+        "contracts/rest-client",
+        "conformance/rest-client",
+        "docs/changes/CIS-0010"
+      ],
+      "assignee": "Codex",
+      "complexity": "medium",
+      "validation": "A03-A05/A08/A13/A16: asyncA/B/C outwardC/B/A inward order and final signed native request; concurrent shared options without state/defaultheaders leakage; HTTP200 business rejection and non2xx notdecodedasT; caller/total cancellation and throw-after-next ownership; TRACE body/credential/defaultauth and customized/disallowed origins. Preserve nativebody reader and actual original causes.",
+      "acceptanceCriteria": "Implement ordered CIS exchange handlers and customization/final-auth/mapper seams against the fixed contract. Enforce at-most-once next, zero-dispatch short circuits, isolated credentials/defaultreplacement/explicitdisable, final allowed-origin/TRACE guards, exact signing representation and no post-sign ordinary mutation. Typed expected prep/auth failures return bounded outcomes; unexpected defects surface after owned work settles. Single reader coordinates decoding and business/error mapping without native objects/history. No new pipeline graph or independent retry owner; own tests/docs/review."
+    },
+    {
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "title": "Implement optional upstream retry policy adapter and bounded delay proof",
+      "category": "implementation",
+      "scopeIds": [
+        "rest-client"
+      ],
+      "paths": [
+        "implementations/csharp/src/CIS.RestClient.Resilience",
+        "implementations/csharp/src/CIS.Core/RestClient/Internal",
+        "implementations/csharp/Directory.Packages.props",
+        "implementations/csharp/NuGet.config",
+        "implementations/csharp/CisLib.slnx",
+        "implementations/csharp/tests",
+        "docs/modules/rest-client",
+        "docs/architecture/csharp-dependency-policy.md",
+        "docs/changes/CIS-0010",
+        "planning/rest-client"
+      ],
+      "assignee": "Codex",
+      "complexity": "medium",
+      "validation": "A11-A15/A20: real approvednet10lockedclosure and optionalpublicAPI; actualcontrolled upstreamtimers for long/short/past/invalidseconds/dateRetryAfter and admission-fit,503/503/200/exhaustion, no-defaultretries/writes/business/decode/postheaders replay, one-shotbody and stableidempotencykey, sharedclock and actualheldattemptcleanup. Separatepolicyiterationfromdispatchcount. Rootserializesnative and capturesearlyproof/cost before broadening.",
+      "acceptanceCriteria": "Create only the approved optional Polly.Core8.9.1 adapter with exact source mapping/centralpin/lock and no Core dependency change. One shared upstream pipeline per finite registered policy owns iterations/jitter/wait, with local per-execution state. Within1800active seconds/one logicalworkattempt of this task, prove public OnRetry nativeL plus optional supplementalD-L implements D=max(L,server) chosenonce and budgetcheckedbeforewait, priorcleanup and real cancellation. Preserve inherit/None/whole replacement, conservative preset, fresh replayable requests, stable keys and terminal cause/finite stopreason. Custom decisions use bounded cancellable metadata and never dispatch. If prooffailsstopretry-dependentexpansion; no copiedbackoffengine/extra package or semanticrelaxation. Own tests/docs/review."
+    },
+    {
+      "dependsOn": [
+        "WORK-002",
+        "WORK-003"
+      ],
+      "title": "Own logical RestClient deadlines dispatch outcomes and actual shutdown drain",
+      "category": "implementation",
+      "scopeIds": [
+        "rest-client"
+      ],
+      "paths": [
+        "implementations/csharp/src/CIS.Core/RestClient/Runtime",
+        "implementations/csharp/src/CIS.Core/RestClient/Hosting",
+        "implementations/csharp/src/CIS.Core/Startup/Hosting",
+        "implementations/csharp/src/CIS.Core/Heartbeat/Hosting",
+        "implementations/csharp/src/CIS.Metrics.OpenTelemetry/MetricsHostingOrder.cs",
+        "implementations/csharp/tests/CIS.Core.UnitTests/RestClient",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/RestClient",
+        "docs/modules/rest-client",
+        "docs/modules/startup",
+        "docs/modules/heartbeat",
+        "docs/changes/CIS-0010",
+        "planning/rest-client"
+      ],
+      "assignee": "Codex",
+      "complexity": "medium",
+      "validation": "A07-A10/A15/A21: actualblocked send/upload/body/auth cancellation and heldcleanup; expectedcaller>total>stopping>attempt precedence while unexpectedfaultssurface, before/aftercommit races, othercallunaffected and zero predispatch counts. Actual heldHBcallbackawaitingREST must cancel beforeexistingbarrierswait andkeepdependencies usable until cleanupreleases, includingcanceledhostwait. Alwaysrelease/joinbarriers in finally; no lifecycleframework.",
+      "acceptanceCriteria": "Implement one fixed outer operation path: entrytimestamp/budget, isolated options/admission and one observation binding, fresh ownedattempt policycallback, dispatch immediatelybeforeprimary afterauth, actualcancellation/cleanup and immutableterminalresult or caller/fault propagation. NoTimeoutWait abandon, sharedclient cancellation or deadline reset. Keep Core/None working withoutoptionaladapter. Add narrowoptionalRESTcutoff toexistingStartup/HBhosting beforeHB/Configwaits andjoinactualdrains, preservingcoordinator independence/sequentialstartup and borrowed ownership. Configuredretryintegration waitsWORK004; completeactualMetricsboundary proof withWORK006. Own tests/docs/review."
+    },
+    {
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "title": "Integrate finite RestClient observations and exact-host outgoing metrics",
+      "category": "implementation",
+      "scopeIds": [
+        "rest-client"
+      ],
+      "paths": [
+        "implementations/csharp/src/CIS.Core/RestClient/Metrics",
+        "implementations/csharp/src/CIS.Metrics.OpenTelemetry",
+        "implementations/csharp/tests/CIS.Core.UnitTests/RestClient",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Metrics",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/RestClient",
+        "contracts/metrics",
+        "conformance/metrics",
+        "docs/modules/metrics",
+        "docs/modules/rest-client",
+        "docs/changes/CIS-0010",
+        "planning/rest-client"
+      ],
+      "assignee": "Codex",
+      "complexity": "medium",
+      "validation": "A17-A19: actualone logicaltimer/active balance afterbody/retry/cleanup successfailurecancelthrow, observedpartial/retriedbytes notContentLength; disabled/overflow unchangedresults; oldMaxDefinitions19/smallprofile; configuredRESTreservations/translatednames beforeactivation; realexports mandatoryidentity, bothformats/overflowchildren, foreign/globalmeter and extraSystemNetkeys/instruments dropped, twoactualhostfactoryisolation and headerfirst/heldbody.",
+      "acceptanceCriteria": "Implement one fixedhostregistry metricbundle capturedonce perlogicalentry: settledduration/balancedactive andactualcompleted upload/downloadbytes, with16aliases/32legalpairs/requestfallback andnoreplay/unknownnamecache. Extendexistingoneprovider selector/catalog toexactroot System.Net.Http meter and only duration/active methodkey, pinnedNet10 headerboundary. ConditionalRESTreservation/outgoingAuto finalmetadata preservesold19Core/21stream3328profile; fullREST23Core/27stream4416 fitsunchangedglobals. Bothregistrationorders/explicitoptout work. Collectorpartmaystartaftercontracts; fullproofjoinsactualWORK005 beforecompletion. No newprovider/scheduler/transferplaceholder/broadmemorycampaign; own tests/docs/review."
+    },
+    {
+      "dependsOn": [
+        "WORK-002",
+        "WORK-003",
+        "WORK-004",
+        "WORK-005",
+        "WORK-006"
+      ],
+      "title": "Deliver actual RestClient host example and Core-only optional package consumers",
+      "category": "implementation",
+      "scopeIds": [
+        "rest-client"
+      ],
+      "paths": [
+        "implementations/csharp/examples/rest-client",
+        "implementations/csharp/CisLib.slnx",
+        "implementations/csharp/tests",
+        "implementations/csharp/verification/qualification",
+        "implementations/csharp/verification/mutation",
+        "docs/modules/rest-client",
+        "docs/modules/metrics",
+        "docs/architecture/csharp-dependency-policy.md",
+        "docs/changes/CIS-0010",
+        "docs/catalog.yml",
+        "contracts/rest-client",
+        "conformance/rest-client",
+        "planning/rest-client",
+        "planning/decisions.md",
+        ".github/skills/cislib-metrics/SKILL.md",
+        "AGENTS.md",
+        "README.md"
+      ],
+      "assignee": "Codex",
+      "complexity": "medium",
+      "validation": "Actualsource example plus isolatedversionedCoreSDK/optionalPackageReference consumers, no friend-access substitute. Verify allsourceAPI/type/default/catalog agreements, operation/hostbarrier/retry/export integration and exactNuGet/Coreclosure. Run meaningfulaffectednative checksandstrictdocs/skills/no-modelaudit; retainfalseattempts/costs andsource/userhashes. Independentreviewexplicitlychecks responsibility/verificationmachinery didnotexpand; reportscopedproofandremainingqualification.",
+      "acceptanceCriteria": "Deliver compiling/running actual JSONPost/explicitretryGET/asyncauth/businessmapper/emptysuccess/cancellation example withnormalkeyedDI and existinghosts. ProvegenuineCore-onlyNone consumer andoptionalretry+Metrics package build/folderpublish/deployedclosure onpinnedruntime viaexistingSDK/fixtures. CompletecomposedA20-A22 andremainingreal cross-taskbehavior, proportionateexistingUnit/Integration/Architecture/Compatibility/Business andapplicablenarrowMutation gates, docs/portablecatalog/routing/review/accounting. Preservefull95/90/90releaseobligations andactualplatformlimits; no newharness/skill, fullcampaign orpublication/merge. Own actualintegration outcome, notapprovalcampaign."
+    }
+  ]
+}
