@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using CIS.RestClient;
+using CIS.Workflows;
 using global::OpenTelemetry.Metrics;
 
 namespace CIS.Metrics.OpenTelemetry;
@@ -46,7 +47,8 @@ public static class MetricsServiceCollectionExtensions
         services.AddSingleton(settings);
         services.AddSingleton(guard);
         services.AddSingleton(new MetricsHostingOrder(services));
-        services.AddSingleton(provider => new MetricsCollectionContext(provider, settings, guard, RestComposition(services)));
+        services.AddSingleton(provider => new MetricsCollectionContext(provider, settings, guard,
+            RestComposition(services), WorkflowComposition(services)));
         services.AddSingleton<IMetrics>(provider => provider.GetRequiredService<MetricsCollectionContext>().Metrics);
         if (settings.CollectCoreModules)
         { services.AddSingleton(provider => provider.GetRequiredService<MetricsCollectionContext>().Runtime); }
@@ -67,7 +69,8 @@ public static class MetricsServiceCollectionExtensions
         // Preserve the existing Core bridge tail, including when Metrics is installed after it.
         // Only descriptors added by this invocation move; no foreign service is reordered.
         ServiceDescriptor? bridge = precedingHosted.FirstOrDefault(descriptor =>
-            descriptor.ImplementationType == typeof(CIS.RestClient.Hosting.RestHostedService)
+            descriptor.ImplementationType == typeof(CIS.Workflows.Hosting.PipelineHostedService)
+            || descriptor.ImplementationType == typeof(CIS.RestClient.Hosting.RestHostedService)
             || descriptor.ImplementationType == typeof(CIS.Heartbeat.Hosting.HeartbeatHostedService)
             || descriptor.ImplementationType == typeof(CIS.Startup.Hosting.StartupHostedService));
         if (bridge is not null)
@@ -90,6 +93,23 @@ public static class MetricsServiceCollectionExtensions
         if (markers.Length == 0) { return null; }
         if (markers.Length != 1 || markers[0].ImplementationInstance is not RestClientComposition composition)
         { throw new InvalidOperationException("REST composition must have one passive registration-owned metadata instance."); }
+        return composition;
+    }
+
+    private static WorkflowsComposition? WorkflowComposition(IServiceCollection services)
+    {
+        ServiceDescriptor[] markers = services.Where(descriptor => !descriptor.IsKeyedService
+            && descriptor.ServiceType == typeof(WorkflowsComposition)).ToArray();
+        if (markers.Length == 0)
+        {
+            return null;
+        }
+
+        if (markers.Length != 1 || markers[0].ImplementationInstance is not WorkflowsComposition composition)
+        {
+            throw new InvalidOperationException("Workflow composition must have one passive registration-owned metadata instance.");
+        }
+
         return composition;
     }
 }

@@ -2,6 +2,7 @@ using CIS.Hosting;
 using CIS.RestClient;
 using CIS.RestClient.Resilience;
 using CIS.Startup;
+using CIS.Workflows.Hosting;
 
 namespace CIS.Examples.CountryData;
 
@@ -20,6 +21,7 @@ internal static class Program
             countries.Operations.Add("refresh");
             builder.RestClients.Add(countries);
             builder.Services.AddCisRestClientResilience(RestRetryPolicy.TransientHttp);
+            builder.Services.AddCisWorkflows();
             builder.Services.AddSingleton<CountryCatalog>();
             builder.Services.AddSingleton<IStartable>(provider => provider.GetRequiredService<CountryCatalog>());
         }, web => web.MapGet("/country/{identifier}", CountryEndpoints.Get));

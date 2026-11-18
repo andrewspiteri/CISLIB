@@ -12,6 +12,8 @@ using CIS.Startup;
 using CIS.TestSupport;
 using CIS.Tests.IntegrationTests.Metrics;
 using CIS.TypeManagement;
+using CIS.Workflows;
+using CIS.Workflows.Hosting;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server;
@@ -73,11 +75,13 @@ internal sealed class CountryDataTestHost : IAsyncDisposable
             configureClient?.Invoke(client);
             builder.RestClients.Add(client);
             builder.Services.AddCisRestClientResilience(RestRetryPolicy.TransientHttp);
+            builder.Services.AddCisWorkflows();
             builder.ConfigureCisMetrics(options => { options.Enabled = metrics; options.ScrapeCacheDuration = TimeSpan.Zero; });
             builder.Services.AddSingleton<CountryCatalog>();
             builder.Services.AddSingleton<IStartable>(root => root.GetRequiredService<CountryCatalog>());
         }, web => web.MapGet("/country/{identifier}",
-            (string identifier, CountryCatalog catalog) => CountryEndpoints.Get(identifier, catalog)));
+            (string identifier, IPipelineFactory pipelines, Microsoft.AspNetCore.Http.HttpContext context)
+                => CountryEndpoints.Get(identifier, pipelines, context)));
     }
 
     internal HttpClient Client()

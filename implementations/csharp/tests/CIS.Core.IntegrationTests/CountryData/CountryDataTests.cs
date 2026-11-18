@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using CIS.Examples.CountryData;
 using CIS.Healthcheck;
+using CIS.Workflows;
 using CIS.Tests.IntegrationTests.Metrics;
 using CIS.Tests.UnitTests.RestClient;
 using Microsoft.AspNetCore.Http;
@@ -17,6 +18,63 @@ public sealed class CountryDataTests
 {
     private const string Malta = "{\"error\":false,\"msg\":\"ok\",\"data\":[{\"name\":\"Malta\",\"Iso2\":\"mt\",\"Iso3\":\"mlt\"}]}";
     private const string Expanded = "{\"error\":false,\"data\":[{\"name\":\"Malta\",\"Iso2\":\"MT\",\"Iso3\":\"MLT\"},{\"name\":\"Trinidad and Tobago\",\"Iso2\":\"TT\",\"Iso3\":\"TTO\"}]}";
+
+    [TestMethod]
+    [DataRow(" mLt ", null, 3)]
+    [DataRow("unknown", "country.not_found", 2)]
+    [DataRow("  ", "country.invalid_identifier", 1)]
+    public async Task CachedLookupReportsEnteredPhasesAndKeepsTheBorrowedRequestScopeAlive(
+        string identifier, string? errorCode, int enteredSteps)
+    {
+        int requests = 0;
+        await using var origin = await RestHttpLocalServer.StartAsync(async context =>
+        {
+            Interlocked.Increment(ref requests);
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(Malta, context.RequestAborted);
+        });
+        await using var host = new CountryDataTestHost(origin.Address, metrics: false);
+        await host.App.StartAsync();
+        await using AsyncServiceScope scope = host.App.Services.CreateAsyncScope();
+        IPipelineFactory factory = host.App.Services.GetRequiredService<IPipelineFactory>();
+        IPipeline<CountryLookupContext> pipeline = CountryLookupPipeline.Build(factory, scope.ServiceProvider, identifier);
+
+        await pipeline.Execute();
+
+        Assert.AreEqual(identifier, pipeline.Context.Identifier);
+        CollectionAssert.AreEqual(new[] { "normalize", "find", "prepare_response" },
+            pipeline.Steps.Select(step => step.Name).ToArray());
+        Assert.HasCount(enteredSteps, pipeline.ExecutedSteps);
+        Assert.AreSame(host.Catalog, scope.ServiceProvider.GetRequiredService<CountryCatalog>());
+        Assert.AreEqual(1, Volatile.Read(ref requests), "Cached pipeline work must not issue another provider request.");
+        Assert.IsNotNull(pipeline.Duration);
+        Assert.IsTrue(pipeline.ExecutedSteps.All(step => step.ExecutionDuration.HasValue));
+        Assert.IsTrue(pipeline.Steps.Skip(enteredSteps).All(step =>
+            step.ExecutionStatus == PipelineStepExecutionStatus.NotStarted
+            && step.ExecutionDuration is null && step.ErrorDuration is null));
+
+        if (errorCode is null)
+        {
+            Assert.IsTrue(pipeline.Success);
+            Assert.AreEqual(PipelineStatus.Succeeded, pipeline.Status);
+            Assert.AreEqual(new Country("Malta", "MT", "MLT"), pipeline.Context.Country);
+            Assert.AreEqual(200, ((IStatusCodeHttpResult)pipeline.Context.Response!).StatusCode);
+            Assert.IsTrue(pipeline.Steps.All(step => step.ErrorStatus == PipelineStepErrorStatus.NotCalled));
+        }
+        else
+        {
+            Assert.IsFalse(pipeline.Success);
+            Assert.AreEqual(PipelineStatus.Failed, pipeline.Status);
+            Assert.AreEqual(errorCode, pipeline.Error?.Code);
+            Assert.AreEqual(enteredSteps - 1, pipeline.FailedStep?.Position);
+            Assert.IsTrue(pipeline.ExecutedSteps.All(step =>
+                step.ErrorStatus == PipelineStepErrorStatus.Succeeded && step.ErrorDuration.HasValue));
+            Assert.IsNull(pipeline.Context.Key);
+            Assert.IsNull(pipeline.Context.Country);
+            Assert.IsNull(pipeline.Context.Response);
+            Assert.HasCount(0, pipeline.ErrorHandlingFailures);
+        }
+    }
 
     [TestMethod]
     public void SnapshotCopiesCanonicalRecordsAndAliasesWithoutMutatingProviderData()

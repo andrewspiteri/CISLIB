@@ -9,6 +9,7 @@ using CIS.RestClient;
 using CIS.RestClient.Hosting;
 using CIS.Startup.Hosting;
 using CIS.TypeManagement;
+using CIS.Workflows.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -23,6 +24,9 @@ internal sealed class CISApplicationComposition
     private readonly List<ServiceDescriptor> loggingDefaults = [];
     private readonly List<ServiceDescriptor> healthDefaults = [];
     private readonly List<ServiceDescriptor> heartbeatDefaults = [];
+    private PipelineHostingRegistration? workflows;
+
+    internal PipelineHostingRegistration? Workflows => workflows;
 
     internal CoreLogRuntime? Log
     {
@@ -105,6 +109,8 @@ internal sealed class CISApplicationComposition
 
     internal void Seal()
     {
+        workflows = setup.Services.LastOrDefault(item => !item.IsKeyedService
+            && item.ServiceType == typeof(PipelineHostingRegistration))?.ImplementationInstance as PipelineHostingRegistration;
         ArgumentNullException.ThrowIfNull(setup.TypeManager);
         string name = setup.TypeManager.HostAssembly?.GetName().Name
             ?? throw new InvalidOperationException("Type Manager requires the actual managed host assembly.");
@@ -176,6 +182,7 @@ internal sealed class CISApplicationComposition
         }
 
         // Move only the exact cooperating bridges, preserving application registration order.
+        MoveTail(typeof(PipelineHostedService));
         MoveTail(typeof(RestHostedService));
         if (setup.HeartbeatEnabled)
         {

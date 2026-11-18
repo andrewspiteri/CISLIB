@@ -71,6 +71,7 @@ internal sealed class MetricsSettings
     internal bool? OutgoingHttpSelection { get; }
     internal bool CollectOutgoingHttp { get; }
     internal bool CollectRestClient { get; }
+    internal bool CollectWorkflows { get; }
     internal int MaxDefinitions { get; }
     internal int MaxStreams { get; }
     internal int CardinalityLimit { get; }
@@ -100,14 +101,15 @@ internal sealed class MetricsSettings
 
     // Configured options stay immutable and comparable independently of registration order.
     // Only the final context derives composition before any provider/producer is activated.
-    internal MetricsSettings ForComposition(bool hasRestClient) => new(this, hasRestClient);
+    internal MetricsSettings ForComposition(bool hasRestClient, bool hasWorkflows = false) => new(this, hasRestClient, hasWorkflows);
 
-    private MetricsSettings(MetricsSettings configured, bool hasRestClient)
+    private MetricsSettings(MetricsSettings configured, bool hasRestClient, bool hasWorkflows)
     {
         Enabled = configured.Enabled; CollectCoreModules = configured.CollectCoreModules;
         CollectIncomingHttp = configured.CollectIncomingHttp; OutgoingHttpSelection = configured.OutgoingHttpSelection;
         CollectOutgoingHttp = OutgoingHttpSelection ?? hasRestClient;
         CollectRestClient = hasRestClient && CollectCoreModules;
+        CollectWorkflows = hasWorkflows && CollectCoreModules;
         MaxDefinitions = configured.MaxDefinitions; MaxStreams = configured.MaxStreams;
         CardinalityLimit = configured.CardinalityLimit; HistogramCardinalityLimit = configured.HistogramCardinalityLimit;
         HttpDurationCardinalityLimit = configured.HttpDurationCardinalityLimit; TotalCardinalityLimit = configured.TotalCardinalityLimit;

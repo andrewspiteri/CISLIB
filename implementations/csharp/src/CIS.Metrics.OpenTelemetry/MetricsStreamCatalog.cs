@@ -59,13 +59,27 @@ internal sealed class MetricsStreamCatalog
                 Module("cis.restclient.payload.uploaded", MetricKind.Counter, MetricUnit.Bytes, ["client", "operation"]);
                 Module("cis.restclient.payload.downloaded", MetricKind.Counter, MetricUnit.Bytes, ["client", "operation"]);
             }
+            if (settings.CollectWorkflows)
+            {
+                WorkflowModule("cis.pipeline.execution.duration", MetricKind.Timer, MetricUnit.Seconds,
+                    ["outcome", "pipeline"], 48);
+                WorkflowModule("cis.pipeline.active.executions", MetricKind.UpDownCounter, MetricUnit.Count,
+                    ["pipeline"], 16);
+                WorkflowModule("cis.pipeline.step.duration", MetricKind.Timer, MetricUnit.Seconds,
+                    ["outcome", "phase", "pipeline", "step"], 384);
+            }
             if (modules.Count > settings.MaxDefinitions)
-            { throw new ArgumentException("The known CIS module definitions exceed the configured definition capacity."); }
+            {
+                throw new ArgumentException("The known CIS module definitions exceed the configured definition capacity.");
+            }
         }
         // Explicit stream overrides reserve their budget even when the static producer appears later.
         foreach ((string name, StreamOverride profile) in settings.Streams)
         {
-            if (policies.ContainsKey(name)) { continue; }
+            if (policies.ContainsKey(name))
+            {
+                continue;
+            }
             Reserve(name, null, profile.CardinalityLimit ?? Math.Max(settings.CardinalityLimit, settings.HistogramCardinalityLimit), [], profile.HistogramBounds ?? []);
         }
     }
@@ -75,12 +89,18 @@ internal sealed class MetricsStreamCatalog
         get
         {
             var names = new List<string>();
-            if (settings.CollectIncomingHttp) { names.AddRange(["http_server_request_duration_seconds", "http_server_request_duration_seconds_bucket",
+            if (settings.CollectIncomingHttp)
+            {
+                names.AddRange(["http_server_request_duration_seconds", "http_server_request_duration_seconds_bucket",
                 "http_server_request_duration_seconds_sum", "http_server_request_duration_seconds_count",
-                "http_server_request_duration_seconds_created", "http_server_active_requests"]); }
-            if (settings.CollectOutgoingHttp) { names.AddRange(["http_client_request_duration_seconds", "http_client_request_duration_seconds_bucket",
+                "http_server_request_duration_seconds_created", "http_server_active_requests"]);
+            }
+            if (settings.CollectOutgoingHttp)
+            {
+                names.AddRange(["http_client_request_duration_seconds", "http_client_request_duration_seconds_bucket",
                 "http_client_request_duration_seconds_sum", "http_client_request_duration_seconds_count",
-                "http_client_request_duration_seconds_created", "http_client_active_requests"]); }
+                "http_client_request_duration_seconds_created", "http_client_active_requests"]);
+            }
             return names.AsReadOnly();
         }
     }
@@ -103,17 +123,23 @@ internal sealed class MetricsStreamCatalog
             if (modules.TryGetValue(name, out ModuleProfile? module)
                 && (module.Kind != registration.Kind || module.Unit != registration.Definition.Unit
                     || !module.Keys.SequenceEqual(registration.Definition.AllowedDimensionKeys)))
-            { throw new InvalidOperationException("The instrument conflicts with the fixed CIS module stream profile."); }
+            {
+                throw new InvalidOperationException("The instrument conflicts with the fixed CIS module stream profile.");
+            }
             bool histogram = registration.Kind is MetricKind.Histogram or MetricKind.Timer;
             StreamOverride? supplied = settings.Streams.GetValueOrDefault(name);
             if (!histogram && supplied?.HistogramBounds is not null)
-            { throw new ArgumentException("A non-histogram stream cannot accept histogram boundaries."); }
+            {
+                throw new ArgumentException("A non-histogram stream cannot accept histogram boundaries.");
+            }
             int capacity = supplied?.CardinalityLimit ?? (histogram ? settings.HistogramCardinalityLimit : settings.CardinalityLimit);
             IReadOnlyList<double> bounds = supplied?.HistogramBounds ?? registration.HistogramBounds;
             if (policies.TryGetValue(name, out StreamPolicy? existing))
             {
                 if (existing.Kind is not null && existing.Kind != registration.Kind)
-                { throw new InvalidOperationException("The instrument conflicts with a reserved stream kind."); }
+                {
+                    throw new InvalidOperationException("The instrument conflicts with a reserved stream kind.");
+                }
                 // An override without an explicit capacity reserved the larger possible default until kind was known.
                 int effectiveCapacity = existing.Kind is null ? capacity : existing.Capacity;
                 policies[name] = new(name, registration.Kind, effectiveCapacity, registration.Definition.AllowedDimensionKeys, bounds);
@@ -121,7 +147,10 @@ internal sealed class MetricsStreamCatalog
                 selectedCore.Add(name);
                 return true;
             }
-            if (policies.Count >= settings.MaxStreams || (long)capacities + capacity > settings.TotalCardinalityLimit) { return false; }
+            if (policies.Count >= settings.MaxStreams || (long)capacities + capacity > settings.TotalCardinalityLimit)
+            {
+                return false;
+            }
             policies.Add(name, new(name, registration.Kind, capacity, registration.Definition.AllowedDimensionKeys, bounds));
             capacities += capacity;
             selectedCore.Add(name);
@@ -144,25 +173,54 @@ internal sealed class MetricsStreamCatalog
             keys, histogram ? DurationBounds : []);
     }
 
+    private void WorkflowModule(string name, MetricKind kind, MetricUnit unit, IReadOnlyList<string> keys, int minimumCapacity)
+    {
+        if (settings.Streams.GetValueOrDefault(name)?.CardinalityLimit is { } configured && configured < minimumCapacity)
+        {
+            throw new ArgumentException("The workflow stream override cannot cover its admitted finite alias profile.");
+        }
+
+        Module(name, kind, unit, keys, minimumCapacity);
+    }
+
     internal MetricStreamConfiguration Select(Instrument instrument, MetricsRuntime runtime, Meter hostingMeter, Meter? outgoingMeter = null)
     {
         StreamPolicy? policy;
         if (ReferenceEquals(instrument.Meter, runtime.Meter) && runtime.TryGetRegistration(instrument, out MetricRegistration? registration))
         {
-            lock (gate) { policy = selectedCore.Contains(registration.Definition.Name) ? policies.GetValueOrDefault(registration.Definition.Name) : null; }
+            lock (gate)
+            {
+                policy = selectedCore.Contains(registration.Definition.Name) ? policies.GetValueOrDefault(registration.Definition.Name) : null;
+            }
         }
         else if (settings.CollectIncomingHttp && ReferenceEquals(instrument.Meter, hostingMeter)
             && (instrument.Name == "http.server.request.duration" && instrument is Histogram<double> && instrument.Unit == "s"
                 && instrument.Description == "Duration of HTTP server requests."
                 || instrument.Name == "http.server.active_requests" && instrument is UpDownCounter<long> && instrument.Unit == "{request}"
                 && instrument.Description == "Number of active HTTP server requests."))
-        { lock (gate) { policy = policies.GetValueOrDefault(instrument.Name); } }
+        {
+            lock (gate)
+            {
+                policy = policies.GetValueOrDefault(instrument.Name);
+            }
+        }
         else if (settings.CollectOutgoingHttp && ReferenceEquals(instrument.Meter, outgoingMeter)
             && (instrument.Name == "http.client.request.duration" && instrument is Histogram<double> && instrument.Unit == "s"
                 || instrument.Name == "http.client.active_requests" && instrument is UpDownCounter<long> && instrument.Unit == "{request}"))
-        { lock (gate) { policy = policies.GetValueOrDefault(instrument.Name); } }
-        else { return MetricStreamConfiguration.Drop; }
-        if (policy is null) { return MetricStreamConfiguration.Drop; }
+        {
+            lock (gate)
+            {
+                policy = policies.GetValueOrDefault(instrument.Name);
+            }
+        }
+        else
+        {
+            return MetricStreamConfiguration.Drop;
+        }
+        if (policy is null)
+        {
+            return MetricStreamConfiguration.Drop;
+        }
         if (policy.Kind is MetricKind.Histogram or MetricKind.Timer)
         {
             return new ExplicitBucketHistogramConfiguration
@@ -181,9 +239,13 @@ internal sealed class MetricsStreamCatalog
         capacity = supplied?.CardinalityLimit ?? capacity;
         bounds = supplied?.HistogramBounds ?? bounds;
         if (kind is not null and not MetricKind.Histogram and not MetricKind.Timer && supplied?.HistogramBounds is not null)
-        { throw new ArgumentException("A non-histogram stream cannot accept histogram boundaries."); }
+        {
+            throw new ArgumentException("A non-histogram stream cannot accept histogram boundaries.");
+        }
         if (policies.Count >= settings.MaxStreams || (long)capacities + capacity > settings.TotalCardinalityLimit)
-        { throw new ArgumentException("The known Metrics catalog exceeds its stream or total dimension capacity."); }
+        {
+            throw new ArgumentException("The known Metrics catalog exceeds its stream or total dimension capacity.");
+        }
         policies.Add(name, new(name, kind, capacity, keys, bounds));
         capacities += capacity;
     }

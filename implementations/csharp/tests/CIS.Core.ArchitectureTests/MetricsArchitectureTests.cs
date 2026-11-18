@@ -13,9 +13,12 @@ public sealed class MetricsArchitectureTests
         Assembly core = typeof(IMetrics).Assembly;
         Assert.AreEqual("CIS.Core", core.GetName().Name);
         Type[] surface = core.GetExportedTypes().Where(type => type.Namespace == "CIS.Metrics").ToArray();
-        CollectionAssert.AreEquivalent(new[] { "IMetrics", "ICounter", "IUpDownCounter", "IGauge", "IHistogram", "ITimer",
+        CollectionAssert.AreEquivalent(new[] { "DisabledMetrics", "IMetrics", "ICounter", "IUpDownCounter", "IGauge", "IHistogram", "ITimer",
             "ITimingScope", "MetricUnit", "MetricDefinition", "MetricDimensions", "MetricObservation" }, surface.Select(type => type.Name).ToArray());
-        foreach (Type type in surface) { AssertPortable(type); }
+        foreach (Type type in surface)
+        {
+            AssertPortable(type);
+        }
     }
 
     [TestMethod]
@@ -50,7 +53,9 @@ public sealed class MetricsArchitectureTests
                 || space.StartsWith("OpenTelemetry", StringComparison.Ordinal)
                 || space.StartsWith("Microsoft.", StringComparison.Ordinal)
                 || type == typeof(System.Diagnostics.Stopwatch) || type == typeof(TimeProvider))
-            { throw new InvalidOperationException(source.FullName + " exposes a platform instrumentation dependency: " + type.FullName); }
+            {
+                throw new InvalidOperationException(source.FullName + " exposes a platform instrumentation dependency: " + type.FullName);
+            }
         }
     }
 
@@ -59,18 +64,39 @@ public sealed class MetricsArchitectureTests
         yield return type;
         if (type.HasElementType)
         {
-            foreach (Type inner in Contained(type.GetElementType()!)) { yield return inner; }
+            foreach (Type inner in Contained(type.GetElementType()!))
+            {
+                yield return inner;
+            }
         }
         if (type.IsGenericType)
         {
-            foreach (Type inner in type.GetGenericArguments().SelectMany(Contained)) { yield return inner; }
+            foreach (Type inner in type.GetGenericArguments().SelectMany(Contained))
+            {
+                yield return inner;
+            }
         }
     }
 
     public sealed class DirectInstrumentLeak
-    { public System.Diagnostics.Metrics.Meter? Meter { get; set; } }
+    {
+        public System.Diagnostics.Metrics.Meter? Meter
+        {
+            get; set;
+        }
+    }
     public sealed class NestedCallbackLeak
-    { public Func<IReadOnlyList<System.Diagnostics.Metrics.Instrument>>? Callback { get; set; } }
+    {
+        public Func<IReadOnlyList<System.Diagnostics.Metrics.Instrument>>? Callback
+        {
+            get; set;
+        }
+    }
     public sealed class PlatformClockLeak
-    { public TimeProvider? Clock { get; set; } }
+    {
+        public TimeProvider? Clock
+        {
+            get; set;
+        }
+    }
 }

@@ -22,6 +22,16 @@ trimmed and matched exactly, without fuzzy matching. Unknown identifiers return
 country.invalid_identifier. Lookups and misses read the local snapshot without
 requesting provider data.
 
+The route opts into `AddCisWorkflows()` and runs a fresh `CountryLookup` pipeline
+in the actual request scope: `normalize`, `find`, then `prepare_response`.
+`CountryLookupPipeline.cs` contains the typed context and DI-activated steps.
+An ordinary unknown identifier fails in `find`, invokes its `Error` before
+`normalize.Error`, and leaves `prepare_response` unentered. Compensation clears
+only the local draft; the published catalog remains unchanged. The
+[pipeline guide](../../../../docs/modules/workflows/pipeline.md) covers reports,
+owned versus borrowed scopes and automatic phase/run observations. Periodic
+refresh keeps its existing bounded diagnostics and is not wrapped in this pipeline.
+
 CISApplication prepares Type Manager and Configuration before building one real
 provider. It composes logging, health, Heartbeat, Startup, the selected named REST
 profile and the installed Metrics adapter. Program supplies application services,
