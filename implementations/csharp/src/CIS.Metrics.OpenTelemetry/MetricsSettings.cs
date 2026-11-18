@@ -10,6 +10,8 @@ internal sealed class MetricsSettings
         Enabled = options.Enabled;
         CollectCoreModules = options.CollectCoreModules;
         CollectIncomingHttp = options.CollectIncomingHttp;
+        OutgoingHttpSelection = options.CollectOutgoingHttp;
+        CollectOutgoingHttp = options.CollectOutgoingHttp == true;
         MaxDefinitions = Positive(options.MaxDefinitions);
         MaxStreams = Positive(options.MaxStreams);
         CardinalityLimit = Positive(options.CardinalityLimit);
@@ -66,6 +68,9 @@ internal sealed class MetricsSettings
     internal bool Enabled { get; }
     internal bool CollectCoreModules { get; }
     internal bool CollectIncomingHttp { get; }
+    internal bool? OutgoingHttpSelection { get; }
+    internal bool CollectOutgoingHttp { get; }
+    internal bool CollectRestClient { get; }
     internal int MaxDefinitions { get; }
     internal int MaxStreams { get; }
     internal int CardinalityLimit { get; }
@@ -82,7 +87,8 @@ internal sealed class MetricsSettings
     internal IReadOnlyDictionary<string, StreamOverride> Streams { get; }
 
     internal bool Equivalent(MetricsSettings other) => Enabled == other.Enabled && CollectCoreModules == other.CollectCoreModules
-        && CollectIncomingHttp == other.CollectIncomingHttp && MaxDefinitions == other.MaxDefinitions && MaxStreams == other.MaxStreams
+        && CollectIncomingHttp == other.CollectIncomingHttp && OutgoingHttpSelection == other.OutgoingHttpSelection
+        && MaxDefinitions == other.MaxDefinitions && MaxStreams == other.MaxStreams
         && CardinalityLimit == other.CardinalityLimit && HistogramCardinalityLimit == other.HistogramCardinalityLimit
         && HttpDurationCardinalityLimit == other.HttpDurationCardinalityLimit && TotalCardinalityLimit == other.TotalCardinalityLimit
         && MaxScrapeResponseSizeBytes == other.MaxScrapeResponseSizeBytes && MaxConcurrentScrapes == other.MaxConcurrentScrapes
@@ -91,6 +97,25 @@ internal sealed class MetricsSettings
         && Streams.Count == other.Streams.Count && Streams.All(pair => other.Streams.TryGetValue(pair.Key, out StreamOverride? value)
             && pair.Value.CardinalityLimit == value.CardinalityLimit
             && (pair.Value.HistogramBounds ?? []).SequenceEqual(value.HistogramBounds ?? []));
+
+    // Configured options stay immutable and comparable independently of registration order.
+    // Only the final context derives composition before any provider/producer is activated.
+    internal MetricsSettings ForComposition(bool hasRestClient) => new(this, hasRestClient);
+
+    private MetricsSettings(MetricsSettings configured, bool hasRestClient)
+    {
+        Enabled = configured.Enabled; CollectCoreModules = configured.CollectCoreModules;
+        CollectIncomingHttp = configured.CollectIncomingHttp; OutgoingHttpSelection = configured.OutgoingHttpSelection;
+        CollectOutgoingHttp = OutgoingHttpSelection ?? hasRestClient;
+        CollectRestClient = hasRestClient && CollectCoreModules;
+        MaxDefinitions = configured.MaxDefinitions; MaxStreams = configured.MaxStreams;
+        CardinalityLimit = configured.CardinalityLimit; HistogramCardinalityLimit = configured.HistogramCardinalityLimit;
+        HttpDurationCardinalityLimit = configured.HttpDurationCardinalityLimit; TotalCardinalityLimit = configured.TotalCardinalityLimit;
+        MaxScrapeResponseSizeBytes = configured.MaxScrapeResponseSizeBytes; MaxConcurrentScrapes = configured.MaxConcurrentScrapes;
+        ScrapeTimeoutMilliseconds = configured.ScrapeTimeoutMilliseconds; ScrapeCacheMilliseconds = configured.ScrapeCacheMilliseconds;
+        Application = configured.Application; Environment = configured.Environment;
+        ResourceAttributes = configured.ResourceAttributes; Streams = configured.Streams;
+    }
 
     private static int Positive(int value) => value > 0 ? value : throw new ArgumentException("Metrics limits must be positive and finite.");
     private static int Milliseconds(TimeSpan value, bool allowZero)

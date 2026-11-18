@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "scope": "Detached result construction only; HTTP decoding, cancellation and retry integration require their actual producers.",
+  "cases": [
+    { "id": "present-zero", "type": "int", "success": true, "hasValue": true, "value": 0, "failureKind": "None" },
+    { "id": "present-false", "type": "bool", "success": true, "hasValue": true, "value": false, "failureKind": "None" },
+    { "id": "present-null", "type": "string", "success": true, "hasValue": true, "value": null, "failureKind": "None" },
+    { "id": "present-empty-string", "type": "string", "success": true, "hasValue": true, "value": "", "failureKind": "None" },
+    { "id": "absent-int", "type": "int", "success": true, "hasValue": false, "value": 0, "failureKind": "None" },
+    { "id": "absent-string", "type": "string", "success": true, "hasValue": false, "value": null, "failureKind": "None" },
+    { "id": "http-failure", "type": "int", "success": false, "hasValue": false, "value": 0, "failureKind": "Http", "status": 503, "errorCode": "http.503", "errorMessage": "Remote service unavailable." },
+    { "id": "business-failure", "type": "string", "success": false, "hasValue": false, "value": null, "failureKind": "Business", "status": 200, "errorCode": "orders.rejected", "errorMessage": "Order rejected." }
+  ]
+}

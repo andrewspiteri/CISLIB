@@ -83,3 +83,21 @@ adds no Heartbeat scheduler, generic startup coordination or publication.
 Andrew Spiteri authorized the Heartbeat v0.2 implementation under [CIS-0006](../docs/changes/CIS-0006/authorization.json), preserving the actual EnvironmentOptions architecture, single Core assembly and approved dependencies. The engine uses weak idle ownership, counted real lifetime holds, monotonic fixed delay, bounded FIFO dispatch and true unregister/shutdown settlement. A separate adapter reports detached facts through existing Healthcheck policy logic. Applications retain responsibility for their actual scope/root lifecycle and business deadlines.
 
 Use the [Heartbeat guide](../docs/modules/heartbeat/README.md), [Polling example](../implementations/csharp/examples/heartbeat/Polling/README.md) and [verification record](../docs/changes/CIS-0006/verification.md) for implemented usage and actual evidence. This checkpoint does not alter earlier owners or historical results, establish Ubuntu/full-release qualification, or allocate coverage, mutation, performance, publication or a generic startup framework.
+
+## RestClient implementation — 18 November 2026
+
+Andrew Spiteri approved the P01–P12 RestClient profile and shared 12-hour,
+16-attempt allocation in [CIS-0010](../docs/changes/CIS-0010/authorization.json).
+Ordinary contracts and known pooled native HTTP remain in Core with its unchanged
+Microsoft package/framework closure. Explicit named retry uses only the optional
+Polly.Core 8.9.1 adapter; None requires no adapter. Existing Metrics keeps its old
+profile without REST and conditionally reserves the finite REST/outgoing catalog.
+Startup remains sequential and its coordinator independent; hosting signals REST
+before waiting for existing module barriers and joins actual operation cleanup.
+
+Use the [Core guide](../docs/modules/rest-client/core.md),
+[actual example and package consumers](../docs/modules/rest-client/example.md) and
+[verification](../docs/changes/CIS-0010/verification.md). Recorded Windows passes
+are scoped behavior/deployment evidence; full platform, 95/90 coverage and full
+90 mutation release obligations remain separate. No new Configuration module,
+DI framework, independent test harness or publication is included.

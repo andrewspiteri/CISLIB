@@ -4,6 +4,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using CIS.Startup.Hosting;
 using CIS.Metrics;
+using CIS.RestClient;
 
 namespace CIS.Heartbeat.Hosting;
 
@@ -29,6 +30,7 @@ internal sealed class HeartbeatHostedService(HeartbeatRuntime runtime, IHostAppl
 {
     private CancellationTokenRegistration started, stopping;
     private readonly MetricsRuntime? metrics = root.GetService<IMetrics>() as MetricsRuntime;
+    private readonly IRestClientRuntime? rest = root.GetService<IRestClientRuntime>();
 
     public Task StartingAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
@@ -53,6 +55,7 @@ internal sealed class HeartbeatHostedService(HeartbeatRuntime runtime, IHostAppl
 
     private void BeginStopping()
     {
+        rest?.BeginStopping();
         runtime.BeginStopping();
         metrics?.BeginStopping();
     }
@@ -60,7 +63,7 @@ internal sealed class HeartbeatHostedService(HeartbeatRuntime runtime, IHostAppl
     private Task StopCoreAsync()
     {
         BeginStopping();
-        return Task.WhenAll(runtime.StopAsync(), metrics?.StopAsync() ?? Task.CompletedTask);
+        return Task.WhenAll(rest?.StopAsync() ?? Task.CompletedTask, runtime.StopAsync(), metrics?.StopAsync() ?? Task.CompletedTask);
     }
 
     public async ValueTask DisposeAsync()

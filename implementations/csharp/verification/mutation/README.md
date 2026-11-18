@@ -56,6 +56,14 @@ receive kill credit. Review compiler rollbacks, noncompiling/ignored mutants
 and untested child paths explicitly. Stryker's displayed score alone does not
 establish this stricter release claim. Keep unresolved product failures visible.
 
+The focused [RestClient mapping configuration](rest-client-mapping.json) selects
+the entire `RestClient/Extensions/RestResponseMapping.cs`, the existing REST unit
+tests and the same 90% break threshold. From the Core project directory use
+`dotnet stryker --config-file ../../verification/mutation/rest-client-mapping.json --skip-version-check`.
+Its actual observations, remaining survivors and normal-build restoration are
+recorded in [CIS-0010 verification](../../../../docs/changes/CIS-0010/verification.md).
+This component check does not replace whole-library release mutation or coverage.
+
 These are native routes for future scoped execution. Cleanup did not run a
 whole-library mutation campaign or qualify either supported release lane.
 See [Stryker configuration](https://stryker-mutator.io/docs/stryker-net/configuration/)

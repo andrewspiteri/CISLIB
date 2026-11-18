@@ -5,6 +5,7 @@ using CIS.Heartbeat;
 using CIS.Logging;
 using CIS.Logging.MicrosoftLogger;
 using CIS.TypeManagement;
+using CIS.RestClient;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -21,17 +22,22 @@ internal sealed class MetricsCollectionContext : IAsyncDisposable
     private readonly IServiceProvider root;
     private readonly MetricsStreamCatalog catalog;
     private readonly MetricsRegistrationGuard guard;
+    private readonly RestClientComposition? restComposition;
     private ILogger<MetricsCollectionContext>? logger;
     private int active, stopping;
 
-    internal MetricsCollectionContext(IServiceProvider root, MetricsSettings settings, MetricsRegistrationGuard guard)
+    internal MetricsCollectionContext(IServiceProvider root, MetricsSettings settings, MetricsRegistrationGuard guard,
+        RestClientComposition? restComposition = null)
     {
         this.root = root;
         this.guard = guard;
+        this.restComposition = restComposition;
+        settings = settings.ForComposition(restComposition is not null);
         Settings = settings;
         IMeterFactory factory = root.GetRequiredService<IMeterFactory>();
         CisMeter = factory.Create("CIS.Metrics", "1.0.0");
         HostingMeter = factory.Create("Microsoft.AspNetCore.Hosting");
+        OutgoingMeter = settings.CollectOutgoingHttp ? factory.Create("System.Net.Http") : null;
         catalog = new(settings);
         Runtime = new(CisMeter, new MetricsRuntimeOptions
         {
@@ -49,13 +55,14 @@ internal sealed class MetricsCollectionContext : IAsyncDisposable
     internal IMetrics Metrics => Settings.Enabled ? Runtime : DisabledMetrics.Instance;
     internal Meter CisMeter { get; }
     internal Meter HostingMeter { get; }
+    internal Meter? OutgoingMeter { get; }
     internal bool IsEnabled => Settings.Enabled;
     internal bool IsActive => Volatile.Read(ref active) != 0 && !IsStopping;
     internal bool IsStopping => Volatile.Read(ref stopping) != 0 || Runtime.IsStopping;
     internal int DefinitionCount => Runtime.Definitions.Count;
     internal int ReservedNameCount => Runtime.ReservedExportedNames.Count;
     internal IReadOnlyList<MetricsStreamSnapshot> CaptureCatalog() => catalog.Capture();
-    internal MetricStreamConfiguration Select(Instrument instrument) => catalog.Select(instrument, Runtime, HostingMeter);
+    internal MetricStreamConfiguration Select(Instrument instrument) => catalog.Select(instrument, Runtime, HostingMeter, OutgoingMeter);
 
     internal ResourceBuilder Resource()
     {
@@ -97,6 +104,13 @@ internal sealed class MetricsCollectionContext : IAsyncDisposable
         { Attach(provider.MetricsSource); }
         root.GetService<ConfigurationRuntime>()?.AttachMetrics(Runtime);
         root.GetService<ITypeManager>()?.PreparationReport.AttachMetrics(Runtime);
+        if (restComposition is not null)
+        {
+            IRestClientRuntime owner = root.GetRequiredService<IRestClientRuntime>();
+            if (!ReferenceEquals(owner.RegistrationIdentity, restComposition.RegistrationIdentity))
+            { throw new InvalidOperationException("The configured REST composition must belong to its exact registered runtime."); }
+            owner.AttachMetrics(Runtime);
+        }
 
         void Attach(IMetricsSource? source) => source?.AttachMetrics(Runtime);
     }

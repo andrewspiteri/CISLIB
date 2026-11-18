@@ -11,6 +11,7 @@
     <ProjectReference Include="../../examples/healthcheck/CountryList/CountryList.csproj" ReferenceOutputAssembly="false" Private="false" PrivateAssets="all" />
     <ProjectReference Include="../../examples/startup/CountryList/CountryList.csproj" ReferenceOutputAssembly="false" Private="false" PrivateAssets="all" />
     <ProjectReference Include="../../examples/metrics/MetricApi/MetricApi.csproj" ReferenceOutputAssembly="false" Private="false" PrivateAssets="all" />
+    <ProjectReference Include="../../examples/rest-client/RestApi/RestApi.csproj" ReferenceOutputAssembly="false" Private="false" PrivateAssets="all" />
   </ItemGroup>
   <Target Name="CopyLoggingBusinessFixture" AfterTargets="Build">
     <ItemGroup>
@@ -35,5 +36,11 @@
       <MetricsBusinessExampleFiles Include="../../examples/metrics/MetricApi/bin/$(Configuration)/$(TargetFramework)/*" />
     </ItemGroup>
     <Copy SourceFiles="@(MetricsBusinessExampleFiles)" DestinationFolder="$(TargetDir)metrics-api" />
+  </Target>
+  <Target Name="CopyRestClientBusinessExample" AfterTargets="Build">
+    <ItemGroup>
+      <RestClientBusinessExampleFiles Include="../../examples/rest-client/RestApi/bin/$(Configuration)/$(TargetFramework)/*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(RestClientBusinessExampleFiles)" DestinationFolder="$(TargetDir)rest-client-api" />
   </Target>
 </Project>

@@ -5,6 +5,7 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../CIS.Core.UnitTests/RestClient/RestHttpTestSupport.cs" Link="RestClient/RestHttpTestSupport.cs" />
     <Compile Include="../CIS.Core.BusinessCases/Healthcheck/CountryListStartupExpectations.cs" Link="Healthcheck/CountryListStartupExpectations.cs" />
     <Compile Include="../fixtures/DiscoveryHost/ProviderReportChecks.cs" Link="Discovery/ProviderReportChecks.cs" />
     <None Include="../../../../contracts/logging/v1/configuration.json" Link="discovery-configuration.json" CopyToOutputDirectory="PreserveNewest" />
@@ -34,11 +35,15 @@
     <Compile Include="../fixtures/DiscoveryHost/FlushResultExpectations.cs" Link="FlushResultExpectations.cs" />
     <ProjectReference Include="../../src/CIS.Core/CIS.Core.csproj" />
     <ProjectReference Include="../../src/CIS.Metrics.OpenTelemetry/CIS.Metrics.OpenTelemetry.csproj" />
+    <ProjectReference Include="../../src/CIS.RestClient.Resilience/CIS.RestClient.Resilience.csproj" />
     <Compile Include="../fixtures/DiscoveryHost/ConfigurationReadExpectations.cs" Link="ConfigurationReadExpectations.cs" />
     <ProjectReference Include="../CIS.Core.TestSupport/CIS.Core.TestSupport.csproj" />
     <ProjectReference Include="../fixtures/DiscoveryHost/CIS.Core.DiscoveryFixture.csproj" />
     <ProjectReference Include="../fixtures/HealthcheckHttpHost/HealthcheckHttpHost.csproj" ReferenceOutputAssembly="false" Private="false" PrivateAssets="all" />
     <ProjectReference Include="../../tools/CisHealthProbe/CisHealthProbe.csproj" ReferenceOutputAssembly="false" Private="false" PrivateAssets="all" />
+    <ProjectReference Include="../../examples/type-manager/Console/Console.csproj" ReferenceOutputAssembly="false" Private="false" PrivateAssets="all" />
+    <ProjectReference Include="../../examples/type-manager/Web/Web.csproj" ReferenceOutputAssembly="false" Private="false" PrivateAssets="all" />
+    <ProjectReference Include="../fixtures/TypeManager/ExampleLate/ExampleLate.csproj" ReferenceOutputAssembly="false" Private="false" PrivateAssets="all" />
     <Compile Include="../fixtures/DiscoveryHost/ExceptionQualificationExpectations.cs" Link="ExceptionQualificationExpectations.cs" />
     <Compile Include="../fixtures/DiscoveryHost/ExceptionBoundaryExpectations.cs" Link="ExceptionBoundaryExpectations.cs" />
     <Compile Include="../fixtures/DiscoveryHost/ExceptionBoundarySources.cs" Link="ExceptionBoundarySources.cs" />

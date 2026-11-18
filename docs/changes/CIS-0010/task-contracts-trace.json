@@ -1,0 +1,24 @@
+{
+  "tasks": [
+    {
+      "assignee": "Codex",
+      "scopeIds": [
+        "rest-client-tracing"
+      ],
+      "acceptanceCriteria": "Add nullable client/per-call ForwardTraceId, inherit client override and default automatic only for finalvalidated .local hostname. Capture existing entryW3Ccontext once, addtraceparent before native normalization/replay/signing, neverfabricateIDs or auto-forward baggage/tracestate. Disable implicit.NETpropagation so off is effective. Preserve explicit manual traceparent and nativeMetrics, pools, deadlines/retry/ownership; include tests/docs/review without tracer/framework/package or DNS/test-platform expansion.",
+      "title": "Forward existing REST trace context under explicit or local-host policy",
+      "category": "implementation",
+      "paths": [
+        "implementations/csharp/src/CIS.Core/RestClient",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/RestClient",
+        "docs/modules/rest-client/core.md",
+        "docs/changes/CIS-0010"
+      ],
+      "dependsOn": [
+        "WORK-009"
+      ],
+      "complexity": "medium",
+      "validation": "Focused final-host/suffix/override/snapshot cases, directfinalizer auth/signing order, actualloopback headers with Activity/listener/defaultoff/expliciton/noActivity/manualheader and stableentrycontext. Run affectedexisting REST integration and bothConfiguration source cases; verify nativeHTTPMetrics stillworks. Preserve originalsource/userfiles, failures/history and allsharedlimits."
+    }
+  ]
+}

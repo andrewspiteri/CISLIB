@@ -1,0 +1,607 @@
+{
+  "authorizationId": "cislib:CIS-0010:outcome:23214d429eb5401485eba6e61987f44d",
+  "actor": "Codex",
+  "workItems": [
+    {
+      "id": "WORK-001",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-001.md",
+      "title": "Freeze portable RestClient contracts and shared execution seams",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [],
+      "acceptanceCriteria": "Implement the approved portable9-method IRestClient surface, guarded immutable five-property RestResult and typed detached context, explicit value-presence/null/empty/truncation semantics, isolated client/call defaults and body/header/query/retry/extension contracts. Fix P04 fault-versus-known-cancellation precedence and W3C correlation mapping. Freeze minimal internal attempt/body-reader/retry/observation/passive-composition seams so transport, extensions, optional retry and collector can compile independently. Preserve native/SDK-free ordinary signatures, exact Core closure and no frameworks or stage graph. Include portable vectors, meaningful contract/architecture tests, docs and independent review.",
+      "validation": "A01-A03/A05/A22: ordinary public signatures and exact5 result properties, valid DTO/default/null/absent/failure construction, invalid combination rejection, immutable copied context/options, explicit callback/retry disable and finite16client/32pair metadata. Compile actual Core\u002Btests; verify ordinary API exposes no HTTP/Polly/OTel types. Review shared ownership, entry-based clock, policy terminal summary and single observation binding before freeze; no fabricated transport/adapter pass.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:seed:61db41c9aaa749e0889b067fc6684810",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "rest-client"
+      ],
+      "authorizationScopeBasis": "sha256:95f1d24bf874be08964edc019f8c7ce8af6e9ce1eb9c6ac1be7c75934ddb0136",
+      "workPaths": [
+        "contracts/rest-client",
+        "conformance/rest-client",
+        "implementations/csharp/src/CIS.Core/RestClient",
+        "implementations/csharp/src/CIS.Core/CIS.Core.csproj",
+        "implementations/csharp/tests/CIS.Core.UnitTests/RestClient",
+        "implementations/csharp/tests/CIS.Core.ArchitectureTests",
+        "docs/modules/rest-client",
+        "docs/changes/CIS-0010",
+        "docs/catalog.yml",
+        "planning/rest-client"
+      ],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "Implement the approved portable9-method IRestClient surface, guarded immutable five-property RestResult and typed detached context, explicit value-presence/null/empty/truncation semantics, isolated client/call defaults and body/header/query/retry/extension contracts. Fix P04 fault-versus-known-cancellation precedence and W3C correlation mapping. Freeze minimal internal attempt/body-reader/retry/observation/passive-composition seams so transport, extensions, optional retry and collector can compile independently. Preserve native/SDK-free ordinary signatures, exact Core closure and no frameworks or stage graph. Include portable vectors, meaningful contract/architecture tests, docs and independent review."
+          ],
+          "description": "A01-A03/A05/A22: ordinary public signatures and exact5 result properties, valid DTO/default/null/absent/failure construction, invalid combination rejection, immutable copied context/options, explicit callback/retry disable and finite16client/32pair metadata. Compile actual Core\u002Btests; verify ordinary API exposes no HTTP/Polly/OTel types. Review shared ownership, entry-based clock, policy terminal summary and single observation binding before freeze; no fabricated transport/adapter pass.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "A01-A03/A05/A22: ordinary public signatures and exact5 result properties, valid DTO/default/null/absent/failure construction, invalid combination rejection, immutable copied context/options, explicit callback/retry disable and finite16client/32pair metadata. Compile actual Core\u002Btests; verify ordinary API exposes no HTTP/Polly/OTel types. Review shared ownership, entry-based clock, policy terminal summary and single observation binding before freeze; no fabricated transport/adapter pass."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-007",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-007.md",
+      "title": "Deliver actual RestClient host example and Core-only optional package consumers",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-002",
+        "WORK-003",
+        "WORK-004",
+        "WORK-005",
+        "WORK-006"
+      ],
+      "acceptanceCriteria": "Deliver compiling/running actual JSONPost/explicitretryGET/asyncauth/businessmapper/emptysuccess/cancellation example withnormalkeyedDI and existinghosts. ProvegenuineCore-onlyNone consumer andoptionalretry\u002BMetrics package build/folderpublish/deployedclosure onpinnedruntime viaexistingSDK/fixtures. CompletecomposedA20-A22 andremainingreal cross-taskbehavior, proportionateexistingUnit/Integration/Architecture/Compatibility/Business andapplicablenarrowMutation gates, docs/portablecatalog/routing/review/accounting. Preservefull95/90/90releaseobligations andactualplatformlimits; no newharness/skill, fullcampaign orpublication/merge. Own actualintegration outcome, notapprovalcampaign.",
+      "validation": "Actualsource example plus isolatedversionedCoreSDK/optionalPackageReference consumers, no friend-access substitute. Verify allsourceAPI/type/default/catalog agreements, operation/hostbarrier/retry/export integration and exactNuGet/Coreclosure. Run meaningfulaffectednative checksandstrictdocs/skills/no-modelaudit; retainfalseattempts/costs andsource/userhashes. Independentreviewexplicitlychecks responsibility/verificationmachinery didnotexpand; reportscopedproofandremainingqualification.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:69debc6334284b45b88678cdf23ce7c1",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "rest-client"
+      ],
+      "authorizationScopeBasis": "sha256:95f1d24bf874be08964edc019f8c7ce8af6e9ce1eb9c6ac1be7c75934ddb0136",
+      "workPaths": [
+        "implementations/csharp/examples/rest-client",
+        "implementations/csharp/CisLib.slnx",
+        "implementations/csharp/tests",
+        "implementations/csharp/verification/qualification",
+        "implementations/csharp/verification/mutation",
+        "docs/modules/rest-client",
+        "docs/modules/metrics",
+        "docs/architecture/csharp-dependency-policy.md",
+        "docs/changes/CIS-0010",
+        "docs/catalog.yml",
+        "contracts/rest-client",
+        "conformance/rest-client",
+        "planning/rest-client",
+        "planning/decisions.md",
+        ".github/skills/cislib-metrics/SKILL.md",
+        "AGENTS.md",
+        "README.md"
+      ],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "Deliver compiling/running actual JSONPost/explicitretryGET/asyncauth/businessmapper/emptysuccess/cancellation example withnormalkeyedDI and existinghosts. ProvegenuineCore-onlyNone consumer andoptionalretry\u002BMetrics package build/folderpublish/deployedclosure onpinnedruntime viaexistingSDK/fixtures. CompletecomposedA20-A22 andremainingreal cross-taskbehavior, proportionateexistingUnit/Integration/Architecture/Compatibility/Business andapplicablenarrowMutation gates, docs/portablecatalog/routing/review/accounting. Preservefull95/90/90releaseobligations andactualplatformlimits; no newharness/skill, fullcampaign orpublication/merge. Own actualintegration outcome, notapprovalcampaign."
+          ],
+          "description": "Actualsource example plus isolatedversionedCoreSDK/optionalPackageReference consumers, no friend-access substitute. Verify allsourceAPI/type/default/catalog agreements, operation/hostbarrier/retry/export integration and exactNuGet/Coreclosure. Run meaningfulaffectednative checksandstrictdocs/skills/no-modelaudit; retainfalseattempts/costs andsource/userhashes. Independentreviewexplicitlychecks responsibility/verificationmachinery didnotexpand; reportscopedproofandremainingqualification.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Actualsource example plus isolatedversionedCoreSDK/optionalPackageReference consumers, no friend-access substitute. Verify allsourceAPI/type/default/catalog agreements, operation/hostbarrier/retry/export integration and exactNuGet/Coreclosure. Run meaningfulaffectednative checksandstrictdocs/skills/no-modelaudit; retainfalseattempts/costs andsource/userhashes. Independentreviewexplicitlychecks responsibility/verificationmachinery didnotexpand; reportscopedproofandremainingqualification."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-002",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-002.md",
+      "title": "Implement native HTTP content and resource ownership",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "acceptanceCriteria": "Bind native HttpClient/SocketsHttpHandler/DelegatingHandler and System.Text.Json to fixed Core seams. Implement fresh per-attempt content, JSON/text/bytes/no-value decoding, form and explicitly borrowed/transferred/reopenable stream bodies, correct URI/header/query placement and exact encoding/signing representation,16MiB actual/decompressed success bound and16KiB detached error prefix. Preserve one consumption owner and real cleanup, actual completed byte observations and no pool per call. Validate supported owned/factory and borrowed transport settings honestly; preserve TLS, redirect/cookie defaults. No HTTP parser, multipart model or implicit upload buffering; include focused tests/docs/review.",
+      "validation": "A01/A06/A07/A14/A16: observed wire/value vectors, native format/type validation and empty/malformed/null cases; exactlimit versusonebyteover including decompression, error truncation, borrowed leave-open and owned/factory cleanup after auth rejection/short circuit, distinct native request/content identities and real cancellation tokens/disposal. Use controlled handlers/streams and focused loopbackHTTP, not a new harness.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:da1667c904f24db3929b14e6ffc02519",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "rest-client"
+      ],
+      "authorizationScopeBasis": "sha256:95f1d24bf874be08964edc019f8c7ce8af6e9ce1eb9c6ac1be7c75934ddb0136",
+      "workPaths": [
+        "implementations/csharp/src/CIS.Core/RestClient/Http",
+        "implementations/csharp/tests/CIS.Core.UnitTests/RestClient",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/RestClient",
+        "docs/modules/rest-client",
+        "contracts/rest-client",
+        "conformance/rest-client",
+        "docs/changes/CIS-0010",
+        "docs/catalog.yml"
+      ],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "Bind native HttpClient/SocketsHttpHandler/DelegatingHandler and System.Text.Json to fixed Core seams. Implement fresh per-attempt content, JSON/text/bytes/no-value decoding, form and explicitly borrowed/transferred/reopenable stream bodies, correct URI/header/query placement and exact encoding/signing representation,16MiB actual/decompressed success bound and16KiB detached error prefix. Preserve one consumption owner and real cleanup, actual completed byte observations and no pool per call. Validate supported owned/factory and borrowed transport settings honestly; preserve TLS, redirect/cookie defaults. No HTTP parser, multipart model or implicit upload buffering; include focused tests/docs/review."
+          ],
+          "description": "A01/A06/A07/A14/A16: observed wire/value vectors, native format/type validation and empty/malformed/null cases; exactlimit versusonebyteover including decompression, error truncation, borrowed leave-open and owned/factory cleanup after auth rejection/short circuit, distinct native request/content identities and real cancellation tokens/disposal. Use controlled handlers/streams and focused loopbackHTTP, not a new harness.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "A01/A06/A07/A14/A16: observed wire/value vectors, native format/type validation and empty/malformed/null cases; exactlimit versusonebyteover including decompression, error truncation, borrowed leave-open and owned/factory cleanup after auth rejection/short circuit, distinct native request/content identities and real cancellation tokens/disposal. Use controlled handlers/streams and focused loopbackHTTP, not a new harness."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-003",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-003.md",
+      "title": "Compose ordered customization authentication and response mapping",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "acceptanceCriteria": "Implement ordered CIS exchange handlers and customization/final-auth/mapper seams against the fixed contract. Enforce at-most-once next, zero-dispatch short circuits, isolated credentials/defaultreplacement/explicitdisable, final allowed-origin/TRACE guards, exact signing representation and no post-sign ordinary mutation. Typed expected prep/auth failures return bounded outcomes; unexpected defects surface after owned work settles. Single reader coordinates decoding and business/error mapping without native objects/history. No new pipeline graph or independent retry owner; own tests/docs/review.",
+      "validation": "A03-A05/A08/A13/A16: asyncA/B/C outwardC/B/A inward order and final signed native request; concurrent shared options without state/defaultheaders leakage; HTTP200 business rejection and non2xx notdecodedasT; caller/total cancellation and throw-after-next ownership; TRACE body/credential/defaultauth and customized/disallowed origins. Preserve nativebody reader and actual original causes.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:010b44953eb3493d99ef3c7d30d3fb10",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "rest-client"
+      ],
+      "authorizationScopeBasis": "sha256:95f1d24bf874be08964edc019f8c7ce8af6e9ce1eb9c6ac1be7c75934ddb0136",
+      "workPaths": [
+        "implementations/csharp/src/CIS.Core/RestClient/Extensions",
+        "implementations/csharp/tests/CIS.Core.UnitTests/RestClient",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/RestClient",
+        "docs/modules/rest-client",
+        "contracts/rest-client",
+        "conformance/rest-client",
+        "docs/changes/CIS-0010",
+        "implementations/csharp/src/CIS.Core/RestClient/Contracts",
+        "implementations/csharp/src/CIS.Core/RestClient/Internal",
+        "docs/catalog.yml"
+      ],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "Implement ordered CIS exchange handlers and customization/final-auth/mapper seams against the fixed contract. Enforce at-most-once next, zero-dispatch short circuits, isolated credentials/defaultreplacement/explicitdisable, final allowed-origin/TRACE guards, exact signing representation and no post-sign ordinary mutation. Typed expected prep/auth failures return bounded outcomes; unexpected defects surface after owned work settles. Single reader coordinates decoding and business/error mapping without native objects/history. No new pipeline graph or independent retry owner; own tests/docs/review."
+          ],
+          "description": "A03-A05/A08/A13/A16: asyncA/B/C outwardC/B/A inward order and final signed native request; concurrent shared options without state/defaultheaders leakage; HTTP200 business rejection and non2xx notdecodedasT; caller/total cancellation and throw-after-next ownership; TRACE body/credential/defaultauth and customized/disallowed origins. Preserve nativebody reader and actual original causes.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "A03-A05/A08/A13/A16: asyncA/B/C outwardC/B/A inward order and final signed native request; concurrent shared options without state/defaultheaders leakage; HTTP200 business rejection and non2xx notdecodedasT; caller/total cancellation and throw-after-next ownership; TRACE body/credential/defaultauth and customized/disallowed origins. Preserve nativebody reader and actual original causes."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-004",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-004.md",
+      "title": "Implement optional upstream retry policy adapter and bounded delay proof",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "acceptanceCriteria": "Create only the approved optional Polly.Core8.9.1 adapter with exact source mapping/centralpin/lock and no Core dependency change. One shared upstream pipeline per finite registered policy owns iterations/jitter/wait, with local per-execution state. Within1800active seconds/one logicalworkattempt of this task, prove public OnRetry nativeL plus optional supplementalD-L implements D=max(L,server) chosenonce and budgetcheckedbeforewait, priorcleanup and real cancellation. Preserve inherit/None/whole replacement, conservative preset, fresh replayable requests, stable keys and terminal cause/finite stopreason. Custom decisions use bounded cancellable metadata and never dispatch. If prooffailsstopretry-dependentexpansion; no copiedbackoffengine/extra package or semanticrelaxation. Own tests/docs/review.",
+      "validation": "A11-A15/A20: real approvednet10lockedclosure and optionalpublicAPI; actualcontrolled upstreamtimers for long/short/past/invalidseconds/dateRetryAfter and admission-fit,503/503/200/exhaustion, no-defaultretries/writes/business/decode/postheaders replay, one-shotbody and stableidempotencykey, sharedclock and actualheldattemptcleanup. Separatepolicyiterationfromdispatchcount. Rootserializesnative and capturesearlyproof/cost before broadening.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:0efac71cc2a140a2a8d95b6175365d1c",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "rest-client"
+      ],
+      "authorizationScopeBasis": "sha256:95f1d24bf874be08964edc019f8c7ce8af6e9ce1eb9c6ac1be7c75934ddb0136",
+      "workPaths": [
+        "implementations/csharp/src/CIS.RestClient.Resilience",
+        "implementations/csharp/src/CIS.Core/RestClient/Internal",
+        "implementations/csharp/Directory.Packages.props",
+        "implementations/csharp/NuGet.config",
+        "implementations/csharp/CisLib.slnx",
+        "implementations/csharp/tests",
+        "docs/modules/rest-client",
+        "docs/architecture/csharp-dependency-policy.md",
+        "docs/changes/CIS-0010",
+        "planning/rest-client",
+        "implementations/csharp/src/CIS.Core/CIS.Core.csproj",
+        "docs/catalog.yml"
+      ],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "Create only the approved optional Polly.Core8.9.1 adapter with exact source mapping/centralpin/lock and no Core dependency change. One shared upstream pipeline per finite registered policy owns iterations/jitter/wait, with local per-execution state. Within1800active seconds/one logicalworkattempt of this task, prove public OnRetry nativeL plus optional supplementalD-L implements D=max(L,server) chosenonce and budgetcheckedbeforewait, priorcleanup and real cancellation. Preserve inherit/None/whole replacement, conservative preset, fresh replayable requests, stable keys and terminal cause/finite stopreason. Custom decisions use bounded cancellable metadata and never dispatch. If prooffailsstopretry-dependentexpansion; no copiedbackoffengine/extra package or semanticrelaxation. Own tests/docs/review."
+          ],
+          "description": "A11-A15/A20: real approvednet10lockedclosure and optionalpublicAPI; actualcontrolled upstreamtimers for long/short/past/invalidseconds/dateRetryAfter and admission-fit,503/503/200/exhaustion, no-defaultretries/writes/business/decode/postheaders replay, one-shotbody and stableidempotencykey, sharedclock and actualheldattemptcleanup. Separatepolicyiterationfromdispatchcount. Rootserializesnative and capturesearlyproof/cost before broadening.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "A11-A15/A20: real approvednet10lockedclosure and optionalpublicAPI; actualcontrolled upstreamtimers for long/short/past/invalidseconds/dateRetryAfter and admission-fit,503/503/200/exhaustion, no-defaultretries/writes/business/decode/postheaders replay, one-shotbody and stableidempotencykey, sharedclock and actualheldattemptcleanup. Separatepolicyiterationfromdispatchcount. Rootserializesnative and capturesearlyproof/cost before broadening."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-006",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-006.md",
+      "title": "Integrate finite RestClient observations and exact-host outgoing metrics",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "acceptanceCriteria": "Implement one fixedhostregistry metricbundle capturedonce perlogicalentry: settledduration/balancedactive andactualcompleted upload/downloadbytes, with16aliases/32legalpairs/requestfallback andnoreplay/unknownnamecache. Extendexistingoneprovider selector/catalog toexactroot System.Net.Http meter and only duration/active methodkey, pinnedNet10 headerboundary. ConditionalRESTreservation/outgoingAuto finalmetadata preservesold19Core/21stream3328profile; fullREST23Core/27stream4416 fitsunchangedglobals. Bothregistrationorders/explicitoptout work. Collectorpartmaystartaftercontracts; fullproofjoinsactualWORK005 beforecompletion. No newprovider/scheduler/transferplaceholder/broadmemorycampaign; own tests/docs/review.",
+      "validation": "A17-A19: actualone logicaltimer/active balance afterbody/retry/cleanup successfailurecancelthrow, observedpartial/retriedbytes notContentLength; disabled/overflow unchangedresults; oldMaxDefinitions19/smallprofile; configuredRESTreservations/translatednames beforeactivation; realexports mandatoryidentity, bothformats/overflowchildren, foreign/globalmeter and extraSystemNetkeys/instruments dropped, twoactualhostfactoryisolation and headerfirst/heldbody.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:a32aee7b16c44683bc6bd208dd92c476",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "rest-client"
+      ],
+      "authorizationScopeBasis": "sha256:95f1d24bf874be08964edc019f8c7ce8af6e9ce1eb9c6ac1be7c75934ddb0136",
+      "workPaths": [
+        "implementations/csharp/src/CIS.Core/RestClient/Metrics",
+        "implementations/csharp/src/CIS.Metrics.OpenTelemetry",
+        "implementations/csharp/tests/CIS.Core.UnitTests/RestClient",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Metrics",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/RestClient",
+        "contracts/metrics",
+        "conformance/metrics",
+        "docs/modules/metrics",
+        "docs/modules/rest-client",
+        "docs/changes/CIS-0010",
+        "planning/rest-client",
+        "docs/catalog.yml"
+      ],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "Implement one fixedhostregistry metricbundle capturedonce perlogicalentry: settledduration/balancedactive andactualcompleted upload/downloadbytes, with16aliases/32legalpairs/requestfallback andnoreplay/unknownnamecache. Extendexistingoneprovider selector/catalog toexactroot System.Net.Http meter and only duration/active methodkey, pinnedNet10 headerboundary. ConditionalRESTreservation/outgoingAuto finalmetadata preservesold19Core/21stream3328profile; fullREST23Core/27stream4416 fitsunchangedglobals. Bothregistrationorders/explicitoptout work. Collectorpartmaystartaftercontracts; fullproofjoinsactualWORK005 beforecompletion. No newprovider/scheduler/transferplaceholder/broadmemorycampaign; own tests/docs/review."
+          ],
+          "description": "A17-A19: actualone logicaltimer/active balance afterbody/retry/cleanup successfailurecancelthrow, observedpartial/retriedbytes notContentLength; disabled/overflow unchangedresults; oldMaxDefinitions19/smallprofile; configuredRESTreservations/translatednames beforeactivation; realexports mandatoryidentity, bothformats/overflowchildren, foreign/globalmeter and extraSystemNetkeys/instruments dropped, twoactualhostfactoryisolation and headerfirst/heldbody.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "A17-A19: actualone logicaltimer/active balance afterbody/retry/cleanup successfailurecancelthrow, observedpartial/retriedbytes notContentLength; disabled/overflow unchangedresults; oldMaxDefinitions19/smallprofile; configuredRESTreservations/translatednames beforeactivation; realexports mandatoryidentity, bothformats/overflowchildren, foreign/globalmeter and extraSystemNetkeys/instruments dropped, twoactualhostfactoryisolation and headerfirst/heldbody."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-005",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-005.md",
+      "title": "Own logical RestClient deadlines dispatch outcomes and actual shutdown drain",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-002",
+        "WORK-003"
+      ],
+      "acceptanceCriteria": "Implement one fixed outer operation path: entrytimestamp/budget, isolated options/admission and one observation binding, fresh ownedattempt policycallback, dispatch immediatelybeforeprimary afterauth, actualcancellation/cleanup and immutableterminalresult or caller/fault propagation. NoTimeoutWait abandon, sharedclient cancellation or deadline reset. Keep Core/None working withoutoptionaladapter. Add narrowoptionalRESTcutoff toexistingStartup/HBhosting beforeHB/Configwaits andjoinactualdrains, preservingcoordinator independence/sequentialstartup and borrowed ownership. Configuredretryintegration waitsWORK004; completeactualMetricsboundary proof withWORK006. Own tests/docs/review.",
+      "validation": "A07-A10/A15/A21: actualblocked send/upload/body/auth cancellation and heldcleanup; expectedcaller\u003Etotal\u003Estopping\u003Eattempt precedence while unexpectedfaultssurface, before/aftercommit races, othercallunaffected and zero predispatch counts. Actual heldHBcallbackawaitingREST must cancel beforeexistingbarrierswait andkeepdependencies usable until cleanupreleases, includingcanceledhostwait. Alwaysrelease/joinbarriers in finally; no lifecycleframework.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:2b48bfa8db0546fabcbae02373c0f512",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "rest-client"
+      ],
+      "authorizationScopeBasis": "sha256:95f1d24bf874be08964edc019f8c7ce8af6e9ce1eb9c6ac1be7c75934ddb0136",
+      "workPaths": [
+        "implementations/csharp/src/CIS.Core/RestClient/Runtime",
+        "implementations/csharp/src/CIS.Core/RestClient/Hosting",
+        "implementations/csharp/src/CIS.Core/Startup/Hosting",
+        "implementations/csharp/src/CIS.Core/Heartbeat/Hosting",
+        "implementations/csharp/src/CIS.Metrics.OpenTelemetry/MetricsHostingOrder.cs",
+        "implementations/csharp/tests/CIS.Core.UnitTests/RestClient",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/RestClient",
+        "docs/modules/rest-client",
+        "docs/modules/startup",
+        "docs/modules/heartbeat",
+        "docs/changes/CIS-0010",
+        "planning/rest-client",
+        "implementations/csharp/src/CIS.Core/RestClient/Http",
+        "docs/catalog.yml",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj"
+      ],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "Implement one fixed outer operation path: entrytimestamp/budget, isolated options/admission and one observation binding, fresh ownedattempt policycallback, dispatch immediatelybeforeprimary afterauth, actualcancellation/cleanup and immutableterminalresult or caller/fault propagation. NoTimeoutWait abandon, sharedclient cancellation or deadline reset. Keep Core/None working withoutoptionaladapter. Add narrowoptionalRESTcutoff toexistingStartup/HBhosting beforeHB/Configwaits andjoinactualdrains, preservingcoordinator independence/sequentialstartup and borrowed ownership. Configuredretryintegration waitsWORK004; completeactualMetricsboundary proof withWORK006. Own tests/docs/review."
+          ],
+          "description": "A07-A10/A15/A21: actualblocked send/upload/body/auth cancellation and heldcleanup; expectedcaller\u003Etotal\u003Estopping\u003Eattempt precedence while unexpectedfaultssurface, before/aftercommit races, othercallunaffected and zero predispatch counts. Actual heldHBcallbackawaitingREST must cancel beforeexistingbarrierswait andkeepdependencies usable until cleanupreleases, includingcanceledhostwait. Alwaysrelease/joinbarriers in finally; no lifecycleframework.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "A07-A10/A15/A21: actualblocked send/upload/body/auth cancellation and heldcleanup; expectedcaller\u003Etotal\u003Estopping\u003Eattempt precedence while unexpectedfaultssurface, before/aftercommit races, othercallunaffected and zero predispatch counts. Actual heldHBcallbackawaitingREST must cancel beforeexistingbarrierswait andkeepdependencies usable until cleanupreleases, includingcanceledhostwait. Alwaysrelease/joinbarriers in finally; no lifecycleframework."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-008",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-008.md",
+      "title": "Refresh Configuration source-host build prerequisites",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-007"
+      ],
+      "acceptanceCriteria": "Make an ordinary Integration project build refresh both actual Configuration Console/Web source consumers and ExampleLate using three existing-style build-only ProjectReferences. Preserve the exact-Core-byte assertion and all runtime behavior. Include generated lock changes, focused native verification, concise documentation and independent review; no testhost build, DLL replacement workaround, harness or new product responsibility.",
+      "validation": "Run the two reported ConfigurationSourceConsumerTests through an ordinary Integration build with refreshed restore graph and locked restore. Require exact current Core hashes and actual child reports for both hosts, zero failed/skipped cases. Preserve earlier completion/history, original shared limits and all three user launchSettings files.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:c9b80f1f641640459192800474f210a5",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "rest-client"
+      ],
+      "authorizationScopeBasis": "sha256:95f1d24bf874be08964edc019f8c7ce8af6e9ce1eb9c6ac1be7c75934ddb0136",
+      "workPaths": [
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/packages.lock.json",
+        "docs/changes/CIS-0010"
+      ],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "Make an ordinary Integration project build refresh both actual Configuration Console/Web source consumers and ExampleLate using three existing-style build-only ProjectReferences. Preserve the exact-Core-byte assertion and all runtime behavior. Include generated lock changes, focused native verification, concise documentation and independent review; no testhost build, DLL replacement workaround, harness or new product responsibility."
+          ],
+          "description": "Run the two reported ConfigurationSourceConsumerTests through an ordinary Integration build with refreshed restore graph and locked restore. Require exact current Core hashes and actual child reports for both hosts, zero failed/skipped cases. Preserve earlier completion/history, original shared limits and all three user launchSettings files.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Run the two reported ConfigurationSourceConsumerTests through an ordinary Integration build with refreshed restore graph and locked restore. Require exact current Core hashes and actual child reports for both hosts, zero failed/skipped cases. Preserve earlier completion/history, original shared limits and all three user launchSettings files."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-009",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-009.md",
+      "title": "Log completed REST calls through the existing logger",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-007"
+      ],
+      "acceptanceCriteria": "Automatically emit one final logical REST call summary through the existing configured ILogger/Core provider after actual cleanup and terminal commit:Information success,Error finite failure/cancellation/fault; METHOD safeURI RESULT logicaldurationms and actual dispatched Attempt n/max when retries are selected. Preserve existing faults, results, caller cancellation, metrics and host lifetimes; ordinary logging failures cannot replace them. Strip credentials/query/fragment/payload/error details from rendered and structured data. Preserve original standalone constructor and add only a borrowed-factory four-argument overload. Include focused public tests, docs and independent review; no new logger/runtime/provider/dependency or framework.",
+      "validation": "Verify public success/error formatting and severity, actual2of3 retry summary without intermediate summary lines, business200 failure, invariant elapsed duration, finalmethod/path, privacy in both rendered/structured fields, heldcleanup/cancellation/originalfault preservation and disabled/throwing logger. Prove one existing CIS provider bridge and borrowed standalone factory. Run affected REST integration plus both ConfigurationSourceConsumerTests with current locked inputs; record actual scope/currentness/cost and preserve all three user launchSettings. Source correction old2-casepass/currentnesshold remains historical.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:8b6e00da32d44c57865d550a503612cf",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "rest-client-logging"
+      ],
+      "authorizationScopeBasis": "sha256:766707c87cec9dc8e50fa061fb114a914b90bcb1edcca5d0f65009bdd786518d",
+      "workPaths": [
+        "implementations/csharp/src/CIS.Core/RestClient/Runtime",
+        "implementations/csharp/src/CIS.Core/RestClient/Internal",
+        "implementations/csharp/src/CIS.Core/RestClient/Http/HttpRestClient.cs",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/RestClient",
+        "docs/modules/rest-client/core.md",
+        "docs/changes/CIS-0010"
+      ],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "Automatically emit one final logical REST call summary through the existing configured ILogger/Core provider after actual cleanup and terminal commit:Information success,Error finite failure/cancellation/fault; METHOD safeURI RESULT logicaldurationms and actual dispatched Attempt n/max when retries are selected. Preserve existing faults, results, caller cancellation, metrics and host lifetimes; ordinary logging failures cannot replace them. Strip credentials/query/fragment/payload/error details from rendered and structured data. Preserve original standalone constructor and add only a borrowed-factory four-argument overload. Include focused public tests, docs and independent review; no new logger/runtime/provider/dependency or framework."
+          ],
+          "description": "Verify public success/error formatting and severity, actual2of3 retry summary without intermediate summary lines, business200 failure, invariant elapsed duration, finalmethod/path, privacy in both rendered/structured fields, heldcleanup/cancellation/originalfault preservation and disabled/throwing logger. Prove one existing CIS provider bridge and borrowed standalone factory. Run affected REST integration plus both ConfigurationSourceConsumerTests with current locked inputs; record actual scope/currentness/cost and preserve all three user launchSettings. Source correction old2-casepass/currentnesshold remains historical.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Verify public success/error formatting and severity, actual2of3 retry summary without intermediate summary lines, business200 failure, invariant elapsed duration, finalmethod/path, privacy in both rendered/structured fields, heldcleanup/cancellation/originalfault preservation and disabled/throwing logger. Prove one existing CIS provider bridge and borrowed standalone factory. Run affected REST integration plus both ConfigurationSourceConsumerTests with current locked inputs; record actual scope/currentness/cost and preserve all three user launchSettings. Source correction old2-casepass/currentnesshold remains historical."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-010",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-010.md",
+      "title": "Forward existing REST trace context under explicit or local-host policy",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-009"
+      ],
+      "acceptanceCriteria": "Add nullable client/per-call ForwardTraceId, inherit client override and default automatic only for finalvalidated .local hostname. Capture existing entryW3Ccontext once, addtraceparent before native normalization/replay/signing, neverfabricateIDs or auto-forward baggage/tracestate. Disable implicit.NETpropagation so off is effective. Preserve explicit manual traceparent and nativeMetrics, pools, deadlines/retry/ownership; include tests/docs/review without tracer/framework/package or DNS/test-platform expansion.",
+      "validation": "Focused final-host/suffix/override/snapshot cases, directfinalizer auth/signing order, actualloopback headers with Activity/listener/defaultoff/expliciton/noActivity/manualheader and stableentrycontext. Run affectedexisting REST integration and bothConfiguration source cases; verify nativeHTTPMetrics stillworks. Preserve originalsource/userfiles, failures/history and allsharedlimits.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:6198ad5f00af4f8f925e76ebcb22f1b3",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "rest-client-tracing"
+      ],
+      "authorizationScopeBasis": "sha256:85c6c8ddc118e87e8ce7a07acda706a3899c966efa7a9ef254d249045e1670bf",
+      "workPaths": [
+        "implementations/csharp/src/CIS.Core/RestClient",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/RestClient",
+        "docs/modules/rest-client/core.md",
+        "docs/changes/CIS-0010"
+      ],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "Add nullable client/per-call ForwardTraceId, inherit client override and default automatic only for finalvalidated .local hostname. Capture existing entryW3Ccontext once, addtraceparent before native normalization/replay/signing, neverfabricateIDs or auto-forward baggage/tracestate. Disable implicit.NETpropagation so off is effective. Preserve explicit manual traceparent and nativeMetrics, pools, deadlines/retry/ownership; include tests/docs/review without tracer/framework/package or DNS/test-platform expansion."
+          ],
+          "description": "Focused final-host/suffix/override/snapshot cases, directfinalizer auth/signing order, actualloopback headers with Activity/listener/defaultoff/expliciton/noActivity/manualheader and stableentrycontext. Run affectedexisting REST integration and bothConfiguration source cases; verify nativeHTTPMetrics stillworks. Preserve originalsource/userfiles, failures/history and allsharedlimits.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Focused final-host/suffix/override/snapshot cases, directfinalizer auth/signing order, actualloopback headers with Activity/listener/defaultoff/expliciton/noActivity/manualheader and stableentrycontext. Run affectedexisting REST integration and bothConfiguration source cases; verify nativeHTTPMetrics stillworks. Preserve originalsource/userfiles, failures/history and allsharedlimits."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    }
+  ],
+  "source": null
+}

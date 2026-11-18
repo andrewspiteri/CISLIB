@@ -24,6 +24,13 @@ internal sealed class MetricsStreamCatalog
             Reserve("http.server.active_requests", MetricKind.UpDownCounter, settings.CardinalityLimit,
                 ["http.request.method", "url.scheme"], []);
         }
+        if (settings.CollectOutgoingHttp)
+        {
+            Reserve("http.client.request.duration", MetricKind.Histogram, settings.HistogramCardinalityLimit,
+                ["http.request.method"], DurationBounds);
+            Reserve("http.client.active_requests", MetricKind.UpDownCounter, settings.CardinalityLimit,
+                ["http.request.method"], []);
+        }
         if (settings.CollectCoreModules)
         {
             Module("cis.logging.records", MetricKind.Counter, MetricUnit.Count, ["outcome"]);
@@ -45,6 +52,13 @@ internal sealed class MetricsStreamCatalog
             Module("cis.typemanager.assemblies", MetricKind.ObservableGauge, MetricUnit.Count, []);
             Module("cis.typemanager.types", MetricKind.ObservableGauge, MetricUnit.Count, []);
             Module("cis.typemanager.initialization.duration", MetricKind.ObservableGauge, MetricUnit.Seconds, []);
+            if (settings.CollectRestClient)
+            {
+                Module("cis.restclient.operation.duration", MetricKind.Timer, MetricUnit.Seconds, ["client", "operation", "outcome"], 512);
+                Module("cis.restclient.active.operations", MetricKind.UpDownCounter, MetricUnit.Count, ["client"]);
+                Module("cis.restclient.payload.uploaded", MetricKind.Counter, MetricUnit.Bytes, ["client", "operation"]);
+                Module("cis.restclient.payload.downloaded", MetricKind.Counter, MetricUnit.Bytes, ["client", "operation"]);
+            }
             if (modules.Count > settings.MaxDefinitions)
             { throw new ArgumentException("The known CIS module definitions exceed the configured definition capacity."); }
         }
@@ -60,10 +74,14 @@ internal sealed class MetricsStreamCatalog
     {
         get
         {
-            if (!settings.CollectIncomingHttp) { return []; }
-            return ["http_server_request_duration_seconds", "http_server_request_duration_seconds_bucket",
+            var names = new List<string>();
+            if (settings.CollectIncomingHttp) { names.AddRange(["http_server_request_duration_seconds", "http_server_request_duration_seconds_bucket",
                 "http_server_request_duration_seconds_sum", "http_server_request_duration_seconds_count",
-                "http_server_request_duration_seconds_created", "http_server_active_requests"];
+                "http_server_request_duration_seconds_created", "http_server_active_requests"]); }
+            if (settings.CollectOutgoingHttp) { names.AddRange(["http_client_request_duration_seconds", "http_client_request_duration_seconds_bucket",
+                "http_client_request_duration_seconds_sum", "http_client_request_duration_seconds_count",
+                "http_client_request_duration_seconds_created", "http_client_active_requests"]); }
+            return names.AsReadOnly();
         }
     }
     internal IReadOnlyList<MetricsStreamSnapshot> Capture()
@@ -73,7 +91,7 @@ internal sealed class MetricsStreamCatalog
             return Array.AsReadOnly(policies.Values.OrderBy(policy => policy.Name, StringComparer.Ordinal)
                 .Select(policy => new MetricsStreamSnapshot(policy.Name, policy.Capacity,
                     Array.AsReadOnly(policy.Keys.ToArray()), Array.AsReadOnly(policy.Bounds.ToArray()),
-                    policy.Name is "http.server.request.duration" or "http.server.active_requests" || selectedCore.Contains(policy.Name))).ToArray());
+                    IsSelectedNative(policy.Name) || selectedCore.Contains(policy.Name))).ToArray());
         }
     }
 
@@ -111,15 +129,22 @@ internal sealed class MetricsStreamCatalog
         }
     }
 
-    private void Module(string name, MetricKind kind, MetricUnit unit, IReadOnlyList<string> keys)
+    private bool IsSelectedNative(string name) => name switch
+    {
+        "http.server.request.duration" or "http.server.active_requests" => settings.CollectIncomingHttp,
+        "http.client.request.duration" or "http.client.active_requests" => settings.CollectOutgoingHttp,
+        _ => false
+    };
+
+    private void Module(string name, MetricKind kind, MetricUnit unit, IReadOnlyList<string> keys, int? capacity = null)
     {
         modules.Add(name, new(kind, unit, keys));
         bool histogram = kind is MetricKind.Histogram or MetricKind.Timer;
-        Reserve(name, kind, histogram ? settings.HistogramCardinalityLimit : settings.CardinalityLimit,
+        Reserve(name, kind, capacity ?? (histogram ? settings.HistogramCardinalityLimit : settings.CardinalityLimit),
             keys, histogram ? DurationBounds : []);
     }
 
-    internal MetricStreamConfiguration Select(Instrument instrument, MetricsRuntime runtime, Meter hostingMeter)
+    internal MetricStreamConfiguration Select(Instrument instrument, MetricsRuntime runtime, Meter hostingMeter, Meter? outgoingMeter = null)
     {
         StreamPolicy? policy;
         if (ReferenceEquals(instrument.Meter, runtime.Meter) && runtime.TryGetRegistration(instrument, out MetricRegistration? registration))
@@ -131,6 +156,10 @@ internal sealed class MetricsStreamCatalog
                 && instrument.Description == "Duration of HTTP server requests."
                 || instrument.Name == "http.server.active_requests" && instrument is UpDownCounter<long> && instrument.Unit == "{request}"
                 && instrument.Description == "Number of active HTTP server requests."))
+        { lock (gate) { policy = policies.GetValueOrDefault(instrument.Name); } }
+        else if (settings.CollectOutgoingHttp && ReferenceEquals(instrument.Meter, outgoingMeter)
+            && (instrument.Name == "http.client.request.duration" && instrument is Histogram<double> && instrument.Unit == "s"
+                || instrument.Name == "http.client.active_requests" && instrument is UpDownCounter<long> && instrument.Unit == "{request}"))
         { lock (gate) { policy = policies.GetValueOrDefault(instrument.Name); } }
         else { return MetricStreamConfiguration.Drop; }
         if (policy is null) { return MetricStreamConfiguration.Drop; }

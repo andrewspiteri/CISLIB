@@ -9,6 +9,8 @@ public sealed class MetricsOptions
     public bool CollectCoreModules { get; set; } = true;
     /// <summary>Gets or sets native ASP.NET request-duration and active-request collection.</summary>
     public bool CollectIncomingHttp { get; set; } = true;
+    /// <summary>Gets or sets native outgoing HTTP collection: null enables it for configured CIS RestClient composition; true/false explicitly select it.</summary>
+    public bool? CollectOutgoingHttp { get; set; }
     /// <summary>Gets or sets the maximum admitted CIS/application definitions.</summary>
     public int MaxDefinitions { get; set; } = 96;
     /// <summary>Gets or sets the total collected streams, including reserved native streams.</summary>

@@ -1,0 +1,28 @@
+{
+  "tasks": [
+    {
+      "dependsOn": [],
+      "title": "Freeze portable RestClient contracts and shared execution seams",
+      "category": "implementation",
+      "scopeIds": [
+        "rest-client"
+      ],
+      "paths": [
+        "contracts/rest-client",
+        "conformance/rest-client",
+        "implementations/csharp/src/CIS.Core/RestClient",
+        "implementations/csharp/src/CIS.Core/CIS.Core.csproj",
+        "implementations/csharp/tests/CIS.Core.UnitTests/RestClient",
+        "implementations/csharp/tests/CIS.Core.ArchitectureTests",
+        "docs/modules/rest-client",
+        "docs/changes/CIS-0010",
+        "docs/catalog.yml",
+        "planning/rest-client"
+      ],
+      "assignee": "Codex",
+      "complexity": "medium",
+      "validation": "A01-A03/A05/A22: ordinary public signatures and exact5 result properties, valid DTO/default/null/absent/failure construction, invalid combination rejection, immutable copied context/options, explicit callback/retry disable and finite16client/32pair metadata. Compile actual Core+tests; verify ordinary API exposes no HTTP/Polly/OTel types. Review shared ownership, entry-based clock, policy terminal summary and single observation binding before freeze; no fabricated transport/adapter pass.",
+      "acceptanceCriteria": "Implement the approved portable9-method IRestClient surface, guarded immutable five-property RestResult and typed detached context, explicit value-presence/null/empty/truncation semantics, isolated client/call defaults and body/header/query/retry/extension contracts. Fix P04 fault-versus-known-cancellation precedence and W3C correlation mapping. Freeze minimal internal attempt/body-reader/retry/observation/passive-composition seams so transport, extensions, optional retry and collector can compile independently. Preserve native/SDK-free ordinary signatures, exact Core closure and no frameworks or stage graph. Include portable vectors, meaningful contract/architecture tests, docs and independent review."
+    }
+  ]
+}
