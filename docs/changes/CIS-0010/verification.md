@@ -679,3 +679,83 @@ active native reservations and no recovery uncertainty. Strict documentation
 validation passes171/171 with zero warnings/errors. No further native execution
 is queued; all three protected user files and both original supplied sources
 retain their recorded hashes.
+
+## Optional trace forwarding — 18 November 2026
+
+Andrew requested a per-call trace-ID forwarding option, off by default except
+.local addresses, then explicitly approved 30 additional shared active minutes:
+48,600 seconds/13.5 hours total. The 16-attempt, 1200-second restoration, 6-GiB counted
+storage and 64-MiB reserve limits remain unchanged. The additive tracing scope and
+numeric amendment preserve all prior outcome/scope bindings and spent history.
+WORK-010 receives 1800 added seconds and one unused WORK-004 attempt; its two
+already-used attempts and all protected resources stay recorded.
+
+Nullable ForwardTraceId is copied in client/call snapshots. A per-call override
+wins; otherwise the final validated DNS hostname selects automatic forwarding
+only for the .local suffix (case-insensitive, one optional terminal root dot).
+The module captures existing entry W3C context once and adds only traceparent
+after customization/content acquisition, before native normalization, replay
+identity and final authentication. Explicit caller traceparent is preserved;
+no IDs/spans, baggage or tracestate are generated or implicitly forwarded.
+
+The known SocketsHttpHandler now sets ActivityHeadersPropagator=null. This is
+needed because native automatic propagation would bypass a per-call off setting.
+[Microsoft's NET10 API](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.socketshttphandler.activityheaderspropagator?view=net-10.0)
+and the [tagged NET10 pipeline](https://github.com/dotnet/runtime/blob/v10.0.0/src/libraries/System.Net.Http/src/System/Net/Http/SocketsHttpHandler/SocketsHttpHandler.cs)
+confirm that the diagnostic propagation handler is omitted while native Metrics
+is separate. This feature forwards entry context; it adds no outgoing tracer/span
+owner. Source review corrected the test's initial expectation of a CIS native
+client activity: an ordinary control HttpClient now proves native tracing and
+propagation are live, while the real CIS request proves its off policy.
+
+Twenty-two new cases cover hostname boundaries, overrides/snapshots, finalization
+and authentication order, and real loopback header behavior with Activity and
+listeners, including no context and explicit manual forwarding. The single focused
+native run also selects existing REST runtime/retry/logging/host and outgoing
+Metrics regressions plus both source-consumer cases. No dependency, provider,
+framework, DNS hook, host-file edit or test platform was added. Actual results
+and settlement follow below; authored tests alone are not a passing claim.
+
+### Trace policy native checkpoint
+
+The frozen focused run passed **131/131**, zero failed/skipped, on the pinned
+Windows SDK 10.0.401/runtime 10.0.12. It includes 22 trace-policy cases, the prior 98
+REST/logging/source-consumer selection and 11 outgoing collector cases. Actual
+wire observations prove default off, explicit on/off, no fabricated context,
+manual header preservation and absence of automatically forwarded state/baggage.
+A separate ordinary HTTP control proves native activity propagation is genuinely
+active under the test listener. Local-host matrix/finalization cases prove
+post-customization/acquisition selection and authentication visibility without a
+DNS/testing hook. Existing native duration/active and root-meter isolation cases
+also pass after implicit tracing is disabled.
+
+Evidence is `.cis/local/rest-client-intake/rest-client-trace-final-pass.trx`
+and its adjacent native log. Both unchanged source-consumer guards again pass
+against the exact candidate Core SHA256
+`b3dc51fbd52925fa96be2ab9bc2b2eb630c17a522050e3dea5bf668a4c6c91c3`.
+There is no production dependency or ordinary IRestClient signature change;
+result correlation and caller/fault/cleanup/retry/hosting/logging behavior remain
+covered by the actual regression cases. Full-platform, whole-release coverage
+and mutation qualification are not claimed by this component run. Final input
+currentness, measured costs and task settlement follow below.
+
+Execution `native/incremental/bcd57eb9d6ea40759ecd4737abd0fe9d` completes the 131-case
+selection with scopeComplete=true, unitCurrent=true and zero pending batches.
+The unit-layer advisory remains qualified=false; no pilot/release qualification
+is inferred. WORK-010 consumed 529,927 inclusive measured native milliseconds in
+one logical attempt, bringing the shared measured total to 11,605,695 ms and nine
+used logical attempts of 16. No active reservation or recovery hold remains.
+Production/test authors estimated 4/6 active minutes; controller, native,
+documentation/review and restoration share the same approved 13.5-hour ceiling.
+The conservative completion estimate is 13.4 shared active hours, not another
+allowance derived from the native ledger remainder. All previous costs, completed
+owners and approvals remain intact, along with the original 6-GiB/64-MiB and 1200
+restoration-second limits. Strict docs and protected-file checks complete this
+bounded change; no publication, source push or main merge is performed.
+| WORK-010 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1361; failed=199; possibleTokenSavings=591; ledgerDigest=sha256:953828a7142efd322d2c574720c62633357dbe66960b485a66ccd70e3eedecc2 |
+
+WORK-010 is Complete through supported CIS progress/lifecycle operations; all ten
+canonical tasks are now Complete. Its actual logical attempt is closed, with no
+active native reservation or recovery uncertainty. Final strict docs validation
+passes172/172. Original supplied sources and all three user launchSettings files
+still match their recorded hashes and remain outside this commit's changes.

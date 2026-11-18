@@ -47,6 +47,9 @@ public sealed class RestClientOptions
     public RestResponseFormat ResponseFormat { get; set; } = RestResponseFormat.Json;
     /// <summary>Gets or sets whether absence is an invalid response.</summary>
     public bool RequireValue { get; set; }
+    /// <summary>Gets or sets automatic entry trace forwarding; null enables it only for a final .local hostname.</summary>
+    /// <remarks>Forwards an existing W3C traceparent only. Explicitly supplied headers remain manual forwarding.</remarks>
+    public bool? ForwardTraceId { get; set; }
     /// <summary>Gets or sets default asynchronous customization.</summary>
     public Func<RestRequestContext, CancellationToken, Task>? ConfigureRequest { get; set; }
     /// <summary>Gets or sets default asynchronous final authentication.</summary>
@@ -96,6 +99,8 @@ public sealed class RestRequestOptions
     public RestResponseFormat? ResponseFormat { get; set; }
     /// <summary>Gets or sets a value-presence override, or null to inherit.</summary>
     public bool? RequireValue { get; set; }
+    /// <summary>Gets or sets automatic trace forwarding for this call, or null to inherit the client policy.</summary>
+    public bool? ForwardTraceId { get; set; }
     /// <summary>Gets or sets a replacement response mapper.</summary>
     public IRestResponseMapper? ResponseMapper { get; set; }
     /// <summary>Gets or sets explicit validated processing overrides, or null to inherit.</summary>

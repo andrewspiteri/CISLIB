@@ -23,7 +23,8 @@ internal static class RestRequestFinalizer
     internal static async ValueTask<RestDeclaredFailure?> PrepareAsync(RestRequestContext request,
         RestClientSnapshot client, RestCallSnapshot call, Func<CancellationToken, ValueTask> prepareContent,
         Func<int, CancellationToken, ValueTask<ReadOnlyMemory<byte>>> signingBytes, CancellationToken cancellationToken,
-        Action? prepareNativeRepresentation = null, bool captureUnexpectedCancellation = false, CancellationToken knownCallerToken = default)
+        Action? prepareNativeRepresentation = null, bool captureUnexpectedCancellation = false, CancellationToken knownCallerToken = default,
+        string? capturedTraceParent = null)
     {
         try
         {
@@ -42,6 +43,7 @@ internal static class RestRequestFinalizer
             // actual fields after acquisition and before granting credential writes.
             failure = Validate(request, client, call, cancellationToken);
             if (failure is not null) { return failure; }
+            RestTraceForwarding.Apply(request, call.ForwardTraceId, capturedTraceParent);
             prepareNativeRepresentation?.Invoke();
             request.FinalizeOrdinary(CredentialHeaders(client), client.CredentialQueryParameters);
             if (!string.Equals(request.Method, "TRACE", StringComparison.OrdinalIgnoreCase) && call.Authenticate is not null)

@@ -210,3 +210,28 @@ constructor remains available. Neither creates a global Logging runtime. The
 completion-logging addition passed the focused Windows integration checks;
 its actual scope and remaining release limits are recorded in
 [CIS-0010 verification](../../changes/CIS-0010/verification.md).
+
+## Trace forwarding
+
+`ForwardTraceId` is nullable on both `RestClientOptions` and `RestRequestOptions`.
+A per-call true/false overrides the client. When the client is unset, forwarding
+is automatic only for the final validated DNS hostname ending in `.local`
+(case-insensitive, with an optional trailing DNS root dot). `localhost`, IP
+addresses, bare `local`, and addresses such as `api.local.example` remain off.
+A customization or content factory that changes the destination changes that
+selection before authentication runs.
+
+```csharp
+await client.Get<Order>(url, new RestRequestOptions { ForwardTraceId = true });
+await client.Get<Order>(url, new RestRequestOptions { ForwardTraceId = false });
+```
+
+The client forwards an existing entry W3C context through `traceparent`, before
+native header normalization, retry identity capture and authentication/signing.
+Without an existing W3C context it sends no generated trace header. It creates no
+trace/span/ID and automatically forwards neither baggage nor `tracestate`.
+Explicit caller-supplied `traceparent` remains an explicit manual header.
+Native implicit HTTP propagation is disabled so it cannot bypass this policy;
+native outgoing HTTP Metrics remain available. The result's existing correlation
+ID capture is unchanged. Actual focused results are in
+[CIS-0010 verification](../../changes/CIS-0010/verification.md).

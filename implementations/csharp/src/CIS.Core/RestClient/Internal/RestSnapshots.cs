@@ -30,7 +30,7 @@ internal sealed class RestClientSnapshot
         { throw new ArgumentException("Use an absolute HTTP(S) base without embedded credentials.", nameof(options.BaseUrl)); }
         Timeout = options.Timeout; Limits = RestLimitsSnapshot.Capture(options.Limits);
         RetryPolicy = ValidateSelection(options.RetryPolicy);
-        ResponseFormat = options.ResponseFormat; RequireValue = options.RequireValue;
+        ResponseFormat = options.ResponseFormat; RequireValue = options.RequireValue; ForwardTraceId = options.ForwardTraceId;
         ConfigureRequest = options.ConfigureRequest; Authenticate = options.Authenticate;
         Codec = options.Codec; ResponseMapper = options.ResponseMapper;
         var headers = new RestHeaders(); options.Headers.ApplyTo(headers, default); Headers = headers.Snapshot();
@@ -81,6 +81,7 @@ internal sealed class RestClientSnapshot
     internal RestRetrySelection RetryPolicy { get; }
     internal RestResponseFormat ResponseFormat { get; }
     internal bool RequireValue { get; }
+    internal bool? ForwardTraceId { get; }
     internal Func<RestRequestContext, CancellationToken, Task>? ConfigureRequest { get; }
     internal Func<RestAuthenticationContext, CancellationToken, Task>? Authenticate { get; }
     internal IRestContentCodec? Codec { get; }
@@ -131,6 +132,7 @@ internal sealed class RestCallSnapshot
         ReplaySafety = input?.ReplaySafety ?? RestReplaySafety.Default;
         if (!Enum.IsDefined(ResponseFormat) || !Enum.IsDefined(ReplaySafety)) { throw new ArgumentOutOfRangeException(nameof(input)); }
         RequireValue = input?.RequireValue ?? client.RequireValue;
+        ForwardTraceId = input?.ForwardTraceId ?? client.ForwardTraceId;
         OperationName = client.NormalizeOperation(input?.OperationName); Body = input?.Body;
         ConfigureRequest = input?.DisableConfigureRequest == true ? null : input?.ConfigureRequest ?? client.ConfigureRequest;
         Authenticate = input?.DisableAuthentication == true ? null : input?.Authenticate ?? client.Authenticate;
@@ -152,6 +154,7 @@ internal sealed class RestCallSnapshot
     internal RestResponseFormat ResponseFormat { get; }
     internal RestReplaySafety ReplaySafety { get; }
     internal bool RequireValue { get; }
+    internal bool? ForwardTraceId { get; }
     internal string OperationName { get; }
     internal RestBody? Body { get; }
     internal IReadOnlyDictionary<string, IReadOnlyList<string>> Headers { get; }

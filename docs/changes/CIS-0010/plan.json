@@ -547,6 +547,60 @@
         }
       ],
       "contractErrors": []
+    },
+    {
+      "id": "WORK-010",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-010.md",
+      "title": "Forward existing REST trace context under explicit or local-host policy",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-009"
+      ],
+      "acceptanceCriteria": "Add nullable client/per-call ForwardTraceId, inherit client override and default automatic only for finalvalidated .local hostname. Capture existing entryW3Ccontext once, addtraceparent before native normalization/replay/signing, neverfabricateIDs or auto-forward baggage/tracestate. Disable implicit.NETpropagation so off is effective. Preserve explicit manual traceparent and nativeMetrics, pools, deadlines/retry/ownership; include tests/docs/review without tracer/framework/package or DNS/test-platform expansion.",
+      "validation": "Focused final-host/suffix/override/snapshot cases, directfinalizer auth/signing order, actualloopback headers with Activity/listener/defaultoff/expliciton/noActivity/manualheader and stableentrycontext. Run affectedexisting REST integration and bothConfiguration source cases; verify nativeHTTPMetrics stillworks. Preserve originalsource/userfiles, failures/history and allsharedlimits.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:6198ad5f00af4f8f925e76ebcb22f1b3",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "rest-client-tracing"
+      ],
+      "authorizationScopeBasis": "sha256:85c6c8ddc118e87e8ce7a07acda706a3899c966efa7a9ef254d249045e1670bf",
+      "workPaths": [
+        "implementations/csharp/src/CIS.Core/RestClient",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/RestClient",
+        "docs/modules/rest-client/core.md",
+        "docs/changes/CIS-0010"
+      ],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "Add nullable client/per-call ForwardTraceId, inherit client override and default automatic only for finalvalidated .local hostname. Capture existing entryW3Ccontext once, addtraceparent before native normalization/replay/signing, neverfabricateIDs or auto-forward baggage/tracestate. Disable implicit.NETpropagation so off is effective. Preserve explicit manual traceparent and nativeMetrics, pools, deadlines/retry/ownership; include tests/docs/review without tracer/framework/package or DNS/test-platform expansion."
+          ],
+          "description": "Focused final-host/suffix/override/snapshot cases, directfinalizer auth/signing order, actualloopback headers with Activity/listener/defaultoff/expliciton/noActivity/manualheader and stableentrycontext. Run affectedexisting REST integration and bothConfiguration source cases; verify nativeHTTPMetrics stillworks. Preserve originalsource/userfiles, failures/history and allsharedlimits.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Focused final-host/suffix/override/snapshot cases, directfinalizer auth/signing order, actualloopback headers with Activity/listener/defaultoff/expliciton/noActivity/manualheader and stableentrycontext. Run affectedexisting REST integration and bothConfiguration source cases; verify nativeHTTPMetrics stillworks. Preserve originalsource/userfiles, failures/history and allsharedlimits."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
     }
   ],
   "source": null

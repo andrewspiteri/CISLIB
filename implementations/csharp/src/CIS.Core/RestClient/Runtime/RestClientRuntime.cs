@@ -71,7 +71,9 @@ internal sealed class RestClientRuntime : IRestClientRuntime, IAsyncDisposable
     internal Task<RestResult<T>> ExecuteAsync<T>(string clientName, string method, string url,
         RestRequestOptions? options, CancellationToken caller)
     {
-        string? trace = CaptureTrace();
+        Activity? entryActivity = Activity.Current;
+        string? trace = CaptureTrace(entryActivity);
+        string? traceParent = RestTraceForwarding.Capture(entryActivity);
         long entry = clock.GetTimestamp();
         RestClientMetrics? capturedMetrics = Volatile.Read(ref metrics);
         ArgumentNullException.ThrowIfNull(clientName); ArgumentNullException.ThrowIfNull(url);
@@ -107,12 +109,12 @@ internal sealed class RestClientRuntime : IRestClientRuntime, IAsyncDisposable
             return Task.FromResult(BuildResult<T>(SourceFailure<T>(kind), call, clientName, 0, elapsed, trace, null));
         }
         IRestOperationObservation? observation = capturedMetrics?.Begin(clientName, call.OperationName);
-        _ = RunAsync(binding, call, policy, method, url, initialDestination, caller, entry, trace, observation, unknownOperation, completion);
+        _ = RunAsync(binding, call, policy, method, url, initialDestination, caller, entry, trace, traceParent, observation, unknownOperation, completion);
         return completion.Task;
     }
 
     private async Task RunAsync<T>(RestClientBinding binding, RestCallSnapshot call, RestRetryPolicy? policy,
-        string method, string url, Uri initialDestination, CancellationToken caller, long entry, string? trace,
+        string method, string url, Uri initialDestination, CancellationToken caller, long entry, string? trace, string? traceParent,
         IRestOperationObservation? observation, bool unknownOperation, TaskCompletionSource<RestResult<T>> completion)
     {
         CancellationTokenSource? total = null, linked = null;
@@ -361,7 +363,7 @@ internal sealed class RestClientRuntime : IRestClientRuntime, IAsyncDisposable
                             if (!SameRequest(replay, candidate)) { throw new ReplayRejected(false); }
                         }
                         message = RestNativeRequest.Create(actual, content!.Content);
-                    }, captureUnexpectedCancellation: true, knownCallerToken: caller).ConfigureAwait(false);
+                    }, captureUnexpectedCancellation: true, knownCallerToken: caller, capturedTraceParent: traceParent).ConfigureAwait(false);
                 if (failure is not null) { throw new AttemptRejected(failure); }
                 RestNativeRequest.Finalize(message!, actual);
                 string dispatchedUri = logger is null ? string.Empty : RestCallLogging.SafeUri(message!.RequestUri!);
@@ -459,8 +461,8 @@ internal sealed class RestClientRuntime : IRestClientRuntime, IAsyncDisposable
         => typeof(T) == typeof(RestNoValue) || string.Equals(method, "HEAD", StringComparison.OrdinalIgnoreCase)
             ? RestResponseFormat.NoValue : call.ResponseFormat;
     private TimeSpan Elapsed(long entry) { TimeSpan value = clock.GetElapsedTime(entry); return value >= TimeSpan.Zero ? value : TimeSpan.Zero; }
-    private static string? CaptureTrace()
-        => Activity.Current is { IdFormat: ActivityIdFormat.W3C } activity && activity.TraceId != default ? activity.TraceId.ToHexString() : null;
+    private static string? CaptureTrace(Activity? entryActivity)
+        => entryActivity is { IdFormat: ActivityIdFormat.W3C } activity && activity.TraceId != default ? activity.TraceId.ToHexString() : null;
     private static bool KnownCancellation(Exception error, params CancellationToken[] tokens)
         => error is OperationCanceledException canceled && tokens.Any(token => token == canceled.CancellationToken && token.IsCancellationRequested);
     private static Exception UnwrapFault(Exception error) => error switch

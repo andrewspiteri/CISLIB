@@ -42,6 +42,7 @@ public sealed class RestHttpTransport : IAsyncDisposable
         {
             AllowAutoRedirect = false, UseCookies = false, Credentials = null, PreAuthenticate = false,
             UseProxy = false, DefaultProxyCredentials = null,
+            ActivityHeadersPropagator = null,
             ConnectTimeout = Timeout.InfiniteTimeSpan, MeterFactory = factory,
             PooledConnectionLifetime = options.PooledConnectionLifetime,
             MaxConnectionsPerServer = options.MaxConnectionsPerServer,
