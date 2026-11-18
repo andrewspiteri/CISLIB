@@ -60,229 +60,6 @@
       "contractErrors": []
     },
     {
-      "id": "WORK-002",
-      "category": "implementation",
-      "complexity": "medium",
-      "parentId": null,
-      "taskPath": "agent-tasks/WORK-002.md",
-      "title": "Implement retained application lifecycle and real web readiness integration",
-      "requirementIds": [],
-      "impactIds": [],
-      "dependsOn": [
-        "WORK-001"
-      ],
-      "acceptanceCriteria": "AP2 / APP-02,APP-03,APP-06,APP-07: retain one start/stop/dispose operation and one host/provider. Start joins preparation and actual host/CIS startup; Run starts, waits for ordinary shutdown and stops, returning an exit result only for observed outcomes with retained cause. Stop signals owned work before actual startup/configuration/heartbeat/REST/metrics drains; disposal handles partial Build/start acquisition and propagates cleanup faults safely. Use native routing/operational branches and existing health/business readiness statuses, real early listener access, required sequential tail bridge order and one host disposal path. Include real-host/ownership tests, docs and review.",
-      "validation": "A02\u2013A05/A10: all startup roots constructed before sequential identity-deduplicated starts; repeated/concurrent calls share retained outcomes and terminal stop cannot restart/readiness-reopen. Held real initializer proves health500/business503 then ready200 without side effects. Held work/canceled waits/partial build prove no dependency disposal before actual settlement; original start/cancel/fault and later disposal errors surface correctly.",
-      "status": "Draft",
-      "taskTypeKey": "core.legacy",
-      "taskTypeVersion": "1.0",
-      "approvalGate": "none",
-      "targets": [],
-      "decisionIds": [],
-      "negativeCriteria": [],
-      "requiredOutputs": [],
-      "frontendType": null,
-      "storyId": null,
-      "instanceKey": "outcome:dad7ac7c64d64aceadf21127ddb5e0c1",
-      "workOwnerTaskId": null,
-      "authorizationScopeIds": [
-        "application-facade"
-      ],
-      "authorizationScopeBasis": "sha256:2ba6ff96550e6f8403209e849521c15a7c0224d9e53d4a659df08abb25579550",
-      "workPaths": [
-        "implementations/csharp/src/CIS.Core/Application",
-        "implementations/csharp/src/CIS.Core/Startup/Hosting",
-        "implementations/csharp/src/CIS.Core/Heartbeat/Hosting",
-        "implementations/csharp/tests",
-        "docs/modules",
-        "docs/changes/CIS-0011"
-      ],
-      "assignee": "Codex",
-      "verificationObligations": [
-        {
-          "id": "task-contract",
-          "criteria": [
-            "AP2 / APP-02,APP-03,APP-06,APP-07: retain one start/stop/dispose operation and one host/provider. Start joins preparation and actual host/CIS startup; Run starts, waits for ordinary shutdown and stops, returning an exit result only for observed outcomes with retained cause. Stop signals owned work before actual startup/configuration/heartbeat/REST/metrics drains; disposal handles partial Build/start acquisition and propagates cleanup faults safely. Use native routing/operational branches and existing health/business readiness statuses, real early listener access, required sequential tail bridge order and one host disposal path. Include real-host/ownership tests, docs and review."
-          ],
-          "description": "A02\u2013A05/A10: all startup roots constructed before sequential identity-deduplicated starts; repeated/concurrent calls share retained outcomes and terminal stop cannot restart/readiness-reopen. Held real initializer proves health500/business503 then ready200 without side effects. Held work/canceled waits/partial build prove no dependency disposal before actual settlement; original start/cancel/fault and later disposal errors surface correctly.",
-          "evidenceRoute": "review",
-          "evidenceExpectations": [
-            "A02\u2013A05/A10: all startup roots constructed before sequential identity-deduplicated starts; repeated/concurrent calls share retained outcomes and terminal stop cannot restart/readiness-reopen. Held real initializer proves health500/business503 then ready200 without side effects. Held work/canceled waits/partial build prove no dependency disposal before actual settlement; original start/cancel/fault and later disposal errors surface correctly."
-          ],
-          "sharedGateIds": [],
-          "basisReferences": []
-        }
-      ],
-      "contractErrors": []
-    },
-    {
-      "id": "WORK-003",
-      "category": "implementation",
-      "complexity": "medium",
-      "parentId": null,
-      "taskPath": "agent-tasks/WORK-003.md",
-      "title": "Automatically attach the installed optional Metrics integration",
-      "requirementIds": [],
-      "impactIds": [],
-      "dependsOn": [
-        "WORK-001"
-      ],
-      "acceptanceCriteria": "AP3 / APP-04,APP-05: implement only the narrow prepared-TypeManager registrar seam needed for supported optional Metrics service registration and existing web integration. Parameterless passive contributors run once in deterministic type order, deduplicate and reject conflicting contributions before one Build. Honor adapter enablement/custom profile/replacement choices; Core no-op cannot preempt installed Metrics. Keep one actual existing SDK/provider and central identity, exact host isolation and real callback-owner drain. Include tests, integration guide and review; no scanning/runtime plugin or lifecycle graph.",
-      "validation": "A04/A05/A11: a Core-only facade runs without optional packages/endpoint; installed adapter automatically exposes real metrics in the web host; disabled/customized modes are respected without manual sample AddCisMetrics. Real scrape/two-host/root identities and existing relevant lifetime checks pass; contributor duplication/conflicts fail clearly and no contributor performs I/O/provider creation.",
-      "status": "Draft",
-      "taskTypeKey": "core.legacy",
-      "taskTypeVersion": "1.0",
-      "approvalGate": "none",
-      "targets": [],
-      "decisionIds": [],
-      "negativeCriteria": [],
-      "requiredOutputs": [],
-      "frontendType": null,
-      "storyId": null,
-      "instanceKey": "outcome:9675c0941613421cb4d7c658196d8314",
-      "workOwnerTaskId": null,
-      "authorizationScopeIds": [
-        "application-facade"
-      ],
-      "authorizationScopeBasis": "sha256:2ba6ff96550e6f8403209e849521c15a7c0224d9e53d4a659df08abb25579550",
-      "workPaths": [
-        "implementations/csharp/src/CIS.Core/Application",
-        "implementations/csharp/src/CIS.Core/Metrics",
-        "implementations/csharp/src/CIS.Metrics.OpenTelemetry",
-        "implementations/csharp/tests",
-        "docs/modules",
-        "docs/changes/CIS-0011"
-      ],
-      "assignee": "Codex",
-      "verificationObligations": [
-        {
-          "id": "task-contract",
-          "criteria": [
-            "AP3 / APP-04,APP-05: implement only the narrow prepared-TypeManager registrar seam needed for supported optional Metrics service registration and existing web integration. Parameterless passive contributors run once in deterministic type order, deduplicate and reject conflicting contributions before one Build. Honor adapter enablement/custom profile/replacement choices; Core no-op cannot preempt installed Metrics. Keep one actual existing SDK/provider and central identity, exact host isolation and real callback-owner drain. Include tests, integration guide and review; no scanning/runtime plugin or lifecycle graph."
-          ],
-          "description": "A04/A05/A11: a Core-only facade runs without optional packages/endpoint; installed adapter automatically exposes real metrics in the web host; disabled/customized modes are respected without manual sample AddCisMetrics. Real scrape/two-host/root identities and existing relevant lifetime checks pass; contributor duplication/conflicts fail clearly and no contributor performs I/O/provider creation.",
-          "evidenceRoute": "review",
-          "evidenceExpectations": [
-            "A04/A05/A11: a Core-only facade runs without optional packages/endpoint; installed adapter automatically exposes real metrics in the web host; disabled/customized modes are respected without manual sample AddCisMetrics. Real scrape/two-host/root identities and existing relevant lifetime checks pass; contributor duplication/conflicts fail clearly and no contributor performs I/O/provider creation."
-          ],
-          "sharedGateIds": [],
-          "basisReferences": []
-        }
-      ],
-      "contractErrors": []
-    },
-    {
-      "id": "WORK-004",
-      "category": "implementation",
-      "complexity": "medium",
-      "parentId": null,
-      "taskPath": "agent-tasks/WORK-004.md",
-      "title": "Deliver real REST-backed CountryData with atomic refresh and state gauges",
-      "requirementIds": [],
-      "impactIds": [],
-      "dependsOn": [
-        "WORK-001",
-        "WORK-002",
-        "WORK-003"
-      ],
-      "acceptanceCriteria": "AP4 / DATA-01\u2013DATA-06: a small normal Program uses facade, intentional app/named client and explicit existing TransientHttp policy choices, native route and RunAsync. One catalog implements startup and heartbeat; capture retained settings once, fetch actual provider envelope with accepted keyed REST/RestResult and overall30second timeout, map business failure, validate complete data and atomically swap one immutable snapshot. Serve exact case-insensitive name/ISO aliases locally with stable errors. Initial successful publication precedes readiness; both default Heartbeat delay/interval1hour, no overlap/duplicate prime. Failed refresh preserves data/time and expected stop cancels real work/drains neutrally. Add only two dimensionless snapshot gauges with proper unknown omission. Include focused controlled-HTTP/timing/scrape tests, concise real run guide and review; no test modes in app.",
-      "validation": "A01/A05\u2013A11: equivalent Malta variants and zero lookup I/O, invalid identifiers400/unknown404, malformed/null/empty/business/HTTP/conflict failures, atomic complete alias replacement and old state/time retention. Real Heartbeat scheduling/failed-result recovery; actual in-flight REST/body shutdown and callback barrier. Real exporter names/central labels/count vs aliases/time omission/retention and no collection I/O. Defaultsonehour/30seconds; no public internet test dependency.",
-      "status": "Draft",
-      "taskTypeKey": "core.legacy",
-      "taskTypeVersion": "1.0",
-      "approvalGate": "none",
-      "targets": [],
-      "decisionIds": [],
-      "negativeCriteria": [],
-      "requiredOutputs": [],
-      "frontendType": null,
-      "storyId": null,
-      "instanceKey": "outcome:b7c2e88b54c241929d5de64923976a77",
-      "workOwnerTaskId": null,
-      "authorizationScopeIds": [
-        "country-data"
-      ],
-      "authorizationScopeBasis": "sha256:ff8405b6d99e531c21f982abc0d4ddee69968067f7d53497f566090559afbea8",
-      "workPaths": [
-        "implementations/csharp/examples/CountryData",
-        "implementations/csharp/tests",
-        "docs/modules",
-        "docs/changes/CIS-0011",
-        "planning/application"
-      ],
-      "assignee": "Codex",
-      "verificationObligations": [
-        {
-          "id": "task-contract",
-          "criteria": [
-            "AP4 / DATA-01\u2013DATA-06: a small normal Program uses facade, intentional app/named client and explicit existing TransientHttp policy choices, native route and RunAsync. One catalog implements startup and heartbeat; capture retained settings once, fetch actual provider envelope with accepted keyed REST/RestResult and overall30second timeout, map business failure, validate complete data and atomically swap one immutable snapshot. Serve exact case-insensitive name/ISO aliases locally with stable errors. Initial successful publication precedes readiness; both default Heartbeat delay/interval1hour, no overlap/duplicate prime. Failed refresh preserves data/time and expected stop cancels real work/drains neutrally. Add only two dimensionless snapshot gauges with proper unknown omission. Include focused controlled-HTTP/timing/scrape tests, concise real run guide and review; no test modes in app."
-          ],
-          "description": "A01/A05\u2013A11: equivalent Malta variants and zero lookup I/O, invalid identifiers400/unknown404, malformed/null/empty/business/HTTP/conflict failures, atomic complete alias replacement and old state/time retention. Real Heartbeat scheduling/failed-result recovery; actual in-flight REST/body shutdown and callback barrier. Real exporter names/central labels/count vs aliases/time omission/retention and no collection I/O. Defaultsonehour/30seconds; no public internet test dependency.",
-          "evidenceRoute": "review",
-          "evidenceExpectations": [
-            "A01/A05\u2013A11: equivalent Malta variants and zero lookup I/O, invalid identifiers400/unknown404, malformed/null/empty/business/HTTP/conflict failures, atomic complete alias replacement and old state/time retention. Real Heartbeat scheduling/failed-result recovery; actual in-flight REST/body shutdown and callback barrier. Real exporter names/central labels/count vs aliases/time omission/retention and no collection I/O. Defaultsonehour/30seconds; no public internet test dependency."
-          ],
-          "sharedGateIds": [],
-          "basisReferences": []
-        }
-      ],
-      "contractErrors": []
-    },
-    {
-      "id": "WORK-005",
-      "category": "implementation",
-      "complexity": "medium",
-      "parentId": null,
-      "taskPath": "agent-tasks/WORK-005.md",
-      "title": "Migrate distinct consumer coverage into minimal existing test fixtures",
-      "requirementIds": [],
-      "impactIds": [],
-      "dependsOn": [
-        "WORK-001",
-        "WORK-004"
-      ],
-      "acceptanceCriteria": "AP5 / CLEAN-01\u2013CLEAN-03: migrate only distinct TypeManager discovery/deployment, Configuration constructor/reload identity, Healthcheck HTTP/pipe/probe process, Logging flush, Heartbeat failure/recovery/drain, Metrics optional deployment and REST genuine Core-only/optional package boundaries. Use existing minimal Host/Contracts/Transitive/Unused/Runtime, HealthcheckHttpHost/CisHealthProbe and Logging/Heartbeat native fixtures, plus the canonical app where appropriate. Remove redundant full tutorial/self-test report assertions after mapping useful requirements. Update exact candidate-byte guards to surviving processes. No whole old programs copied into fixture/archive/legacy flags. Include native real-package build/publish evidence, fixture rationale/docs and independent review.",
-      "validation": "A12\u2013A14: each retained fixture has a named process/assembly/packaging purpose; exact-version SDK build/folder publish, missing selected DLL, ordinary PackageReference and Core-only optional closure checks remain genuine. Module behavior is exercised through focused native tests without obsolete reports, duplicate apps or weakened byte guards.",
-      "status": "Draft",
-      "taskTypeKey": "core.legacy",
-      "taskTypeVersion": "1.0",
-      "approvalGate": "none",
-      "targets": [],
-      "decisionIds": [],
-      "negativeCriteria": [],
-      "requiredOutputs": [],
-      "frontendType": null,
-      "storyId": null,
-      "instanceKey": "outcome:bf29e5e99ca64b2694abdf10a73a0d4d",
-      "workOwnerTaskId": null,
-      "authorizationScopeIds": [
-        "example-consolidation"
-      ],
-      "authorizationScopeBasis": "sha256:ecf30cfd510c63003e9c825cd78740318aac031c9541a114255fd388e60dbf2b",
-      "workPaths": [
-        "implementations/csharp/tests",
-        "docs/modules",
-        "docs/changes/CIS-0011"
-      ],
-      "assignee": "Codex",
-      "verificationObligations": [
-        {
-          "id": "task-contract",
-          "criteria": [
-            "AP5 / CLEAN-01\u2013CLEAN-03: migrate only distinct TypeManager discovery/deployment, Configuration constructor/reload identity, Healthcheck HTTP/pipe/probe process, Logging flush, Heartbeat failure/recovery/drain, Metrics optional deployment and REST genuine Core-only/optional package boundaries. Use existing minimal Host/Contracts/Transitive/Unused/Runtime, HealthcheckHttpHost/CisHealthProbe and Logging/Heartbeat native fixtures, plus the canonical app where appropriate. Remove redundant full tutorial/self-test report assertions after mapping useful requirements. Update exact candidate-byte guards to surviving processes. No whole old programs copied into fixture/archive/legacy flags. Include native real-package build/publish evidence, fixture rationale/docs and independent review."
-          ],
-          "description": "A12\u2013A14: each retained fixture has a named process/assembly/packaging purpose; exact-version SDK build/folder publish, missing selected DLL, ordinary PackageReference and Core-only optional closure checks remain genuine. Module behavior is exercised through focused native tests without obsolete reports, duplicate apps or weakened byte guards.",
-          "evidenceRoute": "review",
-          "evidenceExpectations": [
-            "A12\u2013A14: each retained fixture has a named process/assembly/packaging purpose; exact-version SDK build/folder publish, missing selected DLL, ordinary PackageReference and Core-only optional closure checks remain genuine. Module behavior is exercised through focused native tests without obsolete reports, duplicate apps or weakened byte guards."
-          ],
-          "sharedGateIds": [],
-          "basisReferences": []
-        }
-      ],
-      "contractErrors": []
-    },
-    {
       "id": "WORK-006",
       "category": "implementation",
       "complexity": "medium",
@@ -299,7 +76,7 @@
       ],
       "acceptanceCriteria": "AP6 / CLEAN-01\u2013CLEAN-03: after migration delete all seven named old tutorial projects, newer RestApi and redundant type-manager support; CountryData is the only maintained runnable tutorial. Coordinate solution/project/lock/copy-target edits, replace or retire active profile/script paths, module/root guides and existing skill/instruction routing. Preserve the three exact untracked user launch files reversibly with hashes outside removed examples before directory removal. Preserve historical records/results/accounting as history and unrelated user work. Resolve all active old references, document minimal surviving fixtures and exact run command. Include final affected native source/architecture/compatibility/package checks and independent review without another framework/tool campaign.",
       "validation": "A12\u2013A14: solution and affected projects build through current eligible CIS owner; selected facade/CountryData/module preservation/source and real Core-only/optional package cases pass on actual Windows. Final rg classifies old paths/names/outputs/self-test flags and leaves no unresolved active refs or copied apps. User/source hashes unchanged, no active reservations/recovery uncertainty at settlement; real platform/smoke gaps remain explicit.",
-      "status": "Draft",
+      "status": "Complete",
       "taskTypeKey": "core.legacy",
       "taskTypeVersion": "1.0",
       "approvalGate": "none",
@@ -347,6 +124,231 @@
           "evidenceRoute": "review",
           "evidenceExpectations": [
             "A12\u2013A14: solution and affected projects build through current eligible CIS owner; selected facade/CountryData/module preservation/source and real Core-only/optional package cases pass on actual Windows. Final rg classifies old paths/names/outputs/self-test flags and leaves no unresolved active refs or copied apps. User/source hashes unchanged, no active reservations/recovery uncertainty at settlement; real platform/smoke gaps remain explicit."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-002",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-002.md",
+      "title": "Implement retained application lifecycle and real web readiness integration",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "acceptanceCriteria": "AP2 / APP-02,APP-03,APP-06,APP-07: retain one start/stop/dispose operation and one host/provider. Start joins preparation and actual host/CIS startup; Run starts, waits for ordinary shutdown and stops, returning an exit result only for observed outcomes with retained cause. Stop signals owned work before actual startup/configuration/heartbeat/REST/metrics drains; disposal handles partial Build/start acquisition and propagates cleanup faults safely. Use native routing/operational branches and existing health/business readiness statuses, real early listener access, required sequential tail bridge order and one host disposal path. Include real-host/ownership tests, docs and review.",
+      "validation": "A02\u2013A05/A10: all startup roots constructed before sequential identity-deduplicated starts; repeated/concurrent calls share retained outcomes and terminal stop cannot restart/readiness-reopen. Held real initializer proves health500/business503 then ready200 without side effects. Held work/canceled waits/partial build prove no dependency disposal before actual settlement; original start/cancel/fault and later disposal errors surface correctly.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:dad7ac7c64d64aceadf21127ddb5e0c1",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "application-facade"
+      ],
+      "authorizationScopeBasis": "sha256:2ba6ff96550e6f8403209e849521c15a7c0224d9e53d4a659df08abb25579550",
+      "workPaths": [
+        "implementations/csharp/src/CIS.Core/Application",
+        "implementations/csharp/src/CIS.Core/Startup/Hosting/StartupHostingExtensions.cs",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Application/ApplicationTestSupport.cs",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Application/CISApplicationLifecycleTests.cs",
+        "docs/modules/application",
+        "docs/changes/CIS-0011"
+      ],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "AP2 / APP-02,APP-03,APP-06,APP-07: retain one start/stop/dispose operation and one host/provider. Start joins preparation and actual host/CIS startup; Run starts, waits for ordinary shutdown and stops, returning an exit result only for observed outcomes with retained cause. Stop signals owned work before actual startup/configuration/heartbeat/REST/metrics drains; disposal handles partial Build/start acquisition and propagates cleanup faults safely. Use native routing/operational branches and existing health/business readiness statuses, real early listener access, required sequential tail bridge order and one host disposal path. Include real-host/ownership tests, docs and review."
+          ],
+          "description": "A02\u2013A05/A10: all startup roots constructed before sequential identity-deduplicated starts; repeated/concurrent calls share retained outcomes and terminal stop cannot restart/readiness-reopen. Held real initializer proves health500/business503 then ready200 without side effects. Held work/canceled waits/partial build prove no dependency disposal before actual settlement; original start/cancel/fault and later disposal errors surface correctly.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "A02\u2013A05/A10: all startup roots constructed before sequential identity-deduplicated starts; repeated/concurrent calls share retained outcomes and terminal stop cannot restart/readiness-reopen. Held real initializer proves health500/business503 then ready200 without side effects. Held work/canceled waits/partial build prove no dependency disposal before actual settlement; original start/cancel/fault and later disposal errors surface correctly."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-003",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-003.md",
+      "title": "Automatically attach the installed optional Metrics integration",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "acceptanceCriteria": "AP3 / APP-04,APP-05: implement only the narrow prepared-TypeManager registrar seam needed for supported optional Metrics service registration and existing web integration. Parameterless passive contributors run once in deterministic type order, deduplicate and reject conflicting contributions before one Build. Honor adapter enablement/custom profile/replacement choices; Core no-op cannot preempt installed Metrics. Keep one actual existing SDK/provider and central identity, exact host isolation and real callback-owner drain. Include tests, integration guide and review; no scanning/runtime plugin or lifecycle graph.",
+      "validation": "A04/A05/A11: a Core-only facade runs without optional packages/endpoint; installed adapter automatically exposes real metrics in the web host; disabled/customized modes are respected without manual sample AddCisMetrics. Real scrape/two-host/root identities and existing relevant lifetime checks pass; contributor duplication/conflicts fail clearly and no contributor performs I/O/provider creation.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:9675c0941613421cb4d7c658196d8314",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "application-facade"
+      ],
+      "authorizationScopeBasis": "sha256:2ba6ff96550e6f8403209e849521c15a7c0224d9e53d4a659df08abb25579550",
+      "workPaths": [
+        "implementations/csharp/src/CIS.Metrics.OpenTelemetry/MetricsApplicationIntegration.cs",
+        "implementations/csharp/src/CIS.Metrics.OpenTelemetry/CISApplicationMetricsBuilderExtensions.cs",
+        "implementations/csharp/src/CIS.Metrics.OpenTelemetry/MetricsServiceCollectionExtensions.cs",
+        "implementations/csharp/src/CIS.Metrics.OpenTelemetry/MetricsCollectionContext.cs",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Application/MetricsApplicationCompositionTests.cs",
+        "docs/modules/metrics/hosting.md",
+        "docs/changes/CIS-0011"
+      ],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "AP3 / APP-04,APP-05: implement only the narrow prepared-TypeManager registrar seam needed for supported optional Metrics service registration and existing web integration. Parameterless passive contributors run once in deterministic type order, deduplicate and reject conflicting contributions before one Build. Honor adapter enablement/custom profile/replacement choices; Core no-op cannot preempt installed Metrics. Keep one actual existing SDK/provider and central identity, exact host isolation and real callback-owner drain. Include tests, integration guide and review; no scanning/runtime plugin or lifecycle graph."
+          ],
+          "description": "A04/A05/A11: a Core-only facade runs without optional packages/endpoint; installed adapter automatically exposes real metrics in the web host; disabled/customized modes are respected without manual sample AddCisMetrics. Real scrape/two-host/root identities and existing relevant lifetime checks pass; contributor duplication/conflicts fail clearly and no contributor performs I/O/provider creation.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "A04/A05/A11: a Core-only facade runs without optional packages/endpoint; installed adapter automatically exposes real metrics in the web host; disabled/customized modes are respected without manual sample AddCisMetrics. Real scrape/two-host/root identities and existing relevant lifetime checks pass; contributor duplication/conflicts fail clearly and no contributor performs I/O/provider creation."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-004",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-004.md",
+      "title": "Deliver real REST-backed CountryData with atomic refresh and state gauges",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "acceptanceCriteria": "AP4 / DATA-01\u2013DATA-06: a small normal Program uses facade, intentional app/named client and explicit existing TransientHttp policy choices, native route and RunAsync. One catalog implements startup and heartbeat; capture retained settings once, fetch actual provider envelope with accepted keyed REST/RestResult and overall30second timeout, map business failure, validate complete data and atomically swap one immutable snapshot. Serve exact case-insensitive name/ISO aliases locally with stable errors. Initial successful publication precedes readiness; both default Heartbeat delay/interval1hour, no overlap/duplicate prime. Failed refresh preserves data/time and expected stop cancels real work/drains neutrally. Add only two dimensionless snapshot gauges with proper unknown omission. Include focused controlled-HTTP/timing/scrape tests, concise real run guide and review; no test modes in app.",
+      "validation": "A01/A05\u2013A11: equivalent Malta variants and zero lookup I/O, invalid identifiers400/unknown404, malformed/null/empty/business/HTTP/conflict failures, atomic complete alias replacement and old state/time retention. Real Heartbeat scheduling/failed-result recovery; actual in-flight REST/body shutdown and callback barrier. Real exporter names/central labels/count vs aliases/time omission/retention and no collection I/O. Defaultsonehour/30seconds; no public internet test dependency.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:b7c2e88b54c241929d5de64923976a77",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "country-data"
+      ],
+      "authorizationScopeBasis": "sha256:ff8405b6d99e531c21f982abc0d4ddee69968067f7d53497f566090559afbea8",
+      "workPaths": [
+        "implementations/csharp/examples/CountryData",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/CountryData",
+        "docs/modules/application",
+        "docs/changes/CIS-0011",
+        "planning/application"
+      ],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "AP4 / DATA-01\u2013DATA-06: a small normal Program uses facade, intentional app/named client and explicit existing TransientHttp policy choices, native route and RunAsync. One catalog implements startup and heartbeat; capture retained settings once, fetch actual provider envelope with accepted keyed REST/RestResult and overall30second timeout, map business failure, validate complete data and atomically swap one immutable snapshot. Serve exact case-insensitive name/ISO aliases locally with stable errors. Initial successful publication precedes readiness; both default Heartbeat delay/interval1hour, no overlap/duplicate prime. Failed refresh preserves data/time and expected stop cancels real work/drains neutrally. Add only two dimensionless snapshot gauges with proper unknown omission. Include focused controlled-HTTP/timing/scrape tests, concise real run guide and review; no test modes in app."
+          ],
+          "description": "A01/A05\u2013A11: equivalent Malta variants and zero lookup I/O, invalid identifiers400/unknown404, malformed/null/empty/business/HTTP/conflict failures, atomic complete alias replacement and old state/time retention. Real Heartbeat scheduling/failed-result recovery; actual in-flight REST/body shutdown and callback barrier. Real exporter names/central labels/count vs aliases/time omission/retention and no collection I/O. Defaultsonehour/30seconds; no public internet test dependency.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "A01/A05\u2013A11: equivalent Malta variants and zero lookup I/O, invalid identifiers400/unknown404, malformed/null/empty/business/HTTP/conflict failures, atomic complete alias replacement and old state/time retention. Real Heartbeat scheduling/failed-result recovery; actual in-flight REST/body shutdown and callback barrier. Real exporter names/central labels/count vs aliases/time omission/retention and no collection I/O. Defaultsonehour/30seconds; no public internet test dependency."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-005",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-005.md",
+      "title": "Migrate distinct consumer coverage into minimal existing test fixtures",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "acceptanceCriteria": "AP5 / CLEAN-01\u2013CLEAN-03: migrate only distinct TypeManager discovery/deployment, Configuration constructor/reload identity, Healthcheck HTTP/pipe/probe process, Logging flush, Heartbeat failure/recovery/drain, Metrics optional deployment and REST genuine Core-only/optional package boundaries. Use existing minimal Host/Contracts/Transitive/Unused/Runtime, HealthcheckHttpHost/CisHealthProbe and Logging/Heartbeat native fixtures, plus the canonical app where appropriate. Remove redundant full tutorial/self-test report assertions after mapping useful requirements. Update exact candidate-byte guards to surviving processes. No whole old programs copied into fixture/archive/legacy flags. Include native real-package build/publish evidence, fixture rationale/docs and independent review.",
+      "validation": "A12\u2013A14: each retained fixture has a named process/assembly/packaging purpose; exact-version SDK build/folder publish, missing selected DLL, ordinary PackageReference and Core-only optional closure checks remain genuine. Module behavior is exercised through focused native tests without obsolete reports, duplicate apps or weakened byte guards.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:bf29e5e99ca64b2694abdf10a73a0d4d",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "example-consolidation"
+      ],
+      "authorizationScopeBasis": "sha256:ecf30cfd510c63003e9c825cd78740318aac031c9541a114255fd388e60dbf2b",
+      "workPaths": [
+        "implementations/csharp/tests/fixtures/TypeManager",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/TypeManagerPackageConsumerFixture.cs",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/TypeManagerPackageConsumerTests.cs",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/ConfigurationSourceConsumerTests.cs",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/RestClient/RestClientPackageConsumerTests.cs",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/CountryData/CountryDataPackageConsumerTests.cs",
+        "docs/changes/CIS-0011"
+      ],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "AP5 / CLEAN-01\u2013CLEAN-03: migrate only distinct TypeManager discovery/deployment, Configuration constructor/reload identity, Healthcheck HTTP/pipe/probe process, Logging flush, Heartbeat failure/recovery/drain, Metrics optional deployment and REST genuine Core-only/optional package boundaries. Use existing minimal Host/Contracts/Transitive/Unused/Runtime, HealthcheckHttpHost/CisHealthProbe and Logging/Heartbeat native fixtures, plus the canonical app where appropriate. Remove redundant full tutorial/self-test report assertions after mapping useful requirements. Update exact candidate-byte guards to surviving processes. No whole old programs copied into fixture/archive/legacy flags. Include native real-package build/publish evidence, fixture rationale/docs and independent review."
+          ],
+          "description": "A12\u2013A14: each retained fixture has a named process/assembly/packaging purpose; exact-version SDK build/folder publish, missing selected DLL, ordinary PackageReference and Core-only optional closure checks remain genuine. Module behavior is exercised through focused native tests without obsolete reports, duplicate apps or weakened byte guards.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "A12\u2013A14: each retained fixture has a named process/assembly/packaging purpose; exact-version SDK build/folder publish, missing selected DLL, ordinary PackageReference and Core-only optional closure checks remain genuine. Module behavior is exercised through focused native tests without obsolete reports, duplicate apps or weakened byte guards."
           ],
           "sharedGateIds": [],
           "basisReferences": []

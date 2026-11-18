@@ -1,0 +1,27 @@
+{
+  "tasks": [
+    {
+      "title": "Automatically attach the installed optional Metrics integration",
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "scopeIds": [
+        "application-facade"
+      ],
+      "paths": [
+        "implementations/csharp/src/CIS.Metrics.OpenTelemetry/MetricsApplicationIntegration.cs",
+        "implementations/csharp/src/CIS.Metrics.OpenTelemetry/CISApplicationMetricsBuilderExtensions.cs",
+        "implementations/csharp/src/CIS.Metrics.OpenTelemetry/MetricsServiceCollectionExtensions.cs",
+        "implementations/csharp/src/CIS.Metrics.OpenTelemetry/MetricsCollectionContext.cs",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Application/MetricsApplicationCompositionTests.cs",
+        "docs/modules/metrics/hosting.md",
+        "docs/changes/CIS-0011"
+      ],
+      "acceptanceCriteria": "AP3 / APP-04,APP-05: implement only the narrow prepared-TypeManager registrar seam needed for supported optional Metrics service registration and existing web integration. Parameterless passive contributors run once in deterministic type order, deduplicate and reject conflicting contributions before one Build. Honor adapter enablement/custom profile/replacement choices; Core no-op cannot preempt installed Metrics. Keep one actual existing SDK/provider and central identity, exact host isolation and real callback-owner drain. Include tests, integration guide and review; no scanning/runtime plugin or lifecycle graph.",
+      "validation": "A04/A05/A11: a Core-only facade runs without optional packages/endpoint; installed adapter automatically exposes real metrics in the web host; disabled/customized modes are respected without manual sample AddCisMetrics. Real scrape/two-host/root identities and existing relevant lifetime checks pass; contributor duplication/conflicts fail clearly and no contributor performs I/O/provider creation.",
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex"
+    }
+  ]
+}

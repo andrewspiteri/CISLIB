@@ -1,0 +1,26 @@
+{
+  "tasks": [
+    {
+      "title": "Implement retained application lifecycle and real web readiness integration",
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "scopeIds": [
+        "application-facade"
+      ],
+      "paths": [
+        "implementations/csharp/src/CIS.Core/Application",
+        "implementations/csharp/src/CIS.Core/Startup/Hosting/StartupHostingExtensions.cs",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Application/ApplicationTestSupport.cs",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Application/CISApplicationLifecycleTests.cs",
+        "docs/modules/application",
+        "docs/changes/CIS-0011"
+      ],
+      "acceptanceCriteria": "AP2 / APP-02,APP-03,APP-06,APP-07: retain one start/stop/dispose operation and one host/provider. Start joins preparation and actual host/CIS startup; Run starts, waits for ordinary shutdown and stops, returning an exit result only for observed outcomes with retained cause. Stop signals owned work before actual startup/configuration/heartbeat/REST/metrics drains; disposal handles partial Build/start acquisition and propagates cleanup faults safely. Use native routing/operational branches and existing health/business readiness statuses, real early listener access, required sequential tail bridge order and one host disposal path. Include real-host/ownership tests, docs and review.",
+      "validation": "A02–A05/A10: all startup roots constructed before sequential identity-deduplicated starts; repeated/concurrent calls share retained outcomes and terminal stop cannot restart/readiness-reopen. Held real initializer proves health500/business503 then ready200 without side effects. Held work/canceled waits/partial build prove no dependency disposal before actual settlement; original start/cancel/fault and later disposal errors surface correctly.",
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex"
+    }
+  ]
+}

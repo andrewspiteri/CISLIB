@@ -27,6 +27,7 @@ public static class StartupHostingExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
         services.TryAddSingleton(new StartupHostingOrder(services));
+        services.TryAddSingleton(new StartupOperationReference());
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IHostedService, StartupHostedService>());
         return services;
     }
@@ -35,6 +36,7 @@ public static class StartupHostingExtensions
 internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisposable
 {
     private readonly StartupCoordinator coordinator;
+    private readonly StartupOperationReference operationReference;
     private readonly HeartbeatRuntime? heartbeat;
     private readonly ConfigurationRuntime? configuration;
     private readonly MetricsRuntime? metrics;
@@ -54,6 +56,7 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
         this.order = order;
         this.lifetime = lifetime;
         this.hostOptions = hostOptions;
+        operationReference = root.GetRequiredService<StartupOperationReference>();
         heartbeat = root.GetService<HeartbeatRuntime>();
         configuration = root.GetService<ConfigurationRuntime>();
         metrics = root.GetService<IMetrics>() as MetricsRuntime;
@@ -90,7 +93,9 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
         // The optional alias enables automatic modules; ordinary callbacks use
         // the separate facade binding even when that collection is disabled.
         if (moduleMetrics is not null) { coordinator.AttachMetrics(moduleMetrics); }
-        return coordinator.StartAsync(cancellationToken, lifetime.ApplicationStopping);
+        Task operation = coordinator.StartAsync(cancellationToken, lifetime.ApplicationStopping);
+        operationReference.Bind(operation);
+        return operation;
     }
 
     // A host wait budget cannot certify actual startup/Heartbeat settlement.
@@ -151,6 +156,14 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
             }
         }
     }
+}
+
+// A passive reference to the original coordinator task; the coordinator still owns its lifecycle.
+internal sealed class StartupOperationReference
+{
+    private Task? operation;
+    internal Task? Operation => Volatile.Read(ref operation);
+    internal void Bind(Task value) => Interlocked.CompareExchange(ref operation, value, null);
 }
 
 // Inspect final unkeyed descriptors, never a second resolved hosted-service graph.

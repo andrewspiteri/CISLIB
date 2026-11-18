@@ -8,8 +8,9 @@ cis:
 
 # Usage and configuration
 
-For a runnable application, use the existing [CountryList guide](country-list.md)
-for source development or an isolated consumer of the exact `CIS.Core` package.
+For a runnable application, use the [CountryData guide](country-list.md).
+Healthcheck stays in CIS.Core; CountryData also uses the optional REST retry and
+Metrics packages for its actual application workflow.
 Both routes require SDK 10.0.401 and the .NET and ASP.NET Core 10.0.12 shared
 frameworks. Package consumption does not require an additional Healthcheck package
 or a CIS CLI dependency in the application.

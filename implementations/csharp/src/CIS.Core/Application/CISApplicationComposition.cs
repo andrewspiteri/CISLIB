@@ -22,6 +22,9 @@ internal sealed class CISApplicationComposition
     private readonly CISApplicationBuilder setup;
     private readonly List<ServiceDescriptor> loggingDefaults = [], healthDefaults = [], heartbeatDefaults = [];
     internal CoreLogRuntime? Log { get; private set; }
+    internal CoreLogRuntime? BoundLog { get; private set; }
+    internal bool OwnsBoundLog { get; private set; }
+    internal StartupOperationReference? StartupOperation { get; private set; }
     internal HealthcheckService? Health { get; private set; }
     internal HeartbeatRuntime? Heartbeat { get; private set; }
     internal ConfigurationRuntime? Configuration { get; set; }
@@ -29,7 +32,6 @@ internal sealed class CISApplicationComposition
     internal MetricsRuntime? Metrics { get; private set; }
     internal HeartbeatRuntime? BoundHeartbeat { get; private set; }
     internal HealthcheckService? BoundHealth { get; private set; }
-    internal HealthcheckOptions HealthOptions { get; private set; } = new();
 
     internal CISApplicationComposition(CISApplicationBuilder setup)
     {
@@ -40,27 +42,28 @@ internal sealed class CISApplicationComposition
         Add(services, loggingDefaults, ServiceDescriptor.Singleton<CoreLogRuntime>(_ => Log = CoreLogRuntime.Create()));
         Add(services, loggingDefaults, ServiceDescriptor.Singleton<ILoggerProvider>(root =>
             new CoreLoggerProvider(root.GetRequiredService<CoreLogRuntime>())));
-        Add(services, healthDefaults, ServiceDescriptor.Singleton<HealthcheckService>(root => Health = new(
-            HealthOptions, new HealthApplicationIdentity
+        Add(services, healthDefaults, ServiceDescriptor.Singleton<HealthcheckService>(root =>
+        {
+            ArgumentNullException.ThrowIfNull(setup.Healthcheck);
+            return Health = new(HealthcheckOptions.Resolve(setup.Healthcheck), new HealthApplicationIdentity
             {
                 Name = EnvironmentOptions.ApplicationName, InstanceId = Guid.Parse(EnvironmentOptions.InstanceId),
                 BuildVersion = EnvironmentOptions.BuildVersion, ServiceVersion = EnvironmentOptions.ServiceVersion,
                 HostName = EnvironmentOptions.HostName, OsDescription = EnvironmentOptions.OperatingSystemDescription
-            }, root.GetService<TimeProvider>())));
+            }, root.GetService<TimeProvider>());
+        }));
         Add(services, heartbeatDefaults, ServiceDescriptor.Singleton<HeartbeatRuntime>(_ => Heartbeat = new(setup.Heartbeat)));
     }
 
     internal void Seal()
     {
         ArgumentNullException.ThrowIfNull(setup.TypeManager);
-        ArgumentNullException.ThrowIfNull(setup.Healthcheck);
         string name = setup.TypeManager.HostAssembly?.GetName().Name
             ?? throw new InvalidOperationException("Type Manager requires the actual managed host assembly.");
         if (setup.Configuration is { } configured && configured.HostApplicationName != name)
         { throw new ArgumentException("Configuration scope must match the selected host assembly name."); }
         if (setup.Services.Any(item => item.ServiceType == typeof(ITypeManager)))
         { throw new InvalidOperationException("Configure TypeManager options; the facade registers its exact prepared instance."); }
-        HealthOptions = setup.HealthcheckEnabled ? HealthcheckOptions.Resolve(setup.Healthcheck) : setup.Healthcheck;
         if (!setup.LoggingEnabled) { Remove(loggingDefaults); }
         if (!setup.HealthcheckEnabled) { Remove(healthDefaults); }
         if (!setup.HeartbeatEnabled) { Remove(heartbeatDefaults); }
@@ -97,6 +100,7 @@ internal sealed class CISApplicationComposition
         setup.Services.AddOptions<HostOptions>().Validate(options =>
             !options.ServicesStartConcurrently && !options.ServicesStopConcurrently,
             "CISApplication requires sequential hosted starting and stopping.");
+        CaptureLoggingRegistration();
         return integrations;
     }
 
@@ -104,10 +108,30 @@ internal sealed class CISApplicationComposition
     {
         // Retain the effective module owners before route customization can use them.
         // This also covers a callback failing before any hosted cutoff has subscribed.
+        StartupOperation = root.GetService<StartupOperationReference>();
+        BoundLog = root.GetService<CoreLogRuntime>();
         BoundHealth = root.GetService<HealthcheckService>();
         BoundHeartbeat = root.GetService<HeartbeatRuntime>();
         Metrics = root.GetService<IMetrics>() as MetricsRuntime;
         Rest = root.GetService<IRestClientRuntime>();
+    }
+
+    private void CaptureLoggingRegistration()
+    {
+        ServiceDescriptor? descriptor = setup.Services.LastOrDefault(item => !item.IsKeyedService
+            && item.ServiceType == typeof(CoreLogRuntime));
+        if (descriptor is null) { return; }
+        OwnsBoundLog = descriptor.ImplementationInstance is null;
+        if (descriptor.ImplementationFactory is not { } factory) { return; }
+        // Capture only the effective owned factory, including if a later Build step fails.
+        // Keep its lifetime and ordinary DI disposal; an instance registration remains borrowed.
+        int index = setup.Services.IndexOf(descriptor);
+        setup.Services[index] = ServiceDescriptor.Describe(typeof(CoreLogRuntime), root =>
+        {
+            object runtime = factory(root);
+            BoundLog = runtime as CoreLogRuntime;
+            return runtime;
+        }, descriptor.Lifetime);
     }
 
     private static ICISApplicationIntegration CreateIntegration(Type type)

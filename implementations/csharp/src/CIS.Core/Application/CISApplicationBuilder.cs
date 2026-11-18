@@ -5,6 +5,7 @@ using CIS.Heartbeat;
 using CIS.RestClient;
 using CIS.TypeManagement;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -34,6 +35,8 @@ public sealed class CISApplicationBuilder
     public ConfigurationOptions? Configuration { get; set; }
     /// <summary>Gets or sets existing Healthcheck options, with the module's environment precedence.</summary>
     public HealthcheckOptions Healthcheck { get; set; } = new();
+    /// <summary>Gets or sets the native predicate for detailed health reports; omitted access is denied.</summary>
+    public Func<HttpContext, ValueTask<bool>>? AuthorizeHealthDetails { get; set; }
     /// <summary>Gets or sets Heartbeat setup; null retains EnvironmentOptions.Heartbeat.</summary>
     public HeartbeatOptions? Heartbeat { get; set; }
     /// <summary>Gets or sets whether automatic CIS logging is installed. Explicit provider replacements remain ordinary DI.</summary>

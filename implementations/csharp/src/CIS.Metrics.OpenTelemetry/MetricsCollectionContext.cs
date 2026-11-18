@@ -138,15 +138,3 @@ internal sealed class MetricsCollectionContext : IAsyncDisposable
         HttpPolicy.Dispose();
     }
 }
-
-internal sealed class DisabledMetrics : IMetrics
-{
-    internal static DisabledMetrics Instance { get; } = new();
-    private static readonly NoopTimer Timer = new(TimeProvider.System);
-    public ICounter CreateCounter(MetricDefinition definition) => NoopMetrics.Instance;
-    public IUpDownCounter CreateUpDownCounter(MetricDefinition definition) => NoopMetrics.Instance;
-    public IGauge CreateGauge(MetricDefinition definition) => NoopMetrics.Instance;
-    public IHistogram CreateHistogram(MetricDefinition definition) => NoopMetrics.Instance;
-    public ITimer CreateTimer(MetricDefinition definition) => Timer;
-    public void RegisterObservableGauge(MetricDefinition definition, Func<IReadOnlyList<MetricObservation>> observe) { }
-}

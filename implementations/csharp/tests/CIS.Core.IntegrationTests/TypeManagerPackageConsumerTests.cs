@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CIS.Tests.IntegrationTests;
@@ -21,14 +19,16 @@ public sealed class TypeManagerPackageConsumerTests
     }
 
     [TestMethod]
-    [DataRow("Console")]
-    [DataRow("Web")]
-    public async Task PackagedSdkSupportsBuildAndBothPublishModes(string host)
-        => await (await Prepared.Value).VerifyHostAsync(host, TestContext);
+    public async Task PackagedSdkSupportsTheMinimalFixtureBuildAndBothPublishModes()
+        => await (await Prepared.Value).VerifyHostAsync(TestContext);
 
     [TestMethod]
-    public async Task MissingSelectedAssemblyFailsBeforeWebBuilderOrContainerCreation()
+    public async Task MissingSelectedAssemblyFailsBeforeConsumerConstruction()
         => await (await Prepared.Value).VerifyBrokenDeploymentAsync(TestContext);
+
+    [TestMethod]
+    public async Task CancellationWhileLoadingSelectedAssemblyPreventsConsumerConstruction()
+        => await (await Prepared.Value).VerifyCanceledPreparationAsync(TestContext);
 
     [TestMethod]
     public async Task OrdinaryPackageReferenceWithoutInventoryRemainsUsable()

@@ -26,7 +26,7 @@ app.UseCisHealthcheck(health, options, authorizeDetails: async context =>
 // Install the application's readiness gate and business middleware next.
 ```
 
-The authorization service above is application-owned pseudocode. The [CountryList source](../../../implementations/csharp/examples/healthcheck/CountryList/Program.cs) supplies a compilable predicate that deliberately denies details. Middleware runs in registration order; a terminal branch short-circuits downstream work. [ASP.NET Core middleware](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/middleware/?view=aspnetcore-10.0) explains the underlying pipeline behavior.
+The authorization service above is application-owned pseudocode. The [CISApplication implementation](../../../implementations/csharp/src/CIS.Core/Application/CISApplication.cs) passes the application's optional builder.AuthorizeHealthDetails predicate to this same branch; omitted access is denied. Enable HealthcheckOptions.DetailsEnabled as well, using the existing module options/environment precedence. CountryData selects no predicate and therefore retains default denial. HTTP authorization does not authorize local pipe clients. Middleware runs in registration order; a terminal branch short-circuits downstream work. [ASP.NET Core middleware](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/middleware/?view=aspnetcore-10.0) explains the underlying pipeline behavior.
 
 | Route | GET status |
 | --- | --- |
@@ -60,7 +60,7 @@ The .NET pipe APIs are cross-platform. On Linux, this transport uses a Unix doma
 HealthcheckOptions options = HealthcheckOptions.Resolve(new HealthcheckOptions
 {
     PipeEnabled = true,
-    PipeName = "country-list-health"
+    PipeName = "country-data-health"
 });
 await using var server = new HealthPipeServer(health, options);
 await server.StartAsync();
@@ -76,18 +76,17 @@ The current matching tool is the nonpackable development executable `CisHealthPr
 
 ```text
 cd implementations/csharp
-dotnet run --project tools/CisHealthProbe -- --pipe country-list-health --view readiness --timeout-ms 1000 --max-report-bytes 4194304
+dotnet run --project tools/CisHealthProbe -- --pipe country-data-health --view readiness --timeout-ms 1000 --max-report-bytes 4194304
 ```
 
-After a coordinated Release build, the built DLL can run from the repository root as `dotnet implementations/csharp/tools/CisHealthProbe/bin/Release/net10.0/CisHealthProbe.dll --pipe country-list-health --view readiness --timeout-ms 1000`. This DLL invocation does not build the project. Deployment fragments below use `cis-health-probe` as the intended installed command name; adapt the executable path to the actual matching artifact. Neither development invocation establishes exact-package or publication qualification.
+After a coordinated Release build, the built DLL can run from the repository root as `dotnet implementations/csharp/tools/CisHealthProbe/bin/Release/net10.0/CisHealthProbe.dll --pipe country-data-health --view readiness --timeout-ms 1000`. This DLL invocation does not build the project. Deployment fragments below use `cis-health-probe` as the intended installed command name; adapt the executable path to the actual matching artifact. Neither development invocation establishes exact-package or publication qualification.
 
-For the package path, the [CountryList guide](country-list.md#match-the-pipe-probe-to-the-package)
-builds this same tool source against the same exact `CIS.Core` candidate as the
-application, using its isolated feed and cache. It covers the normal host's HTTP
-and same-identity pipe consumption without inventing a new probe distribution.
-The [integration verification record](../../changes/CIS-0004/verification.md)
-identifies actual package and platform observations; deployment/container and
-alternate-identity acceptance remain separate.
+For package use, the [CountryData guide](country-list.md#match-the-pipe-probe-to-the-package)
+requires the actual matching tool and exact Core candidate. Existing HTTP/pipe/
+probe fixtures retain their distinct protocol/process boundaries. Historical
+[CIS-0004 observations](../../changes/CIS-0004/verification.md) keep their original
+inputs and do not verify the new application. Deployment/container and alternate-
+identity acceptance still require their actual selected environment.
 
 Exactly these options are accepted: required `--pipe`; `--view health|readiness|details` (default health); `--timeout-ms` (default 1000, range 50–60000); `--max-report-bytes` (default 4194304, range 1024–16777216). Duplicate/unknown options, missing values and invalid names/numbers fail. There are no internal retries. Connect, request and complete response share one monotonic timeout budget; individual reads do not each receive a new budget.
 
@@ -157,7 +156,7 @@ env:
   - name: CIS_HEALTHCHECK_PIPE_ENABLED
     value: "true"
   - name: CIS_HEALTHCHECK_PIPE_NAME
-    value: country-list-health
+    value: country-data-health
   - name: CIS_HEALTHCHECK_DETAILS_ENABLED
     value: "false"
 readinessProbe:
@@ -165,7 +164,7 @@ readinessProbe:
     command:
       - /opt/app/cis-health-probe
       - --pipe
-      - country-list-health
+      - country-data-health
       - --view
       - readiness
       - --timeout-ms

@@ -1,6 +1,7 @@
 using System.Runtime.ExceptionServices;
 using CIS.Healthcheck;
 using CIS.Healthcheck.AspNetCore;
+using CIS.Logging;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -117,7 +118,7 @@ public sealed class CISApplication : IAsyncDisposable
                 foreach (ICISApplicationIntegration integration in integrations) { integration.ConfigureWeb(application); }
                 HealthcheckService? health = setup.HealthcheckEnabled ? application.Services.GetService<HealthcheckService>() : null;
                 if (health is not null)
-                { application.UseCisHealthcheck(health, health.Settings, _ => ValueTask.FromResult(false)); }
+                { application.UseCisHealthcheck(health, health.Settings, setup.AuthorizeHealthDetails ?? (_ => ValueTask.FromResult(false))); }
                 IHostApplicationLifetime lifetime = application.Services.GetRequiredService<IHostApplicationLifetime>();
                 application.Use(async (context, next) =>
                 {
@@ -135,7 +136,18 @@ public sealed class CISApplication : IAsyncDisposable
             completion.TrySetResult();
         }
         catch (OperationCanceledException exception) when (operation.IsCancellationRequested)
-        { completion.TrySetCanceled(exception.CancellationToken); }
+        {
+            // Host may observe late cancellation after the real coordinator already failed.
+            // Preserve that originating single fault without changing earlier cancellation ownership.
+            Task? initialization = composition.StartupOperation?.Operation;
+            if (initialization is { IsFaulted: true } && initialization.Exception is { InnerExceptions.Count: 1 } original)
+            {
+                Exception failure = original.InnerExceptions[0];
+                RecordFailure(failure, "startup");
+                completion.TrySetException(failure);
+            }
+            else { completion.TrySetCanceled(exception.CancellationToken); }
+        }
         catch (Exception exception)
         { RecordFailure(exception, "startup"); completion.TrySetException(exception); }
     }
@@ -211,6 +223,7 @@ public sealed class CISApplication : IAsyncDisposable
             { await CaptureAsync(configuration.StopAsync, errors).ConfigureAwait(false); }
             if (composition.Heartbeat is { } heartbeat)
             { await CaptureAsync(() => heartbeat.StopAsync(), errors).ConfigureAwait(false); }
+            await StopOwnedLoggingAsync(errors).ConfigureAwait(false);
             if (cutoffFailure is { } cutoff) { errors.Add(cutoff); }
             ThrowErrors(errors);
             completion.TrySetResult();
@@ -254,16 +267,27 @@ public sealed class CISApplication : IAsyncDisposable
             // Preparation precedes DI ownership; Build may fail before its factory is resolved.
             if (composition.Configuration is { } configuration)
             { await CaptureAsync(() => configuration.DisposeAsync().AsTask(), errors).ConfigureAwait(false); }
-            if (composition.Log is { } log)
-            {
-                await CaptureAsync(() => log.DisposeAsync().AsTask(), errors).ConfigureAwait(false);
-                await CaptureAsync(() => log.Completion, errors).ConfigureAwait(false);
-            }
             stopping.Dispose();
             ThrowErrors(errors);
             completion.TrySetResult();
         }
         catch (Exception exception) { completion.TrySetException(exception); }
+    }
+
+    private async Task StopOwnedLoggingAsync(List<Exception> errors)
+    {
+        // Host stopping and module callbacks have already settled. Preserve shutdown
+        // logs, then join actual writers before their DI-owned dependencies disappear.
+        CoreLogRuntime? effective = composition.OwnsBoundLog ? composition.BoundLog : null;
+        if (effective is not null) { await StopLogAsync(effective).ConfigureAwait(false); }
+        if (composition.Log is { } original && !ReferenceEquals(original, effective))
+        { await StopLogAsync(original).ConfigureAwait(false); }
+
+        async Task StopLogAsync(CoreLogRuntime log)
+        {
+            await CaptureAsync(() => log.DisposeAsync().AsTask(), errors).ConfigureAwait(false);
+            await CaptureAsync(() => log.Completion, errors).ConfigureAwait(false);
+        }
     }
 
     private void RecordFailure(Exception exception, string phase)

@@ -54,6 +54,52 @@ alone does not install or establish the HTTP policy; see the current endpoint
 guide and [change verification](../../changes/CIS-0009/verification.md) for actual
 integrated evidence.
 
+## CISApplication composition
+
+When the optional package is present in the prepared Type Manager catalog,
+`CIS.Hosting.CISApplication` discovers its `MetricsApplicationIntegration` once.
+The registrar uses the same `AddCisMetrics` installer and `UseCisMetrics` branch;
+it creates no provider during construction or service registration. The facade
+installs the operational branch after routing and before health/business
+readiness, including while a sequential initializer is still running.
+
+```csharp
+using CIS.Hosting;
+using CIS.Metrics.OpenTelemetry;
+
+await using CISApplication application = CISApplication.CreateWeb(args, builder =>
+{
+    builder.ConfigureCisMetrics(options =>
+    {
+        options.ScrapeCacheDuration = TimeSpan.Zero;
+        // Other existing MetricsOptions remain a restart-only profile.
+    });
+    builder.Services.AddSingleton<OrderService>();
+}, web => web.MapGet("/orders", (OrderService orders) => orders.Read()));
+return await application.RunAsync();
+```
+
+`ConfigureCisMetrics` copies its options immediately and retains no callback.
+Equivalent repeated setup is idempotent; conflicting captured profiles fail.
+An explicit existing `AddCisMetrics` profile is preserved rather than compared
+against defaults. An explicit facade replacement without this package's profile
+is also preserved, and receives no collector branch. Supplying both a collector
+profile and a replacement facade retains the installer's existing conflict
+checks.
+
+`Enabled=false` uses Core's shared inert `IMetrics` without an exporter/provider
+or reserved branch. `EnableOptionalIntegrations=false` disables automatic package
+installation; it does not remove registrations that the application explicitly
+installed. With no installed registrar in the prepared catalog, the facade keeps
+Core's inert fallback. Core retains no dependency on the optional package.
+Automatic integration uses prepared catalog membership, without another scan,
+temporary provider or a second host.
+
+Await the facade's real stop and asynchronous disposal before releasing external
+callback owners. The focused source cases and their executed status belong to
+[CIS-0011 verification](../../changes/CIS-0011/verification.md); this section adds
+no platform or release qualification claim.
+
 ## Actual stop barrier
 
 Application stopping closes collection admission. Startup joins actual Metrics

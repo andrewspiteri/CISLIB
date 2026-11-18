@@ -26,8 +26,8 @@ rejects a conflicting central version. Put the package in the consumer's configu
 NuGet feed. The SDK import participates in the first restore, before runtime asset
 selection; no restore is launched from a build target. An ordinary Core
 PackageReference still works when Type Manager inventory is not enabled.
-Both hosts require SDK **10.0.401**, .NET runtime **10.0.12** and ASP.NET Core shared
-framework **10.0.12**, including Console because Core has the approved shared-framework
+All hosts require SDK **10.0.401**, .NET runtime **10.0.12** and ASP.NET Core shared
+framework **10.0.12**, including non-web hosts because Core has the approved shared-framework
 reference. Keep framework-dependent, untrimmed `net10.0` output. Set any existing
 `BeforeMicrosoftNETSdkTargets` hook in `Directory.Build.props`, before the Core
 SDK import; replacing the hook later prevents early runtime selection and fails.
@@ -37,13 +37,17 @@ For a clean package consumer, make the feed's `NuGet.Config` and an SDK-pinning
 `NUGET_PACKAGES` cache before the first restore. The SDK itself must resolve from
 the candidate feed; a later `restore --configfile` argument cannot substitute for
 that initial SDK setup. Do not carry repository imports, `bin`/`obj`, or source
-project lock files into the consumer. The [Console/Web package setup](../../examples/type-manager/README.md#package-consumers)
-shows complete projects, isolation files and ordinary commands.
+project lock files into the consumer. [CountryData](../../examples/CountryData/README.md)
+is the maintained source example. The existing
+[minimal package fixture](../../tests/CIS.Core.IntegrationTests/TypeManagerPackageConsumerFixture.cs)
+exercises isolated SDK resolution, actual build and both folder-publish modes.
 
-When adapting the checked-in examples, remove the Core `ProjectReference`, the
-source `CIS.TypeManager.targets` import and their broad `RuntimeIdentifiers` list.
-Keep the sample Contracts/Unused references and shared example code. Do not add a
-second Core `PackageReference`; the versioned SDK supplies it. Its helper is used
+When adapting CountryData, replace its Core `ProjectReference` with the versioned
+SDK above and remove the source `CIS.TypeManager.targets` import. Replace its two
+optional source references with exact matching ordinary PackageReferences to
+`CIS.Metrics.OpenTelemetry` and `CIS.RestClient.Resilience`. Keep the application
+code, web SDK and inventory enablement. Do not add a second Core
+`PackageReference`; the versioned SDK supplies it. Its helper is used
 by MSBuild and must stay out of application runtime deployment.
 
 For source-reference development, use the source target instead:

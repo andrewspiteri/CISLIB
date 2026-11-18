@@ -59,7 +59,7 @@ Use a fresh nonempty `RegistrationId` per registration lifetime and positive, no
 
 The binder keeps bounded current/previous execution context and an accepted outcome high-water mark. Identical retained terminal repeats are Duplicate, older history is Obsolete, retired bindings return Retired, and retained contradictions raise a bounded integration error. Isolate reporting errors from callback/error-handler execution; do not invoke business work again, call OnError again, or count a second callback failure because a health handoff failed. See the [validation matrix](../../../planning/healthcheck/execution-facts.md).
 
-The execution binder does not activate a scheduler. Heartbeat's separate engine and owner integration must establish readiness, duplicate registration reuse, awaited OnError, safe retirement and final handoff. Additive [Heartbeat facts](../../../planning/healthcheck/heartbeat-facts-amendment.md) distinguish dispatch from admission, record neutral suppression, and preserve actual boolean/cancellation context when cleanup changes the final outcome. The CountryList example uses explicit application priming and the actual collector runner; it does not provide a substitute Heartbeat API.
+The execution binder does not activate a scheduler. Heartbeat's separate engine and owner integration must establish readiness, duplicate registration reuse, awaited OnError, safe retirement and final handoff. Additive [Heartbeat facts](../../../planning/healthcheck/heartbeat-facts-amendment.md) distinguish dispatch from admission, record neutral suppression, and preserve actual boolean/cancellation context when cleanup changes the final outcome. CountryData primes through real REST, then uses the actual Heartbeat owner and binding. Collector-specific leases remain covered by dedicated module fixtures.
 
 ## Application shutdown
 
@@ -71,9 +71,8 @@ The execution binder does not activate a scheduler. Heartbeat's separate engine 
 
 A canceled shutdown wait leaves real work outstanding. Application supervisor policy owns what happens next. Repeated stop/dispose shares terminal completion; an instance is not restarted as a new application lifetime. Removing the last failing monitor during shutdown can make aggregate health Healthy while readiness remains false because `IsStopping` is terminal.
 
-The [CountryList source and package example](country-list.md) applies this order
-to an actual application-owned catalog and collection lease. Its self-test
-blocks owned work, requests shutdown, observes disposal still pending, then
-releases and awaits the real work before observing dependency disposal. A passed
-shutdown-request flag alone is insufficient. The package route preserves those
-same application sources and ownership assertions.
+The [CountryData guide](country-list.md) applies this order through the existing
+facade and host barriers. Dedicated lifecycle tests hold actual owned work and
+verify dependencies stay usable until it settles. A shutdown-request flag or an
+expired wait alone is insufficient. The canonical application contains no
+embedded shutdown test/report protocol.

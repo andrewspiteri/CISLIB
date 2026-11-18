@@ -171,7 +171,8 @@ drain or form capacity-dependent wait cycles.
 Business deadlines, originating request timestamps, expiry, retries and rollback
 remain application policy; scheduling does not reset them.
 
-See the [Polling example](../../../implementations/csharp/examples/heartbeat/Polling/README.md),
+See [CountryData](../../../implementations/csharp/examples/CountryData/README.md),
+which primes directly and uses an hourly InitialDelay and Interval,
 [all 70 acceptance mappings](../../../planning/heartbeat/acceptance.md) and
 [actual verification record](../../changes/CIS-0006/verification.md).
 Scoped native passes do not establish all-platform, coverage, mutation or release

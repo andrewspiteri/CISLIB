@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <AssemblyName>CIS.CountryData</AssemblyName>
+    <RootNamespace>CIS.Examples.CountryData</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <RuntimeFrameworkVersion>10.0.12</RuntimeFrameworkVersion>
+    <RollForward>Disable</RollForward>
+    <CisTypeManagerEnabled>true</CisTypeManagerEnabled>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/CIS.Core/CIS.Core.csproj" />
+    <ProjectReference Include="../../src/CIS.RestClient.Resilience/CIS.RestClient.Resilience.csproj" />
+    <ProjectReference Include="../../src/CIS.Metrics.OpenTelemetry/CIS.Metrics.OpenTelemetry.csproj" />
+    <InternalsVisibleTo Include="CIS.Core.IntegrationTests" />
+  </ItemGroup>
+  <Import Project="../../build/type-manager/CIS.TypeManager.targets" />
+</Project>
