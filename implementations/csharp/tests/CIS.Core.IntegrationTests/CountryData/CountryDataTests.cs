@@ -2,6 +2,8 @@ using System.Net;
 using System.Net.Http.Json;
 using CIS.Examples.CountryData;
 using CIS.Healthcheck;
+using CIS.Workflows;
+using CIS.Workflows.Hosting;
 using CIS.Tests.IntegrationTests.Metrics;
 using CIS.Tests.UnitTests.RestClient;
 using Microsoft.AspNetCore.Http;
@@ -17,6 +19,202 @@ public sealed class CountryDataTests
 {
     private const string Malta = "{\"error\":false,\"msg\":\"ok\",\"data\":[{\"name\":\"Malta\",\"Iso2\":\"mt\",\"Iso3\":\"mlt\"}]}";
     private const string Expanded = "{\"error\":false,\"data\":[{\"name\":\"Malta\",\"Iso2\":\"MT\",\"Iso3\":\"MLT\"},{\"name\":\"Trinidad and Tobago\",\"Iso2\":\"TT\",\"Iso3\":\"TTO\"}]}";
+
+    [TestMethod]
+    [DataRow(" mLt ", null)]
+    [DataRow("unknown", "country.not_found")]
+    [DataRow("  ", "country.invalid_identifier")]
+    public async Task RequestLocalMachineRetainsItsSourceOnFailureAndBorrowsOnlyTheCurrentCallScope(
+        string identifier, string? errorCode)
+    {
+        int requests = 0;
+        await using var origin = await RestHttpLocalServer.StartAsync(async http =>
+        {
+            Interlocked.Increment(ref requests);
+            http.Response.ContentType = "application/json";
+            await http.Response.WriteAsync(Malta, http.RequestAborted);
+        });
+        await using var host = new CountryDataTestHost(origin.Address, metrics: false);
+        await host.App.StartAsync().WaitAsync(CountryDataTestHost.Deadline);
+        var context = new CountryLookupFlowContext(identifier);
+        IStateMachine<CountryLookupState, CountryLookupTrigger> machine = CountryLookupStateMachine.Build(
+            host.App.Services.GetRequiredService<IStateMachineFactory>(), context);
+        Assert.AreEqual(CountryLookupState.Pending, machine.CurrentState);
+        Assert.IsNull(machine.LastTransition);
+        CollectionAssert.AreEquivalent(new[] { CountryLookupTrigger.Resolve }, machine.PermittedTriggers.ToArray());
+
+        StateTransitionResult<CountryLookupState, CountryLookupTrigger> rejected;
+        await using (AsyncServiceScope first = host.App.Services.CreateAsyncScope())
+        {
+            var firstProvider = new LookupScopeProbe(first.ServiceProvider);
+            rejected = await machine.TriggerInScope(CountryLookupTrigger.Complete, firstProvider)
+                .WaitAsync(CountryDataTestHost.Deadline);
+            Assert.AreEqual(StateTransitionOutcome.Rejected, rejected.Outcome);
+            Assert.IsNull(rejected.TargetState);
+            Assert.IsNull(rejected.HandlerReport);
+            Assert.AreEqual(0, firstProvider.Reads, "A mapping rejection must not use an execution provider.");
+            firstProvider.Close();
+        }
+
+        StateTransitionResult<CountryLookupState, CountryLookupTrigger> resolved;
+        await using (AsyncServiceScope second = host.App.Services.CreateAsyncScope())
+        {
+            var currentProvider = new LookupScopeProbe(second.ServiceProvider);
+            Task<StateTransitionResult<CountryLookupState, CountryLookupTrigger>> call = machine.TriggerInScope(
+                CountryLookupTrigger.Resolve, currentProvider);
+            resolved = await call.WaitAsync(CountryDataTestHost.Deadline);
+            Assert.IsTrue(call.IsCompletedSuccessfully, "Operational failure returns a result, not a faulted trigger task.");
+            Assert.AreEqual(1, currentProvider.CatalogReads,
+                "The actual child Pipeline must resolve the catalog through this call's borrowed provider.");
+            Assert.AreSame(host.Catalog, second.ServiceProvider.GetRequiredService<CountryCatalog>());
+            currentProvider.Close();
+        }
+
+        Assert.AreEqual(CountryLookupState.Pending, rejected.CurrentState, "An old result must remain unchanged.");
+        Assert.AreSame(resolved, machine.LastTransition);
+        Assert.AreEqual(CountryLookupState.Pending, resolved.SourceState);
+        Assert.AreEqual(CountryLookupState.Resolved, resolved.TargetState);
+        Assert.AreEqual("resolve", resolved.HandlerReport?.Name);
+        CountryLookupReport child = context.LastLookup ?? throw new AssertFailedException("The completed child summary is missing.");
+        Assert.HasCount(3, child.Steps);
+        Assert.HasCount(0, child.ErrorHandlingFailures);
+        Assert.HasCount(0, child.LifecycleFailures);
+        Assert.AreEqual(1, Volatile.Read(ref requests), "Transition inspection and cached lookup perform no provider I/O.");
+
+        if (errorCode is null)
+        {
+            Assert.IsTrue(resolved.Success);
+            Assert.AreEqual(CountryLookupState.Resolved, machine.CurrentState);
+            Assert.AreEqual(PipelineStatus.Succeeded, child.Status);
+            Assert.AreEqual(PipelineStepErrorStatus.NotCalled, resolved.HandlerReport?.ErrorStatus);
+            Assert.AreEqual(200, ((IStatusCodeHttpResult)context.Response!).StatusCode);
+            StateTransitionResult<CountryLookupState, CountryLookupTrigger> completed = await machine.Trigger(
+                CountryLookupTrigger.Complete).WaitAsync(CountryDataTestHost.Deadline);
+            Assert.IsTrue(completed.Success);
+            Assert.AreEqual(CountryLookupState.Completed, machine.CurrentState);
+            Assert.IsNull(completed.HandlerReport, "The final transition is direct and has no handler.");
+            Assert.AreEqual(CountryLookupState.Resolved, resolved.CurrentState);
+            Assert.HasCount(0, machine.PermittedTriggers);
+        }
+        else
+        {
+            Assert.AreEqual(StateTransitionOutcome.Failed, resolved.Outcome);
+            Assert.AreEqual(errorCode, resolved.ErrorCode);
+            Assert.AreEqual(CountryLookupState.Pending, machine.CurrentState);
+            Assert.AreEqual(CountryLookupState.Pending, resolved.CurrentState);
+            Assert.AreEqual(PipelineStatus.Failed, child.Status);
+            Assert.AreEqual(errorCode, child.Error?.Code);
+            Assert.AreEqual(PipelineStepErrorStatus.Succeeded, resolved.HandlerReport?.ErrorStatus);
+            Assert.IsNull(context.Response);
+            Assert.IsTrue(machine.CanTrigger(CountryLookupTrigger.Resolve));
+            Assert.AreEqual(StateTransitionOutcome.Rejected,
+                (await machine.Trigger(CountryLookupTrigger.Complete)).Outcome);
+            Assert.AreSame(child, context.LastLookup, "An unselected transition must not execute another child.");
+        }
+    }
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task EndpointKeepsUnexpectedLookupFailureDistinctFromRequestCancellation(bool cancelled)
+    {
+        await using var origin = await RestHttpLocalServer.StartAsync(async context =>
+        {
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(Malta, context.RequestAborted);
+        });
+        await using var host = new CountryDataTestHost(origin.Address, metrics: false);
+        await host.App.StartAsync().WaitAsync(CountryDataTestHost.Deadline);
+        await using AsyncServiceScope scope = host.App.Services.CreateAsyncScope();
+        var original = new IOException("Controlled lookup dependency failure.");
+        var provider = new LookupScopeProbe(scope.ServiceProvider) { CatalogFailure = original };
+        using var cancellation = new CancellationTokenSource();
+        if (cancelled)
+        {
+            cancellation.Cancel();
+        }
+
+        var request = new DefaultHttpContext
+        {
+            RequestServices = provider,
+            RequestAborted = cancellation.Token
+        };
+        Task<IResult> operation = CountryEndpoints.Get("MT",
+            host.App.Services.GetRequiredService<IStateMachineFactory>(), request);
+        if (cancelled)
+        {
+            OperationCanceledException error = await Assert.ThrowsAsync<OperationCanceledException>(
+                () => operation.WaitAsync(CountryDataTestHost.Deadline));
+            Assert.AreEqual(cancellation.Token, error.CancellationToken);
+            Assert.IsTrue(operation.IsCanceled);
+            Assert.AreEqual(0, provider.CatalogReads);
+        }
+        else
+        {
+            InvalidOperationException error = await Assert.ThrowsExactlyAsync<InvalidOperationException>(
+                () => operation.WaitAsync(CountryDataTestHost.Deadline));
+            Assert.AreSame(original, error.InnerException);
+            Assert.IsTrue(operation.IsFaulted, "An unexpected failure must not become a 404 or cancellation.");
+            Assert.AreEqual(1, provider.CatalogReads);
+        }
+    }
+
+    [TestMethod]
+    [DataRow(" mLt ", null, 3)]
+    [DataRow("unknown", "country.not_found", 2)]
+    [DataRow("  ", "country.invalid_identifier", 1)]
+    public async Task CachedLookupReportsEnteredPhasesAndKeepsTheBorrowedRequestScopeAlive(
+        string identifier, string? errorCode, int enteredSteps)
+    {
+        int requests = 0;
+        await using var origin = await RestHttpLocalServer.StartAsync(async context =>
+        {
+            Interlocked.Increment(ref requests);
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(Malta, context.RequestAborted);
+        });
+        await using var host = new CountryDataTestHost(origin.Address, metrics: false);
+        await host.App.StartAsync();
+        await using AsyncServiceScope scope = host.App.Services.CreateAsyncScope();
+        IPipelineFactory factory = host.App.Services.GetRequiredService<IPipelineFactory>();
+        IPipeline<CountryLookupContext> pipeline = CountryLookupPipeline.Build(factory, scope.ServiceProvider, identifier);
+
+        await pipeline.Execute();
+
+        Assert.AreEqual(identifier, pipeline.Context.Identifier);
+        CollectionAssert.AreEqual(new[] { "normalize", "find", "prepare_response" },
+            pipeline.Steps.Select(step => step.Name).ToArray());
+        Assert.HasCount(enteredSteps, pipeline.ExecutedSteps);
+        Assert.AreSame(host.Catalog, scope.ServiceProvider.GetRequiredService<CountryCatalog>());
+        Assert.AreEqual(1, Volatile.Read(ref requests), "Cached pipeline work must not issue another provider request.");
+        Assert.IsNotNull(pipeline.Duration);
+        Assert.IsTrue(pipeline.ExecutedSteps.All(step => step.ExecutionDuration.HasValue));
+        Assert.IsTrue(pipeline.Steps.Skip(enteredSteps).All(step =>
+            step.ExecutionStatus == PipelineStepExecutionStatus.NotStarted
+            && step.ExecutionDuration is null && step.ErrorDuration is null));
+
+        if (errorCode is null)
+        {
+            Assert.IsTrue(pipeline.Success);
+            Assert.AreEqual(PipelineStatus.Succeeded, pipeline.Status);
+            Assert.AreEqual(new Country("Malta", "MT", "MLT"), pipeline.Context.Country);
+            Assert.AreEqual(200, ((IStatusCodeHttpResult)pipeline.Context.Response!).StatusCode);
+            Assert.IsTrue(pipeline.Steps.All(step => step.ErrorStatus == PipelineStepErrorStatus.NotCalled));
+        }
+        else
+        {
+            Assert.IsFalse(pipeline.Success);
+            Assert.AreEqual(PipelineStatus.Failed, pipeline.Status);
+            Assert.AreEqual(errorCode, pipeline.Error?.Code);
+            Assert.AreEqual(enteredSteps - 1, pipeline.FailedStep?.Position);
+            Assert.IsTrue(pipeline.ExecutedSteps.All(step =>
+                step.ErrorStatus == PipelineStepErrorStatus.Succeeded && step.ErrorDuration.HasValue));
+            Assert.IsNull(pipeline.Context.Key);
+            Assert.IsNull(pipeline.Context.Country);
+            Assert.IsNull(pipeline.Context.Response);
+            Assert.HasCount(0, pipeline.ErrorHandlingFailures);
+        }
+    }
 
     [TestMethod]
     public void SnapshotCopiesCanonicalRecordsAndAliasesWithoutMutatingProviderData()
@@ -53,7 +251,9 @@ public sealed class CountryDataTests
         var valid = new ProviderCountry { Name = "Malta", Iso2 = "MT", Iso3 = "MLT" };
         ProviderCountry?[]? rows = scenario switch
         {
-            "null" => null, "empty" => [], "null-row" => [valid, null],
+            "null" => null,
+            "empty" => [],
+            "null-row" => [valid, null],
             "blank-name" => [valid, new() { Name = " ", Iso2 = "TT", Iso3 = "TTO" }],
             "bad-iso2" => [valid, new() { Name = "Other", Iso2 = "M1", Iso3 = "OTH" }],
             "bad-iso3" => [valid, new() { Name = "Other", Iso2 = "OT", Iso3 = "OT" }],
@@ -74,7 +274,8 @@ public sealed class CountryDataTests
         var release = CountryDataTestHost.Signal();
         await using var origin = await RestHttpLocalServer.StartAsync(async context =>
         {
-            Interlocked.Increment(ref calls); entered.TrySetResult();
+            Interlocked.Increment(ref calls);
+            entered.TrySetResult();
             await release.Task;
             context.Response.ContentType = "application/json";
             await context.Response.WriteAsync(Expanded, context.RequestAborted);
@@ -96,7 +297,9 @@ public sealed class CountryDataTests
             release.TrySetResult();
             await start.WaitAsync(CountryDataTestHost.Deadline);
             foreach (string key in new[] { "MT", "MLT", "Malta", "mt", "mlt", "malta", "%20Malta%20" })
-            { Assert.AreEqual(new Country("Malta", "MT", "MLT"), await client.GetFromJsonAsync<Country>("/country/" + key)); }
+            {
+                Assert.AreEqual(new Country("Malta", "MT", "MLT"), await client.GetFromJsonAsync<Country>("/country/" + key));
+            }
             Assert.AreEqual(new Country("Trinidad and Tobago", "TT", "TTO"),
                 await client.GetFromJsonAsync<Country>("/country/Trinidad%20and%20Tobago"));
             await ErrorCode(client, "/country/%20%20", HttpStatusCode.BadRequest, "country.invalid_identifier");
@@ -140,8 +343,10 @@ public sealed class CountryDataTests
             await context.Response.WriteAsync(scenario switch
             {
                 "business" => "{\"error\":true,\"msg\":\"declined\",\"data\":[]}",
-                "malformed" => "{bad json", "empty" => "{\"error\":false,\"data\":[]}",
-                "missing-error" => "{\"data\":[{\"name\":\"Malta\",\"Iso2\":\"MT\",\"Iso3\":\"MLT\"}]}", _ => "{}"
+                "malformed" => "{bad json",
+                "empty" => "{\"error\":false,\"data\":[]}",
+                "missing-error" => "{\"data\":[{\"name\":\"Malta\",\"Iso2\":\"MT\",\"Iso3\":\"MLT\"}]}",
+                _ => "{}"
             }, context.RequestAborted);
         });
         await using var host = new CountryDataTestHost(origin.Address);
@@ -164,10 +369,15 @@ public sealed class CountryDataTests
         {
             int call = Interlocked.Increment(ref calls);
             context.Response.ContentType = "application/json";
-            if (call == 2) { secondEntered.TrySetResult(); await releaseSecond.Task; }
+            if (call == 2)
+            {
+                secondEntered.TrySetResult();
+                await releaseSecond.Task;
+            }
             string body = call switch
             {
-                1 => Malta, 2 => Expanded,
+                1 => Malta,
+                2 => Expanded,
                 3 => "{\"error\":true,\"msg\":\"declined\",\"data\":[]}",
                 _ => "{\"error\":false,\"data\":[{\"name\":\"Malta\",\"Iso2\":\"MT\",\"Iso3\":\"MLT\"},{\"name\":\"mLt\",\"Iso2\":\"OT\",\"Iso3\":\"OTH\"}]}"
             };
@@ -216,11 +426,18 @@ public sealed class CountryDataTests
         await using var origin = await RestHttpLocalServer.StartAsync(async context =>
         {
             context.Response.ContentType = "application/json";
-            if (Interlocked.Increment(ref calls) == 1) { await context.Response.WriteAsync(Malta); return; }
+            if (Interlocked.Increment(ref calls) == 1)
+            {
+                await context.Response.WriteAsync(Malta);
+                return;
+            }
             await context.Response.WriteAsync("{\"error\":false,\"data\":[", context.RequestAborted);
             await context.Response.Body.FlushAsync(context.RequestAborted);
             bodyEntered.TrySetResult();
-            try { await Task.Delay(Timeout.InfiniteTimeSpan, context.RequestAborted); }
+            try
+            {
+                await Task.Delay(Timeout.InfiniteTimeSpan, context.RequestAborted);
+            }
             catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested) { requestCanceled.TrySetResult(); }
             await serverRelease.Task;
         });
@@ -243,7 +460,8 @@ public sealed class CountryDataTests
             Assert.IsFalse(disposal.IsCompleted);
             Assert.IsFalse(host.Health.CaptureSnapshot().Ready);
             Assert.AreEqual(1L, host.Availability().Outcomes!.Successful);
-            cleanup.Release.TrySetResult(); serverRelease.TrySetResult();
+            cleanup.Release.TrySetResult();
+            serverRelease.TrySetResult();
             await requestCanceled.Task.WaitAsync(CountryDataTestHost.Deadline);
             await stop.WaitAsync(CountryDataTestHost.Deadline);
             await disposal.WaitAsync(CountryDataTestHost.Deadline);
@@ -251,9 +469,16 @@ public sealed class CountryDataTests
         }
         finally
         {
-            cleanup.Release.TrySetResult(); serverRelease.TrySetResult();
-            if (stop is not null) { await stop.WaitAsync(CountryDataTestHost.Deadline); }
-            if (disposal is not null) { await disposal.WaitAsync(CountryDataTestHost.Deadline); }
+            cleanup.Release.TrySetResult();
+            serverRelease.TrySetResult();
+            if (stop is not null)
+            {
+                await stop.WaitAsync(CountryDataTestHost.Deadline);
+            }
+            if (disposal is not null)
+            {
+                await disposal.WaitAsync(CountryDataTestHost.Deadline);
+            }
         }
     }
 
@@ -264,9 +489,15 @@ public sealed class CountryDataTests
         var original = new OperationCanceledException("foreign callback fault", foreign.Token);
         var cleanup = new CountryResponseCleanup();
         await using var origin = await RestHttpLocalServer.StartAsync(context =>
-        { context.Response.ContentType = "application/json"; return context.Response.WriteAsync(Malta); });
+        {
+            context.Response.ContentType = "application/json";
+            return context.Response.WriteAsync(Malta);
+        });
         await using var host = new CountryDataTestHost(origin.Address, configureClient: options =>
-        { options.Handlers.Add(new CountrySecondCallFault(original)); options.Handlers.Add(cleanup); });
+        {
+            options.Handlers.Add(new CountrySecondCallFault(original));
+            options.Handlers.Add(cleanup);
+        });
         host.Release.Add(() => cleanup.Release.TrySetResult());
         await host.App.StartAsync().WaitAsync(CountryDataTestHost.Deadline);
         Task<bool> refresh = host.Catalog.OnElapsedAsync(CancellationToken.None);
@@ -288,7 +519,10 @@ public sealed class CountryDataTests
     public async Task DisabledMetricsLeavesRealInitializationAndCountryLookupUnchanged()
     {
         await using var origin = await RestHttpLocalServer.StartAsync(context =>
-        { context.Response.ContentType = "application/json"; return context.Response.WriteAsync(Malta); });
+        {
+            context.Response.ContentType = "application/json";
+            return context.Response.WriteAsync(Malta);
+        });
         await using var host = new CountryDataTestHost(origin.Address, metrics: false);
         await host.App.StartAsync().WaitAsync(CountryDataTestHost.Deadline);
         using HttpClient client = host.Client();
@@ -297,8 +531,54 @@ public sealed class CountryDataTests
         await Status(client, "/_metrics", HttpStatusCode.NotFound);
     }
 
+    private sealed class LookupScopeProbe(IServiceProvider inner) : IServiceProvider
+    {
+        private bool closed;
+        internal int Reads
+        {
+            get; private set;
+        }
+        internal int CatalogReads
+        {
+            get; private set;
+        }
+        internal Exception? CatalogFailure
+        {
+            get; init;
+        }
+
+        public object? GetService(Type serviceType)
+        {
+            ObjectDisposedException.ThrowIf(closed, this);
+            Reads++;
+            if (serviceType == typeof(IServiceProvider))
+            {
+                return this;
+            }
+
+            if (serviceType == typeof(CountryCatalog))
+            {
+                CatalogReads++;
+                if (CatalogFailure is { } failure)
+                {
+                    throw failure;
+                }
+            }
+
+            return inner.GetService(serviceType);
+        }
+
+        internal void Close()
+        {
+            closed = true;
+        }
+    }
+
     private static async Task Status(HttpClient client, string path, HttpStatusCode status)
-    { using HttpResponseMessage response = await client.GetAsync(path); Assert.AreEqual(status, response.StatusCode, path); }
+    {
+        using HttpResponseMessage response = await client.GetAsync(path);
+        Assert.AreEqual(status, response.StatusCode, path);
+    }
     private static async Task ErrorCode(HttpClient client, string path, HttpStatusCode status, string code)
     {
         using HttpResponseMessage response = await client.GetAsync(path);
@@ -307,5 +587,11 @@ public sealed class CountryDataTests
         Assert.AreEqual(code, body.RootElement.GetProperty("code").GetString());
     }
     private static async Task ObserveStart(Task task)
-    { try { await task.WaitAsync(CountryDataTestHost.Deadline); } catch (Exception) when (task.IsCompleted) { } }
+    {
+        try
+        {
+            await task.WaitAsync(CountryDataTestHost.Deadline);
+        }
+        catch (Exception) when (task.IsCompleted) { }
+    }
 }

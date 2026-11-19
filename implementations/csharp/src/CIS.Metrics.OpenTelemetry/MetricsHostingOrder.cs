@@ -1,6 +1,7 @@
 using CIS.Heartbeat.Hosting;
 using CIS.Startup.Hosting;
 using CIS.RestClient.Hosting;
+using CIS.Workflows.Hosting;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -21,13 +22,14 @@ internal sealed class MetricsHostingOrder(IServiceCollection services)
         int activation = Array.FindIndex(hosted, item => item.ImplementationType == typeof(MetricsProviderActivation));
         if (activation < 0 || hosted.Count(item => item.ImplementationType == typeof(MetricsProviderActivation)) != 1)
         { throw new InvalidOperationException("Install one Metrics activation service in the existing host."); }
-        int bridge = Array.FindIndex(hosted, item => item.ImplementationType == typeof(RestHostedService)
+        int bridge = Array.FindIndex(hosted, item => item.ImplementationType == typeof(PipelineHostedService)
+            || item.ImplementationType == typeof(RestHostedService)
             || item.ImplementationType == typeof(HeartbeatHostedService)
             || item.ImplementationType == typeof(StartupHostedService));
         if (bridge >= 0)
         {
             if (activation >= bridge)
-            { throw new InvalidOperationException("Install Metrics activation before the existing REST/Heartbeat/Startup shutdown bridge."); }
+            { throw new InvalidOperationException("Install Metrics activation before the existing Workflow/REST/Heartbeat/Startup shutdown bridge."); }
             return;
         }
         bool final = activation == hosted.Length - 1

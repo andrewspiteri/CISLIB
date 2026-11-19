@@ -362,6 +362,14 @@ public sealed class CISApplication : IAsyncDisposable
                 await CaptureAsync(() => built.StopAsync(CancellationToken.None), errors).ConfigureAwait(false);
             }
 
+            // The native bridge drains after the listener and before business
+            // hosted teardown. A failed Build/start may have no bridge, so join
+            // the actual owner captured during its ordinary DI construction too.
+            if (composition.Workflows is { } workflows)
+            {
+                await CaptureAsync(workflows.StopAsync, errors).ConfigureAwait(false);
+            }
+
             if (composition.Configuration is { } configuration)
             {
                 await CaptureAsync(configuration.StopAsync, errors).ConfigureAwait(false);
@@ -521,6 +529,7 @@ public sealed class CISApplication : IAsyncDisposable
     {
         Close(() => composition.BoundHealth?.BeginStopping());
         Close(() => composition.Rest?.BeginStopping());
+        Close(() => composition.Workflows?.BeginStopping());
         Close(() => composition.Configuration?.BeginStopping());
         Close(() => composition.BoundHeartbeat?.BeginStopping());
         Close(() => composition.Metrics?.BeginStopping());

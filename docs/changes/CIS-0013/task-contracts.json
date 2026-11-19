@@ -1,0 +1,115 @@
+{
+  "tasks": [
+    {
+      "title": "Deliver sequential pipeline execution and explicit DI ownership",
+      "dependsOn": [],
+      "scopeIds": [
+        "execution"
+      ],
+      "paths": [
+        "docs/changes/CIS-0013",
+        "docs/catalog.yml",
+        "planning/workflows",
+        ".cis/local/workflows-intake",
+        ".cis/local/testing",
+        "implementations/csharp/tests",
+        "docs/modules/workflows",
+        "contracts/workflows",
+        "implementations/csharp/src/CIS.Core/Workflows"
+      ],
+      "acceptanceCriteria": "P01-P06: sequential single-use pipeline, public contracts, immutable reports, activation and explicit scope ownership, primary failure/cancellation, reverse unwind/disposal; include A01-A12 tests, portable contract and review.",
+      "validation": "A01-A12: ordered held awaits, first/middle/last failures, duplicate types and single-use, null/invalid results, safe snapshots, all-activation-first, owned/borrowed lifetimes, reverse disposal, exact requested token attribution, independent cleanup budget and all-handler settlement. Preserve original outward faults and no second unwind.",
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex"
+    },
+    {
+      "title": "Integrate pipeline admission and actual host lifetime drain",
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "scopeIds": [
+        "hosting"
+      ],
+      "paths": [
+        "docs/changes/CIS-0013",
+        "docs/catalog.yml",
+        "planning/workflows",
+        ".cis/local/workflows-intake",
+        ".cis/local/testing",
+        "implementations/csharp/tests",
+        "docs/modules/workflows",
+        "contracts/workflows",
+        "implementations/csharp/src/CIS.Core/Workflows",
+        "implementations/csharp/src/CIS.Core/Application",
+        "implementations/csharp/src/CIS.Core/Startup/Hosting"
+      ],
+      "acceptanceCriteria": "P07: idempotent opt-in factory on one actual provider; close admission and drain after listener before dependent business teardown, native/facade/failure cleanup; preserve Startup independence and existing module shutdown order. Include held-work integration tests and host documentation.",
+      "validation": "Actual native web/nonweb facade and failed startup/late Build/canceled host waits with held accepted work. Listener precedes drain, business teardown follows drain; dependencies remain usable through real settlement. Reject unsupported bridge order; Startup coordinator remains independent.",
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex"
+    },
+    {
+      "title": "Integrate automatic bounded workflow logging and metrics",
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "scopeIds": [
+        "instrumentation"
+      ],
+      "paths": [
+        "docs/changes/CIS-0013",
+        "docs/catalog.yml",
+        "planning/workflows",
+        ".cis/local/workflows-intake",
+        ".cis/local/testing",
+        "implementations/csharp/tests",
+        "docs/modules/workflows",
+        "contracts/workflows",
+        "implementations/csharp/src/CIS.Core/Workflows",
+        "implementations/csharp/src/CIS.Core/Metrics",
+        "contracts/metrics",
+        "implementations/csharp/src/CIS.Metrics.OpenTelemetry",
+        "docs/modules/metrics",
+        ".github/skills/cislib-metrics/SKILL.md"
+      ],
+      "acceptanceCriteria": "P08-P10: automatic structured phase/run logs, captured LogCalls, three reusable Metrics handles, finite transactional aliases and conditional 48/16/384 reservations under unchanged global limits. Include focused no-op/failure/capacity/identity tests, real exposition and catalog documentation.",
+      "validation": "A13-A15: safe logs/opt-out and correlation; matching report/metric elapsed time, active balance, one captured3-handle bundle; finite alias rollback, unchanged opt-out catalogs and adequate reservation overrides. One real scrape checks families/identity/counts.",
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex"
+    },
+    {
+      "title": "Deliver CountryData pipeline consumer and repository usage guidance",
+      "dependsOn": [
+        "WORK-001",
+        "WORK-002",
+        "WORK-003"
+      ],
+      "scopeIds": [
+        "consumer"
+      ],
+      "paths": [
+        "docs/changes/CIS-0013",
+        "docs/catalog.yml",
+        "planning/workflows",
+        ".cis/local/workflows-intake",
+        ".cis/local/testing",
+        "implementations/csharp/tests",
+        "docs/modules/workflows",
+        "contracts/workflows",
+        "implementations/csharp/examples/CountryData",
+        ".github/skills/cislib-workflows",
+        "AGENTS.md",
+        "README.md",
+        "implementations/csharp/CisLib.slnx"
+      ],
+      "acceptanceCriteria": "P11-P12: integrate three-step cached CountryData lookup, preserve HTTP and refresh behavior, compiled public/package consumer, actual guide, one repository skill/metadata/routing with use validation. Include coherent tests/docs/scoped formatting and final review.",
+      "validation": "A16: real Core outside-friend/package consumer plus compiled CountryData unchanged HTTP responses/aliases/cache behavior, middle-failure reverse handlers and caller-scope identity. Skill frontmatter/metadata/discoverability/link validation and independent usage check. Format only changed C# files; strict docs and affected regressions.",
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex"
+    }
+  ]
+}

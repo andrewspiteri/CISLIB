@@ -1,0 +1,26 @@
+{
+  "tasks": [
+    {
+      "title": "Emit cleanup-budget expiry diagnostics while handlers remain active",
+      "dependsOn": [
+        "WORK-003"
+      ],
+      "scopeIds": [
+        "instrumentation"
+      ],
+      "paths": [
+        "docs/changes/CIS-0013",
+        "docs/modules/workflows",
+        "contracts/workflows",
+        ".cis/local/workflows-intake",
+        "implementations/csharp/src/CIS.Core/Workflows",
+        "implementations/csharp/tests"
+      ],
+      "acceptanceCriteria": "Correct the confirmed specification section9 / P06-P08 logging defect: emit exactly one cleanup-budget expiry observation at the actual expiry outside the report gate, while an uncooperative Error remains active. Preserve independent cancellation, all handlers/actual cleanup, prior outcome, metrics and LogCalls isolation. Include the existing held-budget regression and guidance/evidence.",
+      "validation": "Extend the existing manual-clock held-handler case to observe ExpiredCount==1 before release and exactly1 afterward. Run affected execution/instrumentation/collector tests plus current public/package consumption after rebuilding; use existing projects/fixtures and scoped formatter only.",
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex"
+    }
+  ]
+}

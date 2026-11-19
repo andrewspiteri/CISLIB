@@ -1,0 +1,258 @@
+{
+  "authorizationId": "cislib:CIS-0014:outcome:a6e73e152ddb4ab7bb2d053a47aafdfe",
+  "actor": "Codex",
+  "workItems": [
+    {
+      "id": "WORK-001",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-001.md",
+      "title": "Deliver enum State Machine execution and guarded transition results",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [],
+      "acceptanceCriteria": "P01-P07: immutable enum definitions, reusable exclusive direct runner, normal guarded results, selected handler DI, commit/cancel/fault/Error/disposal and child Pipeline contract; include tests, portable contract, formatting and review.",
+      "validation": "A01-A12: all eight enum underlyings/Flags/aliases/invalid maps, self/terminal mappings; held overlap/reentrancy/pre-cancel, committed snapshot, normal rejection/failure/cancellation; selected fresh handler activation, owned/borrowed disposal and cleanup budget settlement; child Pipeline fault/compensation and public guarded mock results.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:abb96f895902400281ffc50c4e11bb37",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "execution"
+      ],
+      "authorizationScopeBasis": "sha256:6d58f8d36f87efbccff943eb496a4934adc226d8f1fe1fa0fbf48680acbc499f",
+      "workPaths": [
+        "docs/changes/CIS-0014",
+        "docs/catalog.yml",
+        "planning/workflows/statemachine",
+        "planning/workflows/sources/CISLIB_Workflows_StateMachine_Implementation_Specification_v1.0.md",
+        ".cis/local/statemachine-intake",
+        ".cis/local/testing",
+        "implementations/csharp/tests",
+        "docs/modules/workflows",
+        "contracts/workflows",
+        "implementations/csharp/src/CIS.Core/Workflows"
+      ],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "P01-P07: immutable enum definitions, reusable exclusive direct runner, normal guarded results, selected handler DI, commit/cancel/fault/Error/disposal and child Pipeline contract; include tests, portable contract, formatting and review."
+          ],
+          "description": "A01-A12: all eight enum underlyings/Flags/aliases/invalid maps, self/terminal mappings; held overlap/reentrancy/pre-cancel, committed snapshot, normal rejection/failure/cancellation; selected fresh handler activation, owned/borrowed disposal and cleanup budget settlement; child Pipeline fault/compensation and public guarded mock results.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "A01-A12: all eight enum underlyings/Flags/aliases/invalid maps, self/terminal mappings; held overlap/reentrancy/pre-cancel, committed snapshot, normal rejection/failure/cancellation; selected fresh handler activation, owned/borrowed disposal and cleanup budget settlement; child Pipeline fault/compensation and public guarded mock results."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-002",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-002.md",
+      "title": "Share workflow host admission and actual State Machine lifetime drain",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "acceptanceCriteria": "P08: explicit State Machine factory, per-call borrowed-scope adapter, existing shared workflow owner/bridge and real host/facade/failed-Build drain; include held-work tests, documentation and review.",
+      "validation": "Actual native and facade hosts, both workflow opt-ins and only State Machine; one provider/owner/bridge, listener-before-drain and business dependency lifetime through held Error/disposal; canceled waits/failed startup/late Build cleanup; closed-host misuse and exact borrowed per-call scope.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:df54038ad2c54925828a0571586c87b8",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "hosting"
+      ],
+      "authorizationScopeBasis": "sha256:ff4a987d10f020b106ea47c71f6e076deb98a1e3d859b2f574c8ff26dbca8da1",
+      "workPaths": [
+        "docs/changes/CIS-0014",
+        "docs/catalog.yml",
+        "planning/workflows/statemachine",
+        "planning/workflows/sources/CISLIB_Workflows_StateMachine_Implementation_Specification_v1.0.md",
+        ".cis/local/statemachine-intake",
+        ".cis/local/testing",
+        "implementations/csharp/tests",
+        "docs/modules/workflows",
+        "contracts/workflows",
+        "implementations/csharp/src/CIS.Core/Workflows",
+        "implementations/csharp/src/CIS.Core/Application",
+        "implementations/csharp/src/CIS.Core/Startup/Hosting"
+      ],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "P08: explicit State Machine factory, per-call borrowed-scope adapter, existing shared workflow owner/bridge and real host/facade/failed-Build drain; include held-work tests, documentation and review."
+          ],
+          "description": "Actual native and facade hosts, both workflow opt-ins and only State Machine; one provider/owner/bridge, listener-before-drain and business dependency lifetime through held Error/disposal; canceled waits/failed startup/late Build cleanup; closed-host misuse and exact borrowed per-call scope.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Actual native and facade hosts, both workflow opt-ins and only State Machine; one provider/owner/bridge, listener-before-drain and business dependency lifetime through held Error/disposal; canceled waits/failed startup/late Build cleanup; closed-host misuse and exact borrowed per-call scope."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-003",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-003.md",
+      "title": "Integrate bounded State Machine logging and metrics",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "acceptanceCriteria": "P09-P10: automatic safe logs, three reusable metric handles, transactional finite enum/alias union, opt-in collector reservation/attachment and actual scrape; include tests, metric documentation, formatting and review.",
+      "validation": "A13-A15: safe origin/terminal/opt-out logs, capture complete metric binding once, measured elapsed agreement and active balance including Busy/pre-cancel, finite full-domain union/collision/capacity rollback, unchanged opt-out catalogs, adequate setup reservations, one actual identity/count scrape.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:a0f4b82de4e84fb6b592f9d257da5956",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "instrumentation"
+      ],
+      "authorizationScopeBasis": "sha256:ada5d6b6f1a97dd0e175da9ee15e6dc242ee8d3f7a6962e2234e8ac22f51a383",
+      "workPaths": [
+        "docs/changes/CIS-0014",
+        "docs/catalog.yml",
+        "planning/workflows/statemachine",
+        "planning/workflows/sources/CISLIB_Workflows_StateMachine_Implementation_Specification_v1.0.md",
+        ".cis/local/statemachine-intake",
+        ".cis/local/testing",
+        "implementations/csharp/tests",
+        "docs/modules/workflows",
+        "contracts/workflows",
+        "implementations/csharp/src/CIS.Core/Workflows",
+        "implementations/csharp/src/CIS.Core/Metrics",
+        "implementations/csharp/src/CIS.Metrics.OpenTelemetry",
+        "contracts/metrics",
+        "docs/modules/metrics",
+        ".github/skills/cislib-metrics/SKILL.md"
+      ],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "P09-P10: automatic safe logs, three reusable metric handles, transactional finite enum/alias union, opt-in collector reservation/attachment and actual scrape; include tests, metric documentation, formatting and review."
+          ],
+          "description": "A13-A15: safe origin/terminal/opt-out logs, capture complete metric binding once, measured elapsed agreement and active balance including Busy/pre-cancel, finite full-domain union/collision/capacity rollback, unchanged opt-out catalogs, adequate setup reservations, one actual identity/count scrape.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "A13-A15: safe origin/terminal/opt-out logs, capture complete metric binding once, measured elapsed agreement and active balance including Busy/pre-cancel, finite full-domain union/collision/capacity rollback, unchanged opt-out catalogs, adequate setup reservations, one actual identity/count scrape."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-004",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-004.md",
+      "title": "Deliver CountryData State Machine and shared consumer guidance",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-001",
+        "WORK-002",
+        "WORK-003"
+      ],
+      "acceptanceCriteria": "P11-P12: request-local CountryData State Machine using fresh existing lookup Pipeline; public/package mockable result, Busy/child scope story, one shared Workflows skill/metadata/routing; include HTTP/cache regressions, docs, formatting and review.",
+      "validation": "Existing real Core/CommonTesting local-package consumer and CountryData HTTP/readiness/normalization/cache/refresh cases, source build/publish, outside-friend mock and Draft/Submit/Approve skill story, test-owned Busy/reentrant and fresh child scope. Preserve Pipeline counts 5/12/3 and prove State Machine calls8/phases7. Validate shared skill metadata/discoverability, scoped format and strict docs.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:f8d22f0d929443979471f22e787b0f8e",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "consumer"
+      ],
+      "authorizationScopeBasis": "sha256:591320e8396a1697548ea1c966d60e6c3b995565ec0e016cb285ccedbe3e7a48",
+      "workPaths": [
+        "docs/changes/CIS-0014",
+        "docs/catalog.yml",
+        "planning/workflows/statemachine",
+        "planning/workflows/sources/CISLIB_Workflows_StateMachine_Implementation_Specification_v1.0.md",
+        ".cis/local/statemachine-intake",
+        ".cis/local/testing",
+        "implementations/csharp/tests",
+        "docs/modules/workflows",
+        "contracts/workflows",
+        "implementations/csharp/examples/CountryData",
+        ".github/skills/cislib-workflows",
+        "AGENTS.md",
+        "README.md",
+        "implementations/csharp/CisLib.slnx"
+      ],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "P11-P12: request-local CountryData State Machine using fresh existing lookup Pipeline; public/package mockable result, Busy/child scope story, one shared Workflows skill/metadata/routing; include HTTP/cache regressions, docs, formatting and review."
+          ],
+          "description": "Existing real Core/CommonTesting local-package consumer and CountryData HTTP/readiness/normalization/cache/refresh cases, source build/publish, outside-friend mock and Draft/Submit/Approve skill story, test-owned Busy/reentrant and fresh child scope. Preserve Pipeline counts 5/12/3 and prove State Machine calls8/phases7. Validate shared skill metadata/discoverability, scoped format and strict docs.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Existing real Core/CommonTesting local-package consumer and CountryData HTTP/readiness/normalization/cache/refresh cases, source build/publish, outside-friend mock and Draft/Submit/Approve skill story, test-owned Busy/reentrant and fresh child scope. Preserve Pipeline counts 5/12/3 and prove State Machine calls8/phases7. Validate shared skill metadata/discoverability, scoped format and strict docs."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    }
+  ],
+  "source": null
+}

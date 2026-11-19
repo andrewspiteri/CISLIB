@@ -1,0 +1,119 @@
+{
+  "tasks": [
+    {
+      "title": "Deliver enum State Machine execution and guarded transition results",
+      "dependsOn": [],
+      "scopeIds": [
+        "execution"
+      ],
+      "paths": [
+        "docs/changes/CIS-0014",
+        "docs/catalog.yml",
+        "planning/workflows/statemachine",
+        "planning/workflows/sources/CISLIB_Workflows_StateMachine_Implementation_Specification_v1.0.md",
+        ".cis/local/statemachine-intake",
+        ".cis/local/testing",
+        "implementations/csharp/tests",
+        "docs/modules/workflows",
+        "contracts/workflows",
+        "implementations/csharp/src/CIS.Core/Workflows"
+      ],
+      "acceptanceCriteria": "P01-P07: immutable enum definitions, reusable exclusive direct runner, normal guarded results, selected handler DI, commit/cancel/fault/Error/disposal and child Pipeline contract; include tests, portable contract, formatting and review.",
+      "validation": "A01-A12: all eight enum underlyings/Flags/aliases/invalid maps, self/terminal mappings; held overlap/reentrancy/pre-cancel, committed snapshot, normal rejection/failure/cancellation; selected fresh handler activation, owned/borrowed disposal and cleanup budget settlement; child Pipeline fault/compensation and public guarded mock results.",
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex"
+    },
+    {
+      "title": "Share workflow host admission and actual State Machine lifetime drain",
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "scopeIds": [
+        "hosting"
+      ],
+      "paths": [
+        "docs/changes/CIS-0014",
+        "docs/catalog.yml",
+        "planning/workflows/statemachine",
+        "planning/workflows/sources/CISLIB_Workflows_StateMachine_Implementation_Specification_v1.0.md",
+        ".cis/local/statemachine-intake",
+        ".cis/local/testing",
+        "implementations/csharp/tests",
+        "docs/modules/workflows",
+        "contracts/workflows",
+        "implementations/csharp/src/CIS.Core/Workflows",
+        "implementations/csharp/src/CIS.Core/Application",
+        "implementations/csharp/src/CIS.Core/Startup/Hosting"
+      ],
+      "acceptanceCriteria": "P08: explicit State Machine factory, per-call borrowed-scope adapter, existing shared workflow owner/bridge and real host/facade/failed-Build drain; include held-work tests, documentation and review.",
+      "validation": "Actual native and facade hosts, both workflow opt-ins and only State Machine; one provider/owner/bridge, listener-before-drain and business dependency lifetime through held Error/disposal; canceled waits/failed startup/late Build cleanup; closed-host misuse and exact borrowed per-call scope.",
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex"
+    },
+    {
+      "title": "Integrate bounded State Machine logging and metrics",
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "scopeIds": [
+        "instrumentation"
+      ],
+      "paths": [
+        "docs/changes/CIS-0014",
+        "docs/catalog.yml",
+        "planning/workflows/statemachine",
+        "planning/workflows/sources/CISLIB_Workflows_StateMachine_Implementation_Specification_v1.0.md",
+        ".cis/local/statemachine-intake",
+        ".cis/local/testing",
+        "implementations/csharp/tests",
+        "docs/modules/workflows",
+        "contracts/workflows",
+        "implementations/csharp/src/CIS.Core/Workflows",
+        "implementations/csharp/src/CIS.Core/Metrics",
+        "implementations/csharp/src/CIS.Metrics.OpenTelemetry",
+        "contracts/metrics",
+        "docs/modules/metrics",
+        ".github/skills/cislib-metrics/SKILL.md"
+      ],
+      "acceptanceCriteria": "P09-P10: automatic safe logs, three reusable metric handles, transactional finite enum/alias union, opt-in collector reservation/attachment and actual scrape; include tests, metric documentation, formatting and review.",
+      "validation": "A13-A15: safe origin/terminal/opt-out logs, capture complete metric binding once, measured elapsed agreement and active balance including Busy/pre-cancel, finite full-domain union/collision/capacity rollback, unchanged opt-out catalogs, adequate setup reservations, one actual identity/count scrape.",
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex"
+    },
+    {
+      "title": "Deliver CountryData State Machine and shared consumer guidance",
+      "dependsOn": [
+        "WORK-001",
+        "WORK-002",
+        "WORK-003"
+      ],
+      "scopeIds": [
+        "consumer"
+      ],
+      "paths": [
+        "docs/changes/CIS-0014",
+        "docs/catalog.yml",
+        "planning/workflows/statemachine",
+        "planning/workflows/sources/CISLIB_Workflows_StateMachine_Implementation_Specification_v1.0.md",
+        ".cis/local/statemachine-intake",
+        ".cis/local/testing",
+        "implementations/csharp/tests",
+        "docs/modules/workflows",
+        "contracts/workflows",
+        "implementations/csharp/examples/CountryData",
+        ".github/skills/cislib-workflows",
+        "AGENTS.md",
+        "README.md",
+        "implementations/csharp/CisLib.slnx"
+      ],
+      "acceptanceCriteria": "P11-P12: request-local CountryData State Machine using fresh existing lookup Pipeline; public/package mockable result, Busy/child scope story, one shared Workflows skill/metadata/routing; include HTTP/cache regressions, docs, formatting and review.",
+      "validation": "Existing real Core/CommonTesting local-package consumer and CountryData HTTP/readiness/normalization/cache/refresh cases, source build/publish, outside-friend mock and Draft/Submit/Approve skill story, test-owned Busy/reentrant and fresh child scope. Preserve Pipeline counts 5/12/3 and prove State Machine calls8/phases7. Validate shared skill metadata/discoverability, scoped format and strict docs.",
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex"
+    }
+  ]
+}

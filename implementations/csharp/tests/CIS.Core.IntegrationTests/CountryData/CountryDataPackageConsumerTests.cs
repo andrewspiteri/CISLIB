@@ -111,7 +111,9 @@ public sealed class CountryDataPackageConsumerTests
             JsonArray frameworks = RestPackage.Assets(Path.Combine(output, "CisHealthProbe.runtimeconfig.json"))
                 ["runtimeOptions"]!["frameworks"]!.AsArray();
             foreach (string framework in new[] { "Microsoft.NETCore.App", "Microsoft.AspNetCore.App" })
-            { Assert.AreEqual("10.0.12", frameworks.Single(item => item!["name"]!.GetValue<string>() == framework)!["version"]!.GetValue<string>()); }
+            {
+                Assert.AreEqual("10.0.12", frameworks.Single(item => item!["name"]!.GetValue<string>() == framework)!["version"]!.GetValue<string>());
+            }
         }
 
         async Task Verify(string output, string probeOutput, string lane)
@@ -132,11 +134,19 @@ public sealed class CountryDataPackageConsumerTests
             JsonObject report = JsonNode.Parse(result.StandardOutput)!.AsObject();
             Assert.AreEqual("CountryData.Package", report["consumer"]!.GetValue<string>());
             Assert.IsTrue(report["aliasesEquivalent"]!.GetValue<bool>());
+            Assert.IsTrue(report["lookupErrorsPreserved"]!.GetValue<bool>());
             Assert.IsTrue(report["sameCatalogAcrossScopes"]!.GetValue<bool>());
             Assert.IsTrue(report["ready"]!.GetValue<bool>());
             Assert.AreEqual(1, report["automaticMetricsRegistrars"]!.GetValue<int>());
             Assert.AreEqual(3d, report["entries"]!.GetValue<double>());
             Assert.IsTrue(report["lastSuccess"]!.GetValue<double>() > 0);
+            Assert.AreEqual(5d, report["pipelineCompletions"]!.GetValue<double>());
+            Assert.AreEqual(0d, report["pipelineActive"]!.GetValue<double>());
+            Assert.AreEqual(12d, report["pipelineForwardPhases"]!.GetValue<double>());
+            Assert.AreEqual(3d, report["pipelineErrorPhases"]!.GetValue<double>());
+            Assert.AreEqual(8d, report["stateMachineCalls"]!.GetValue<double>());
+            Assert.AreEqual(0d, report["stateMachineActive"]!.GetValue<double>());
+            Assert.AreEqual(7d, report["stateMachineHandlerPhases"]!.GetValue<double>());
             Assert.AreEqual(1d, report["logicalCompletions"]!.GetValue<double>());
             Assert.AreEqual(0d, report["active"]!.GetValue<double>());
             Assert.AreEqual(3d, report["nativeCount"]!.GetValue<double>());
@@ -159,7 +169,10 @@ public sealed class CountryDataPackageConsumerTests
                 ("corePath", "CIS.Core.dll"), ("metricsPath", "CIS.Metrics.OpenTelemetry.dll"),
                 ("resiliencePath", "CIS.RestClient.Resilience.dll"), ("diagnosticSourcePath", "System.Diagnostics.DiagnosticSource.dll"),
                 ("pollyPath", "Polly.Core.dll")
-            }) { RestPackage.SamePath(Path.Combine(output, file), runtime[field]!.GetValue<string>()); }
+            })
+            {
+                RestPackage.SamePath(Path.Combine(output, file), runtime[field]!.GetValue<string>());
+            }
             TestContext.WriteLine("country-data/" + lane + ": " + result.StandardOutput);
         }
     }
@@ -172,6 +185,7 @@ public sealed class CountryDataPackageConsumerTests
     private const string ConsumerProgram = """
         using System.Diagnostics;
         using System.Globalization;
+        using System.Net;
         using System.Text;
         using System.Net.Http.Json;
         using System.Runtime.InteropServices;
@@ -188,6 +202,8 @@ public sealed class CountryDataPackageConsumerTests
         using CIS.RestClient.Resilience;
         using CIS.Startup;
         using CIS.TypeManagement;
+        using CIS.Workflows;
+        using CIS.Workflows.Hosting;
         using Microsoft.AspNetCore.Hosting.Server;
         using Microsoft.AspNetCore.Hosting.Server.Features;
 
@@ -213,10 +229,14 @@ public sealed class CountryDataPackageConsumerTests
             countries.Operations.Add("refresh");
             builder.RestClients.Add(countries);
             builder.Services.AddCisRestClientResilience(RestRetryPolicy.TransientHttp);
+            builder.Services.AddCisWorkflows();
+            builder.Services.AddCisStateMachines();
             builder.Services.AddSingleton<CountryCatalog>();
             builder.Services.AddSingleton<IStartable>(root => root.GetRequiredService<CountryCatalog>());
             builder.Services.AddSingleton<IStartable>(root => hold.Bind(root.GetRequiredService<HealthcheckService>()));
-        }, web => web.MapGet("/country/{identifier}", CountryEndpoints.Get));
+        }, web => web.MapGet("/country/{identifier}",
+            (string identifier, IStateMachineFactory machines, HttpContext context)
+                => CountryEndpoints.Get(identifier, machines, context)));
         Task startup = application.StartAsync();
         try
         {
@@ -253,6 +273,18 @@ public sealed class CountryDataPackageConsumerTests
                 response.EnsureSuccessStatusCode();
                 countries.Add((await response.Content.ReadFromJsonAsync<Country>())!);
             }
+            bool lookupErrorsPreserved = true;
+            foreach (var expected in new[]
+            {
+                (Identifier: "not-a-country", Status: HttpStatusCode.NotFound, Code: "country.not_found"),
+                (Identifier: "%20%20", Status: HttpStatusCode.BadRequest, Code: "country.invalid_identifier")
+            })
+            {
+                using HttpResponseMessage response = await client.GetAsync("/country/" + expected.Identifier);
+                JsonObject error = JsonNode.Parse(await response.Content.ReadAsStringAsync())!.AsObject();
+                lookupErrorsPreserved &= response.StatusCode == expected.Status
+                    && error["code"]!.GetValue<string>() == expected.Code;
+            }
             using HttpResponseMessage scrape = await client.GetAsync("/_metrics");
             scrape.EnsureSuccessStatusCode();
             string text = await scrape.Content.ReadAsStringAsync();
@@ -276,6 +308,7 @@ public sealed class CountryDataPackageConsumerTests
                 unavailableProbeExit = unavailable.ExitCode,
                 unavailableProbeHasOnlyBoundedError = unavailable.Snapshot is null && unavailable.Error.Length is > 0 and <= 1024,
                 aliasesEquivalent = countries.Count == 3 && countries.All(country => country == new Country("Malta", "MT", "MLT")),
+                lookupErrorsPreserved,
                 sameCatalogAcrossScopes = ReferenceEquals(catalog, first.ServiceProvider.GetRequiredService<CountryCatalog>())
                     && ReferenceEquals(catalog, second.ServiceProvider.GetRequiredService<CountryCatalog>()),
                 ready = application.Services.GetRequiredService<HealthcheckService>().CaptureSnapshot().Ready,
@@ -286,6 +319,13 @@ public sealed class CountryDataPackageConsumerTests
                 logicalCompletions = Sum("cis_restclient_operation_duration_seconds_count"),
                 active = Sum("cis_restclient_active_operations"),
                 nativeCount = Sum("http_client_request_duration_seconds_count"),
+                pipelineCompletions = Sum("cis_pipeline_execution_duration_seconds_count"),
+                pipelineActive = Sum("cis_pipeline_active_executions"),
+                pipelineForwardPhases = Sum("cis_pipeline_step_duration_seconds_count", "execute"),
+                pipelineErrorPhases = Sum("cis_pipeline_step_duration_seconds_count", "error"),
+                stateMachineCalls = Sum("cis_statemachine_trigger_duration_seconds_count"),
+                stateMachineActive = Sum("cis_statemachine_active_attempts"),
+                stateMachineHandlerPhases = Sum("cis_statemachine_handler_duration_seconds_count"),
                 allSamplesHaveIdentity = allIdentity,
                 runtime = new
                 {
@@ -298,7 +338,8 @@ public sealed class CountryDataPackageConsumerTests
                     pollyPath = AppDomain.CurrentDomain.GetAssemblies().Single(assembly => assembly.GetName().Name == "Polly.Core").Location
                 }
             })!.AsObject();
-            double Sum(string family) => samples.Where(line => line.StartsWith(family + "{", StringComparison.Ordinal))
+            double Sum(string family, string? phase = null) => samples.Where(line => line.StartsWith(family + "{", StringComparison.Ordinal)
+                    && (phase is null || line.Contains("phase=\"" + phase + "\"", StringComparison.Ordinal)))
                 .Sum(line => double.Parse(line[(line.LastIndexOf(' ') + 1)..], CultureInfo.InvariantCulture));
         }
         finally

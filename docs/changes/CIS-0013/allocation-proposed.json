@@ -1,0 +1,83 @@
+{
+  "proposedLeaves": [
+    {
+      "restorationSeconds": 360,
+      "seconds": 14400,
+      "attempts": 5,
+      "dependsOn": [],
+      "key": "execution",
+      "title": "Execution and DI"
+    },
+    {
+      "restorationSeconds": 240,
+      "seconds": 7200,
+      "attempts": 3,
+      "dependsOn": [
+        "execution"
+      ],
+      "key": "hosting",
+      "title": "Existing-host lifetime"
+    },
+    {
+      "restorationSeconds": 300,
+      "seconds": 10800,
+      "attempts": 4,
+      "dependsOn": [
+        "execution"
+      ],
+      "key": "instrumentation",
+      "title": "Automatic instrumentation"
+    },
+    {
+      "restorationSeconds": 300,
+      "seconds": 10800,
+      "attempts": 4,
+      "dependsOn": [
+        "execution",
+        "hosting",
+        "instrumentation"
+      ],
+      "key": "consumer",
+      "title": "Consumer and repository skill"
+    }
+  ],
+  "status": "Proposed; not authority",
+  "excludes": [
+    "push",
+    "merge",
+    "release",
+    "personal skill installation",
+    "tooling campaign",
+    "historical cleanup"
+  ],
+  "storageReserveBytes": 67108864,
+  "storageCeilingBytes": 6442450944,
+  "totalSeconds": 43200,
+  "restorationSeconds": 1200,
+  "totalAttempts": 16,
+  "note": "Keys are proposed scope identifiers, not canonical task IDs. Derive supported IDs only after actual containing approval.",
+  "controllers": [
+    "Codex"
+  ],
+  "profile": "P01-P12",
+  "storageCeilingReference": "CISLIB-CIS-0001-STORAGE-2026-11-10",
+  "organizationDelegated": true,
+  "countedRoots": [
+    ".artifacts",
+    ".cis/local",
+    "implementations/csharp"
+  ],
+  "changeId": "CIS-0013",
+  "includes": [
+    "all agents",
+    "already performed intake",
+    "implementation",
+    "native preparation and focused tests",
+    "documentation",
+    "repository skill and use check",
+    "formatting",
+    "review",
+    "restoration"
+  ],
+  "redistributionWithinTotals": true
+}
