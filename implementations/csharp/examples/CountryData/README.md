@@ -117,3 +117,53 @@ only bounded in-memory reads, and disabled metrics do not change catalog behavio
 Tests supply controlled local HTTP responses and timing through existing
 configuration/DI boundaries. The application has no self-test/failure flags,
 barriers, reports, hardcoded live data or alternative HTTP implementation.
+
+## Testing examples
+
+Start with the discoverable MSTest examples in
+[CountryCatalogUnitExamples.cs](../../tests/CIS.Core.UnitTests/CountryData/CountryCatalogUnitExamples.cs)
+and [CountryLookupStepUnitExamples.cs](../../tests/CIS.Core.UnitTests/CountryData/CountryLookupStepUnitExamples.cs).
+They reference this compiled application through the existing Unit test project
+and use public APIs, without starting the application or a web server.
+
+From `implementations/csharp`, run:
+
+```powershell
+dotnet test tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj -c Release --filter "FullyQualifiedName~CIS.Tests.UnitTests.CountryData"
+```
+
+The small [test setup](../../tests/CIS.Core.UnitTests/CountryData/CountryCatalogExample.cs)
+reuses `CIS.CommonTesting`: `ScriptedRestClient`, `ManualHeartbeat`,
+`ManualTimeProvider`, `RecordingHealthMonitorFactory` and
+`RecordingLogger<CountryCatalog>`. `DisabledMetrics.Instance` supplies the public
+Metrics no-op boundary. The only application-specific substitutes are an
+initialized-settings reader and a test-owned application-stopping token.
+Set `RetryPolicyName = null` when the test supplies no retry policies.
+
+| Unit example | Expected result |
+| --- | --- |
+| Initial publication and aliases | Name, ISO2 and ISO3, including trimmed/case variants, return the same record; lookups and misses make no additional logical REST call. |
+| Explicit manual refresh | Registration captures the configured delay/interval; advancing the clock alone makes no request, then an awaited `TriggerAsync` performs one refresh. |
+| Successful replacement | The complete new dataset replaces the previous dataset, including removal of old aliases. |
+| Failed/invalid refresh | HTTP/business failure, invalid codes, duplicate rows or an empty dataset retain the last good record and report refresh failure. |
+| Initial failure | `StartAsync` fails without creating a refresh registration or publishing usable data. |
+| Unexpected dependency fault | The original exception reaches the manual result and recorded Error event; the previous snapshot remains usable. |
+| Held refresh and disposal | The old snapshot remains readable while work is held; catalog disposal joins it before withdrawing the recording monitor. |
+| Individual lookup steps | Normalization trims input, missing input/countries produce stable failure codes, and response preparation/compensation updates only its own draft. |
+
+These unit examples control logical results and execution explicitly. They do not
+validate sockets, retry, codecs, provider-envelope mapping, the Heartbeat scheduler,
+real health-policy evaluation or hosted shutdown. `EnqueueJsonValue` supplies a
+logical success for the actual response type; it does not invoke
+`CountryProviderMapper`. Use `EnqueueFailure` for logical business/HTTP failures.
+The held example uses `finally` to release and await actual work even if an
+assertion fails. There are no sleeps or live provider calls.
+
+After the unit layer, use the existing
+[CountryData integration tests](../../tests/CIS.Core.IntegrationTests/CountryData/CountryDataTests.cs)
+for native hosting, HTTP/readiness and the real State Machine/child Pipeline;
+the [package test](../../tests/CIS.Core.IntegrationTests/CountryData/CountryDataPackageConsumerTests.cs)
+for local-package build/publish and exporter output; and the
+[public consumer](../../tests/CIS.Core.IntegrationTests/CountryData/CountryDataPublicConsumerTests.cs)
+for substitution and helper usage outside friend assemblies. This testing order
+keeps application unit examples useful without substituting them for integration proof.
