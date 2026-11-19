@@ -3,7 +3,7 @@ using CIS.Workflows;
 using Microsoft.AspNetCore.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CIS.Tests.UnitTests.CountryData;
+namespace CIS.Examples.CountryData.UnitTests;
 
 [TestClass]
 public sealed class CountryLookupStepUnitExamples

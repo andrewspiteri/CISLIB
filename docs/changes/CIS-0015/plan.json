@@ -58,6 +58,67 @@
         }
       ],
       "contractErrors": []
+    },
+    {
+      "id": "WORK-002",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-002.md",
+      "title": "Place CountryData unit examples in a dedicated examples solution project",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "acceptanceCriteria": "Same23public CommonTesting examples live in dedicated CountryData.UnitTests under examples physically and in CisLib.slnx; old shared suite loses the example reference/closure; guide paths and run command updated.",
+      "validation": "Build/discover/run the new MSTest project on pinned runtime; verify all23pass and solution membership, public-only assembly boundary, no duplicate test source or Core-suite app reference, locked approved dependency closure, scoped format and docs; preserve user files and unchanged aggregate resource limits.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:95e9d9e7a00c4bd58e22bbf7d7e7a742",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "example-project-placement"
+      ],
+      "authorizationScopeBasis": "sha256:2470a3a502c23aad7fda5293c4f2030a525d5528e527cc78ddf8916389871604",
+      "workPaths": [
+        "docs/changes/CIS-0015",
+        "docs/catalog.yml",
+        ".cis/local/countrydata-unit-intake",
+        ".artifacts/countrydata-unit",
+        "implementations/csharp/CisLib.slnx",
+        "implementations/csharp/examples/CountryData.UnitTests",
+        "implementations/csharp/tests/CIS.Core.UnitTests/CountryData",
+        "implementations/csharp/tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj",
+        "implementations/csharp/tests/CIS.Core.UnitTests/packages.lock.json",
+        "implementations/csharp/examples/CountryData/README.md",
+        "implementations/csharp/src/CIS.CommonTesting/README.md"
+      ],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "Same23public CommonTesting examples live in dedicated CountryData.UnitTests under examples physically and in CisLib.slnx; old shared suite loses the example reference/closure; guide paths and run command updated."
+          ],
+          "description": "Build/discover/run the new MSTest project on pinned runtime; verify all23pass and solution membership, public-only assembly boundary, no duplicate test source or Core-suite app reference, locked approved dependency closure, scoped format and docs; preserve user files and unchanged aggregate resource limits.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Build/discover/run the new MSTest project on pinned runtime; verify all23pass and solution membership, public-only assembly boundary, no duplicate test source or Core-suite app reference, locked approved dependency closure, scoped format and docs; preserve user files and unchanged aggregate resource limits."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
     }
   ],
   "source": null

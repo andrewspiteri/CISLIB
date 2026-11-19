@@ -4,7 +4,7 @@ using CIS.RestClient;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CIS.Tests.UnitTests.CountryData;
+namespace CIS.Examples.CountryData.UnitTests;
 
 [TestClass]
 public sealed class CountryCatalogUnitExamples

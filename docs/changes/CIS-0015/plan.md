@@ -14,3 +14,4 @@ Derived under `cislib:CIS-0015:outcome:440ffa6c914c4569ad3a0924bb6a175c` by Code
 | Task | Work | Status | Depends on |
 | --- | --- | --- | --- |
 | WORK-001 | [Deliver CommonTesting-based CountryData unit examples and testing guidance](agent-tasks/WORK-001.md) | Complete |  |
+| WORK-002 | [Place CountryData unit examples in a dedicated examples solution project](agent-tasks/WORK-002.md) | Complete | WORK-001 |

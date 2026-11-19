@@ -96,12 +96,13 @@ integration consumer tests actual packaged helpers plus that compiled assembly;
 it does not execute the unchanged application entry point.
 
 For ordinary MSTest unit examples, start with the real application's
-[catalog tests](../../tests/CIS.Core.UnitTests/CountryData/CountryCatalogUnitExamples.cs),
-[lookup-step tests](../../tests/CIS.Core.UnitTests/CountryData/CountryLookupStepUnitExamples.cs)
-and their [small setup](../../tests/CIS.Core.UnitTests/CountryData/CountryCatalogExample.cs).
-The Unit project references the compiled CountryData application; no application
+[catalog tests](../../examples/CountryData.UnitTests/CountryCatalogUnitExamples.cs),
+[lookup-step tests](../../examples/CountryData.UnitTests/CountryLookupStepUnitExamples.cs)
+and their [small setup](../../examples/CountryData.UnitTests/CountryCatalogExample.cs).
+The dedicated `CountryData.UnitTests` project is under `examples` in the solution
+and references the compiled CountryData application; no application
 source is copied and no friend access is added. The setup constructs the public
 catalog with these helpers and `DisabledMetrics.Instance`, without a native host,
 HTTP server, service provider or collector. The
 [application testing guide](../../examples/CountryData/README.md#testing-examples)
-lists expected results, the filtered test command and the integration boundaries.
+lists expected results, the test command and the integration boundaries.

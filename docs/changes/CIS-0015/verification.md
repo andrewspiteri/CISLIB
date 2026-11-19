@@ -13,13 +13,13 @@ change_id: CIS-0015
 | WORK-001 | Existing CommonTesting controls | Ordinary dotnet test filter CIS.Tests.UnitTests.CommonTesting | Passed: 13; failed: 0; skipped: 0 | Exercises the helpers under the updated test reference graph. |
 | WORK-001 | Native build and formatting | Release Unit build; changed-file whitespace formatter and verify | Passed | Zero build warnings/errors; only three new C# files included in formatting. |
 
-## Delivered examples and boundaries
+## Initial delivery observations (WORK-001)
 
 The user requested CountryData testing examples starting with unit tests that
 reuse CommonTesting, then explicitly approved one shared two-hour/four-attempt
 allocation including five restoration minutes. Earlier owners remain complete.
 
-The existing Unit project now references the actual CountryData project. Its
+The initial delivery used the existing Unit project to reference CountryData. Its
 public catalog and individual lookup steps are exercised without copying business
 source or adding friend access. The small setup uses ScriptedRestClient,
 ManualHeartbeat, ManualTimeProvider, RecordingHealthMonitorFactory,
@@ -81,3 +81,57 @@ codex/countrydata-unit-examples for review.
 WORK-001 is Complete with no pending native invocation or recovery hold. Its
 source, documentation and focused observations are retained for local review.
 | WORK-001 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1686; failed=241; possibleTokenSavings=591; ledgerDigest=sha256:55a6a05420fedae943048f2777dfc651ad360ae499ffe008cb977c862bc167db |
+
+## Dedicated example project correction (WORK-002)
+
+The user clarified that the unit examples belong in a project under examples in
+the solution. They now live in
+[CountryData.UnitTests](../../../implementations/csharp/examples/CountryData.UnitTests/CountryData.UnitTests.csproj),
+registered under the existing `/examples/` solution folder. All three source
+files were moved, with only namespace changes; the new local assembly declaration
+makes test scheduling explicit. There are no duplicate examples in the shared
+Core Unit suite. Its project and lock file match main again, removing the
+application dependency introduced by the initial delivery.
+
+The dedicated assembly references the actual application and CommonTesting and
+has no friend access to Core or CountryData. It uses the existing central MSTest
+versions and pinned runtime/runner settings. The app and CommonTesting guides
+link to the new location and give its ordinary unfiltered project test command.
+Independent source review found no blockers; its two wording findings were fixed.
+
+| Check | Result | Evidence |
+| --- | --- | --- |
+| Release build | Passed; 0 warnings/errors | `.artifacts/countrydata-unit/CIS-0015/project-correction/build.log` |
+| Dedicated MSTest discovery and execution | Passed: 23; failed: 0; skipped: 0 | `project-correction/results/countrydata.trx` under the same artifact root |
+| Solution membership | Passed | `project-correction/solution-projects.log`; CisLib.slnx `/examples/` entry |
+| Formatting and locked references | Passed | Scoped formatter plus verify; new lock's 34 resolved ID/version pairs are already present in repository locks; shared Unit locked restore passed |
+| Documentation | Passed: 220/220; 0 warnings/errors | Ordinary strict CIS documentation validation |
+
+This supporting correction reuses the originally approved shared allocation.
+WORK-001 remains Complete with its original contract and observations. Its scope
+and constraints are preserved; the added placement scope records the user's
+specific override of the old project-location choice. CIS correctly held earlier
+administrative attempts that would have invalidated completed scope or moved its
+protected restoration. Those holds did not launch native execution. The applied
+distribution retains WORK-001 at 5,700 seconds/three attempts including its
+300-second reserve, and assigns WORK-002 1,500 ordinary seconds/one attempt.
+
+The correction charges 1,200,000 ms of conservative source/all-agent/controller
+effort and 57,419 ms of measured native work, one logical attempt. Including the
+unchanged initial 5,396,809 ms charge, the aggregate is 6,654,228 ms and two
+attempts. The original 7,200,000 ms/four-attempt ceiling retains 300,000 ms for
+restoration and 245,772 ms beyond it. Automatic CIS counters remain separate
+from these retained manual charges; no native command failed or remains pending.
+The component record is
+`.cis/local/countrydata-unit-intake/project-correction-resources.json`.
+
+The physical roots observed 5,929,212,633 bytes, with 446,129,447 bytes remaining
+beyond the protected 67,108,864-byte reserve under the existing 6 GiB ceiling.
+The user's launch settings still have SHA-256
+ea7e7219222183193f0361ae674998f1edc43a3789f118748c59f166a4d29784.
+No production code, package versions, provider data, push, merge or release is
+part of this correction.
+
+WORK-002 is Complete with its acceptance and validation evidence resolved. Both
+tasks retain their separate observations; no native invocation is pending.
+| WORK-002 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1718; failed=247; possibleTokenSavings=591; ledgerDigest=sha256:0d93328a3774614ba9041c7f42525fe4cc630424b022020c9f422bb305e961f4 |

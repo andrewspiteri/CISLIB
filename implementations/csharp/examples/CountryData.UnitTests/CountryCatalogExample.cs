@@ -4,7 +4,7 @@ using CIS.Examples.CountryData;
 using CIS.Metrics;
 using Microsoft.Extensions.Hosting;
 
-namespace CIS.Tests.UnitTests.CountryData;
+namespace CIS.Examples.CountryData.UnitTests;
 
 // Test-owned dependencies for the real public catalog. No host, HTTP or exporter starts.
 internal sealed class CountryCatalogExample : IAsyncDisposable

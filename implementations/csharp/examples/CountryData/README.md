@@ -121,18 +121,19 @@ barriers, reports, hardcoded live data or alternative HTTP implementation.
 ## Testing examples
 
 Start with the discoverable MSTest examples in
-[CountryCatalogUnitExamples.cs](../../tests/CIS.Core.UnitTests/CountryData/CountryCatalogUnitExamples.cs)
-and [CountryLookupStepUnitExamples.cs](../../tests/CIS.Core.UnitTests/CountryData/CountryLookupStepUnitExamples.cs).
-They reference this compiled application through the existing Unit test project
-and use public APIs, without starting the application or a web server.
+[CountryCatalogUnitExamples.cs](../CountryData.UnitTests/CountryCatalogUnitExamples.cs)
+and [CountryLookupStepUnitExamples.cs](../CountryData.UnitTests/CountryLookupStepUnitExamples.cs).
+They live in the dedicated `CountryData.UnitTests` project under the solution's
+`examples` folder. That project references this compiled application
+and uses public APIs, without starting the application or a web server.
 
 From `implementations/csharp`, run:
 
 ```powershell
-dotnet test tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj -c Release --filter "FullyQualifiedName~CIS.Tests.UnitTests.CountryData"
+dotnet test examples/CountryData.UnitTests/CountryData.UnitTests.csproj -c Release
 ```
 
-The small [test setup](../../tests/CIS.Core.UnitTests/CountryData/CountryCatalogExample.cs)
+The small [test setup](../CountryData.UnitTests/CountryCatalogExample.cs)
 reuses `CIS.CommonTesting`: `ScriptedRestClient`, `ManualHeartbeat`,
 `ManualTimeProvider`, `RecordingHealthMonitorFactory` and
 `RecordingLogger<CountryCatalog>`. `DisabledMetrics.Instance` supplies the public
