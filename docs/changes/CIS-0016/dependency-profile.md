@@ -74,6 +74,26 @@ Supporting primary manifests are
 and [Caching.Memory](https://www.nuget.org/packages/Microsoft.Extensions.Caching.Memory/10.0.12).
 The caching dependency does not select a certificate/principal cache in CIS.
 
+## First approved project restore
+
+The first net10.0 restore uses the approved pins without another mapping. The
+Entra lock resolves17package nodes: the two direct packages; Azure.Core1.53.0;
+Microsoft.Bcl.AsyncInterfaces10.0.3; Microsoft.Bcl.Cryptography10.0.2; MSAL and
+its Extensions.Msal4.83.1; the seven IdentityModel/System.IdentityModel packages
+at8.19.2; System.ClientModel1.10.0; System.Memory.Data10.0.3; and
+System.Security.Cryptography.ProtectedData4.5.0. Runtime assets select net10.0
+where supplied, native MSAL net8.0, AsyncInterfaces netstandard2.1 and
+ProtectedData netstandard2.0. No unexpected package ID or changed direct pin is
+required. The remaining finite mapping candidates are unused by this graph.
+
+The certificate project's lock contains only its direct certificate handler;
+it acquires no Azure, MSAL or IdentityModel package. Core and CommonTesting locks
+have no semantic changes. The ordinary public MSTest provider project restores
+both explicitly referenced adapters. These are project/asset observations,
+retained under .artifacts/security/CIS-0016/providers/01-restore; WORK-007 still
+owns actual packaged-consumer separation proof. No build, JWT, TLS or deployment
+success is inferred from this restore.
+
 ## Deployment recipe pin
 
 Propose cert-manager v1.21.3 for documentation, with explicit private-key rotation

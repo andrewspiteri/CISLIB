@@ -148,12 +148,22 @@ source's certificate and development/consumer units at real ownership handoffs.
 | Task | Outcome, owning files and included evidence | Depends on | Hours / attempts / restoration sec |
 | --- | --- | --- | --- |
 | WORK-001 | Shared Core contract, immutable policy/caller scope, complete-grant native bridge, explicit facade stages, common audit/metric catalog, portable fixtures and shared guide. Tests grant cross-products, multi-requirement parity, spoofing, context/background isolation, snapshots, cancellation settlement, receiver-only roles and actual facade order. | none | 5 / 5 / 600 |
-| WORK-002 | Existing REST security binding, typed failure detail and constrained generation seam. Own REST internals and ownership guide; test final destinations/overrides, native generation leases, held bodies, retirement/retry races, drain/fault precedence and unchanged ordinary behavior. | WORK-001 | 5 / 5 / 600 |
-| WORK-003 | Optional Entra adapter and native JWT scheme, app-only mapping, cancellation/status, AKS guide and provider tests. Validate real native signature/issuer/audience/role failures locally and SDK adapter plumbing without calling that federation proof. | Start after WORK-001; final outbound integration waits for WORK-002 | 4 / 4 / 300 |
-| WORK-004 | Optional certificate receiving integration and trust validation, scheme/listener policies, revocation semantics and certificate guide. Test real TLS, issuer/SAN/usage, production/dev isolation, operation expiry on established connections and operational listener bypass resistance. | WORK-001 | 4 / 4 / 600 |
-| WORK-005 | PEM source, identity-validated reload, outbound certificate binding, Heartbeat/cutoff ownership, finite rotation/status metrics and cert-manager recipe. Test actual file adoption, bad replacement, two-slot pressure, expiry/selection/retry races and held shutdown settlement. | WORK-002, WORK-004 | 5 / 6 / 900 |
-| WORK-006 | Isolated local setup/reset tool using actual certificate integration, file permissions, renewal/recreation and copy-and-run guide. Test clean per-workspace generation, per-app identity separation, gates, reset adoption and no machine-wide trust changes. | WORK-004, WORK-005 | 3 / 3 / 300 |
+| WORK-002 | Existing REST security binding, typed failure detail and constrained generation seam. Own REST internals and ownership guide; test final destinations/overrides, native generation leases, held bodies, retirement/retry races, drain/fault precedence and unchanged ordinary behavior. | WORK-001 | 5.5 / 5 / 600 |
+| WORK-003 | Optional Entra adapter and native JWT scheme, app-only mapping, cancellation/status, AKS guide and provider tests. Validate real native signature/issuer/audience/role failures locally and SDK adapter plumbing without calling that federation proof. | Start after WORK-001; final outbound integration waits for WORK-002 | 3 5/6 / 4 / 300 |
+| WORK-004 | Optional certificate receiving integration and trust validation, scheme/listener policies, revocation semantics and certificate guide. Test real TLS, issuer/SAN/usage, production/dev isolation, operation expiry on established connections and operational listener bypass resistance. | WORK-001 | 3 / 3 / 600 |
+| WORK-005 | PEM source, identity-validated reload, outbound certificate binding, once-only initial native trust, Heartbeat/cutoff ownership, finite rotation/status metrics and cert-manager recipe. Test actual file adoption, bad replacement, two-slot pressure, expiry/selection/retry races and held shutdown settlement. | WORK-002, WORK-004, WORK-008 | 5 / 6 / 900 |
+| WORK-006 | Isolated local setup/reset tool using actual certificate integration, file permissions, renewal/recreation and copy-and-run guide. Test clean per-workspace generation, per-app identity separation, gates, reset adoption and no machine-wide trust changes. | Source after WORK-004; final runtime proof waits for WORK-005 | 3 / 3 / 300 |
 | WORK-007 | CountryData selectable protected service/caller and bounded selected-country business effect, public testing reuse, three package-consumer shapes, actual metric exposition, current API/provider handoff and repository security skill/routing. Tests permission denial prevents effect and packages activate only selected roles. | WORK-003, WORK-005, WORK-006 | 4 / 5 / 300 |
+| WORK-008 | Supporting W01 native cleanup correction: after actual TLS drain and successful certificate disposal, remove only its recorded newly owned container through the native provider and verify exact absence. Retain the actual expired RSA TLS negative and meaningful retained-key/custody regressions. | WORK-002 | 2/3 / 1 / 0 |
+
+The second delegated redistribution adds WORK-008 within the same shared totals:
+30 ordinary minutes and one attempt move from WORK-004, and ten ordinary minutes
+move from WORK-003. Every existing task's protected restoration reserve remains
+unchanged. Completed WORK-001/002 contracts and costs remain historical. The
+supporting task owns the cleanup correction discovered by the certificate suite;
+it does not reopen WORK-002. WORK-005's existing-scope reconciliation adds the
+approved REST native path before that draft task starts, so initial trust loading
+can remain sequential Startup work without a mutable trust setter.
 
 After WORK-001 stabilizes the common contracts, WORK-002, WORK-003 and WORK-004
 may run in parallel with disjoint ownership. WORK-005 starts only after its REST
@@ -223,3 +233,12 @@ AC-02 and AC-24 have named reproducible prerequisites; their absence does not
 block independent implementation but does prevent marking RM-01 complete.
 Implementation tasks may complete only their expressly scoped local outcomes;
 the verification record must retain these two roadmap acceptance gaps.
+
+On19November2026 Codex exercised the explicitly delegated distribution authority:
+WORK-002 now has19,800seconds (5.5hours), and WORK-004 has12,600seconds
+(3.5hours). This moves30ordinary minutes to the approved W01 native-backend
+implementation/proof. The original shared108,000seconds/32attempts, every
+restoration reserve, storage ceiling and completed WORK-001 allocation remain
+unchanged; all earlier source/native costs are retained. The applied current
+work-allocation.json is authoritative for this distribution. W01 is the later
+resolved CIS DEC-001 operational exception, not a rewrite of baseline authority.

@@ -18,7 +18,10 @@ internal sealed class RestCallbackFaultException(Exception original) : Exception
 // The actual RC5 owner implements this fixed module seam. No generic lifecycle registry.
 internal interface IRestClientRuntime : IMetricsSource
 {
-    object RegistrationIdentity { get; }
+    object RegistrationIdentity
+    {
+        get;
+    }
     void BeginStopping();
     Task StopAsync();
 }
@@ -31,20 +34,33 @@ internal sealed class RestClientComposition
 {
     internal RestClientComposition(object registrationIdentity, IReadOnlyList<RestOperationIdentity> operations)
     {
-        ArgumentNullException.ThrowIfNull(registrationIdentity); ArgumentNullException.ThrowIfNull(operations);
+        ArgumentNullException.ThrowIfNull(registrationIdentity);
+        ArgumentNullException.ThrowIfNull(operations);
         RestOperationIdentity[] copied = RestContractRules.Copy(operations, 32, nameof(operations));
         string[] clients = copied.Select(pair => pair.ClientAlias).Distinct(StringComparer.Ordinal).ToArray();
         if (clients.Length is < 1 or > 16 || copied.Length > 32
             || copied.Distinct().Count() != copied.Length
             || copied.Any(pair => !RestContractRules.Alias(pair.ClientAlias) || !RestContractRules.Alias(pair.OperationAlias))
             || clients.Any(client => !copied.Contains(new(client, "request"))))
-        { throw new ArgumentException("Use at most sixteen clients and thirty-two distinct pairs, including each request fallback."); }
-        RegistrationIdentity = registrationIdentity; ClientAliases = Array.AsReadOnly(clients);
+        {
+            throw new ArgumentException("Use at most sixteen clients and thirty-two distinct pairs, including each request fallback.");
+        }
+        RegistrationIdentity = registrationIdentity;
+        ClientAliases = Array.AsReadOnly(clients);
         Operations = Array.AsReadOnly(copied);
     }
-    internal object RegistrationIdentity { get; }
-    internal IReadOnlyList<string> ClientAliases { get; }
-    internal IReadOnlyList<RestOperationIdentity> Operations { get; }
+    internal object RegistrationIdentity
+    {
+        get;
+    }
+    internal IReadOnlyList<string> ClientAliases
+    {
+        get;
+    }
+    internal IReadOnlyList<RestOperationIdentity> Operations
+    {
+        get;
+    }
 }
 
 internal enum RestOperationOutcome
@@ -64,7 +80,13 @@ internal interface IRestOperationObservation
 internal sealed record RestAttemptOutcome(int? HttpStatusCode, RestFailureKind FailureKind,
     string? ErrorCode = null, string? RetryAfter = null, bool BodyProcessingStarted = false,
     bool BodyReplayable = true, bool RetryEligible = true, RestTransportFailureKind? TransportFailure = null,
-    string? Method = null);
+    string? Method = null)
+{
+    internal CIS.Security.SecurityFailure? SecurityFailure
+    {
+        get; init;
+    }
+}
 
 internal sealed record RestPolicyResult(RestAttemptOutcome Terminal, RestRetryStopReason? StopReason);
 
@@ -74,20 +96,50 @@ internal sealed class RestRetryExecutionContext
         CancellationToken cancellationToken, string method, RestReplaySafety replaySafety,
         Func<bool> isStopping, CancellationToken callerCancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(timeProvider); ArgumentNullException.ThrowIfNull(isStopping);
-        if (timeout <= TimeSpan.Zero) { throw new ArgumentOutOfRangeException(nameof(timeout)); }
-        TimeProvider = timeProvider; EntryTimestamp = entryTimestamp; Timeout = timeout;
-        CancellationToken = cancellationToken; Method = method; ReplaySafety = replaySafety; this.isStopping = isStopping;
+        ArgumentNullException.ThrowIfNull(timeProvider);
+        ArgumentNullException.ThrowIfNull(isStopping);
+        if (timeout <= TimeSpan.Zero)
+        {
+            throw new ArgumentOutOfRangeException(nameof(timeout));
+        }
+        TimeProvider = timeProvider;
+        EntryTimestamp = entryTimestamp;
+        Timeout = timeout;
+        CancellationToken = cancellationToken;
+        Method = method;
+        ReplaySafety = replaySafety;
+        this.isStopping = isStopping;
         CallerCancellationToken = callerCancellationToken;
     }
     private readonly Func<bool> isStopping;
-    internal TimeProvider TimeProvider { get; }
-    internal long EntryTimestamp { get; }
-    internal TimeSpan Timeout { get; }
-    internal CancellationToken CancellationToken { get; }
-    internal CancellationToken CallerCancellationToken { get; }
-    internal string Method { get; }
-    internal RestReplaySafety ReplaySafety { get; }
+    internal TimeProvider TimeProvider
+    {
+        get;
+    }
+    internal long EntryTimestamp
+    {
+        get;
+    }
+    internal TimeSpan Timeout
+    {
+        get;
+    }
+    internal CancellationToken CancellationToken
+    {
+        get;
+    }
+    internal CancellationToken CallerCancellationToken
+    {
+        get;
+    }
+    internal string Method
+    {
+        get;
+    }
+    internal RestReplaySafety ReplaySafety
+    {
+        get;
+    }
     internal bool IsStopping => isStopping();
     internal TimeSpan Remaining
     {

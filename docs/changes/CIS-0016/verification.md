@@ -142,3 +142,126 @@ Strict documentation validation passes233/233documents with0warnings/errors.
 The initial progress receipt's contracts/security/v1/README.md reference is a
 path typo: the delivered contract guide is contracts/security/README.md; the
 actual v1 fixture paths and native receipts above remain unchanged.
+
+# WORK-002 and optional-provider checkpoint
+
+The first optional restore uses all three approved direct pins and no unexpected
+mapping. Entra resolves17package nodes and certificate support only its native
+handler; Core/CommonTesting locks remain unchanged. Reviewed exact assets are in
+.artifacts/security/CIS-0016/providers/01-restore/reviewed-closure.json.
+The isolated frozen certificate receiving library compiled against accepted
+Core with0warnings/errors; this is not TLS or provider-test proof.
+
+WORK-002/01-native-proof passes scoped formatting/verify, both affected Release
+builds with0warnings/errors, and15new security Unit cases. Its new Integration
+result is5passed/9failed/0skipped. Several real TLS paths fail at Windows
+Schannel credential acquisition before any HTTP response. One separate fixture
+wrongly equated the outer DI wrapper with the native root scope; it now checks
+the actual shared singleton witness. Retry failure diagnostics now surface an
+early exchange failure instead of waiting for a nonexistent retry delay.
+These corrections and the Windows leaf-only certificate-selection change await
+new proof; original failures remain retained.
+
+The independent02-unaffected-regressions receipt passes134existing REST Unit
+and124existing REST Integration cases,0failed/skipped. These unchanged selections
+execute the retained01candidate bytes and exclude actual package-consumer work
+owned by WORK-007. They do not establish the failing TLS baseline.
+
+Pinned native sources and Microsoft guidance identify Windows' ephemeral-key
+limitation. The proposed native workaround creates temporary OS user-key backing
+outside the currently approved credential scratch. The concrete
+[W01 proposal](windows-tls-key-backend-decision.md) preserves original authority,
+requests only that narrow exception and keeps all shared resource limits.
+No PKCS#12 reimport, OS key/store enumeration or outside-scratch credential write
+has been performed. Windows may otherwise remain unverified. Core permission
+scope, no trust installation and AC-02/AC-24 gaps remain unchanged.
+
+Independent review also confirmed a later native JWT option/event could fabricate
+a successful same-scheme ticket. Entra now has fixed final options validation,
+sealed native events and private principal-bound immutable authentication proof,
+including stale-proof checks. Its41authored cases and the38certificate cases
+await coordinated proof. These are authored counts, not passing claims.
+The public provider test project uses the ordinary MSTest/IDE route with its own
+explicit process identity and restricted ignored temporary directory; production
+EnvironmentOptions defaults remain unchanged. Existing local Ubuntu has no
+dotnet executable on PATH, so no Linux execution or installation is claimed.
+
+Andrew Spiteri subsequently explicitly approvedW01. CIS-0016 DEC-001 appends
+the narrowtemporaryWindowsuser-keyexception; baselineauthorization/Core receipts
+remain unchanged. Qualification has firstprobe2leaves/max16liveimports, with
+8MiBfixedcharge inside the same6GiB; nooutsidekeyimport precededapproval.
+The nativeprobe/cleanup result remains pending.
+
+
+W01 phases03/04 stoppedbeforeanykeyimport (nullablemetadata compilecheck,
+thenunnecessaryWRITE_OWNER request); bothwerecorrectedwithoutrelaxingprivateDACL.
+Probe05 createdexactly2newWindowsuserkeyfiles (2,496bytes peak), journaledboth
+removals andindependentlyverifiedboth exactpaths absent. Noresidue remains.
+TLSthenfailedstrictchainvalidationbecausefixtureCAandserverleafsharedaDN;
+thefixture nowhasdistinctuniqueCA namesandnativeSKI/AKI. Corrected06proof
+isrunning; widerTLS remainsgated. Earlierfailures/costsareallretained.
+
+
+WORK-002 localcheckpoint passes32new cases:15bindingUnit,14actualnative
+RESTgeneration/runtime,1two-leafmTLSprobe and2custodyfaultrows;0failures/skips.
+ThecurrentUnit/IntegrationCorebytes exactlymatchthepassing07nativecandidate.
+All newlycreatedkeyjournalentries matchRemoved; independentchecks ofonlythose
+exactownedpaths find0remainingfiles. Themaxobservednativekeycountiswithin16.
+Source+ordinarynativecost is16080509ms within19,800,000ms with600,000ms
+restorationprotected; allfailuresretained. Existing258RESTregressionsretain
+their02scope. W01's8MiBcharge remains forlaterprovider/source qualification.
+| WORK-002 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1765; failed=252; possibleTokenSavings=591; ledgerDigest=sha256:761fcfcfa02e5c3e728a8bf8d9c468696df231b61511616ff1a812b6349e012a |
+
+# Certificate cleanup correction checkpoint
+
+The optional-provider build and scoped formatting passed. The first Entra native
+selection passed40of41cases; its remaining failure was an assertion counting the
+existing Startup monitor alongside the security monitor. The assertion now
+selects the exact security condition and awaits a current-source rerun.
+
+The first certificate selection passed36of39cases. The actual expired RSA TLS
+negative exposed one temporary newly owned CNG key still present after client,
+server and certificate disposal. Its custody failure correctly closed the scope;
+the later listener case and assembly cleanup then failed because of that closed
+scope. No test has been skipped or weakened. Receipt: providers/06-certificate-native.
+
+Under approved W01 restoration, only the exact container and unique identifier
+from that invocation's restricted custody journal were opened. Its identity and
+user-key status were checked, native deletion succeeded and the exact file is
+absent. Receipt: providers/07-owned-key-restoration/restoration.json. No existing
+key directory or certificate store was enumerated, and no key contents were read.
+The original failed journal remains unchanged; restoration is separate evidence.
+
+WORK-008 owns the bounded native cleanup correction under the existing approved
+rest-binding scope. Delegated redistribution retains all shared totals and every
+existing restoration reserve. Imports stay paused until that correction is ready
+for its focused retained-key and expired-certificate proof. The fixed8MiB native
+backing charge remains counted; the checkpoint physical roots plus that charge
+are5,980,102,882bytes, leaving395,239,198bytes beyond the protected reserve.
+
+# Current local receiving and cleanup proof
+
+WORK-008 passes its expired RSA retained-context regression and the three
+existing custody/reentry/native-mTLS probe cases. Scoped formatting and both
+current affected Release builds pass with0warnings/errors. An independent
+source review found no actionable cleanup defect. The correction opens only the
+recorded newly owned software user-key container after successful certificate
+disposal and actual TLS drain; it verifies the full native identity before
+native deletion and proves exact absence before recording Removed.
+
+The current optional-provider selection passes41Entra and38certificate cases,
+with0failures/skips and successful assembly cleanup. The prior39reported result
+included the failed assembly-cleanup event; the actual certificate methods/data
+rows total38. The real expired TLS negative remains unchanged and now passes.
+No failures or costs have been discarded. Current receipts are under
+`.artifacts/security/CIS-0016/providers/08-current-inbound-proof`.
+
+The current custody audit verifies only recorded owned paths. All are absent;
+the original D journal retains its unmatched Removed event and is linked to the
+separate successful exact restoration07receipt. The maximum observed journal
+live count is11, within the approved16. The8MiB charge remains counted for
+remaining qualification. AC-02 real AKS federation, AC-24 real cert-manager
+issuance/mount/renewal, Linux execution and release qualification remain unverified.
+| WORK-008 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1777; failed=253; possibleTokenSavings=591; ledgerDigest=sha256:df70de7b7a8768abb0c05e3756b02d5741a04ba52ca02dfbf050cc59d98a294e |
+| WORK-003 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1779; failed=253; possibleTokenSavings=591; ledgerDigest=sha256:cce67fef77a9fe5b5578a2f019800942bd069600a7c7480fd6d9d1c67e280207 |
+| WORK-004 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1781; failed=253; possibleTokenSavings=591; ledgerDigest=sha256:672a9038f8e2d660004988a4f98571667d04a5e2a5402c3420f9cf9aecee5c95 |

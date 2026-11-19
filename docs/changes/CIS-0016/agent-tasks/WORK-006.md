@@ -11,7 +11,7 @@ task_type: core.legacy
 task_type_version: 1.0
 work_owner_task_id: null
 instance_key: "outcome:d2fdd9e488d544dd9212383d5322e82a"
-depends_on: ["WORK-004","WORK-005"]
+depends_on: ["WORK-004"]
 assignee: "Codex"
 authority: derived-outcome-authorization
 outcome_authorization_id: "cislib:CIS-0016:outcome:3aafc848f9384e88aef0a33e0fabb780"
@@ -33,7 +33,7 @@ Deliver isolated native development credential setup and reset
 
 ## Targeted validation
 
-- [ ] Run real tool generate/renew/reset into owned scratch; inspect native leaf/CA bounds, distinct identities, Windows ACL or applicable Unix mode, and trust replacement semantics. Validate native runtime activation gates and process-specific trust. Include runnable local guide and affected tests/build/format/review.
+- [ ] Run real tool generate/renew/reset into owned scratch; inspect native leaf/CA bounds, distinct identities, Windows ACL or applicable Unix mode, and trust replacement semantics. Validate native runtime activation gates and process-specific trust. Include runnable local guide and affected tests/build/format/review. Independent utility source may start after the native certificate contracts settle; final runtime activation/adoption proof and completion wait for actual WORK-005 public source APIs and verification.
 
 ## Completion evidence
 

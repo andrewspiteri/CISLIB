@@ -16,8 +16,14 @@ internal static class ResilienceTestSupport
     internal static RestAttemptOutcome Success() => new(200, RestFailureKind.None, Method: "GET");
     internal static async Task SettleAsync(Task? task)
     {
-        if (task is null) { return; }
-        try { await task.WaitAsync(Deadline); }
+        if (task is null)
+        {
+            return;
+        }
+        try
+        {
+            await task.WaitAsync(Deadline);
+        }
         catch (OperationCanceledException) when (task.IsCanceled) { }
     }
 }
@@ -34,11 +40,14 @@ internal sealed class ResilienceClock : TimeProvider, IDisposable
     public override DateTimeOffset GetUtcNow() => manual.GetUtcNow();
     internal int Created => Volatile.Read(ref created);
     internal void Advance(TimeSpan elapsed) => manual.Advance(elapsed);
+    internal void SetUtcNow(DateTimeOffset value) => manual.SetUtcNow(value);
     public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
     {
         ITimer timer = manual.CreateTimer(callback, state, dueTime, period);
         var wait = new Wait(dueTime);
-        Interlocked.Increment(ref created); waits.Enqueue(wait); ready.Release();
+        Interlocked.Increment(ref created);
+        waits.Enqueue(wait);
+        ready.Release();
         return new ObservedTimer(timer, wait);
     }
     internal async Task<Wait> NextAsync()
@@ -56,7 +65,15 @@ internal sealed class ResilienceClock : TimeProvider, IDisposable
     private sealed class ObservedTimer(ITimer inner, Wait wait) : ITimer
     {
         public bool Change(TimeSpan dueTime, TimeSpan period) => inner.Change(dueTime, period);
-        public void Dispose() { inner.Dispose(); wait.Disposed.TrySetResult(); }
-        public async ValueTask DisposeAsync() { await inner.DisposeAsync(); wait.Disposed.TrySetResult(); }
+        public void Dispose()
+        {
+            inner.Dispose();
+            wait.Disposed.TrySetResult();
+        }
+        public async ValueTask DisposeAsync()
+        {
+            await inner.DisposeAsync();
+            wait.Disposed.TrySetResult();
+        }
     }
 }

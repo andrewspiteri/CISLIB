@@ -34,6 +34,11 @@ public sealed class RestRequestContext
         Query = query;
         this.body = body;
         InheritedBaseQuery = inheritedBaseQuery;
+        OriginalMethod = method;
+    }
+    internal string OriginalMethod
+    {
+        get;
     }
     /// <summary>Gets or replaces the effective method before finalization.</summary>
     public string Method

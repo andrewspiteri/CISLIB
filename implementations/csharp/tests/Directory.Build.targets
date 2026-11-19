@@ -13,6 +13,6 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" PrivateAssets="all" />
     <PackageReference Include="MSTest.TestFramework" PrivateAssets="all" />
     <PackageReference Include="MSTest.TestAdapter" PrivateAssets="all" />
-    <Compile Include="$(MSBuildThisFileDirectory)TestAssembly.cs" Link="TestAssembly.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestAssembly.cs" Link="TestAssembly.cs" Condition="'$(CisOwnsTestAssemblySetup)' != 'true'" />
   </ItemGroup>
 </Project>

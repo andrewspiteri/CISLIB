@@ -6,14 +6,26 @@ internal static class RestRequestFinalizer
     internal static RestRequestContext Create(RestClientSnapshot client, RestCallSnapshot call, string method, string url, int iteration)
     {
         var headers = new RestHeaders();
-        foreach (var pair in call.Headers) { headers.Set(pair.Key, pair.Value.ToArray()); }
+        foreach (var pair in call.Headers)
+        {
+            headers.Set(pair.Key, pair.Value.ToArray());
+        }
         headers.MarkBaseline();
         var query = new RestQuery();
         foreach (RestQueryChange change in call.Query)
         {
-            if (change.Kind == RestQueryChangeKind.Set) { query.Set(change.Name, change.Value); }
-            else if (change.Kind == RestQueryChangeKind.Append) { query.Append(change.Name, change.Value); }
-            else { query.Remove(change.Name); }
+            if (change.Kind == RestQueryChangeKind.Set)
+            {
+                query.Set(change.Name, change.Value);
+            }
+            else if (change.Kind == RestQueryChangeKind.Append)
+            {
+                query.Append(change.Name, change.Value);
+            }
+            else
+            {
+                query.Remove(change.Name);
+            }
         }
         return new(method, RestUri.Resolve(client.BaseUrl, url).AbsoluteUri,
             new(client.ClientName, call.OperationName, iteration), headers, query, call.Body,
@@ -28,21 +40,38 @@ internal static class RestRequestFinalizer
     {
         try
         {
-            if (call.ConfigureRequest is not null) { await call.ConfigureRequest(request, cancellationToken).ConfigureAwait(false); }
+            if (call.ConfigureRequest is not null)
+            {
+                await call.ConfigureRequest(request, cancellationToken).ConfigureAwait(false);
+            }
             cancellationToken.ThrowIfCancellationRequested();
-            if (request.Failure is not null) { return request.Failure; }
+            if (request.Failure is not null)
+            {
+                return request.Failure;
+            }
             RestDeclaredFailure? failure = Validate(request, client, call, cancellationToken);
-            if (failure is not null) { return failure; }
+            if (failure is not null)
+            {
+                return failure;
+            }
             RestBody? preparedBody = request.Body;
             await prepareContent(cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
-            if (request.Failure is not null) { return request.Failure; }
+            if (request.Failure is not null)
+            {
+                return request.Failure;
+            }
             if (!ReferenceEquals(preparedBody, request.Body))
-            { return Preparation("Content acquisition cannot replace its request body descriptor."); }
+            {
+                return Preparation("Content acquisition cannot replace its request body descriptor.");
+            }
             // Application content factories may retain the request. Recheck all
             // actual fields after acquisition and before granting credential writes.
             failure = Validate(request, client, call, cancellationToken);
-            if (failure is not null) { return failure; }
+            if (failure is not null)
+            {
+                return failure;
+            }
             RestTraceForwarding.Apply(request, call.ForwardTraceId, capturedTraceParent);
             prepareNativeRepresentation?.Invoke();
             request.FinalizeOrdinary(CredentialHeaders(client), client.CredentialQueryParameters);
@@ -51,18 +80,31 @@ internal static class RestRequestFinalizer
                 var authentication = new RestAuthenticationContext(request, signingBytes,
                     () => RestUri.Resolve(null, request.Url, request.Query.CaptureChanges(default)).AbsoluteUri);
                 System.Runtime.ExceptionServices.ExceptionDispatchInfo? fault = null;
-                try { await call.Authenticate(authentication, cancellationToken).ConfigureAwait(false); }
+                try
+                {
+                    await call.Authenticate(authentication, cancellationToken).ConfigureAwait(false);
+                }
                 catch (Exception error)
-                { fault = System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(RestCallbackFaultException.Capture(error, cancellationToken, captureUnexpectedCancellation, knownCallerToken)); }
-                try { await authentication.CompleteAsync().ConfigureAwait(false); }
+                {
+                    fault = System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(RestCallbackFaultException.Capture(error, cancellationToken, captureUnexpectedCancellation, knownCallerToken));
+                }
+                try
+                {
+                    await authentication.CompleteAsync().ConfigureAwait(false);
+                }
                 catch (Exception error)
                 {
                     if (fault is null || IsCancellation(fault.SourceException, cancellationToken) && !IsCancellation(error, cancellationToken))
-                    { fault = System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(error); }
+                    {
+                        fault = System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(error);
+                    }
                 }
                 fault?.Throw();
                 cancellationToken.ThrowIfCancellationRequested();
-                if (authentication.Failure is not null) { return authentication.Failure; }
+                if (authentication.Failure is not null)
+                {
+                    return authentication.Failure;
+                }
             }
             RestClientSnapshot.ValidateHeaders(request.Headers.Snapshot());
             request.Seal(RestUri.Resolve(null, request.Url, request.Query.CaptureChanges(cancellationToken)).AbsoluteUri);
@@ -74,9 +116,19 @@ internal static class RestRequestFinalizer
 
     private static RestDeclaredFailure? Validate(RestRequestContext request, RestClientSnapshot client, RestCallSnapshot call, CancellationToken token)
     {
-        if (!RestContractRules.Method(request.Method)) { return Preparation("Use a valid native method token."); }
+        if (!RestContractRules.Method(request.Method))
+        {
+            return Preparation("Use a valid native method token.");
+        }
+        if (client.SecurityBinding is not null && (!string.Equals(request.Method, request.OriginalMethod, StringComparison.Ordinal)
+            || string.Equals(request.Method, "TRACE", StringComparison.OrdinalIgnoreCase)))
+        {
+            return Preparation("A security-bound call cannot replace its method or use TRACE.");
+        }
         if (string.Equals(request.Method, "CONNECT", StringComparison.OrdinalIgnoreCase))
-        { return Unsupported("The native profile does not support CONNECT tunneling."); }
+        {
+            return Unsupported("The native profile does not support CONNECT tunneling.");
+        }
         Uri destination;
         bool trace = string.Equals(request.Method, "TRACE", StringComparison.OrdinalIgnoreCase);
         try
@@ -88,29 +140,43 @@ internal static class RestRequestFinalizer
                 destination = RestUri.Resolve(client.BaseUrl, request.Url, removals);
                 destination = RestUri.Resolve(null, destination.AbsoluteUri, changes);
             }
-            else { destination = RestUri.Resolve(client.BaseUrl, request.Url, changes); }
+            else
+            {
+                destination = RestUri.Resolve(client.BaseUrl, request.Url, changes);
+            }
             RestClientSnapshot.ValidateHeaders(request.Headers.Snapshot());
         }
         catch (ArgumentException error) { return Preparation(error.Message); }
         request.Url = destination.AbsoluteUri;
         request.Query.ClearApplied();
-        if (!RestUri.AllowedOrigin(client, destination) || call.Authenticate is not null && client.AllowedOrigins.Count == 0)
-        { return Preparation("The finalized destination is outside the configured credential origins."); }
+        if (!RestUri.AllowedOrigin(client, destination) || call.Authenticate is not null && client.AllowedOrigins.Count == 0
+            || client.SecurityBinding is { } binding && !binding.Allows(destination))
+        {
+            return Preparation("The finalized destination is outside the configured credential origins.");
+        }
         var headers = request.Headers.Snapshot();
         if (headers.ContainsKey("Upgrade") || headers.TryGetValue("Connection", out var connection)
             && connection.SelectMany(value => value.Split(',')).Any(value => string.Equals(value.Trim(), "upgrade", StringComparison.OrdinalIgnoreCase)))
-        { return Unsupported("Protocol upgrades require an unsupported channel capability."); }
+        {
+            return Unsupported("Protocol upgrades require an unsupported channel capability.");
+        }
         if (headers.TryGetValue("Host", out var hosts) && (hosts.Count != 1 || !HostMatches(destination, hosts[0])))
-        { return Preparation("Host must retain the finalized destination origin."); }
+        {
+            return Preparation("Host must retain the finalized destination origin.");
+        }
         if (trace)
         {
             if (request.Body is not null || call.AuthenticationExplicit || RestUri.ContainsQueryField(destination, client.CredentialQueryParameters))
-            { return Preparation("TRACE cannot contain a body or explicit credentials."); }
+            {
+                return Preparation("TRACE cannot contain a body or explicit credentials.");
+            }
             foreach (string name in CredentialHeaders(client))
             {
                 if (headers.TryGetValue(name, out var values) && values.Count != 0
                     && (call.ExplicitHeaderNames.Contains(name, StringComparer.OrdinalIgnoreCase) || request.Headers.ChangedSinceBaseline(name)))
-                { return Preparation("TRACE cannot contain explicit or customized credential fields."); }
+                {
+                    return Preparation("TRACE cannot contain explicit or customized credential fields.");
+                }
                 request.Headers.Remove(name);
             }
         }
