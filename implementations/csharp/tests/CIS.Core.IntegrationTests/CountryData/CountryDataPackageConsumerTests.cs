@@ -111,7 +111,9 @@ public sealed class CountryDataPackageConsumerTests
             JsonArray frameworks = RestPackage.Assets(Path.Combine(output, "CisHealthProbe.runtimeconfig.json"))
                 ["runtimeOptions"]!["frameworks"]!.AsArray();
             foreach (string framework in new[] { "Microsoft.NETCore.App", "Microsoft.AspNetCore.App" })
-            { Assert.AreEqual("10.0.12", frameworks.Single(item => item!["name"]!.GetValue<string>() == framework)!["version"]!.GetValue<string>()); }
+            {
+                Assert.AreEqual("10.0.12", frameworks.Single(item => item!["name"]!.GetValue<string>() == framework)!["version"]!.GetValue<string>());
+            }
         }
 
         async Task Verify(string output, string probeOutput, string lane)
@@ -142,6 +144,9 @@ public sealed class CountryDataPackageConsumerTests
             Assert.AreEqual(0d, report["pipelineActive"]!.GetValue<double>());
             Assert.AreEqual(12d, report["pipelineForwardPhases"]!.GetValue<double>());
             Assert.AreEqual(3d, report["pipelineErrorPhases"]!.GetValue<double>());
+            Assert.AreEqual(8d, report["stateMachineCalls"]!.GetValue<double>());
+            Assert.AreEqual(0d, report["stateMachineActive"]!.GetValue<double>());
+            Assert.AreEqual(7d, report["stateMachineHandlerPhases"]!.GetValue<double>());
             Assert.AreEqual(1d, report["logicalCompletions"]!.GetValue<double>());
             Assert.AreEqual(0d, report["active"]!.GetValue<double>());
             Assert.AreEqual(3d, report["nativeCount"]!.GetValue<double>());
@@ -164,7 +169,10 @@ public sealed class CountryDataPackageConsumerTests
                 ("corePath", "CIS.Core.dll"), ("metricsPath", "CIS.Metrics.OpenTelemetry.dll"),
                 ("resiliencePath", "CIS.RestClient.Resilience.dll"), ("diagnosticSourcePath", "System.Diagnostics.DiagnosticSource.dll"),
                 ("pollyPath", "Polly.Core.dll")
-            }) { RestPackage.SamePath(Path.Combine(output, file), runtime[field]!.GetValue<string>()); }
+            })
+            {
+                RestPackage.SamePath(Path.Combine(output, file), runtime[field]!.GetValue<string>());
+            }
             TestContext.WriteLine("country-data/" + lane + ": " + result.StandardOutput);
         }
     }
@@ -222,12 +230,13 @@ public sealed class CountryDataPackageConsumerTests
             builder.RestClients.Add(countries);
             builder.Services.AddCisRestClientResilience(RestRetryPolicy.TransientHttp);
             builder.Services.AddCisWorkflows();
+            builder.Services.AddCisStateMachines();
             builder.Services.AddSingleton<CountryCatalog>();
             builder.Services.AddSingleton<IStartable>(root => root.GetRequiredService<CountryCatalog>());
             builder.Services.AddSingleton<IStartable>(root => hold.Bind(root.GetRequiredService<HealthcheckService>()));
         }, web => web.MapGet("/country/{identifier}",
-            (string identifier, IPipelineFactory pipelines, HttpContext context)
-                => CountryEndpoints.Get(identifier, pipelines, context)));
+            (string identifier, IStateMachineFactory machines, HttpContext context)
+                => CountryEndpoints.Get(identifier, machines, context)));
         Task startup = application.StartAsync();
         try
         {
@@ -314,6 +323,9 @@ public sealed class CountryDataPackageConsumerTests
                 pipelineActive = Sum("cis_pipeline_active_executions"),
                 pipelineForwardPhases = Sum("cis_pipeline_step_duration_seconds_count", "execute"),
                 pipelineErrorPhases = Sum("cis_pipeline_step_duration_seconds_count", "error"),
+                stateMachineCalls = Sum("cis_statemachine_trigger_duration_seconds_count"),
+                stateMachineActive = Sum("cis_statemachine_active_attempts"),
+                stateMachineHandlerPhases = Sum("cis_statemachine_handler_duration_seconds_count"),
                 allSamplesHaveIdentity = allIdentity,
                 runtime = new
                 {

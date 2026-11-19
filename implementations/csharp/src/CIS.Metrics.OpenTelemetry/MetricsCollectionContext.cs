@@ -28,12 +28,14 @@ internal sealed class MetricsCollectionContext : IAsyncDisposable
     private int active, stopping;
 
     internal MetricsCollectionContext(IServiceProvider root, MetricsSettings settings, MetricsRegistrationGuard guard,
-        RestClientComposition? restComposition = null, WorkflowsComposition? workflowsComposition = null)
+        RestClientComposition? restComposition = null, WorkflowsComposition? workflowsComposition = null,
+        StateMachineComposition? stateMachineComposition = null)
     {
         this.root = root;
         this.guard = guard;
         this.restComposition = restComposition;
-        settings = settings.ForComposition(restComposition is not null, workflowsComposition is not null);
+        settings = settings.ForComposition(restComposition is not null, workflowsComposition is not null,
+            stateMachineComposition is not null);
         Settings = settings;
         IMeterFactory factory = root.GetRequiredService<IMeterFactory>();
         CisMeter = factory.Create("CIS.Metrics", "1.0.0");
@@ -50,13 +52,31 @@ internal sealed class MetricsCollectionContext : IAsyncDisposable
         HttpPolicy = new(settings);
     }
 
-    internal MetricsSettings Settings { get; }
-    internal MetricsRuntime Runtime { get; }
-    internal MetricsHttpPolicy HttpPolicy { get; }
+    internal MetricsSettings Settings
+    {
+        get;
+    }
+    internal MetricsRuntime Runtime
+    {
+        get;
+    }
+    internal MetricsHttpPolicy HttpPolicy
+    {
+        get;
+    }
     internal IMetrics Metrics => Settings.Enabled ? Runtime : DisabledMetrics.Instance;
-    internal Meter CisMeter { get; }
-    internal Meter HostingMeter { get; }
-    internal Meter? OutgoingMeter { get; }
+    internal Meter CisMeter
+    {
+        get;
+    }
+    internal Meter HostingMeter
+    {
+        get;
+    }
+    internal Meter? OutgoingMeter
+    {
+        get;
+    }
     internal bool IsEnabled => Settings.Enabled;
     internal bool IsActive => Volatile.Read(ref active) != 0 && !IsStopping;
     internal bool IsStopping => Volatile.Read(ref stopping) != 0 || Runtime.IsStopping;
@@ -68,8 +88,14 @@ internal sealed class MetricsCollectionContext : IAsyncDisposable
     internal ResourceBuilder Resource()
     {
         var values = new Dictionary<string, object>(StringComparer.Ordinal)
-        { ["application"] = Settings.Application, ["environment"] = Settings.Environment };
-        foreach ((string key, string value) in Settings.ResourceAttributes) { values.Add(key, value); }
+        {
+            ["application"] = Settings.Application,
+            ["environment"] = Settings.Environment
+        };
+        foreach ((string key, string value) in Settings.ResourceAttributes)
+        {
+            values.Add(key, value);
+        }
         return ResourceBuilder.CreateEmpty().AddAttributes(values);
     }
 
@@ -84,12 +110,20 @@ internal sealed class MetricsCollectionContext : IAsyncDisposable
             || !attributes.TryGetValue("application", out object? application) || !Equals(application, Settings.Application)
             || !attributes.TryGetValue("environment", out object? environment) || !Equals(environment, Settings.Environment)
             || Settings.ResourceAttributes.Any(pair => !attributes.TryGetValue(pair.Key, out object? value) || !Equals(value, pair.Value)))
-        { throw new InvalidOperationException("The active Metrics provider must retain the exact approved resource snapshot and authoritative application/environment identity."); }
+        {
+            throw new InvalidOperationException("The active Metrics provider must retain the exact approved resource snapshot and authoritative application/environment identity.");
+        }
         logger = root.GetService<ILogger<MetricsCollectionContext>>();
-        if (Settings.CollectCoreModules) { AttachCoreSources(); }
+        if (Settings.CollectCoreModules)
+        {
+            AttachCoreSources();
+        }
         lock (gate)
         {
-            if (IsStopping) { throw new OperationCanceledException("Metrics activation lost to host stopping."); }
+            if (IsStopping)
+            {
+                throw new OperationCanceledException("Metrics activation lost to host stopping.");
+            }
             Volatile.Write(ref active, 1);
         }
     }
@@ -102,18 +136,26 @@ internal sealed class MetricsCollectionContext : IAsyncDisposable
         // Existing providers borrow their runtime; enabling Metrics does not change that ownership
         // or require an application to register the same precreated runtime under another key.
         foreach (CoreLoggerProvider provider in root.GetServices<ILoggerProvider>().OfType<CoreLoggerProvider>())
-        { Attach(provider.MetricsSource); }
+        {
+            Attach(provider.MetricsSource);
+        }
         root.GetService<ConfigurationRuntime>()?.AttachMetrics(Runtime);
         root.GetService<ITypeManager>()?.PreparationReport.AttachMetrics(Runtime);
         if (Settings.CollectWorkflows)
         {
             root.GetRequiredService<PipelineInstrumentation>().AttachMetrics(Runtime);
         }
+        if (Settings.CollectStateMachines)
+        {
+            root.GetRequiredService<StateMachineInstrumentation>().AttachMetrics(Runtime);
+        }
         if (restComposition is not null)
         {
             IRestClientRuntime owner = root.GetRequiredService<IRestClientRuntime>();
             if (!ReferenceEquals(owner.RegistrationIdentity, restComposition.RegistrationIdentity))
-            { throw new InvalidOperationException("The configured REST composition must belong to its exact registered runtime."); }
+            {
+                throw new InvalidOperationException("The configured REST composition must belong to its exact registered runtime.");
+            }
             owner.AttachMetrics(Runtime);
         }
 

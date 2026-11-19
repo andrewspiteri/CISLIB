@@ -22,6 +22,7 @@ internal static class Program
             builder.RestClients.Add(countries);
             builder.Services.AddCisRestClientResilience(RestRetryPolicy.TransientHttp);
             builder.Services.AddCisWorkflows();
+            builder.Services.AddCisStateMachines();
             builder.Services.AddSingleton<CountryCatalog>();
             builder.Services.AddSingleton<IStartable>(provider => provider.GetRequiredService<CountryCatalog>());
         }, web => web.MapGet("/country/{identifier}", CountryEndpoints.Get));

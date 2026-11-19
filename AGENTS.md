@@ -45,14 +45,18 @@ actual encoder/body cleanup. Hosting closes REST before waiting for Heartbeat or
 Configuration; Startup's coordinator stays independent. Use ordinary keyed DI and
 the existing host, never a second provider, retry owner or lifecycle framework.
 
-## Workflows and pipeline execution
+## Workflows: pipelines and state machines
 
 For `CIS.Workflows` implementation, application use, review or diagnostics, read
 the [Workflows skill](.github/skills/cislib-workflows/SKILL.md) and its links to the
-current contract, [consumer guide](docs/modules/workflows/pipeline.md) and
-compiling CountryData lookup. Preserve sequential execution, failed-step-first
-reverse `Error`, single-use reports, scope ownership and actual cleanup. Reuse
-automatic Logging/Metrics and keep the example and skill aligned with the API.
+current contracts, [Pipeline guide](docs/modules/workflows/pipeline.md),
+[State Machine guide](docs/modules/workflows/statemachine.md) and compiling
+CountryData lookup. Pipeline has one execution with failed-step-first reverse
+`Error`; State Machine has repeated explicit triggers, exclusive attempts and
+commit after successful work/owned cleanup. Preserve their distinct outward
+completion contracts, reports, per-call scope ownership and actual settlement.
+Reuse automatic Logging/Metrics and keep the example and shared skill aligned
+with the implemented APIs.
 
 <!-- cis:repository-guidance:start -->
 ## CIS integration

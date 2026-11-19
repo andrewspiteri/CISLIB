@@ -21,7 +21,7 @@ internal sealed class PipelineHostedService(PipelineLifetime owner, PipelineHost
     {
         if (options.Value.ServicesStartConcurrently || options.Value.ServicesStopConcurrently || !order.IsValid())
         {
-            throw new InvalidOperationException("Install AddCisWorkflows after ordinary business hosted services and before CIS Heartbeat/Startup bridges; only the exact native web host may follow the cooperating bridges. Disable concurrent hosted starting/stopping.");
+            throw new InvalidOperationException("Install AddCisWorkflows/AddCisStateMachines after ordinary business hosted services and before CIS Heartbeat/Startup bridges; only the exact native web host may follow the cooperating bridges. Disable concurrent hosted starting/stopping.");
         }
 
         stopping = lifetime.ApplicationStopping.UnsafeRegister(static state => ((PipelineLifetime)state!).BeginStopping(), owner);

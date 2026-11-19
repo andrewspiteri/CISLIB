@@ -39,6 +39,8 @@ public sealed class CountryDataPublicConsumerTests
         Assert.AreEqual(catalogHash, CandidatePackageFixture.Hash(catalogReference));
         File.WriteAllText(Path.Combine(app, "Program.cs"), ConsumerProgram);
         File.WriteAllText(Path.Combine(app, "WorkflowSkillStory.cs"), WorkflowSkillProgram);
+        File.WriteAllText(Path.Combine(app, "StateMachineMockStory.cs"), StateMachineMockProgram);
+        File.WriteAllText(Path.Combine(app, "StateMachineSkillStory.cs"), StateMachineSkillProgram);
         new XDocument(new XElement("Project", new XAttribute("Sdk", "Microsoft.NET.Sdk"),
             new XElement("PropertyGroup", new XElement("OutputType", "Exe"), new XElement("AssemblyName", assemblyName)),
             new XElement("ItemGroup",
@@ -72,6 +74,8 @@ public sealed class CountryDataPublicConsumerTests
         Assert.IsTrue(report["publicPipelineUnwound"]!.GetValue<bool>());
         Assert.IsTrue(report["callerScopeStayedAlive"]!.GetValue<bool>());
         Assert.IsTrue(report["pipelineReportSurvivedCleanup"]!.GetValue<bool>());
+        Assert.AreEqual(3, report["publicStateMachineOutcomes"]!.GetValue<int>());
+        Assert.IsTrue(report["publicStateMachineSkillUsed"]!.GetValue<bool>());
         Assert.AreEqual(4, report["calls"]!.GetValue<int>());
         Assert.AreEqual(1, report["refreshFailures"]!.GetValue<int>());
         RestPackage.SamePath(Path.Combine(output, "CIS.CountryData.dll"), report["catalogPath"]!.GetValue<string>());
@@ -136,12 +140,16 @@ public sealed class CountryDataPublicConsumerTests
             await closing;
             Check(heartbeat.Registrations.Count == 0 && health.Monitors.Single().IsWithdrawn);
             await WorkflowSkillStory.RunAsync();
+            int publicStateMachineOutcomes = await StateMachineMockStory.RunAsync();
+            await StateMachineSkillStory.RunAsync();
             Console.WriteLine(JsonSerializer.Serialize(new
             {
                 aliasesEquivalent, lastGoodRetained, closeJoinedActualWork,
                 publicPipelineUnwound = true,
                 callerScopeStayedAlive = true,
                 pipelineReportSurvivedCleanup = true,
+                publicStateMachineOutcomes,
+                publicStateMachineSkillUsed = true,
                 calls = rest.TotalCalls,
                 refreshFailures = health.Monitors.Single().Count(HealthReportKind.RefreshFailure),
                 catalogPath = typeof(CountryCatalog).Assembly.Location,
@@ -175,6 +183,98 @@ public sealed class CountryDataPublicConsumerTests
             public CancellationToken ApplicationStopping => CancellationToken.None;
             public CancellationToken ApplicationStopped => CancellationToken.None;
             public void StopApplication() { }
+        }
+        """";
+
+    private const string StateMachineMockProgram = """"
+        using CIS.Workflows;
+        using CIS.Workflows.Hosting;
+
+        public static class StateMachineMockStory
+        {
+            public enum State { Pending, Resolved }
+            public enum Event { Resolve }
+
+            public static async Task<int> RunAsync()
+            {
+                int verified = 0;
+                foreach (StateTransitionOutcome outcome in new[]
+                {
+                    StateTransitionOutcome.Succeeded,
+                    StateTransitionOutcome.Failed,
+                    StateTransitionOutcome.Cancelled
+                })
+                {
+                    bool success = outcome == StateTransitionOutcome.Succeeded;
+                    var failure = success ? null : new StateTransitionFailure("mock.result", "Controlled public result.",
+                        StateTransitionPhase.Execute, outcome == StateTransitionOutcome.Cancelled
+                            ? StateTransitionFailureKind.Cancellation : StateTransitionFailureKind.ReportedFailure);
+                    PipelineStepExecutionStatus execution = success ? PipelineStepExecutionStatus.Succeeded
+                        : outcome == StateTransitionOutcome.Cancelled ? PipelineStepExecutionStatus.Cancelled
+                        : PipelineStepExecutionStatus.Failed;
+                    var handler = new StateTransitionHandlerReport("mock", execution,
+                        success ? PipelineStepErrorStatus.NotCalled : PipelineStepErrorStatus.Succeeded,
+                        executionError: failure, executionDuration: TimeSpan.Zero,
+                        errorDuration: success ? null : TimeSpan.Zero);
+                    var expected = StateTransitionResult<State, Event>.Create("PublicMock", Guid.NewGuid(), Event.Resolve,
+                        State.Pending, State.Resolved, success ? State.Resolved : State.Pending, outcome,
+                        error: failure, duration: TimeSpan.Zero, handlerReport: handler);
+                    var provider = new NeverResolveProvider();
+                    var substitute = new Substitute(expected, scopeArgument =>
+                    {
+                        if (!ReferenceEquals(scopeArgument, provider))
+                        {
+                            throw new InvalidOperationException("The per-call scope argument was replaced.");
+                        }
+                    });
+                    IStateMachine<State, Event> machine = substitute;
+                    Task<StateTransitionResult<State, Event>> call = machine.TriggerInScope(Event.Resolve, provider);
+                    StateTransitionResult<State, Event> actual = await call;
+                    if (!call.IsCompletedSuccessfully || !ReferenceEquals(expected, actual)
+                        || actual.Success != success || actual.Outcome != outcome
+                        || substitute.ScopeCalls != 1 || substitute.PortableCalls != 0)
+                    {
+                        throw new InvalidOperationException("Public result construction or scope capability dispatch failed.");
+                    }
+                    verified++;
+                }
+                return verified;
+            }
+
+            private sealed class NeverResolveProvider : IServiceProvider
+            {
+                public object? GetService(Type serviceType)
+                {
+                    throw new InvalidOperationException("Consumer scope dispatch must not resolve a Core implementation.");
+                }
+            }
+
+            private sealed class Substitute(StateTransitionResult<State, Event> result, Action<IServiceProvider> validate)
+                : IStateMachine<State, Event>, IStateMachineScopeExecution<State, Event>
+            {
+                private Action<IServiceProvider>? validateScope = validate;
+                internal int ScopeCalls { get; private set; }
+                internal int PortableCalls { get; private set; }
+                public State CurrentState => result.CurrentState;
+                public bool IsExecuting => false;
+                public IReadOnlyCollection<Event> PermittedTriggers => [Event.Resolve];
+                public StateTransitionResult<State, Event>? LastTransition => result;
+                public bool CanTrigger(Event trigger) => trigger == Event.Resolve;
+                public Task<StateTransitionResult<State, Event>> Trigger(Event trigger, CancellationToken cancellationToken = default)
+                {
+                    PortableCalls++;
+                    return Task.FromResult(result);
+                }
+                public Task<StateTransitionResult<State, Event>> TriggerInScope(Event trigger, IServiceProvider scopedProvider,
+                    CancellationToken cancellationToken = default)
+                {
+                    ScopeCalls++;
+                    Action<IServiceProvider>? validation = validateScope;
+                    validateScope = null;
+                    validation?.Invoke(scopedProvider);
+                    return Task.FromResult(result);
+                }
+            }
         }
         """";
 
@@ -501,4 +601,332 @@ public sealed class CountryDataPublicConsumerTests
             }
         }
     """";
+    private const string StateMachineSkillProgram = """"
+        using System;
+        using System.Threading;
+        using System.Threading.Tasks;
+        using CIS.Workflows;
+        using CIS.Workflows.Hosting;
+        using Microsoft.Extensions.DependencyInjection;
+        using Microsoft.Extensions.Hosting;
+        using Microsoft.Extensions.Logging;
+
+        // Test-owned public-package story; timing controls never enter application code.
+        public static class StateMachineSkillStory
+        {
+            private static readonly TimeSpan PromptBound = TimeSpan.FromSeconds(5);
+
+            public static async Task RunAsync()
+            {
+                IHost host = Host.CreateDefaultBuilder(Array.Empty<string>())
+                    .UseDefaultServiceProvider(options =>
+                    {
+                        options.ValidateScopes = true;
+                        options.ValidateOnBuild = true;
+                    })
+                    .ConfigureLogging(logging => logging.ClearProviders())
+                    .ConfigureServices(services =>
+                    {
+                        services.AddScoped<ScopedDependency>();
+                        services.AddCisStateMachines();
+                        services.AddCisWorkflows();
+                    }).Build();
+                try
+                {
+                    await host.StartAsync();
+                    await RunInScopeAsync(host.Services);
+                }
+                finally
+                {
+                    try
+                    {
+                        await host.StopAsync(CancellationToken.None);
+                    }
+                    finally
+                    {
+                        if (host is IAsyncDisposable asynchronous)
+                        {
+                            await asynchronous.DisposeAsync();
+                        }
+                        else
+                        {
+                            host.Dispose();
+                        }
+                    }
+                }
+            }
+
+            private static async Task RunInScopeAsync(IServiceProvider services)
+            {
+                var scope = services.CreateAsyncScope();
+                ScopedDependency dependency;
+                try
+                {
+                    dependency = scope.ServiceProvider.GetRequiredService<ScopedDependency>();
+                    var factory = services.GetRequiredService<IStateMachineFactory>();
+                    var successful = new FlowContext(dependency.Id);
+                    var machine = Build(factory, successful);
+                    var submitted = await SubmitAsync(machine, scope.ServiceProvider, successful);
+                    Require(submitted.Success && submitted.CurrentState == State.Submitted, "Submit must commit Submitted.");
+                    var approved = await machine.Trigger(Trigger.Approve);
+                    Require(approved.Success && approved.CurrentState == State.Approved && approved.HandlerReport is null,
+                        "Direct Approve must commit Approved without a handler.");
+                    Require(submitted.CurrentState == State.Submitted, "An earlier result must remain immutable.");
+
+                    var rejectedMachine = Build(factory, new FlowContext(dependency.Id));
+                    var rejected = await rejectedMachine.Trigger(Trigger.Approve);
+                    Require(!rejected.Success && rejected.Outcome == StateTransitionOutcome.Rejected
+                        && rejected.CurrentState == State.Draft && rejected.TargetState is null
+                        && ReferenceEquals(rejectedMachine.LastTransition, rejected), "Approve from Draft must be rejected.");
+
+                    await CheckHeldFailureAndRetryAsync(factory, scope.ServiceProvider, dependency);
+                    Require(!dependency.Disposed, "Borrowed scope must remain caller-owned after all triggers.");
+                }
+                finally
+                {
+                    await scope.DisposeAsync();
+                }
+                Require(dependency.Disposed, "Caller disposal must dispose its scoped dependency.");
+            }
+
+            private static async Task CheckHeldFailureAndRetryAsync(IStateMachineFactory factory,
+                IServiceProvider scopedServices, ScopedDependency dependency)
+            {
+                var hold = new ChildHold();
+                var context = new FlowContext(dependency.Id) { Fail = true, Hold = hold };
+                var machine = Build(factory, context);
+                Task<StateTransitionResult<State, Trigger>> accepted = SubmitAsync(machine, scopedServices, context);
+                Task<StateTransitionResult<State, Trigger>>? overlapping = null;
+                try
+                {
+                    await hold.Entered.Task.WaitAsync(PromptBound);
+                    Require(!accepted.IsCompleted && machine.IsExecuting && machine.CurrentState == State.Draft,
+                        "Held child must keep source state visible and the accepted task incomplete.");
+                    overlapping = machine.Trigger(Trigger.Submit);
+                    var busy = await overlapping.WaitAsync(PromptBound);
+                    Require(busy.Outcome == StateTransitionOutcome.Busy && busy.TargetState is null
+                        && busy.HandlerReport is null && machine.LastTransition is null,
+                        "Overlap must return Busy promptly without replacing LastTransition.");
+                    Require(context.Reentrant?.Outcome == StateTransitionOutcome.Busy && context.ChildStarts == 1,
+                        "Handler reentry must return Busy promptly without starting another child.");
+                }
+                finally
+                {
+                    hold.Release.TrySetResult(true);
+                    // Join actual work, including a failed prompt assertion, before the caller scope can close.
+                    try
+                    {
+                        await accepted;
+                    }
+                    finally
+                    {
+                        if (overlapping is not null)
+                        {
+                            await overlapping;
+                        }
+                    }
+                }
+                var failed = await accepted;
+                Require(accepted.IsCompletedSuccessfully && !failed.Success && failed.Outcome == StateTransitionOutcome.Failed
+                    && failed.CurrentState == State.Draft && failed.ErrorCode == "story.submit_declined"
+                    && failed.Error?.Kind == StateTransitionFailureKind.ReportedFailure
+                    && failed.HandlerReport?.ErrorStatus == PipelineStepErrorStatus.Succeeded
+                    && failed.ErrorHandlingFailures.Count == 0 && failed.LifecycleFailures.Count == 0,
+                    "Unsuccessful child must become a normal Failed trigger result and retain Draft.");
+                Require(context.LastChild?.Status == PipelineStatus.Failed
+                    && context.LastChild.Step.ErrorStatus == PipelineStepErrorStatus.Succeeded
+                    && context.ChildErrors == 1 && context.OuterErrors == 1, "Child must unwind once; outer Error owns only outer work.");
+                Guid childId = context.LastChild!.Id;
+                Guid handlerId = context.HandlerId;
+                Guid stepId = context.StepId;
+                context.Fail = false;
+                context.Hold = null;
+
+                var retried = await SubmitAsync(machine, scopedServices, context);
+                Require(retried.Success && retried.CurrentState == State.Submitted
+                    && context.LastChild?.Status == PipelineStatus.Succeeded && context.LastChild.Id != childId
+                    && context.HandlerId != handlerId && context.StepId != stepId,
+                    "A successive Submit must activate a fresh handler, real child and step.");
+                var approved = await machine.Trigger(Trigger.Approve);
+                Require(approved.Success && machine.CurrentState == State.Approved && context.ChildStarts == 2
+                    && context.StepDisposals == 2 && context.HandlerDisposals == 2
+                    && context.ChildErrors == 1 && context.OuterErrors == 1,
+                    "Busy calls must never queue; later success must neither reuse nor recompensate child work.");
+                Require(failed.CurrentState == State.Draft && failed.Outcome == StateTransitionOutcome.Failed,
+                    "Later success must not mutate the failed result.");
+            }
+
+            private static async Task<StateTransitionResult<State, Trigger>> SubmitAsync(
+                IStateMachine<State, Trigger> machine, IServiceProvider scopedServices, FlowContext context)
+            {
+                try
+                {
+                    return await machine.TriggerInScope(Trigger.Submit, scopedServices);
+                }
+                finally
+                {
+                    if (context.ReentrantCall is { } reentrant)
+                    {
+                        await reentrant;
+                    }
+                }
+            }
+
+            private static IStateMachine<State, Trigger> Build(IStateMachineFactory factory, FlowContext context)
+            {
+                var builder = factory.CreateBuilder<State, Trigger, FlowContext>("SkillApproval", context,
+                    new StateMachineOptions { LogCalls = false });
+                builder.State(State.Draft).On<SubmitHandler>(Trigger.Submit, State.Submitted, "submit");
+                builder.State(State.Submitted).On(Trigger.Approve, State.Approved);
+                context.Machine = builder.Build(State.Draft);
+                return context.Machine;
+            }
+
+            private static void Require(bool condition, string message)
+            {
+                if (!condition)
+                {
+                    throw new InvalidOperationException(message);
+                }
+            }
+
+            public enum State
+            {
+                Draft,
+                Submitted,
+                Approved
+            }
+            public enum Trigger
+            {
+                Submit,
+                Approve
+            }
+
+            public sealed class ScopedDependency : IDisposable
+            {
+                public Guid Id { get; } = Guid.NewGuid();
+                public bool Disposed { get; private set; }
+                public void Dispose()
+                {
+                    Require(!Disposed, "Scoped dependency was disposed twice.");
+                    Disposed = true;
+                }
+            }
+
+            public sealed class ChildHold
+            {
+                public TaskCompletionSource<bool> Entered { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+                public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            }
+
+            public sealed class FlowContext(Guid expectedDependency)
+            {
+                public Guid ExpectedDependency { get; } = expectedDependency;
+                public bool Fail { get; set; }
+                public ChildHold? Hold { get; set; }
+                public IStateMachine<State, Trigger>? Machine { get; set; }
+                public Task<StateTransitionResult<State, Trigger>>? ReentrantCall { get; set; }
+                public StateTransitionResult<State, Trigger>? Reentrant { get; set; }
+                public ChildReport? LastChild { get; set; }
+                public Guid HandlerId { get; set; }
+                public Guid StepId { get; set; }
+                public int ChildStarts { get; set; }
+                public int ChildErrors { get; set; }
+                public int OuterErrors { get; set; }
+                public int StepDisposals { get; set; }
+                public int HandlerDisposals { get; set; }
+            }
+
+            public sealed record ChildReport(Guid Id, PipelineStatus Status, PipelineStepReport Step);
+            public sealed record ChildContext(FlowContext Owner);
+
+            public sealed class SubmitHandler(IPipelineFactory pipelines, IServiceProvider scopedServices, ScopedDependency dependency)
+                : IStateTransitionHandler<State, Trigger, FlowContext>, IDisposable
+            {
+                private FlowContext? entered;
+                private readonly Guid id = Guid.NewGuid();
+
+                public async Task<TransitionActionResult> Execute(FlowContext context, TransitionInfo<State, Trigger> transition,
+                    CancellationToken cancellationToken)
+                {
+                    Require(entered is null && !dependency.Disposed && dependency.Id == context.ExpectedDependency,
+                        "Fresh handler must use the explicitly borrowed scoped dependency.");
+                    entered = context;
+                    context.HandlerId = id;
+                    context.ReentrantCall = context.Machine!.Trigger(Trigger.Submit);
+                    context.Reentrant = await context.ReentrantCall.WaitAsync(PromptBound);
+                    var child = pipelines.CreateBuilderInScope("SkillSubmitChild", new ChildContext(context), scopedServices,
+                        new PipelineOptions { LogCalls = false }).Add<HeldChildStep>("held_submit").Build();
+                    try
+                    {
+                        await child.Execute(cancellationToken);
+                    }
+                    finally
+                    {
+                        context.LastChild = new ChildReport(child.ExecutionId, child.Status, child.Steps[0]);
+                    }
+                    return child.Success ? TransitionActionResult.Succeeded()
+                        : TransitionActionResult.Failed(child.Error!.Code, child.Error.Message);
+                }
+
+                public Task Error(FlowContext context, TransitionInfo<State, Trigger> transition,
+                    StateTransitionFailure failure, CancellationToken cancellationToken)
+                {
+                    Require(ReferenceEquals(entered, context) && !dependency.Disposed
+                        && context.StepDisposals == context.ChildStarts, "Child must already be settled before outer Error.");
+                    // No external outer effects exist here; never call the child's Error or disposed steps again.
+                    context.OuterErrors++;
+                    return Task.CompletedTask;
+                }
+
+                public void Dispose()
+                {
+                    Require(!dependency.Disposed, "Dependency must outlive handler cleanup.");
+                    if (entered is not null)
+                    {
+                        entered.HandlerDisposals++;
+                    }
+                }
+            }
+
+            public sealed class HeldChildStep(ScopedDependency dependency) : IPipelineStep<ChildContext>, IDisposable
+            {
+                private FlowContext? entered;
+                private readonly Guid id = Guid.NewGuid();
+
+                public async Task<PipelineStepResult> Execute(ChildContext context, CancellationToken cancellationToken)
+                {
+                    Require(entered is null && !dependency.Disposed && dependency.Id == context.Owner.ExpectedDependency,
+                        "Fresh child step must share the handler's borrowed scoped dependency.");
+                    entered = context.Owner;
+                    entered.StepId = id;
+                    entered.ChildStarts++;
+                    if (entered.Hold is { } hold)
+                    {
+                        hold.Entered.TrySetResult(true);
+                        await hold.Release.Task.WaitAsync(cancellationToken);
+                    }
+                    return entered.Fail ? PipelineStepResult.Failed("story.submit_declined", "Submission was declined.")
+                        : PipelineStepResult.Succeeded();
+                }
+
+                public Task Error(ChildContext context, PipelineFailure failure, CancellationToken cancellationToken)
+                {
+                    Require(ReferenceEquals(entered, context.Owner) && !dependency.Disposed, "Child Error must use its live step.");
+                    context.Owner.ChildErrors++;
+                    return Task.CompletedTask;
+                }
+
+                public void Dispose()
+                {
+                    Require(!dependency.Disposed, "Dependency must outlive child cleanup.");
+                    if (entered is not null)
+                    {
+                        entered.StepDisposals++;
+                    }
+                }
+            }
+        }
+        """";
+
 }

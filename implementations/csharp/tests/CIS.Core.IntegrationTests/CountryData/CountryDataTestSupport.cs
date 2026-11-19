@@ -28,9 +28,18 @@ internal sealed class CountryDataTestHost : IAsyncDisposable
 {
     internal static readonly TimeSpan Deadline = TimeSpan.FromSeconds(15);
     private readonly TemporaryDirectory directory = new();
-    internal ManualTimeProvider Clock { get; }
-    internal HeartbeatRuntime Heartbeat { get; }
-    internal CISApplication App { get; }
+    internal ManualTimeProvider Clock
+    {
+        get;
+    }
+    internal HeartbeatRuntime Heartbeat
+    {
+        get;
+    }
+    internal CISApplication App
+    {
+        get;
+    }
     internal List<Action> Release { get; } = [];
     internal CountryCatalog Catalog => App.Services.GetRequiredService<CountryCatalog>();
     internal HealthcheckService Health => App.Services.GetRequiredService<HealthcheckService>();
@@ -45,13 +54,19 @@ internal sealed class CountryDataTestHost : IAsyncDisposable
         Assembly[] selected = [host, typeof(TypeManager).Assembly, typeof(MetricsApplicationIntegration).Assembly,
             typeof(RestClientResilienceServiceCollectionExtensions).Assembly];
         foreach (Assembly assembly in selected)
-        { File.Copy(assembly.Location, Path.Combine(directory.Path, Path.GetFileName(assembly.Location))); }
+        {
+            File.Copy(assembly.Location, Path.Combine(directory.Path, Path.GetFileName(assembly.Location)));
+        }
         string manifest = Path.Combine(directory.Path, "country.types.json");
         File.WriteAllText(manifest, JsonSerializer.Serialize(new
         {
-            schemaVersion = 1, hostAssembly = host.FullName,
+            schemaVersion = 1,
+            hostAssembly = host.FullName,
             assemblies = selected.Select(assembly => new
-            { assemblyName = assembly.FullName, relativePath = Path.GetFileName(assembly.Location) })
+            {
+                assemblyName = assembly.FullName,
+                relativePath = Path.GetFileName(assembly.Location)
+            })
         }));
         App = CISApplication.CreateWeb([], builder =>
         {
@@ -66,27 +81,40 @@ internal sealed class CountryDataTestHost : IAsyncDisposable
                 Factories = new Dictionary<Type, Func<IConfigurationObject>>
                 {
                     [typeof(CountrySettings)] = () => new CountrySettings
-                    { SourceUrl = source, RefreshInterval = delay, RequestTimeout = timeout ?? TimeSpan.FromSeconds(30), RetryPolicyName = null }
+                    {
+                        SourceUrl = source,
+                        RefreshInterval = delay,
+                        RequestTimeout = timeout ?? TimeSpan.FromSeconds(30),
+                        RetryPolicyName = null
+                    }
                 }
             };
             var client = new RestClientOptions("countries")
-            { ResponseMapper = new CountryProviderMapper(), RetryPolicy = RestRetrySelection.Named(RestRetryPolicy.TransientHttp.Name) };
+            {
+                ResponseMapper = new CountryProviderMapper(),
+                RetryPolicy = RestRetrySelection.Named(RestRetryPolicy.TransientHttp.Name)
+            };
             client.Operations.Add("refresh");
             configureClient?.Invoke(client);
             builder.RestClients.Add(client);
             builder.Services.AddCisRestClientResilience(RestRetryPolicy.TransientHttp);
             builder.Services.AddCisWorkflows();
+            builder.Services.AddCisStateMachines();
             builder.ConfigureCisMetrics(options => { options.Enabled = metrics; options.ScrapeCacheDuration = TimeSpan.Zero; });
             builder.Services.AddSingleton<CountryCatalog>();
             builder.Services.AddSingleton<IStartable>(root => root.GetRequiredService<CountryCatalog>());
         }, web => web.MapGet("/country/{identifier}",
-            (string identifier, IPipelineFactory pipelines, Microsoft.AspNetCore.Http.HttpContext context)
-                => CountryEndpoints.Get(identifier, pipelines, context)));
+            (string identifier, IStateMachineFactory machines, Microsoft.AspNetCore.Http.HttpContext context)
+                => CountryEndpoints.Get(identifier, machines, context)));
     }
 
     internal HttpClient Client()
-        => new() { BaseAddress = new Uri(App.Services.GetRequiredService<IServer>()
-            .Features.Get<IServerAddressesFeature>()!.Addresses.Single()), Timeout = Deadline };
+        => new()
+        {
+            BaseAddress = new Uri(App.Services.GetRequiredService<IServer>()
+            .Features.Get<IServerAddressesFeature>()!.Addresses.Single()),
+            Timeout = Deadline
+        };
 
     internal static TaskCompletionSource Signal() => new(TaskCreationOptions.RunContinuationsAsynchronously);
     internal static async Task ObserveAsync(Func<bool> condition, string explanation)
@@ -119,7 +147,10 @@ internal sealed class CountryDataTestHost : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
-        foreach (Action release in Release) { release(); }
+        foreach (Action release in Release)
+        {
+            release();
+        }
         // A failed/expired barrier must not dispose dependencies while actual work remains.
         await App.StopAsync().WaitAsync(Deadline);
         await App.DisposeAsync().AsTask().WaitAsync(Deadline);
@@ -161,13 +192,19 @@ internal sealed class CountryResponseCleanup : IRestExchangeHandler
         public override bool CanSeek => inner.CanSeek;
         public override bool CanWrite => inner.CanWrite;
         public override long Length => inner.Length;
-        public override long Position { get => inner.Position; set => inner.Position = value; }
+        public override long Position
+        {
+            get => inner.Position; set => inner.Position = value;
+        }
         public override void Flush() => inner.Flush();
         public override int Read(byte[] buffer, int offset, int count) => inner.Read(buffer, offset, count);
         public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
         {
             ValueTask<int> read = inner.ReadAsync(buffer, cancellationToken);
-            if (!read.IsCompleted) { pending.TrySetResult(); }
+            if (!read.IsCompleted)
+            {
+                pending.TrySetResult();
+            }
             return read;
         }
         public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
@@ -184,7 +221,10 @@ internal sealed class CountrySecondCallFault(Exception original) : IRestExchange
     public async ValueTask<IRestResponse> HandleAsync(RestRequestContext request, RestExchange next, CancellationToken token)
     {
         IRestResponse response = await next(request, token);
-        if (Interlocked.Increment(ref calls) == 2) { throw original; }
+        if (Interlocked.Increment(ref calls) == 2)
+        {
+            throw original;
+        }
         return response;
     }
 }

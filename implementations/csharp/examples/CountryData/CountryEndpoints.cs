@@ -1,21 +1,33 @@
 using CIS.Workflows;
+using CIS.Workflows.Hosting;
 
 namespace CIS.Examples.CountryData;
 
 public static class CountryEndpoints
 {
-    public static async Task<IResult> Get(string identifier, IPipelineFactory pipelines, HttpContext httpContext)
+    public static async Task<IResult> Get(string identifier, IStateMachineFactory machines, HttpContext httpContext)
     {
-        IPipeline<CountryLookupContext> pipeline = CountryLookupPipeline.Build(
-            pipelines, httpContext.RequestServices, identifier);
-        await pipeline.Execute(httpContext.RequestAborted);
+        var context = new CountryLookupFlowContext(identifier);
+        IStateMachine<CountryLookupState, CountryLookupTrigger> machine = CountryLookupStateMachine.Build(machines, context);
+        StateTransitionResult<CountryLookupState, CountryLookupTrigger> result = await machine.TriggerInScope(
+            CountryLookupTrigger.Resolve, httpContext.RequestServices, httpContext.RequestAborted);
 
-        if (pipeline.Success)
+        if (result.Success)
         {
-            return pipeline.Context.Response!;
+            result = await machine.Trigger(CountryLookupTrigger.Complete, httpContext.RequestAborted);
+            if (result.Success)
+            {
+                return context.Response!;
+            }
         }
 
-        if (pipeline.Error?.Code == "country.invalid_identifier")
+        if (result.Outcome == StateTransitionOutcome.Cancelled)
+        {
+            throw new OperationCanceledException(httpContext.RequestAborted);
+        }
+
+        if (result.Error?.Kind == StateTransitionFailureKind.ReportedFailure
+            && result.ErrorCode == "country.invalid_identifier")
         {
             return Results.BadRequest(new
             {
@@ -23,9 +35,15 @@ public static class CountryEndpoints
             });
         }
 
-        return Results.NotFound(new
+        if (result.Error?.Kind == StateTransitionFailureKind.ReportedFailure
+            && result.ErrorCode == "country.not_found")
         {
-            code = "country.not_found"
-        });
+            return Results.NotFound(new
+            {
+                code = "country.not_found"
+            });
+        }
+
+        throw new InvalidOperationException("The country lookup could not be prepared.", result.Error?.Exception);
     }
 }

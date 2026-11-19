@@ -68,6 +68,15 @@ internal sealed class MetricsStreamCatalog
                 WorkflowModule("cis.pipeline.step.duration", MetricKind.Timer, MetricUnit.Seconds,
                     ["outcome", "phase", "pipeline", "step"], 384);
             }
+            if (settings.CollectStateMachines)
+            {
+                WorkflowModule("cis.statemachine.trigger.duration", MetricKind.Timer, MetricUnit.Seconds,
+                    ["machine", "outcome", "source", "trigger"], 2560);
+                WorkflowModule("cis.statemachine.active.attempts", MetricKind.UpDownCounter, MetricUnit.Count,
+                    ["machine"], 16);
+                WorkflowModule("cis.statemachine.handler.duration", MetricKind.Timer, MetricUnit.Seconds,
+                    ["handler", "machine", "outcome", "phase"], 384);
+            }
             if (modules.Count > settings.MaxDefinitions)
             {
                 throw new ArgumentException("The known CIS module definitions exceed the configured definition capacity.");

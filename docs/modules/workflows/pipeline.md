@@ -8,7 +8,7 @@ cis:
 
 # Sequential workflow pipelines
 
-`CIS.Workflows` in `CIS.Core` executes ordered application steps and awaits
+The Pipeline facility under `CIS.Workflows` in `CIS.Core` executes ordered application steps and awaits
 reverse error handling and owned disposal before publishing its terminal report.
 It provides no retry, persistence, parallel stages or automatic transaction
 rollback. Read the [portable contract](../../../contracts/workflows/pipeline/README.md)
@@ -44,7 +44,9 @@ await pipeline.Execute(cancellationToken);
 Here `pipelines` is injected, `context` is a fresh class instance, and
 `scopedServices` is an explicit caller-owned scoped provider. The
 [HTTP endpoint](../../../implementations/csharp/examples/CountryData/CountryEndpoints.cs)
-passes `HttpContext.RequestServices` and `RequestAborted`. Successful aliases
+supplies `HttpContext.RequestServices` and `RequestAborted` to its request-local
+[State Machine](statemachine.md), whose Resolve handler executes this fresh child.
+Successful aliases
 retain their country JSON; whitespace yields 400 `country.invalid_identifier`
 and unknown identifiers yield 404 `country.not_found`. Lookup never fetches
 provider data. Readiness, initial loading, refresh and bounded refresh logging
