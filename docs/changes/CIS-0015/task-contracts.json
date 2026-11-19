@@ -1,0 +1,27 @@
+{
+  "tasks": [
+    {
+      "title": "Deliver CommonTesting-based CountryData unit examples and testing guidance",
+      "dependsOn": [],
+      "scopeIds": [
+        "unit-examples"
+      ],
+      "paths": [
+        "docs/changes/CIS-0015",
+        "docs/catalog.yml",
+        ".cis/local/countrydata-unit-intake",
+        ".artifacts/countrydata-unit",
+        "implementations/csharp/tests/CIS.Core.UnitTests/CountryData",
+        "implementations/csharp/tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj",
+        "implementations/csharp/tests/CIS.Core.UnitTests/packages.lock.json",
+        "implementations/csharp/examples/CountryData/README.md",
+        "implementations/csharp/src/CIS.CommonTesting/README.md"
+      ],
+      "acceptanceCriteria": "Readable discoverable unit examples against the actual compiled app cover publication/aliases/no lookup I/O, manual refresh replacement/failure, initial failure, original fault and owned cleanup, plus direct lookup-step semantics. Reuse public CommonTesting, add expected-result and integration-boundary guidance, preserve production and user files.",
+      "validation": "Focused native Unit build/restore and CountryData unit filter; scoped ordinary formatter+verify; strict documentation checks and independent source review. Keep examples host/network-free and public-only, with held operations released/joined. Confirm dependency lock changes reflect only the approved existing app closure and no production reference to CommonTesting.",
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex"
+    }
+  ]
+}

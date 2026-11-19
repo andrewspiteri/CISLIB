@@ -1,0 +1,31 @@
+{
+  "tasks": [
+    {
+      "paths": [
+        "docs/changes/CIS-0015",
+        "docs/catalog.yml",
+        ".cis/local/countrydata-unit-intake",
+        ".artifacts/countrydata-unit",
+        "implementations/csharp/CisLib.slnx",
+        "implementations/csharp/examples/CountryData.UnitTests",
+        "implementations/csharp/tests/CIS.Core.UnitTests/CountryData",
+        "implementations/csharp/tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj",
+        "implementations/csharp/tests/CIS.Core.UnitTests/packages.lock.json",
+        "implementations/csharp/examples/CountryData/README.md",
+        "implementations/csharp/src/CIS.CommonTesting/README.md"
+      ],
+      "complexity": "medium",
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "scopeIds": [
+        "example-project-placement"
+      ],
+      "validation": "Build/discover/run the new MSTest project on pinned runtime; verify all23pass and solution membership, public-only assembly boundary, no duplicate test source or Core-suite app reference, locked approved dependency closure, scoped format and docs; preserve user files and unchanged aggregate resource limits.",
+      "acceptanceCriteria": "Same23public CommonTesting examples live in dedicated CountryData.UnitTests under examples physically and in CisLib.slnx; old shared suite loses the example reference/closure; guide paths and run command updated.",
+      "assignee": "Codex",
+      "category": "implementation",
+      "title": "Place CountryData unit examples in a dedicated examples solution project"
+    }
+  ]
+}
