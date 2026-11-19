@@ -1,0 +1,226 @@
+{
+  "tasks": [
+    {
+      "title": "Deliver trusted Core caller and capability integration with explicit host stages",
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex",
+      "dependsOn": [],
+      "scopeIds": [
+        "core"
+      ],
+      "paths": [
+        ".artifacts/security",
+        ".cis/local/security-intake",
+        ".cis/local/testing",
+        ".github/skills/cislib-metrics/SKILL.md",
+        "contracts/metrics",
+        "contracts/security",
+        "docs/architecture/csharp-dependency-policy.md",
+        "docs/catalog.yml",
+        "docs/changes/CIS-0016",
+        "docs/modules/application/core.md",
+        "docs/modules/security",
+        "implementations/csharp/CisLib.slnx",
+        "implementations/csharp/Directory.Packages.props",
+        "implementations/csharp/NuGet.config",
+        "implementations/csharp/src/CIS.Core/Application",
+        "implementations/csharp/src/CIS.Core/Metrics",
+        "implementations/csharp/src/CIS.Core/RestClient/Contracts",
+        "implementations/csharp/src/CIS.Core/Security",
+        "implementations/csharp/src/CIS.Metrics.OpenTelemetry",
+        "implementations/csharp/tests",
+        "planning/security"
+      ],
+      "acceptanceCriteria": "P01-P05/P11-P13: immutable policy and scoped trusted caller, complete-grant native endpoint/imperative parity, explicit facade order and role validation; portable fixtures, audit contract and three bounded instrument definitions preserve identity, native requirements, cancellation settlement and old hosts. Publish shared REST binding and typed security failure signatures before parallel provider handoff. Registration and constructors do no credential I/O or premature resolution; existing sequential Startup owns activation.",
+      "validation": "Focused Core/native-host tests cover grant cross-products, multiple capabilities plus independent native denial, spoofing and issuer qualification, caller restoration/background isolation, replacement snapshots, receiver-only roles and actual facade health/readiness order. Scoped formatting, bounded catalog tests and contract/guide review."
+    },
+    {
+      "title": "Bind security profiles and bounded credential generations inside existing REST transport",
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex",
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "scopeIds": [
+        "rest-binding"
+      ],
+      "paths": [
+        ".artifacts/security",
+        ".cis/local/security-intake",
+        ".cis/local/testing",
+        "contracts/rest-client",
+        "docs/architecture/csharp-dependency-policy.md",
+        "docs/catalog.yml",
+        "docs/changes/CIS-0016",
+        "docs/modules/rest-client",
+        "docs/modules/security/transport.md",
+        "implementations/csharp/CisLib.slnx",
+        "implementations/csharp/Directory.Packages.props",
+        "implementations/csharp/NuGet.config",
+        "implementations/csharp/src/CIS.Core/RestClient",
+        "implementations/csharp/tests",
+        "planning/security"
+      ],
+      "acceptanceCriteria": "P06-P07/P11: stable native transport owns immutable profile/origins and bounded current/draining generations, with atomic per-exchange leases, safe borrowing and backward-compatible typed security detail. Reject bound suppression/replacement/TRACE while preserving ordinary clients, deadlines, retry and cleanup.",
+      "validation": "Native REST tests cover final destinations and overrides, profile/origin borrowing, held response/body leases, two-slot admission, concurrent retirement/selection and retry-delay rotation. Confirm root meter factory, primary dispatch/fault precedence and unchanged unbound behavior; include transport guide and scoped formatting."
+    },
+    {
+      "title": "Deliver explicit Entra workload acquisition and native app-only JWT integration",
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex",
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "scopeIds": [
+        "entra"
+      ],
+      "paths": [
+        ".artifacts/security",
+        ".cis/local/security-intake",
+        ".cis/local/testing",
+        "docs/architecture/csharp-dependency-policy.md",
+        "docs/catalog.yml",
+        "docs/changes/CIS-0016",
+        "docs/modules/security/entra.md",
+        "implementations/csharp/CisLib.slnx",
+        "implementations/csharp/Directory.Packages.props",
+        "implementations/csharp/NuGet.config",
+        "implementations/csharp/src/CIS.Security.Entra",
+        "implementations/csharp/tests",
+        "planning/security"
+      ],
+      "acceptanceCriteria": "P08/P11/P15: real optional WorkloadIdentityCredential and native JWT bearer integration use exact v2 app-only mapping, roles, trusted scopes/origins and SDK caching; no fallback/cache/replay owner. Guide documents tenant/federation/API inputs and AC-02 deployment prerequisites.",
+      "validation": "Test native signed-JWT signature/issuer/audience/lifetime/skew/app-only/roles and scheme isolation, plus SDK acquisition cancellation, known failures and expired-token rejection through actual REST hook. Distinguish SDK transport tests from real AKS proof; keep AC-02 unverified without authorized infrastructure. Include provider guide/build/format/review. Independent provider work may start after WORK-001, but final outbound integration/build and task completion wait for actual WORK-002 binding enforcement."
+    },
+    {
+      "title": "Deliver native certificate authentication and listener trust boundaries",
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex",
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "scopeIds": [
+        "certificate-inbound"
+      ],
+      "paths": [
+        ".artifacts/security",
+        ".cis/local/security-intake",
+        ".cis/local/testing",
+        "docs/architecture/csharp-dependency-policy.md",
+        "docs/catalog.yml",
+        "docs/changes/CIS-0016",
+        "docs/modules/security/certificates.md",
+        "implementations/csharp/CisLib.slnx",
+        "implementations/csharp/Directory.Packages.props",
+        "implementations/csharp/NuGet.config",
+        "implementations/csharp/src/CIS.Security.Certificates",
+        "implementations/csharp/tests",
+        "planning/security"
+      ],
+      "acceptanceCriteria": "P05/P09/P11/P15: real native certificate integration validates explicit roots/issuer relationship, exact URI SAN, non-CA/usage/EKU, selected revocation and each-operation expiry. Separate actual listener bindings preserve probes without business bypass and development trust never authenticates production.",
+      "validation": "Real TLS tests cover permit/deny, chain/identity/usage/expiry/hostname failures, Online validation unavailable, ShortLived actual interval, persistent-connection operation expiry, profile isolation and hostile Host headers against operational listener. Include native/facade receiver-only path, guide/build/format/review."
+    },
+    {
+      "title": "Deliver bounded PEM credential reload and mTLS generation adoption",
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex",
+      "dependsOn": [
+        "WORK-002",
+        "WORK-004"
+      ],
+      "scopeIds": [
+        "certificate-renewal"
+      ],
+      "paths": [
+        ".artifacts/security",
+        ".cis/local/security-intake",
+        ".cis/local/testing",
+        "docs/architecture/csharp-dependency-policy.md",
+        "docs/catalog.yml",
+        "docs/changes/CIS-0016",
+        "docs/modules/security/cert-manager.md",
+        "docs/modules/security/credentials.md",
+        "implementations/csharp/CisLib.slnx",
+        "implementations/csharp/Directory.Packages.props",
+        "implementations/csharp/NuGet.config",
+        "implementations/csharp/src/CIS.Security.Certificates",
+        "implementations/csharp/tests",
+        "planning/security"
+      ],
+      "acceptanceCriteria": "P07/P09-P13: PEM-only bounded source validates consistent material/local identity, uses existing Heartbeat30second coalesced checks, atomically adopts within two native generations, retains valid old owners and cuts off on stopping. Publish safe status/transition metrics and pinned cert-manager recipe without claiming AC-24 deployment. Explicit RequiredForReadiness defaults false; essential unavailability uses existing Healthcheck without changing liveness or receiver-only role validation.",
+      "validation": "Native file/TLS tests cover real new connection after adoption, mismatch/malformed/wrong identity/expired rejection, held responses/third changes/deferred expiry, concurrent leases/retry delay, source cancellation and actual drain. Check finite repeated diagnostics and memory-only gauges; record AC-24 prerequisites separately. Include credential/recipe docs/build/format/review."
+    },
+    {
+      "title": "Deliver isolated native development credential setup and reset",
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex",
+      "dependsOn": [
+        "WORK-004",
+        "WORK-005"
+      ],
+      "scopeIds": [
+        "local-development"
+      ],
+      "paths": [
+        ".artifacts/security",
+        ".cis/local/security-intake",
+        ".cis/local/testing",
+        "docs/architecture/csharp-dependency-policy.md",
+        "docs/catalog.yml",
+        "docs/changes/CIS-0016",
+        "docs/modules/security/local-development.md",
+        "implementations/csharp/CisLib.slnx",
+        "implementations/csharp/Directory.Packages.props",
+        "implementations/csharp/NuGet.config",
+        "implementations/csharp/tests",
+        "implementations/csharp/tools/CisSecurity.LocalDevelopment",
+        "planning/security"
+      ],
+      "acceptanceCriteria": "P14: one small nonpackable C# tool creates per-workspace isolated CA/server/per-app PEM material with restricted ignored files, explicit non-secret config and deliberate renewal/reset. Reuse certificate adapter; enforce environment/origin/trust gates and no machine trust installation.",
+      "validation": "Run real tool generate/renew/reset into owned scratch; inspect native leaf/CA bounds, distinct identities, Windows ACL or applicable Unix mode, and trust replacement semantics. Validate native runtime activation gates and process-specific trust. Include runnable local guide and affected tests/build/format/review."
+    },
+    {
+      "title": "Deliver three-profile CountryData security consumer and package handoff",
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex",
+      "dependsOn": [
+        "WORK-003",
+        "WORK-005",
+        "WORK-006"
+      ],
+      "scopeIds": [
+        "consumer"
+      ],
+      "paths": [
+        ".artifacts/security",
+        ".cis/local/security-intake",
+        ".cis/local/testing",
+        ".github/skills/cislib-security",
+        "AGENTS.md",
+        "docs/architecture/csharp-dependency-policy.md",
+        "docs/catalog.yml",
+        "docs/changes/CIS-0016",
+        "docs/modules/common-testing.md",
+        "docs/modules/security",
+        "implementations/csharp/CisLib.slnx",
+        "implementations/csharp/Directory.Packages.props",
+        "implementations/csharp/examples/CountryData",
+        "implementations/csharp/examples/CountryData.UnitTests",
+        "implementations/csharp/NuGet.config",
+        "implementations/csharp/src/CIS.CommonTesting",
+        "implementations/csharp/tests",
+        "planning/security",
+        "README.md"
+      ],
+      "acceptanceCriteria": "P16: one compiling selectable CountryData protected service/caller shows harmless read, resource-scoped denial and restricted selected-country effect. Existing public testing helpers support genuine consumer needs. Current portable/profile guides, three optional package-consumer shapes, actual metrics exposition and checked-in security skill/routing agree with implemented APIs.",
+      "validation": "Exercise real native local caller/service permit and denial with unchanged denied effect; package Core-only, certificate-only and Entra shapes and verify dependency separation. Check real scrape bounds/central labels, public-only consumers, skill/docs validation and scoped formatting. Retain AC-02/AC-24 as explicit unverified roadmap gaps without infrastructure; no release claim."
+    }
+  ]
+}
