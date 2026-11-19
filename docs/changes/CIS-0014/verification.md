@@ -173,3 +173,22 @@ push, merge, release or prior completed owner was introduced/reopened.
 All four canonical tasks are Complete. No native operation, active reservation or
 recovery hold remains. The local State Machine branch is ready for review; this
 record grants no remote publication or human product acceptance.
+
+## Authorized push and merge on 19 November 2026
+
+After the implementation checkpoint, Andrew Spiteri explicitly requested:
+"ok, let's push and merge to main". This subsequent instruction authorizes
+publication and merge of the current Workflows branch, including its unmerged
+Pipeline parent. The earlier no-publication statements remain historical limits
+on implementation authority; this closeout does not rewrite those approvals.
+
+The reviewed implementation commits are Pipeline `1e0595f2` and State Machine
+`ffa00ffb`, above remote main `22902b1f`. Fetch confirmed that main had not advanced,
+with no tracked working changes and the protected launch settings unchanged.
+GitHub permits merge commits; main reports no required status checks and the
+repository contains no Actions workflow files. The pull request will be checked
+again before merging and will preserve implementation commit ancestry.
+
+Only closeout documentation changes after the retained native evidence. No new
+native execution or implementation owner is opened, and the prior test and resource
+observations retain their stated scope. No release or tag is authorized.

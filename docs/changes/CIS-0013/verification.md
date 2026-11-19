@@ -207,3 +207,12 @@ acceptance, remote publication or release qualification.
 | WORK-003 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1619; failed=235; possibleTokenSavings=591; ledgerDigest=sha256:87b90a3482ab0336d4b0827168ef5e66badac79d69ab8ff30086a82408369db5 |
 | WORK-004 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1635; failed=238; possibleTokenSavings=591; ledgerDigest=sha256:f0eabef395dbb9d5ede66c2bdabda7a6d93e5ffd5d32abc5f7f44391be58ceb9 |
 | WORK-005 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1638; failed=238; possibleTokenSavings=591; ledgerDigest=sha256:01431db1ad42201a9148ba701a75e1f3135c9ac8f04457458be74876ba962123 |
+
+## Authorized Workflows publication on 19 November 2026
+
+The user's later instruction to push and merge the current Workflows branch
+includes this Pipeline implementation, which is the State Machine branch's
+unmerged parent. The [subsequent authorization and closeout](../CIS-0014/verification.md#authorized-push-and-merge-on-19-november-2026)
+records the new authority. Existing implementation approvals, observations, costs
+and completed owners remain unchanged; no new native execution is needed for this
+documentation and Git closeout.
