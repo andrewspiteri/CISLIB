@@ -26,6 +26,7 @@ internal sealed class EntraProfileRuntime : IAsyncDisposable, ISecurityCredentia
     private readonly ILogger<EntraProfileRuntime>? logger;
     private readonly Func<WorkloadIdentityCredential>? borrowedCredential;
     private readonly CancellationTokenSource stopping = new();
+    private readonly SemaphoreSlim acquisitionGate = new(1, 1);
     private readonly TaskCompletionSource cutoffSettled = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly CancellationTokenRegistration stopRegistration;
     private WorkloadIdentityCredential? credential;
@@ -36,6 +37,7 @@ internal sealed class EntraProfileRuntime : IAsyncDisposable, ISecurityCredentia
     private Task? statusDrain;
     private ExceptionDispatchInfo? cutoffFailure;
     private Task? startup;
+    private Task? recovery;
     private Task? disposal;
     private TaskCompletionSource? drain;
     private bool started;
@@ -43,7 +45,9 @@ internal sealed class EntraProfileRuntime : IAsyncDisposable, ISecurityCredentia
     private int pending;
     private SecurityProfileAvailability? lastAvailability;
     private string? lastFailureCode;
-    private DateTimeOffset? lastExpiry;
+    private DateTimeOffset? lastObservedExpiry;
+    private long lastAcquisitionAttempt;
+    private bool hasAcquisitionAttempt;
     private long lastDiagnostic;
     private int diagnosticCount;
 
@@ -122,9 +126,9 @@ internal sealed class EntraProfileRuntime : IAsyncDisposable, ISecurityCredentia
                     {
                         statusOwner = (heartbeat ?? throw new InvalidOperationException("A readiness-required outgoing Entra profile needs the existing Heartbeat owner factory."))
                             .CreateOwner();
-                        statusOwner.Service.Register(new ExpiryMetadataObserver(this), new()
+                        statusOwner.Service.Register(new CredentialAvailabilityObserver(this), new()
                         {
-                            Name = "Security expiry: " + Profile,
+                            Name = "Security availability: " + Profile,
                             Interval = options.StatusCheckInterval,
                             InitialDelay = options.StatusCheckInterval
                         });
@@ -204,7 +208,8 @@ internal sealed class EntraProfileRuntime : IAsyncDisposable, ISecurityCredentia
         context.Headers.Set("Authorization", "Bearer " + acquired.Token.Token);
     }
 
-    private async ValueTask<Acquisition> AcquireAsync(CancellationToken cancellationToken)
+    private async ValueTask<Acquisition> AcquireAsync(CancellationToken cancellationToken,
+        bool recoveryCheck = false, bool explicitRequest = false)
     {
         WorkloadIdentityCredential selected;
         lock (gate)
@@ -221,9 +226,23 @@ internal sealed class EntraProfileRuntime : IAsyncDisposable, ISecurityCredentia
             selected = credential;
             pending++;
         }
+        bool entered = false;
         try
         {
             using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, stopping.Token);
+            await acquisitionGate.WaitAsync(linked.Token).ConfigureAwait(false);
+            entered = true;
+            linked.Token.ThrowIfCancellationRequested();
+            lock (gate)
+            {
+                // A foreground call may have recovered while this background check waited.
+                if (recoveryCheck && (!explicitRequest && HasUsableObservation() || !RecoverySpacingElapsed()))
+                {
+                    return new(default, null);
+                }
+                lastAcquisitionAttempt = clock.GetTimestamp();
+                hasAcquisitionAttempt = true;
+            }
             AccessToken token;
             try
             {
@@ -270,6 +289,10 @@ internal sealed class EntraProfileRuntime : IAsyncDisposable, ISecurityCredentia
         }
         finally
         {
+            if (entered)
+            {
+                acquisitionGate.Release();
+            }
             lock (gate)
             {
                 pending--;
@@ -309,23 +332,69 @@ internal sealed class EntraProfileRuntime : IAsyncDisposable, ISecurityCredentia
     public ValueTask RequestSourceRecheckAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        DateTimeOffset? expiry;
         lock (gate)
         {
             ObjectDisposedException.ThrowIf(admissionClosed, this);
-            expiry = lastExpiry;
         }
-        ObserveExpiry(expiry);
-        // There is deliberately no cache invalidation, background minting or permission replay.
-        return ValueTask.CompletedTask;
+        return new(RecheckAvailabilityAsync(cancellationToken, explicitRequest: true));
     }
 
-    private void ObserveExpiry(DateTimeOffset? expiry)
+    private Task RecheckAvailabilityAsync(CancellationToken cancellationToken, bool explicitRequest = false)
     {
-        if (expiry <= clock.GetUtcNow())
+        cancellationToken.ThrowIfCancellationRequested();
+        TaskCompletionSource begin;
+        Task work;
+        lock (gate)
         {
-            Publish(SecurityProfileAvailability.Expired,
-                new(SecurityFailureKind.CredentialExpired, "The last observed workload credential is expired."), expiry);
+            if (admissionClosed || !started || (options.Profile.Roles & SecurityProfileRoles.Outbound) == 0)
+            {
+                return Task.CompletedTask;
+            }
+            if (recovery is { IsCompleted: false })
+            {
+                return recovery;
+            }
+            if (!explicitRequest && HasUsableObservation())
+            {
+                return Task.CompletedTask;
+            }
+            if (!RecoverySpacingElapsed())
+            {
+                return Task.CompletedTask;
+            }
+            begin = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            recovery = work = begin.Task;
+        }
+        _ = RecheckCoreAsync(begin, cancellationToken, explicitRequest);
+        return work;
+    }
+
+    // Called only under gate. Expiry is metadata about the last SDK result, not proof a replacement is unavailable.
+    private bool HasUsableObservation() => lastAvailability == SecurityProfileAvailability.Available
+        && lastObservedExpiry > clock.GetUtcNow();
+
+    private bool RecoverySpacingElapsed()
+    {
+        TimeSpan minimumSpacing = options.StatusCheckInterval < TimeSpan.FromSeconds(1)
+            ? TimeSpan.FromSeconds(1) : options.StatusCheckInterval;
+        return !hasAcquisitionAttempt || clock.GetElapsedTime(lastAcquisitionAttempt, clock.GetTimestamp()) >= minimumSpacing;
+    }
+
+    private async Task RecheckCoreAsync(TaskCompletionSource completion, CancellationToken cancellationToken, bool explicitRequest)
+    {
+        try
+        {
+            // The SDK owns acquisition and its cache. No bearer value is retained by the recovery task.
+            _ = await AcquireAsync(cancellationToken, recoveryCheck: true, explicitRequest: explicitRequest).ConfigureAwait(false);
+            completion.TrySetResult();
+        }
+        catch (OperationCanceledException error)
+        {
+            completion.TrySetCanceled(error.CancellationToken);
+        }
+        catch (Exception error)
+        {
+            completion.TrySetException(error);
         }
     }
 
@@ -342,7 +411,11 @@ internal sealed class EntraProfileRuntime : IAsyncDisposable, ISecurityCredentia
             bool changed = availability != lastAvailability || failure?.Code != lastFailureCode;
             lastAvailability = availability;
             lastFailureCode = failure?.Code;
-            lastExpiry = expiry;
+            if (expiry is not null)
+            {
+                lastObservedExpiry = expiry;
+            }
+            expiry = lastObservedExpiry;
             long now = clock.GetTimestamp();
             log = changed && diagnosticCount < 64
                 && (diagnosticCount < 4 || clock.GetElapsedTime(lastDiagnostic, now) >= TimeSpan.FromMinutes(1));
@@ -456,10 +529,12 @@ internal sealed class EntraProfileRuntime : IAsyncDisposable, ISecurityCredentia
             BeginStopping();
             await cutoffSettled.Task.ConfigureAwait(false);
             Task? starting;
+            Task? recovering;
             Task draining;
             lock (gate)
             {
                 starting = startup;
+                recovering = recovery;
                 drain ??= new(TaskCreationOptions.RunContinuationsAsynchronously);
                 if (pending == 0)
                 {
@@ -482,6 +557,21 @@ internal sealed class EntraProfileRuntime : IAsyncDisposable, ISecurityCredentia
             lock (gate)
             {
                 fault = cutoffFailure;
+            }
+            try
+            {
+                if (recovering is not null)
+                {
+                    await recovering.ConfigureAwait(false);
+                }
+            }
+            catch (OperationCanceledException) when (stopping.IsCancellationRequested)
+            {
+                // The cutoff cancels recovery, but disposal still joins the actual SDK operation.
+            }
+            catch (Exception error)
+            {
+                fault ??= ExceptionDispatchInfo.Capture(error);
             }
             try
             {
@@ -537,6 +627,7 @@ internal sealed class EntraProfileRuntime : IAsyncDisposable, ISecurityCredentia
                 fault ??= ExceptionDispatchInfo.Capture(error);
             }
             stopping.Dispose();
+            acquisitionGate.Dispose();
             fault?.Throw();
             completion.TrySetResult();
         }
@@ -575,22 +666,12 @@ internal sealed class EntraProfileRuntime : IAsyncDisposable, ISecurityCredentia
 
     private readonly record struct Acquisition(AccessToken Token, SecurityFailure? Failure);
 
-    private sealed class ExpiryMetadataObserver(EntraProfileRuntime runtime) : IHeartbeatSubscriber
+    private sealed class CredentialAvailabilityObserver(EntraProfileRuntime runtime) : IHeartbeatSubscriber
     {
-        public Task<bool> OnElapsedAsync(CancellationToken cancellationToken)
+        public async Task<bool> OnElapsedAsync(CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            DateTimeOffset? expiry;
-            lock (runtime.gate)
-            {
-                if (runtime.admissionClosed)
-                {
-                    return Task.FromResult(true);
-                }
-                expiry = runtime.lastExpiry;
-            }
-            runtime.ObserveExpiry(expiry);
-            return Task.FromResult(true);
+            await runtime.RecheckAvailabilityAsync(cancellationToken).ConfigureAwait(false);
+            return true;
         }
 
         public Task OnErrorAsync(Exception exception) => Task.CompletedTask;

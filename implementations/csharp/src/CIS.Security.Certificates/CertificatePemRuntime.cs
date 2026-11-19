@@ -78,6 +78,7 @@ internal sealed class CertificatePemRuntime : IAsyncDisposable, IHeartbeatSubscr
             Binding = new(policy, alias, RestSecurityCredentialKind.ClientCertificate);
             transport = RestHttpTransport.CreateCertificateBoundUninitializedTrust(Binding,
                 services.GetRequiredService<IMeterFactory>(), clock: clock);
+            availability.BindOutboundTransport(transport);
         }
         stopRegistration = services.GetService<IHostApplicationLifetime>()?.ApplicationStopping.Register(BeginStopping) ?? default;
     }
@@ -273,6 +274,9 @@ internal sealed class CertificatePemRuntime : IAsyncDisposable, IHeartbeatSubscr
         {
             using var operation = CancellationTokenSource.CreateLinkedTokenSource(caller, stopping.Token);
             CancellationToken token = operation.Token;
+            token.ThrowIfCancellationRequested();
+            availability.RefreshOutboundTransport();
+            transport!.ThrowIfAdmissionClosed();
             PemCandidate candidate;
             try
             {
@@ -298,6 +302,8 @@ internal sealed class CertificatePemRuntime : IAsyncDisposable, IHeartbeatSubscr
                     && (lastOutcome == SecurityCertificateReloadOutcome.Adopted
                         || lastOutcome == SecurityCertificateReloadOutcome.Rejected && (retryAt is null || retryAt > clock.GetUtcNow())))
                 {
+                    token.ThrowIfCancellationRequested();
+                    transport.ThrowIfAdmissionClosed();
                     availability.SetOutbound(activeExpiry, lastCandidateFailure);
                     return;
                 }
@@ -310,6 +316,8 @@ internal sealed class CertificatePemRuntime : IAsyncDisposable, IHeartbeatSubscr
                         expiry = actualExpiry;
                         return ValueTask.FromResult(material);
                     }, token).ConfigureAwait(false);
+                    token.ThrowIfCancellationRequested();
+                    transport.ThrowIfAdmissionClosed();
                     if (adopted == RestHttpCertificateAdoption.Adopted)
                     {
                         activeExpiry = expiry;
@@ -335,6 +343,14 @@ internal sealed class CertificatePemRuntime : IAsyncDisposable, IHeartbeatSubscr
         catch (Exception error)
         {
             failure = error;
+            try
+            {
+                availability.RefreshOutboundTransport();
+            }
+            catch (Exception observation)
+            {
+                failure = new AggregateException("Certificate source and availability observation failed.", error, observation);
+            }
         }
         finally
         {

@@ -1,11 +1,12 @@
 using CIS.Healthcheck;
 using CIS.Heartbeat;
+using CIS.RestClient.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 namespace CIS.Security.Certificates.Hosting;
 
-// One finite two-role status owner per actual profile; callbacks only observe retained dates and the clock.
+// One finite two-role status owner per actual profile; callbacks observe retained dates, clock and native admission.
 internal sealed class CertificateProfileAvailability : IAsyncDisposable, IHeartbeatSubscriber
 {
     private readonly object gate = new();
@@ -20,6 +21,7 @@ internal sealed class CertificateProfileAvailability : IAsyncDisposable, IHeartb
     private DateTimeOffset? outboundExpiry;
     private DateTimeOffset? outboundTrustExpiry;
     private SecurityFailure? outboundFailure;
+    private RestHttpTransport? outboundTransport;
     private IConditionMonitor? condition;
     private IHeartbeatOwner? owner;
     private Task? closing;
@@ -102,6 +104,26 @@ internal sealed class CertificateProfileAvailability : IAsyncDisposable, IHeartb
         }
     }
 
+    internal void BindOutboundTransport(RestHttpTransport transport)
+    {
+        lock (gate)
+        {
+            if (outboundTransport is not null && !ReferenceEquals(outboundTransport, transport))
+            {
+                throw new InvalidOperationException("An outbound profile retains one exact native transport owner.");
+            }
+            outboundTransport = transport;
+        }
+    }
+
+    internal void RefreshOutboundTransport()
+    {
+        lock (gate)
+        {
+            Publish();
+        }
+    }
+
     internal void SetOutboundTrust(DateTimeOffset expiry)
     {
         lock (gate)
@@ -116,16 +138,20 @@ internal sealed class CertificateProfileAvailability : IAsyncDisposable, IHeartb
         DateTimeOffset now = clock.GetUtcNow();
         bool inbound = (profile.Roles & SecurityProfileRoles.Inbound) != 0;
         bool outbound = (profile.Roles & SecurityProfileRoles.Outbound) != 0;
+        bool transportClosed = outbound && outboundTransport?.IsAdmissionClosed == true;
         bool missing = inbound && inboundExpiry is null || outbound && outboundExpiry is null;
         bool expired = inbound && inboundExpiry <= now || outbound && (outboundExpiry <= now || outboundTrustExpiry <= now);
         SecurityProfileAvailability availability = closed ? SecurityProfileAvailability.Stopping
-            : missing ? SecurityProfileAvailability.Unavailable : expired ? SecurityProfileAvailability.Expired : SecurityProfileAvailability.Available;
-        SecurityFailure? failure = expired ? new(SecurityFailureKind.CredentialExpired, "An enabled certificate role's actual credential or authority is expired.")
+            : transportClosed || missing ? SecurityProfileAvailability.Unavailable : expired ? SecurityProfileAvailability.Expired : SecurityProfileAvailability.Available;
+        SecurityFailure? failure = transportClosed ? new(SecurityFailureKind.CredentialUnavailable,
+            "The selected native certificate transport has permanently closed admission.")
+            : expired ? new(SecurityFailureKind.CredentialExpired, "An enabled certificate role's actual credential or authority is expired.")
             : missing ? outboundFailure ?? new(SecurityFailureKind.CredentialUnavailable, "An enabled certificate role has not established usable trust or credentials.")
             : outboundFailure;
-        var status = new SecurityProfileStatus(profile.Alias, availability, failure, outboundExpiry);
+        DateTimeOffset? expiry = transportClosed ? null : outboundExpiry;
+        var status = new SecurityProfileStatus(profile.Alias, availability, failure, expiry);
         if (previous?.Availability == availability && previous.Failure?.Code == failure?.Code
-            && previous.CredentialExpiresAtUtc == outboundExpiry)
+            && previous.CredentialExpiresAtUtc == expiry)
         {
             return;
         }

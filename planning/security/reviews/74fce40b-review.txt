@@ -1,0 +1,77 @@
+I reviewed [commit `74fce40b`](https://github.com/andrewspiteri/CISLIB/commit/74fce40b4cc856c83f7db87233ae75844f12a029) against the current `main` and the RM-01 specification. **I would fix two runtime issues before merging.** There is also a Windows certificate-chain prerequisite that needs to become explicit in the consumer contract.
+
+## 1. P1 — A required Entra credential can leave the application permanently unready
+
+**Sources:** [EntraProfileRuntime.cs:309–328](https://github.com/andrewspiteri/CISLIB/blob/74fce40b4cc856c83f7db87233ae75844f12a029/implementations/csharp/src/CIS.Security.Entra/EntraProfileRuntime.cs#L309-L328), [CISApplication.cs:187–195](https://github.com/andrewspiteri/CISLIB/blob/74fce40b4cc856c83f7db87233ae75844f12a029/implementations/csharp/src/CIS.Core/Application/CISApplication.cs#L187-L195).
+
+For an outbound Entra profile with `RequiredForReadiness = true`, the implementation performs an initial credential acquisition. Its subsequent Heartbeat callback only observes the last token’s expiry; it does not establish whether a usable replacement can be acquired.
+
+That creates this failure sequence:
+
+1. Startup obtains a valid token and the application becomes ready.
+2. The application is idle until that token expires.
+3. The expiry observer flags the required health condition.
+4. `CISApplication` now rejects business requests with **503 before executing their endpoints**.
+5. The outbound business call that would ask the SDK for a fresh token can no longer run.
+
+`RequestSourceRecheckAsync()` also only rechecks the retained expiry, so it cannot recover the application. A transient failure during the initial required acquisition produces the same problem. Without an independent background acquisition, recovery requires restarting the application.
+
+The existing expiry test asserts that readiness becomes false without another acquisition, but stops before testing recovery. [EntraWorkloadAcquisitionTests.cs:190–224](https://github.com/andrewspiteri/CISLIB/blob/74fce40b4cc856c83f7db87233ae75844f12a029/implementations/csharp/tests/CIS.Security.IntegrationTests/Entra/EntraWorkloadAcquisitionTests.cs#L190-L224)
+
+**Required correction:** provide a recovery path that can operate while business readiness is false, while keeping credential acquisition/cache ownership with the SDK. Also distinguish expiry of the last observed token from inability to acquire a usable credential.
+
+Add two focused regressions: recovery after a temporary startup acquisition failure, and recovery after idle expiry without restarting the host.
+
+## 2. P2 — Certificate adoption can report success after cleanup has closed the transport
+
+**Sources:** [RestHttpTransport.cs:283–288](https://github.com/andrewspiteri/CISLIB/blob/74fce40b4cc856c83f7db87233ae75844f12a029/implementations/csharp/src/CIS.Core/RestClient/Http/RestHttpTransport.cs#L283-L288), [CertificatePemRuntime.cs:297–317](https://github.com/andrewspiteri/CISLIB/blob/74fce40b4cc856c83f7db87233ae75844f12a029/implementations/csharp/src/CIS.Security.Certificates/CertificatePemRuntime.cs#L297-L317).
+
+After publishing a replacement generation, `TryAdoptCertificateAsync()` discards the task returned by `StartRetiredDisposal(retired)` and returns `Adopted`.
+
+If the old generation has no outstanding response holds, its disposal runs immediately. A native-key cleanup failure—or a failure in the custody callback—then causes `DisposeGeneration()` to close transport admission and retire the new generation as well. Despite that, the adoption method still reports success. [RestHttpTransport.cs:503–542](https://github.com/andrewspiteri/CISLIB/blob/74fce40b4cc856c83f7db87233ae75844f12a029/implementations/csharp/src/CIS.Core/RestClient/Http/RestHttpTransport.cs#L503-L542)
+
+The certificate provider consequently records the new expiry and successful adoption. Subsequent checks of unchanged PEM material take the fingerprint fast path without checking transport admission. **The profile can remain `Available` even though its outgoing transport is closed.**
+
+**Required correction:** observe and propagate the retired-generation cleanup task when cleanup is already eligible. Preserve deferred cleanup when outstanding responses still own the generation. A permanently closed transport must also be reflected in profile status/readiness.
+
+A focused regression can adopt certificate A, then B, with the Windows custody callback throwing on A’s `Removed` transition. Assert that the original fault is surfaced, adoption is not reported as healthy, and status/readiness agrees with subsequent request behavior.
+
+## 3. Windows portability gap — Intermediate certificates supplied in PEM are not sent automatically
+
+**Source:** [RestHttpTransport.cs:423–432](https://github.com/andrewspiteri/CISLIB/blob/74fce40b4cc856c83f7db87233ae75844f12a029/implementations/csharp/src/CIS.Core/RestClient/Http/RestHttpTransport.cs#L423-L432).
+
+The Windows path supplies only the leaf through `ClientCertificates`. The non-Windows path also supplies `material.IntermediateCertificates` through `SslStreamCertificateContext`.
+
+This matters when:
+
+- A Windows client has a valid root → intermediate → leaf chain in its PEM input.
+- The intermediate is not already provisioned on Windows.
+- The remote service trusts the root but does not independently possess or retrieve the intermediate.
+
+The credential can be adopted successfully, yet mTLS fails because the peer cannot construct its chain. Microsoft documents this Windows limitation: client intermediates need to be available in the Windows certificate store to be sent. [Microsoft Learn](https://learn.microsoft.com/en-us/dotnet/core/extensions/sslstream-troubleshooting?utm_source=chatgpt.com)
+
+The code comment acknowledges that deployment owns intermediate provisioning, but the public credential guide does not explain that prerequisite. This is **an interoperability/support gap, not an authentication bypass**.
+
+**Required correction:** document the supported Windows chain arrangements and validate or clearly reject unsupported configurations where possible. Add an intermediate-issued Windows client case. Preserve the deliberate restriction on automatic certificate-store writes.
+
+## What otherwise looks sound
+
+The reviewed authorization and certificate paths follow the specification closely. I did not find an additional confirmed bypass in complete-grant matching, issuer/subject isolation, authentication-scheme separation, development trust isolation or per-request certificate expiry checks.
+
+The REST review also found the main ownership model coherent: generation capacity is reserved before construction, each attempt selects its generation, retained responses keep their owners alive, and the existing deadline and retry owners remain in control. The cleanup-failure path above is the exception that needs correction.
+
+## Verification and completion status
+
+This was a **source-and-test review**. The review environment has no .NET SDK, so I did not execute a fresh test run.
+
+The branch’s verification record reports local SDK/JWT/TLS, credential lifecycle, development-tool, CountryData and packaged-consumer checks. It also preserves failed-run history rather than relabelling those runs as wholly successful. Those remain recorded results, rather than results I independently reran. [Verification record:276–290](https://github.com/andrewspiteri/CISLIB/blob/74fce40b4cc856c83f7db87233ae75844f12a029/docs/changes/CIS-0016/verification.md#L276-L290)
+
+The record correctly leaves these outstanding:
+
+- **AC-02:** real AKS workload federation.
+- **AC-24:** real cert-manager issuance, mounting and renewal.
+- **Linux native execution.**
+
+It explicitly closes local implementation work without marking the roadmap item complete. [Verification record:314–318](https://github.com/andrewspiteri/CISLIB/blob/74fce40b4cc856c83f7db87233ae75844f12a029/docs/changes/CIS-0016/verification.md#L314-L318)
+
+**Recommendation:** correct the Entra recovery and certificate cleanup/status issues, make the Windows chain prerequisite explicit, and run the focused regressions for those changes. With AKS as a target deployment, the affected Linux-native certificate and transport paths also need a real run.

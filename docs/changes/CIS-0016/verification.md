@@ -322,3 +322,61 @@ RM-01 complete, publishing, pushing or merging.
 | WORK-005 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1789; failed=253; possibleTokenSavings=591; ledgerDigest=sha256:fa0e7a3b2adf1fe2857cd72fecc47bc7ab5c9d3030f0c671131b73ef1e06a344 |
 | WORK-006 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1791; failed=253; possibleTokenSavings=591; ledgerDigest=sha256:a2a8b9ada841de15ae396e4031ef464894c64219e6d127d31ef81dc05700acc5 |
 | WORK-007 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1793; failed=253; possibleTokenSavings=591; ledgerDigest=sha256:2f5c4f3cbe26514359c41af8bddcb2ad7c1d1d83b63f0c221b5d369230377afc |
+
+# Pre-merge review correction checkpoint —19November2026
+
+The user's preserved [review](../../../planning/security/reviews/74fce40b-review.txt)
+is resolved by supporting WORK-009/010 under the [bounded follow-up](review-follow-up.md).
+Completed owners, original failures and costs above remain historical.
+Receipts below are relative to `.artifacts/security/CIS-0016/review-follow-up`.
+
+| Boundary | Actual focused result | Receipt |
+| --- | --- | --- |
+| Required Entra recovery | Windows47/47 and Linux47/47. Same native facade recovers from initial failure and post-idle acquisition failure while blocking business effects with503. Last token expiry is metadata; only actual SDK acquisition establishes replacement availability. Rechecks share one owned task, observe the monotonic minimum spacing both before and after SDK admission, and drain actual SDK work at cutoff. Existing SDK cache/JWT/native failures remain covered. | `10-windows-entra/results/entra-native.trx`; `14-linux-entra-native/results/linux-native.trx` |
+| Certificate lifecycle and status | Windows60/60 and Linux60/60. Adoption awaits already eligible retirement cleanup; held response retirement remains nonblocking. Immediate and later Windows Removed-callback faults preserve the exact original exception, prevent healthy adoption/requests, and flag required availability. Existing metadata Heartbeat observes later closure; unchanged/rechecked PEM cannot reopen it. The two Linux rows verify normal no-user-key rotation rather than emulating a Windows custody failure. | `03-windows-certificate/results/certificate-native.trx`; `13-linux-certificate-native/results/linux-native.trx` |
+| Native REST ownership and intermediate TLS | Windows18/18 and Linux18/18. Two real TLS rows use a unique root→intermediate→leaf without AIA. An explicit-issuer peer succeeds on both; an isolated root-only peer fails on Windows and succeeds using the supplied native chain on Linux. Received chain evidence and business execution are asserted. Existing generation, runtime, custody and native TLS cases also pass. | `11-windows-intermediate-and-generations/results/rest-native.trx`; `12-linux-rest-native/results/linux-native.trx` |
+| Build/style | Both affected Release projects build with0warnings/errors using SDK10.0.401/runtime10.0.12. Scoped whitespace format and final verification pass for all12changed C# files. | `08-build-native-rest-corrected/native.log`; `09-build-current-security/native.log`; `native-costs.jsonl` phases05/06/15 |
+| Ownership/current candidate | All95new Windows key imports have recorded Removed transitions and exact backing absence. The two deliberately failed private custody receipts remain faulted/unresolved in their closed finite scopes, as asserted by their passing tests; this does not claim their callback succeeded. Current Core/certificate/Entra DLL copies match both integration outputs. Original specification and untracked launch settings hashes are preserved. | `custody-audit.json`; `current-candidate.json`; `source-inputs.json`; `preserved-inputs.json` |
+
+That is125focused passing cases on each actual OS,250executions with no skipped
+cases in these receipts. The Windows certificate receipt precedes the final
+Entra-only spacing amendment; its Certificate/Core behavior had no further
+semantic changes. The other final receipts execute the matching current outputs.
+No scoped pass is a full solution or release qualification.
+
+Linux ran on existing Ubuntu24.04 WSL using an official checksummed portable
+ASP.NET/Core10.0.12 **Linux ELF host**, not Windows dotnet through WSL. The existing
+SDK's managed VSTest runner runs with Windows ReadyToRun disabled; no Linux SDK,
+global runtime, new harness or package pin was introduced. `linux/pinned-runtime.json`,
+`download.json` and `runtime-info.txt` retain provenance. The initial runner attempt
+without that setting failed BadImageFormat and remains a setup limitation, not a
+passing test. The Windows-mounted workspace reports777POSIX modes: these runs
+do not qualify Linux local-tool file permissions. Temporary Windows custody-parent
+DACLs were restored exactly, with new fixture directories protected. Whole-descriptor
+PowerShell restoration initially requested unavailable SeSecurityPrivilege; the
+native access-only correction preserved owner/group and completed restoration.
+See `linux/parent-access-restoration.json`.
+
+The first build accidentally selected SDK11from the repository parent; its
+31warnings/2errors remain in phase01. Pinned phase02passed. The new intermediate
+fixture's first compile lacked a namespace import (phase07); phase08corrected it.
+The first strict docs check found missing front matter on the new follow-up;
+that authored metadata was corrected. All failures and costs are retained.
+
+Independent source review covered Entra lifecycle and certificate native ownership,
+plus cross-review of the chain test and guides. It found the queued recovery
+spacing race, now covered by explicit-control and Heartbeat data rows, and corrected
+the guide to construct detached provider setup from passive Configuration settings.
+The public credential contract now states Windows supported chain arrangements,
+the unsupported generic root-only peer case and the no-store-write restriction.
+
+The affected Linux-native certificate/transport and Entra gap is now closed only
+for these focused cases. Linux local utility/privacy, CountryData/package/deployment
+qualification, broad performance/coverage/mutation and release remain unverified.
+Actual AKS federation (AC-02) and cert-manager issuance/mount/renewal (AC-24) still
+require authorized infrastructure. Shared30hours/32attempts, every protected
+reserve and the physical6GiB ceiling remain unchanged; conservative manual costs
+and measured native receipts stay separate from CIS automatic counters. No push,
+merge or release accompanies this correction.
+| WORK-009 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1808; failed=254; possibleTokenSavings=591; ledgerDigest=sha256:60fd36b0ace3cc9e1cf7519ce9ae5fd7534ae43f60ab14d1b0d39452c2e21431 |
+| WORK-010 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1810; failed=254; possibleTokenSavings=591; ledgerDigest=sha256:671a23860c35a2c17274f2caaf2c124c0fc41dbdd6b946e9e2ef6a898c2abf15 |

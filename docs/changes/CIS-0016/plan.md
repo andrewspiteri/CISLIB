@@ -21,3 +21,5 @@ Derived under `cislib:CIS-0016:outcome:3aafc848f9384e88aef0a33e0fabb780` by Code
 | WORK-005 | [Deliver bounded PEM credential reload and mTLS generation adoption](agent-tasks/WORK-005.md) | Complete | WORK-002, WORK-004, WORK-008 |
 | WORK-006 | [Deliver isolated native development credential setup and reset](agent-tasks/WORK-006.md) | Complete | WORK-004 |
 | WORK-007 | [Deliver three-profile CountryData security consumer and package handoff](agent-tasks/WORK-007.md) | Complete | WORK-003 |
+| WORK-009 | [Recover required Entra availability independently of business readiness](agent-tasks/WORK-009.md) | Complete | WORK-003 |
+| WORK-010 | [Propagate certificate retirement faults and define Windows chain support](agent-tasks/WORK-010.md) | Complete | WORK-002, WORK-004, WORK-005, WORK-008 |

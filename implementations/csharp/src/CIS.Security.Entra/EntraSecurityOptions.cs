@@ -92,8 +92,9 @@ public sealed class EntraWorkloadOptions
         get; set;
     }
 
-    /// <summary>Gets or sets the existing Heartbeat cadence for readiness-required expiry metadata; default one second.</summary>
-    /// <remarks>This callback reads only owned metadata and the clock. It does not acquire or renew a token.</remarks>
+    /// <summary>Gets or sets the existing Heartbeat cadence for required credential availability; default one second.</summary>
+    /// <remarks>Known token expiry schedules a normal SDK availability check, not forced renewal. Recovery checks are coalesced
+    /// and spaced by at least one second, even when this observation cadence is shorter. The SDK retains cache ownership.</remarks>
     public TimeSpan StatusCheckInterval { get; set; } = TimeSpan.FromSeconds(1);
 }
 

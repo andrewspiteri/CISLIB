@@ -4,6 +4,7 @@ using CIS.CommonTesting;
 using CIS.Healthcheck;
 using CIS.Heartbeat;
 using CIS.RestClient;
+using CIS.RestClient.Http;
 using CIS.Security;
 using CIS.Security.Certificates;
 using CIS.Security.Certificates.Hosting;
@@ -27,7 +28,8 @@ internal sealed class PemSourceFixture : IAsyncDisposable
 
     internal PemSourceFixture(CertificateFixture certificates, string origin, SecurityProfileRoles roles = SecurityProfileRoles.Outbound,
         bool required = false, bool writeCredential = true, Action<IServiceCollection>? configure = null,
-        Action<RestClientOptions>? configureClient = null, ManualTimeProvider? clock = null)
+        Action<RestClientOptions>? configureClient = null, ManualTimeProvider? clock = null,
+        RestHttpNativeKeyScope? nativeKeys = null)
     {
         Clock = clock ?? new(certificates.Now);
         directory = Path.Combine(Path.GetTempPath(), "pem-source-" + Guid.NewGuid().ToString("N"));
@@ -75,7 +77,7 @@ internal sealed class PemSourceFixture : IAsyncDisposable
                 credential: new(ChainFile, KeyFile), serverTrustBundleFile: ServerRootFile,
                 serverRevocationMode: X509RevocationMode.NoCheck);
         }, (roles & SecurityProfileRoles.Inbound) != 0 ? "pem-receiver" : null,
-            _ => SecurityTestAssemblySetup.NativeKeys);
+            _ => nativeKeys ?? SecurityTestAssemblySetup.NativeKeys);
         if ((roles & SecurityProfileRoles.Outbound) != 0)
         {
             var client = new RestClientOptions("pem") { BaseUrl = origin, ResponseFormat = RestResponseFormat.Text, LogCalls = false };
@@ -140,10 +142,15 @@ internal sealed class PemSourceFixture : IAsyncDisposable
 
     internal async Task PollAsync(bool metadataOnly = false)
     {
+        ManualHeartbeatResult result = await PollResultAsync(metadataOnly);
+        Assert.AreEqual(ManualHeartbeatOutcome.Succeeded, result.Outcome, result.Error?.ToString());
+    }
+
+    internal Task<ManualHeartbeatResult> PollResultAsync(bool metadataOnly = false)
+    {
         string name = (metadataOnly ? "Security expiry: " : "Certificate source: ") + Profile;
         ManualHeartbeatRegistration registration = heartbeat.Registrations.Single(value => value.Options.Name == name);
-        ManualHeartbeatResult result = await heartbeat.TriggerAsync(registration.Subscriber);
-        Assert.AreEqual(ManualHeartbeatOutcome.Succeeded, result.Outcome, result.Error?.ToString());
+        return heartbeat.TriggerAsync(registration.Subscriber);
     }
 
     public async ValueTask DisposeAsync()

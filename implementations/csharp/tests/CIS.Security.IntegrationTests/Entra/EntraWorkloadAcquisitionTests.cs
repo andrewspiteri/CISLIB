@@ -86,15 +86,22 @@ public sealed class EntraWorkloadAcquisitionTests
     [TestMethod]
     public async Task SourceRecheckDoesNotInvalidateTheSdkCacheOrMintAToken()
     {
-        using var credential = new ControlledWorkloadCredential(_ => ValueTask.FromException<AccessToken>(new CredentialUnavailableException("fixture")));
-        await using EntraWorkloadFixture fixture = await EntraWorkloadFixture.StartAsync(borrowed: _ => credential);
+        using var handler = new WorkloadSdkHandler();
+        using var http = new HttpClient(handler);
+        using var sdkTransport = new HttpClientTransport(http);
+        var clock = new ManualTimeProvider(DateTimeOffset.UtcNow);
+        await using EntraWorkloadFixture fixture = await EntraWorkloadFixture.StartAsync(sdkTransport: sdkTransport, clock: clock);
         ISecurityCredentialControl control = fixture.Services.GetRequiredKeyedService<ISecurityCredentialControl>(EntraNativeAuthenticationTests.Profile);
 
         await control.RequestSourceRecheckAsync();
         await control.RequestSourceRecheckAsync();
+        clock.Advance(TimeSpan.FromSeconds(1));
+        await control.RequestSourceRecheckAsync();
 
-        Assert.AreEqual(0, credential.Calls);
-        Assert.AreEqual(0, credential.Disposals);
+        Assert.AreEqual(1, handler.TokenRequests, "A normal SDK availability check reuses the SDK cache; it does not force renewal.");
+        Assert.AreEqual(SecurityProfileAvailability.Available,
+            fixture.Services.GetRequiredService<ISecurityProfileStatusSource>().CaptureStatus().Single().Availability);
+        Assert.HasCount(0, fixture.Heartbeat.Registrations, "Optional profiles still create no periodic recovery owner.");
     }
 
     [TestMethod]
@@ -203,7 +210,7 @@ public sealed class EntraWorkloadAcquisitionTests
     }
 
     [TestMethod]
-    public async Task RequiredCredentialExpiryIsObservedByMetadataHeartbeatWithoutAcquisition()
+    public async Task RequiredIdleExpiryRechecksTheSdkInsteadOfTreatingAnOldTokenAsProviderFailure()
     {
         var clock = new ManualTimeProvider(DateTimeOffset.UtcNow);
         using var credential = new ControlledWorkloadCredential(_ => ValueTask.FromResult(
@@ -217,10 +224,157 @@ public sealed class EntraWorkloadAcquisitionTests
 
         await fixture.Heartbeat.TriggerAsync(fixture.Heartbeat.Registrations.Single().Subscriber);
 
-        Assert.AreEqual(1, credential.Calls, "The shared Heartbeat reads expiry metadata, without a token minting/cache loop.");
-        Assert.IsFalse(fixture.Health.CaptureSnapshot().Ready);
-        Assert.AreEqual(SecurityProfileAvailability.Expired,
+        Assert.AreEqual(2, credential.Calls, "The existing Heartbeat asks the reused SDK credential for current availability after idle expiry.");
+        Assert.IsTrue(fixture.Health.CaptureSnapshot().Ready);
+        Assert.AreEqual(SecurityProfileAvailability.Available,
             fixture.Services.GetRequiredService<ISecurityProfileStatusSource>().CaptureStatus().Single().Availability);
+    }
+
+    [TestMethod]
+    public async Task RecoveryChecksRespectAMonotonicOneSecondFloorAtTheShortestObservationCadence()
+    {
+        var clock = new ManualTimeProvider(DateTimeOffset.UtcNow);
+        using var credential = new ControlledWorkloadCredential(_ => ValueTask.FromException<AccessToken>(new CredentialUnavailableException("fixture")));
+        await using EntraWorkloadFixture fixture = await EntraWorkloadFixture.StartAsync(borrowed: _ => credential,
+            required: true, clock: clock, statusCheckInterval: TimeSpan.FromMilliseconds(10));
+        for (int iteration = 0; iteration < 10; iteration++)
+        {
+            clock.Advance(TimeSpan.FromMilliseconds(10));
+            await fixture.Heartbeat.TriggerAsync(fixture.Heartbeat.Registrations.Single().Subscriber);
+        }
+        Assert.AreEqual(1, credential.Calls);
+        clock.Advance(TimeSpan.FromMilliseconds(900));
+        await fixture.Heartbeat.TriggerAsync(fixture.Heartbeat.Registrations.Single().Subscriber);
+        await fixture.Services.GetRequiredKeyedService<ISecurityCredentialControl>(EntraNativeAuthenticationTests.Profile)
+            .RequestSourceRecheckAsync();
+        Assert.AreEqual(2, credential.Calls, "Repeated callbacks/rechecks coalesce and cannot turn a 10ms observation interval into a provider retry loop.");
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task QueuedRecoveryRechecksSpacingAfterAForegroundAttemptUsesTheSdk(bool explicitRequest)
+    {
+        var clock = new ManualTimeProvider(DateTimeOffset.UtcNow);
+        var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        int calls = 0;
+        using var credential = new ControlledWorkloadCredential(async _ =>
+        {
+            if (Interlocked.Increment(ref calls) == 2)
+            {
+                entered.TrySetResult();
+                await release.Task;
+            }
+            throw new CredentialUnavailableException("controlled foreground/provider failure");
+        });
+        await using EntraWorkloadFixture fixture = await EntraWorkloadFixture.StartAsync(borrowed: _ => credential,
+            required: true, clock: clock);
+        ISecurityCredentialControl control = fixture.Services.GetRequiredKeyedService<ISecurityCredentialControl>(EntraNativeAuthenticationTests.Profile);
+        clock.Advance(TimeSpan.FromSeconds(1));
+        Task<RestResult<ValueBody>> held = fixture.Client.Get<ValueBody>("/value");
+        Task<RestResult<ValueBody>>? queued = null;
+        Task? recovering = null;
+        try
+        {
+            await entered.Task.WaitAsync(TimeSpan.FromSeconds(10));
+            clock.Advance(TimeSpan.FromSeconds(2));
+            queued = fixture.Client.Get<ValueBody>("/value");
+            recovering = explicitRequest ? control.RequestSourceRecheckAsync().AsTask()
+                : fixture.Heartbeat.TriggerAsync(fixture.Heartbeat.Registrations.Single().Subscriber);
+            Assert.IsFalse(queued.IsCompleted);
+            Assert.IsFalse(recovering.IsCompleted);
+        }
+        finally
+        {
+            release.TrySetResult();
+            await held;
+            if (queued is not null)
+            {
+                await queued;
+            }
+            if (recovering is not null)
+            {
+                await recovering;
+            }
+        }
+        Assert.AreEqual(3, credential.Calls,
+            "Startup and the two foreground attempts run; queued recovery must recheck the latest actual SDK attempt after its semaphore wait.");
+        clock.Advance(TimeSpan.FromSeconds(1));
+        if (explicitRequest)
+        {
+            await control.RequestSourceRecheckAsync();
+        }
+        else
+        {
+            await fixture.Heartbeat.TriggerAsync(fixture.Heartbeat.Registrations.Single().Subscriber);
+        }
+        Assert.AreEqual(4, credential.Calls);
+    }
+
+    [TestMethod]
+    public async Task ConcurrentRechecksJoinOneOwnedSdkOperationAndDisposalWaitsForItsRealSettlement()
+    {
+        var clock = new ManualTimeProvider(DateTimeOffset.UtcNow);
+        var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        int calls = 0;
+        using var credential = new ControlledWorkloadCredential(async _ =>
+        {
+            if (Interlocked.Increment(ref calls) == 1)
+            {
+                throw new CredentialUnavailableException("fixture warmup");
+            }
+            entered.TrySetResult();
+            await release.Task;
+            return new AccessToken("held-recovery", clock.GetUtcNow().AddMinutes(5));
+        });
+        EntraWorkloadFixture fixture = await EntraWorkloadFixture.StartAsync(borrowed: _ => credential, required: true, clock: clock);
+        Task? disposing = null;
+        Task? first = null;
+        Task? second = null;
+        bool recoveryCanceled = true;
+        try
+        {
+            clock.Advance(TimeSpan.FromSeconds(1));
+            ISecurityCredentialControl control = fixture.Services.GetRequiredKeyedService<ISecurityCredentialControl>(EntraNativeAuthenticationTests.Profile);
+            first = control.RequestSourceRecheckAsync().AsTask();
+            await entered.Task.WaitAsync(TimeSpan.FromSeconds(10));
+            second = control.RequestSourceRecheckAsync().AsTask();
+            Assert.AreSame(first, second, "Concurrent controls await the same in-flight ownership task, not a retained token cache.");
+            disposing = fixture.DisposeAsync().AsTask();
+            Assert.IsFalse(disposing.IsCompleted);
+            Assert.IsFalse(first.IsCompleted);
+        }
+        finally
+        {
+            release.TrySetResult();
+            foreach (Task? pending in new[] { first, second })
+            {
+                if (pending is not null)
+                {
+                    try
+                    {
+                        await pending;
+                        recoveryCanceled = false;
+                    }
+                    catch (OperationCanceledException)
+                    {
+                    }
+                }
+            }
+            if (disposing is not null)
+            {
+                await disposing;
+            }
+            else
+            {
+                await fixture.DisposeAsync();
+            }
+        }
+        Assert.AreEqual(2, credential.Calls);
+        Assert.AreEqual(0, credential.Disposals);
+        Assert.IsTrue(recoveryCanceled, "The owned recovery must observe application cutoff after the SDK operation settles.");
     }
 
     [TestMethod]

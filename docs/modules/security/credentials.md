@@ -132,8 +132,9 @@ readiness also observes fixed client-authority and any explicit server-root expi
 the certificate gauge continues to report the actual leaf's separate expiry.
 
 Existing Heartbeat also observes already retained expiry metadata at one second
-when available. This callback reads only the clock and immutable dates; it does
-not parse files, acquire keys, validate chains or call a provider. The remaining
+when available. This callback reads the clock, immutable dates and its owned
+transport's admission state; it does not parse files, acquire keys, validate
+chains or call a credential provider. The remaining
 certificate gauge uses the actual active outgoing leaf expiry. Missing leaves are
 omitted and expired remaining time is clamped to zero. A failed replacement does
 not manufacture a later expiry. The source publishes the existing bounded
@@ -158,6 +159,41 @@ removes any remaining exact newly owned container and verifies its backing absen
 It never enumerates or deletes unrelated user keys. This is temporary OS backing,
 not a claim that Windows TLS keys stay entirely in process memory. Unexpected
 cleanup failures close admission and retain bounded unresolved ownership.
+
+Adoption awaits retirement cleanup that is already eligible. Actual held
+responses retain their old generation and do not delay adoption until they
+settle. If either cleanup path permanently closes the transport, the profile
+becomes `Unavailable` and its required readiness condition is flagged. The
+existing one-second metadata Heartbeat observes later held-response failures;
+source checks also observe closure before reading or accepting unchanged PEM.
+Rechecking the same files cannot reopen that transport. Replace the owned
+transport/profile instance after resolving the cleanup fault; its original
+exception remains observable from the operation and owned disposal paths.
+
+## Intermediate-issued clients on Windows
+
+Windows sends the owned client leaf through native TLS. Supplying intermediate
+certificates in the PEM chain validates the source credential, but does not
+promise that Windows transmits those intermediates. Linux uses the supplied
+intermediates in its native `SslStreamCertificateContext`. This platform
+difference is documented by [Microsoft's SslStream troubleshooting guide](https://learn.microsoft.com/en-us/dotnet/core/extensions/sslstream-troubleshooting#intermediate-certificates-are-not-sent).
+
+A Windows caller supports a directly root-issued leaf, or an intermediate-issued
+leaf whose peer already has the required issuing chain. For a CIS receiving
+profile, configure the actual direct issuer in its immutable issuing-authority
+bundle and any further required intermediates in its intermediate bundle. A
+generic peer that knows only the root and cannot obtain the intermediate cannot
+authenticate the leaf-only presentation. Deployment-owned Windows intermediate
+provisioning is another arrangement; CIS does not perform that provisioning or
+inspect certificate stores.
+
+The transport deliberately avoids constructing a supplied-chain context on
+Windows: the [pinned .NET runtime implementation](https://github.com/dotnet/runtime/blob/v10.0.12/src/libraries/System.Net.Security/src/System/Net/Security/SslStreamCertificateContext.Windows.cs)
+can add supplied certificates to machine or user intermediate stores. Source
+validation and successful adoption establish the local credential's validity,
+not a remote peer's issuer inventory or a successful TLS exchange. Qualify each
+deployment's actual peer trust and platform arrangement; adding more certificates
+to the caller's PEM file alone does not remove the Windows prerequisite.
 
 See the [cert-manager recipe](cert-manager.md) for deployment responsibilities.
 Local native adoption tests cannot establish real cert-manager issuance/mount

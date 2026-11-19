@@ -146,6 +146,30 @@ public sealed class RestHttpTransport : IAsyncDisposable
         }
     }
 
+    /// <summary>Gets terminal admission closure without waiting for retained native response owners.</summary>
+    /// <remarks>Closure is permanent. Credential sources may observe this owned fact for availability;
+    /// a retained leaf expiry does not establish that a closed transport can accept another exchange.</remarks>
+    public bool IsAdmissionClosed
+    {
+        get
+        {
+            lock (gate)
+            {
+                return closing;
+            }
+        }
+    }
+
+    /// <summary>Throws the original retained cleanup fault, or disposal, when admission has closed.</summary>
+    /// <remarks>This performs no I/O and does not wait for active TLS/response owners to drain.</remarks>
+    public void ThrowIfAdmissionClosed()
+    {
+        lock (gate)
+        {
+            ThrowIfClosed();
+        }
+    }
+
     internal void ValidateForHost(IMeterFactory? expectedFactory)
     {
         if (expectedFactory is not null && !ReferenceEquals(expectedFactory, meterFactory))
@@ -282,9 +306,14 @@ public sealed class RestHttpTransport : IAsyncDisposable
         }
         if (retired is not null)
         {
-            _ = StartRetiredDisposal(retired);
+            Task? cleanup = StartRetiredDisposal(retired);
+            if (cleanup is not null)
+            {
+                await cleanup.ConfigureAwait(false);
+            }
             retired = null;
         }
+        ThrowIfAdmissionClosed();
         return RestHttpCertificateAdoption.Adopted;
     }
 

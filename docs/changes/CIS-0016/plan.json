@@ -517,6 +517,109 @@
         }
       ],
       "contractErrors": []
+    },
+    {
+      "id": "WORK-009",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-009.md",
+      "title": "Recover required Entra availability independently of business readiness",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-003"
+      ],
+      "acceptanceCriteria": "Correct the reviewed required outbound Entra readiness deadlock using the existing Heartbeat owner and reused SDK credential. A temporary startup acquisition failure or idle last-token expiry can recover without a business endpoint or host restart. An observed token timestamp does not alone establish replacement acquisition failure. Keep all caching/mint decisions with the SDK; no force refresh, new cache, scheduler or business-call replay. Coalesce and join admitted recovery/acquisition work, bound repeated probe frequency and diagnostics, and preserve native deadline/cancellation and original faults.",
+      "validation": "Add actual facade readiness regressions for recovery after temporary initial acquisition failure and idle expiry without restarting the host; verify business 503 and no effect while genuinely unavailable, later successful acquisition and 200/effect after recovery. Verify explicit source recheck, concurrent/coalesced probes, cutoff/drain and optional/inbound-only behavior with existing public/native seams. Include focused native adapter regressions, scoped build/format, guide/contract review and preserved failure/resource evidence. Real AKS remains unverified. No push, merge or release.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:f5e8c9a61b5a4e49bcef364a5479c67e",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "entra"
+      ],
+      "authorizationScopeBasis": "sha256:b180e41292209748a93232c690eb7d7c0d183d9635f9c91ce8533953ffa2e8be",
+      "workPaths": [],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "Correct the reviewed required outbound Entra readiness deadlock using the existing Heartbeat owner and reused SDK credential. A temporary startup acquisition failure or idle last-token expiry can recover without a business endpoint or host restart. An observed token timestamp does not alone establish replacement acquisition failure. Keep all caching/mint decisions with the SDK; no force refresh, new cache, scheduler or business-call replay. Coalesce and join admitted recovery/acquisition work, bound repeated probe frequency and diagnostics, and preserve native deadline/cancellation and original faults."
+          ],
+          "description": "Add actual facade readiness regressions for recovery after temporary initial acquisition failure and idle expiry without restarting the host; verify business 503 and no effect while genuinely unavailable, later successful acquisition and 200/effect after recovery. Verify explicit source recheck, concurrent/coalesced probes, cutoff/drain and optional/inbound-only behavior with existing public/native seams. Include focused native adapter regressions, scoped build/format, guide/contract review and preserved failure/resource evidence. Real AKS remains unverified. No push, merge or release.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Add actual facade readiness regressions for recovery after temporary initial acquisition failure and idle expiry without restarting the host; verify business 503 and no effect while genuinely unavailable, later successful acquisition and 200/effect after recovery. Verify explicit source recheck, concurrent/coalesced probes, cutoff/drain and optional/inbound-only behavior with existing public/native seams. Include focused native adapter regressions, scoped build/format, guide/contract review and preserved failure/resource evidence. Real AKS remains unverified. No push, merge or release."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-010",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-010.md",
+      "title": "Propagate certificate retirement faults and define Windows chain support",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-002",
+        "WORK-004",
+        "WORK-005",
+        "WORK-008"
+      ],
+      "acceptanceCriteria": "Observe eligible retired-generation cleanup before reporting certificate adoption; preserve nonblocking retirement when actual response holds remain. Surface the original cleanup fault and reflect permanent native admission closure in profile status/readiness even on unchanged source material or later body cleanup. Retain the bounded current/draining ownership model. State the Windows leaf-only client transmission arrangements and unsupported root-only peer case explicitly in public guides; no automatic certificate-store writes or existing-key/store inventory, and no unverifiable peer-availability promise.",
+      "validation": "Use finite privately journaled W01 fault scopes to test immediate A-to-B Removed callback failure and later held-body retirement failure, original fault propagation, rejected healthy adoption, unchanged-source behavior and status/readiness versus future calls. Add a real intermediate-issued client TLS case: explicit-issuer peer succeeds; isolated root-only peer fails on Windows while Linux supplied-chain behavior is checked if a suitable existing runtime is available. Include focused native REST/certificate regressions, exact owned cleanup audit, scoped formatting/build and current consumer guides. Preserve all completed-owner history, shared limits and external AKS/cert-manager gaps; no tooling/install campaign, push, merge or release.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:ac82f21ce513449a850ad15197139efe",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "rest-binding",
+        "certificate-renewal",
+        "certificate-inbound"
+      ],
+      "authorizationScopeBasis": "sha256:6d4ffa2df07d13b8d98e0de5b39d46653059b3496b7a930acfbcd2700970da39",
+      "workPaths": [],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "Observe eligible retired-generation cleanup before reporting certificate adoption; preserve nonblocking retirement when actual response holds remain. Surface the original cleanup fault and reflect permanent native admission closure in profile status/readiness even on unchanged source material or later body cleanup. Retain the bounded current/draining ownership model. State the Windows leaf-only client transmission arrangements and unsupported root-only peer case explicitly in public guides; no automatic certificate-store writes or existing-key/store inventory, and no unverifiable peer-availability promise."
+          ],
+          "description": "Use finite privately journaled W01 fault scopes to test immediate A-to-B Removed callback failure and later held-body retirement failure, original fault propagation, rejected healthy adoption, unchanged-source behavior and status/readiness versus future calls. Add a real intermediate-issued client TLS case: explicit-issuer peer succeeds; isolated root-only peer fails on Windows while Linux supplied-chain behavior is checked if a suitable existing runtime is available. Include focused native REST/certificate regressions, exact owned cleanup audit, scoped formatting/build and current consumer guides. Preserve all completed-owner history, shared limits and external AKS/cert-manager gaps; no tooling/install campaign, push, merge or release.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Use finite privately journaled W01 fault scopes to test immediate A-to-B Removed callback failure and later held-body retirement failure, original fault propagation, rejected healthy adoption, unchanged-source behavior and status/readiness versus future calls. Add a real intermediate-issued client TLS case: explicit-issuer peer succeeds; isolated root-only peer fails on Windows while Linux supplied-chain behavior is checked if a suitable existing runtime is available. Include focused native REST/certificate regressions, exact owned cleanup audit, scoped formatting/build and current consumer guides. Preserve all completed-owner history, shared limits and external AKS/cert-manager gaps; no tooling/install campaign, push, merge or release."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
     }
   ],
   "source": null

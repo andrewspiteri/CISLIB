@@ -172,6 +172,23 @@ without source I/O. They are diagnostic state, not identity proof. The source
 owns availability/recheck policy and the existing Heartbeat registration;
 the transport does not create a scheduler or renew certificates.
 
+After publishing a replacement, adoption awaits old-generation cleanup when no
+response/body holds remain. A cleanup fault surfaces as its original fault;
+adoption cannot report healthy success after that fault has closed admission.
+When an old response is still held, adoption does not wait for its body. Its later
+release owns retirement cleanup and surfaces any actual cleanup fault.
+
+`IsAdmissionClosed` reads terminal native admission state without waiting for
+those retained owners. `ThrowIfAdmissionClosed()` preserves the original retained
+cleanup fault, or reports disposal when normal closing began. A known leaf expiry
+does not establish that the transport accepts exchanges. The PEM source checks
+admission before source work and unchanged-material shortcuts and before recording
+successful adoption. A terminally closed transport makes its profile unavailable
+and flags a readiness-required profile. The existing one-second expiry-metadata
+Heartbeat observes failures that arise later during body retirement; no extra
+worker or retry owner is created. Unchanged files and source-recheck requests
+cannot reopen that transport. Replace the affected owner/instance deliberately.
+
 ## Stop, cleanup and result detail
 
 Stop the logical REST clients and certificate source before disposing a borrowed

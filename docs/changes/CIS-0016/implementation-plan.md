@@ -242,3 +242,9 @@ restoration reserve, storage ceiling and completed WORK-001 allocation remain
 unchanged; all earlier source/native costs are retained. The applied current
 work-allocation.json is authoritative for this distribution. W01 is the later
 resolved CIS DEC-001 operational exception, not a rewrite of baseline authority.
+
+The [pre-merge review follow-up](review-follow-up.md) adds supporting WORK-009/010
+using only unused ordinary capacity under the same delegated outcome. It records
+the third distribution and its local SDK recovery, retirement-fault and native
+platform proof boundaries. Completed WORK-001–008 and their recorded costs remain
+closed; the current distribution retains every protected reserve and shared total.

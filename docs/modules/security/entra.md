@@ -98,12 +98,17 @@ An explicitly trusted native metadata manager can be supplied through
 `EntraInboundOptions.MetadataManager`; it does not disable these checks.
 
 For retained Configuration roots, use the same selected root and read gate:
-`AddCisSecurity<TSettings>(settings => settings.Security)` and
-`AddCisEntraSecurity<TSettings>("workload", settings => settings.Entra,
+`AddCisSecurity<TSettings>(settings => BuildPolicyFromPassiveSettings(settings))` and
+`AddCisEntraSecurity<TSettings>("workload", settings => BuildEntraOptionsFromPassiveSettings(settings),
 authenticationScheme: "country-jwt")`. `TSettings` is the application's existing
-`IConfigurationObject`, and its selected properties return the documented setup
-types. Both integrations copy under `IConfigurationReader.Read` after initial
-preparation. The non-generic factory must return detached setup. Later changes
+`IConfigurationObject`. These application-owned selector functions construct
+detached setup options from passive scalar/list configuration under the existing
+`IConfigurationReader.Read` gate after initial preparation. Do not persist
+`SecurityOptions` or `EntraSecurityOptions` directly as mapped roots: their
+get-only policy collections and native SDK interface/abstract properties are not
+passive Configuration shapes. Keep native transports/metadata managers in trusted
+composition; explicitly exclude computed setup properties from persisted shapes
+with `JsonIgnore` if used. The non-generic factory also returns detached setup. Later changes
 to trust, mappings, capabilities or grants require a replacement instance.
 
 The facade installs explicit authentication/projection and authorization stages
@@ -205,21 +210,47 @@ Healthcheck condition and requires the existing Heartbeat owner factory. A known
 provider failure leaves the host running and that condition unhealthy. It does
 not become a permission denial or activate another credential profile.
 
-For required outbound credentials, an existing Heartbeat callback observes only
-the last known expiry and clock, at one second by default (configurable from ten
-milliseconds through one minute). It performs no token/provider I/O. A sample
-can therefore stop being ready after expiry even when no business call occurs;
-the observation has the configured cadence. Optional profiles install no expiry
-poller and do not affect aggregate readiness. Actual outgoing acquisition checks
-expiry on every invocation. Existing `/_health` reports application health; it
-is not redefined as an independent process-liveness endpoint. Deployment liveness
-can use a separately configured TCP probe.
+For required outbound credentials, the existing Heartbeat callback checks whether
+a usable SDK result has been established and whether its last observed expiry
+has passed. When a check is needed, it awaits `GetTokenAsync` on the same reused
+credential. The SDK may return its cached token or obtain a replacement; CIS
+does not invalidate that cache or retain a second token cache. The callback can
+recover from a temporary Startup failure or idle expiry while the facade is
+rejecting business requests with 503. No business endpoint or host restart is
+needed to make recovery possible.
+
+Expiry of the **last observed token** does not by itself establish that the
+provider cannot supply a usable replacement. The existing availability state is
+retained while the check runs. A successful current SDK result establishes
+Available; an actual known acquisition failure establishes Unavailable, or
+Expired when the SDK actually returns an expired token. The reported expiry
+remains the last observed credential's timestamp and can be past while a new
+availability check is pending. Every outgoing operation still rejects an
+actually expired SDK result before dispatch.
+
+The Heartbeat observation cadence defaults to one second and remains configurable
+from ten milliseconds through one minute. Recovery acquisitions are coalesced and
+spaced by at least the larger of one second and that cadence, measured with the
+monotonic clock. A 10ms observation interval therefore cannot create a 100-per-
+second provider retry loop. Foreground acquisition and recovery use one serialized
+SDK boundary, with each REST call's existing cancellation/deadline budget.
+Optional profiles install no periodic recovery owner and do not affect aggregate
+readiness. Existing `/_health` reports application health; it is not redefined as
+an independent process-liveness endpoint. Deployment liveness can use a separately
+configured TCP probe.
 
 `ISecurityCredentialControl`, keyed by profile alias, supports a source recheck.
-For Entra this examines owned expiry metadata; it does not force an SDK renewal,
-clear its cache or replay an operation. A borrowed **typed**
+For an enabled Entra outbound role this joins a bounded SDK availability check;
+concurrent requests join the same in-flight work. It does not promise a new
+token, force an SDK renewal, clear its cache or replay an operation. A check
+inside the minimum spacing may complete without another SDK call. Receiving-only
+profiles perform no outgoing check. A borrowed **typed**
 `WorkloadIdentityCredential` factory is a trusted native integration seam, invoked
-only at Startup. The supplying application owns that credential. The reference
+only at Startup. The supplying application owns that credential. Application
+cutoff closes admission and cancels SDK work; disposal joins Startup, in-flight
+recovery, all admitted SDK calls and the existing Heartbeat owner before retiring
+the condition and owned resources. An SDK operation that ignores cancellation
+must settle before that cleanup can complete. The reference
 deployment uses the adapter's explicit real SDK construction; it never selects
 an unrestricted `TokenCredential` or operator fallback.
 

@@ -35,7 +35,8 @@ internal sealed class EntraWorkloadFixture : IAsyncDisposable
     private RestHttpTransport? transport;
 
     private EntraWorkloadFixture(string origin, Func<IServiceProvider, WorkloadIdentityCredential>? borrowed,
-        HttpPipelineTransport? sdkTransport, RestHttpServerTrust? serverTrust, bool required, TimeProvider? clock)
+        HttpPipelineTransport? sdkTransport, RestHttpServerTrust? serverTrust, bool required, TimeProvider? clock,
+        TimeSpan? statusCheckInterval)
     {
         assertionFile = Path.Combine(Path.GetTempPath(), "cis-entra-assertion-" + Guid.NewGuid().ToString("N"));
         File.WriteAllText(assertionFile, "fixture.projected.assertion");
@@ -69,7 +70,8 @@ internal sealed class EntraWorkloadFixture : IAsyncDisposable
                 FederatedSubject = "system:serviceaccount:country-demo:country-worker",
                 FederatedTokenFile = assertionFile,
                 Scope = "api://country-api/.default",
-                Transport = sdkTransport
+                Transport = sdkTransport,
+                StatusCheckInterval = statusCheckInterval ?? TimeSpan.FromSeconds(1)
             }
         }, borrowedCredential: borrowed);
         var rest = new RestClientOptions("protected-api") { BaseUrl = origin, LogCalls = false };
@@ -91,9 +93,9 @@ internal sealed class EntraWorkloadFixture : IAsyncDisposable
     internal static async Task<EntraWorkloadFixture> StartAsync(string origin = "https://provider.invalid",
         Func<IServiceProvider, WorkloadIdentityCredential>? borrowed = null,
         HttpPipelineTransport? sdkTransport = null, RestHttpServerTrust? serverTrust = null, bool required = false,
-        TimeProvider? clock = null)
+        TimeProvider? clock = null, TimeSpan? statusCheckInterval = null)
     {
-        var fixture = new EntraWorkloadFixture(origin, borrowed, sdkTransport, serverTrust, required, clock);
+        var fixture = new EntraWorkloadFixture(origin, borrowed, sdkTransport, serverTrust, required, clock, statusCheckInterval);
         try
         {
             await fixture.host.StartAsync();
