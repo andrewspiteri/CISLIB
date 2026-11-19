@@ -42,6 +42,18 @@ public sealed class CertificateTrustPolicy
         this.roots = CaptureAuthorities(roots, 16, nameof(roots), required: true);
         issuers = CaptureAuthorities(issuingAuthorities, 16, nameof(issuingAuthorities), required: true);
         this.intermediates = CaptureAuthorities(intermediates ?? [], 8, nameof(intermediates), required: false);
+        X509Certificate2[] expiryCertificates = Load(this.roots.Concat(issuers).Concat(this.intermediates));
+        try
+        {
+            AuthorityExpiresAtUtc = expiryCertificates.Min(value => new DateTimeOffset(value.NotAfter.ToUniversalTime()));
+        }
+        finally
+        {
+            foreach (X509Certificate2 certificate in expiryCertificates)
+            {
+                certificate.Dispose();
+            }
+        }
     }
 
     /// <summary>Gets the trusted issuer-domain mapping key; it is never derived from a certificate DN.</summary>
@@ -63,6 +75,11 @@ public sealed class CertificateTrustPolicy
     public int RootCount => roots.Length;
     /// <summary>Gets the number of authorized direct issuing authorities.</summary>
     public int IssuingAuthorityCount => issuers.Length;
+    /// <summary>Gets the earliest actual expiry in this immutable authority snapshot without source I/O.</summary>
+    public DateTimeOffset AuthorityExpiresAtUtc
+    {
+        get;
+    }
 
     internal X509Certificate2[] LoadRoots() => Load(roots);
     internal X509Certificate2[] LoadChainCertificates() => Load(issuers.Concat(intermediates));

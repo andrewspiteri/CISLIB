@@ -130,7 +130,7 @@ app.MapGet("/countries", ReadCountries)
 ```
 
 The default operational paths match existing module defaults: `/_health`,
-`/_health/ready` and `/metrics`. This policy does not install these modules or
+`/_health/ready` and `/_metrics`. This policy does not install these modules or
 invent successful probes. Supply explicit paths for configured alternatives.
 Detailed health remains opt-in with its existing authenticated predicate; adding
 an anonymous operational path is not authorization for details. Keep any branch

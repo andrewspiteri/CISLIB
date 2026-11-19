@@ -26,13 +26,23 @@ public static class CertificateAuthenticationExtensions
     /// <remarks>A configuration reader factory must construct the immutable trust/options inside its reader callback.</remarks>
     public static IServiceCollection AddCisCertificateAuthentication(this IServiceCollection services,
         string profile, string authenticationScheme, Func<IServiceProvider, CertificateInboundOptions> factory)
+        => Register(services, profile, authenticationScheme, factory, null);
+
+    internal static IServiceCollection AddDeferredCertificateAuthentication(IServiceCollection services,
+        string profile, string authenticationScheme, Func<IServiceProvider, CertificateInboundOptions> factory,
+        Func<IServiceProvider, bool> prepared)
+        => Register(services, profile, authenticationScheme, factory, prepared);
+
+    private static IServiceCollection Register(IServiceCollection services, string profile, string authenticationScheme,
+        Func<IServiceProvider, CertificateInboundOptions> factory, Func<IServiceProvider, bool>? prepared)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(factory);
         _ = new SecurityProfile(profile, SecurityProfileKind.ClientCertificate, SecurityProfileRoles.Inbound, authenticationScheme);
+        CertificateProfileAvailability.Register(services, profile);
         services.AddKeyedSingleton<CertificateInboundRuntime>(profile,
-            (provider, _) => new(provider, services, profile, authenticationScheme, factory));
-        services.AddSingleton(new CertificateReceivingRegistration(profile));
+            (provider, _) => new(provider, services, profile, authenticationScheme, factory,
+                prepared is null ? null : () => prepared(provider)));
         new AuthenticationBuilder(services).AddCertificate(authenticationScheme, _ => { });
         services.AddSingleton<IConfigureOptions<CertificateAuthenticationOptions>>(provider =>
             new CertificateNativeOptions(authenticationScheme, provider.GetRequiredKeyedService<CertificateInboundRuntime>(profile)));
@@ -42,8 +52,10 @@ public static class CertificateAuthenticationExtensions
             new CertificateFinalNativeValidation(authenticationScheme, provider.GetRequiredKeyedService<CertificateInboundRuntime>(profile)));
         services.AddCisSecurityProjection(profile, provider => new CertificateIdentityProjector(
             provider.GetRequiredKeyedService<CertificateInboundRuntime>(profile)));
-        services.AddSingleton<IStartable>(provider => new CertificateInboundStartable(
+        var startable = ServiceDescriptor.Singleton<IStartable>(provider => new CertificateInboundStartable(
             provider.GetRequiredKeyedService<CertificateInboundRuntime>(profile)));
+        services.AddSingleton(new CertificateReceivingRegistration(profile, startable));
+        services.Add(startable);
         return services;
     }
 }
@@ -101,7 +113,8 @@ internal sealed class CertificateInboundStartable(CertificateInboundRuntime runt
 }
 
 internal sealed class CertificateInboundRuntime(IServiceProvider provider, IServiceCollection registrations,
-    string profileAlias, string scheme, Func<IServiceProvider, CertificateInboundOptions> factory) : IDisposable
+    string profileAlias, string scheme, Func<IServiceProvider, CertificateInboundOptions> factory,
+    Func<bool>? prepared = null) : IDisposable
 {
     private readonly object gate = new();
     private CertificateInboundOptions? options;
@@ -154,6 +167,11 @@ internal sealed class CertificateInboundRuntime(IServiceProvider provider, IServ
     {
         lock (gate)
         {
+            if (prepared?.Invoke() == false)
+            {
+                SetNativeOptions(native);
+                return;
+            }
             CertificateTrustPolicy trust = Options.Trust;
             if (roots.Length == 0)
             {
@@ -172,18 +190,23 @@ internal sealed class CertificateInboundRuntime(IServiceProvider provider, IServ
                     throw;
                 }
             }
-            native.AllowedCertificateTypes = CertificateTypes.Chained;
-            native.ChainTrustValidationMode = X509ChainTrustMode.CustomRootTrust;
-            native.CustomTrustStore = new(roots);
-            native.AdditionalChainCertificates = new(chainCertificates);
-            native.ValidateCertificateUse = true;
-            native.ValidateValidityPeriod = true;
-            native.RevocationFlag = X509RevocationFlag.ExcludeRoot;
-            // The handler does not expose URL timeouts. Its mandatory event performs the
-            // selected native revocation check with bounded retrieval before a ticket exists.
-            native.RevocationMode = X509RevocationMode.NoCheck;
-            native.Events = new CertificateAuthenticationEvents { OnCertificateValidated = ValidateNativeAsync };
+            SetNativeOptions(native);
         }
+    }
+
+    private void SetNativeOptions(CertificateAuthenticationOptions native)
+    {
+        native.AllowedCertificateTypes = CertificateTypes.Chained;
+        native.ChainTrustValidationMode = X509ChainTrustMode.CustomRootTrust;
+        native.CustomTrustStore = new(roots);
+        native.AdditionalChainCertificates = new(chainCertificates);
+        native.ValidateCertificateUse = true;
+        native.ValidateValidityPeriod = true;
+        native.RevocationFlag = X509RevocationFlag.ExcludeRoot;
+        // The handler does not expose URL timeouts. Its mandatory event performs the
+        // selected native revocation check with bounded retrieval before a ticket exists.
+        native.RevocationMode = X509RevocationMode.NoCheck;
+        native.Events = new CertificateAuthenticationEvents { OnCertificateValidated = ValidateNativeAsync };
     }
 
     internal void ValidateNativeOptions(CertificateAuthenticationOptions native)
@@ -245,12 +268,9 @@ internal sealed class CertificateInboundRuntime(IServiceProvider provider, IServ
                 throw new InvalidOperationException("Production and development client trust cannot share a root within one host.");
             }
         }
-        // Receiving-only availability concerns trust/scheme setup, not an unused outgoing leaf.
-        if (profile!.Roles == SecurityProfileRoles.Inbound)
-        {
-            provider.GetRequiredService<ISecurityProfileStatusReporter>().Publish(
-                new(profileAlias, SecurityProfileAvailability.Available));
-        }
+        CertificateProfileAvailability availability = provider.GetRequiredKeyedService<CertificateProfileAvailability>(profileAlias);
+        availability.Initialize();
+        availability.SetInbound(Options.Trust.AuthorityExpiresAtUtc);
         return Task.CompletedTask;
     }
 
@@ -273,7 +293,7 @@ internal sealed class CertificateInboundRuntime(IServiceProvider provider, IServ
     }
 }
 
-internal sealed record CertificateReceivingRegistration(string Profile);
+internal sealed record CertificateReceivingRegistration(string Profile, ServiceDescriptor Startable);
 
 internal sealed record ValidatedCertificateEvidence(string Scheme, DateTimeOffset ValidatedAtUtc, CertificateValidationResult Result);
 

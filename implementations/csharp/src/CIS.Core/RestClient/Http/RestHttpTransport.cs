@@ -31,7 +31,9 @@ public sealed class RestHttpTransport : IAsyncDisposable
     private readonly IMeterFactory? meterFactory;
     private readonly RestHttpTransportOptions options;
     private readonly TimeProvider clock;
-    private readonly RestHttpServerTrust? serverTrust;
+    private readonly bool allowsInitialServerTrust;
+    private RestHttpServerTrust? serverTrust;
+    private bool serverTrustInitialized;
     private readonly List<Generation> generations = [];
     // A cleanup fault closes admission; only the already occupied generation slots can add another fault.
     private readonly List<Exception> cleanupFailures = new(2);
@@ -42,7 +44,8 @@ public sealed class RestHttpTransport : IAsyncDisposable
     private Task? disposal;
 
     private RestHttpTransport(IMeterFactory? factory, RestHttpTransportOptions supplied,
-        RestSecurityBinding? securityBinding, TimeProvider clock, RestHttpServerTrust? serverTrust)
+        RestSecurityBinding? securityBinding, TimeProvider clock, RestHttpServerTrust? serverTrust,
+        bool deferServerTrust = false)
     {
         if (supplied.PooledConnectionLifetime < TimeSpan.Zero && supplied.PooledConnectionLifetime != Timeout.InfiniteTimeSpan
             || supplied.MaxConnectionsPerServer <= 0 || supplied.MaxResponseHeadersLength <= 0
@@ -55,6 +58,8 @@ public sealed class RestHttpTransport : IAsyncDisposable
         SecurityBinding = securityBinding;
         this.clock = clock;
         this.serverTrust = serverTrust;
+        allowsInitialServerTrust = deferServerTrust;
+        serverTrustInitialized = !deferServerTrust;
         options = new()
         {
             PooledConnectionLifetime = supplied.PooledConnectionLifetime,
@@ -81,6 +86,36 @@ public sealed class RestHttpTransport : IAsyncDisposable
     {
         ArgumentNullException.ThrowIfNull(binding);
         return new(meterFactory, options ?? new(), binding, clock ?? TimeProvider.System, serverTrust);
+    }
+
+    /// <summary>Creates a certificate owner whose initial immutable server trust will be captured by sequential Startup.</summary>
+    /// <remarks>No handler, key or material factory can be created before InitializeServerTrustOnce.
+    /// Ordinary CreateSecurityBound retains its immediate native-system-trust default.</remarks>
+    public static RestHttpTransport CreateCertificateBoundUninitializedTrust(RestSecurityBinding binding,
+        IMeterFactory? meterFactory = null, RestHttpTransportOptions? options = null, TimeProvider? clock = null)
+    {
+        ArgumentNullException.ThrowIfNull(binding);
+        if (binding.CredentialKind != RestSecurityCredentialKind.ClientCertificate)
+        {
+            throw new ArgumentException("Deferred initial trust belongs to a certificate-bound transport.", nameof(binding));
+        }
+        return new(meterFactory, options ?? new(), binding, clock ?? TimeProvider.System, null, deferServerTrust: true);
+    }
+
+    /// <summary>Captures initial server trust exactly once before any material acquisition; explicit null selects native system trust.</summary>
+    /// <remarks>This is startup preparation, never a live trust setter. Replacement trust requires a replacement transport/instance.</remarks>
+    public void InitializeServerTrustOnce(RestHttpServerTrust? trust)
+    {
+        lock (gate)
+        {
+            ThrowIfClosed();
+            if (!allowsInitialServerTrust || serverTrustInitialized || constructing || generations.Count != 0)
+            {
+                throw new InvalidOperationException("Initialize deferred server trust once, before any credential generation.");
+            }
+            serverTrust = trust;
+            serverTrustInitialized = true;
+        }
     }
 
     /// <summary>Gets the exact immutable owner/policy, or null for an ordinary unbound transport.</summary>
@@ -147,6 +182,10 @@ public sealed class RestHttpTransport : IAsyncDisposable
             if (SecurityBinding?.CredentialKind != RestSecurityCredentialKind.ClientCertificate)
             {
                 throw new InvalidOperationException("Only a certificate-bound transport can adopt client material.");
+            }
+            if (!serverTrustInitialized)
+            {
+                throw CredentialFailure(SecurityFailureKind.CredentialUnavailable);
             }
             if (constructing || generations.Count >= 2)
             {

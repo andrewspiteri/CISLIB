@@ -1,8 +1,4 @@
 using CIS.Hosting;
-using CIS.RestClient;
-using CIS.RestClient.Resilience;
-using CIS.Startup;
-using CIS.Workflows.Hosting;
 
 namespace CIS.Examples.CountryData;
 
@@ -10,22 +6,11 @@ internal static class Program
 {
     private static async Task<int> Main(string[] args)
     {
-        await using CISApplication app = CISApplication.CreateWeb(args, builder =>
+        if (args.Contains("--role=caller", StringComparer.Ordinal))
         {
-            var countries = new RestClientOptions("countries")
-            {
-                LogCalls = false,
-                ResponseMapper = new CountryProviderMapper(),
-                RetryPolicy = RestRetrySelection.Named(RestRetryPolicy.TransientHttp.Name)
-            };
-            countries.Operations.Add("refresh");
-            builder.RestClients.Add(countries);
-            builder.Services.AddCisRestClientResilience(RestRetryPolicy.TransientHttp);
-            builder.Services.AddCisWorkflows();
-            builder.Services.AddCisStateMachines();
-            builder.Services.AddSingleton<CountryCatalog>();
-            builder.Services.AddSingleton<IStartable>(provider => provider.GetRequiredService<CountryCatalog>());
-        }, web => web.MapGet("/country/{identifier}", CountryEndpoints.Get));
+            return await CountryCaller.RunAsync(args);
+        }
+        await using CISApplication app = CountryApplication.CreateService(args);
 
         return await app.RunAsync();
     }

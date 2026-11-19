@@ -153,7 +153,7 @@ source's certificate and development/consumer units at real ownership handoffs.
 | WORK-004 | Optional certificate receiving integration and trust validation, scheme/listener policies, revocation semantics and certificate guide. Test real TLS, issuer/SAN/usage, production/dev isolation, operation expiry on established connections and operational listener bypass resistance. | WORK-001 | 3 / 3 / 600 |
 | WORK-005 | PEM source, identity-validated reload, outbound certificate binding, once-only initial native trust, Heartbeat/cutoff ownership, finite rotation/status metrics and cert-manager recipe. Test actual file adoption, bad replacement, two-slot pressure, expiry/selection/retry races and held shutdown settlement. | WORK-002, WORK-004, WORK-008 | 5 / 6 / 900 |
 | WORK-006 | Isolated local setup/reset tool using actual certificate integration, file permissions, renewal/recreation and copy-and-run guide. Test clean per-workspace generation, per-app identity separation, gates, reset adoption and no machine-wide trust changes. | Source after WORK-004; final runtime proof waits for WORK-005 | 3 / 3 / 300 |
-| WORK-007 | CountryData selectable protected service/caller and bounded selected-country business effect, public testing reuse, three package-consumer shapes, actual metric exposition, current API/provider handoff and repository security skill/routing. Tests permission denial prevents effect and packages activate only selected roles. | WORK-003, WORK-005, WORK-006 | 4 / 5 / 300 |
+| WORK-007 | CountryData selectable protected service/caller and bounded selected-country business effect, public testing reuse, three package-consumer shapes, actual metric exposition, current API/provider handoff and repository security skill/routing. Tests permission denial prevents effect and packages activate only selected roles. | Source after WORK-003; final certificate/local proof waits for WORK-005/006 | 4 / 5 / 300 |
 | WORK-008 | Supporting W01 native cleanup correction: after actual TLS drain and successful certificate disposal, remove only its recorded newly owned container through the native provider and verify exact absence. Retain the actual expired RSA TLS negative and meaningful retained-key/custody regressions. | WORK-002 | 2/3 / 1 / 0 |
 
 The second delegated redistribution adds WORK-008 within the same shared totals:
@@ -205,7 +205,7 @@ is justified by this feature. Existing operational/public behavior is preserved.
 ## One shared approved allocation
 
 **30 active hours (108,000 seconds), 32 logical attempts, including 3,600 seconds
-for restoration.** The task table is one distribution, not seven separate grants.
+for restoration.** The task table is one distribution of the shared grant.
 All agents, already-performed intake, research, source, tests, documentation,
 formatting, review, native commands and restoration consume these same totals.
 Task organization and redistribution are delegated within them; costs never reset.

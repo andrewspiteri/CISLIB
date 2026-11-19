@@ -281,7 +281,7 @@ internal sealed class CertificateTestServer : IAsyncDisposable
 
     internal static async Task<CertificateTestServer> StartAsync(CertificateFixture certificates,
         CertificateTrustPolicy? trust = null, ManualTimeProvider? clock = null,
-        CertificateDevelopmentGate? development = null, string hostEnvironment = "Production")
+        CertificateDevelopmentGate? development = null, string hostEnvironment = "Production", RequestDelegate? business = null)
     {
         using var businessReservation = Reserve();
         using var operationalReservation = Reserve();
@@ -320,12 +320,19 @@ internal sealed class CertificateTestServer : IAsyncDisposable
         application.UseCisSecurityAuthentication();
         application.UseCisSecurityAuthorization();
         application.MapGet("/_health", () => Results.Ok());
-        application.MapGet("/business", (HttpContext context) =>
+        application.MapGet("/business", async (HttpContext context) =>
         {
             Interlocked.Increment(ref result.effects);
             result.LastConnection = context.Connection.Id;
             result.LastCaller = context.RequestServices.GetRequiredService<ICallerContextAccessor>().Current;
-            return Results.Ok();
+            if (business is not null)
+            {
+                await business(context);
+            }
+            else
+            {
+                context.Response.StatusCode = StatusCodes.Status200OK;
+            }
         }).RequireCisCapabilities(CertificateFixture.Profile, CertificateFixture.Target, "country.read");
         application.MapGet("/_health/ready", () =>
         {

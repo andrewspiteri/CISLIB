@@ -78,7 +78,7 @@ public sealed class CertificateListenerPolicy
                 throw new ArgumentException("An actual listener has one unambiguous role.");
             }
         }
-        IReadOnlyList<string> paths = operationalPaths ?? ["/_health", "/_health/ready", "/metrics"];
+        IReadOnlyList<string> paths = operationalPaths ?? ["/_health", "/_health/ready", "/_metrics"];
         if (paths.Count > 16 || paths.Any(path => path is null || path.Length is < 1 or > 256
             || !path.StartsWith('/') || path.Contains('?') || path.Contains('#') || path.Contains('%')))
         {

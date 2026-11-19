@@ -40,7 +40,7 @@ bounded diagnostics and is not wrapped in either workflow.
 
 CISApplication prepares Type Manager and Configuration before building one real
 provider. It composes logging, health, Heartbeat, Startup, the selected named REST
-profile and the installed Metrics adapter. Program supplies application services,
+profile and the installed Metrics adapter. The default CountryApplication supplies application services,
 intentional client/retry choices, one native route and RunAsync.
 
 The catalog primes directly from the live CountriesNow ISO endpoint before
@@ -117,6 +117,47 @@ only bounded in-memory reads, and disabled metrics do not change catalog behavio
 Tests supply controlled local HTTP responses and timing through existing
 configuration/DI boundaries. The application has no self-test/failure flags,
 barriers, reports, hardcoded live data or alternative HTTP implementation.
+
+## Selected security service and caller
+
+The default `--security=none` retains the behavior above. Explicit
+`--security=local|certificate|entra` protects lookups and adds one bounded
+selected-country value. Use `--role=caller` on the same binary for the real REST
+caller. The server authorizes canonical cached country resources: selecting MT
+is permitted and selecting TTO is denied. The native integration test verifies
+that both selection and revision stay unchanged after denial. No selection
+history or durability is promised. The caller runs one normal operation per
+invocation; its default is a harmless read of MT.
+
+After setting the caller identity and `$securityConfig` as described in the setup
+guide, run these explicit operations from `implementations/csharp`:
+
+```powershell
+dotnet run --no-launch-profile --project examples/CountryData -- --role=caller --security=local "--security-config=$securityConfig" --operation=read --country=MT
+dotnet run --no-launch-profile --project examples/CountryData -- --role=caller --security=local "--security-config=$securityConfig" --operation=select --country=MT
+dotnet run --no-launch-profile --project examples/CountryData -- --role=caller --security=local "--security-config=$securityConfig" --operation=select --country=TTO
+dotnet run --no-launch-profile --project examples/CountryData -- --role=caller --security=local "--security-config=$securityConfig" --operation=inspect
+```
+
+The denied selection exits with status 1. Compare the allowed selection's value/
+revision with the final inspection. Output contains only the safe detached
+business result, actual HTTP status and safe error code.
+
+The [security consumer guide](../../../../docs/modules/security/consumer.md)
+describes the exact policy/configuration inputs, endpoints and custody. Follow
+the [local setup guide](../../../../docs/modules/security/local-development.md)
+for copyable service/caller commands using explicit central/native identities and
+an absolute `--security-config` path. Its public JSON bootstrap uses the existing
+native host and CIS Configuration reader; credential/server PEM loads only in
+sequential Startup. Native owners drain after the actual host and responses.
+The separate operational listener retains `/_health`, `/_health/ready` and
+`/_metrics`; Host headers cannot open a business bypass.
+
+The selected example awaits authorization and separate operation-audit hooks.
+An operation hook fault after selection does not roll back the committed value
+or establish successful audit delivery. Production certificate and Entra inputs
+are deliberate deployment configuration. Local tests do not establish AC-02 AKS,
+AC-24 cert-manager, roadmap completion or release qualification.
 
 ## Testing examples
 

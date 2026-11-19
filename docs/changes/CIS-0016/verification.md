@@ -265,3 +265,60 @@ issuance/mount/renewal, Linux execution and release qualification remain unverif
 | WORK-008 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1777; failed=253; possibleTokenSavings=591; ledgerDigest=sha256:df70de7b7a8768abb0c05e3756b02d5741a04ba52ca02dfbf050cc59d98a294e |
 | WORK-003 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1779; failed=253; possibleTokenSavings=591; ledgerDigest=sha256:cce67fef77a9fe5b5578a2f019800942bd069600a7c7480fd6d9d1c67e280207 |
 | WORK-004 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1781; failed=253; possibleTokenSavings=591; ledgerDigest=sha256:672a9038f8e2d660004988a4f98571667d04a5e2a5402c3420f9cf9aecee5c95 |
+
+# Final local implementation checkpoint
+
+All planned local outcomes are implemented. Runtime startup remains sequential;
+independent source work was distributed within the same approved outcome.
+The module uses the existing host, keyed DI, Configuration reader, Heartbeat,
+Healthcheck, REST transport, retry owner, Metrics and ordinary MSTest fixtures.
+
+| Boundary | Passing evidence and scope |
+| --- | --- |
+| PEM credential lifecycle | 20cases pass in `remaining/10-corrected-native-proof/results/native-security-modules.trx`: actual file/TLS adoption, admitted two-generation rotation, held bodies/newest deferred candidate, actual retry-delay selection, shutdown/cutoff settlement, private buffer bounds, immutable trust, combined readiness and authority expiry. |
+| Existing native adapters | The same10receipt passes41Entra and38certificate cases; these retain their local SDK/JWT/TLS scope and establish neither AKS nor cert-manager deployment. |
+| Local credential utility | 14cases pass in10, including actual Windows privacy, owned marker/material refusal, original-generation restoration after a real file-sharing failure and confirmation before private reads. The real executable setup/renew/reset sequence also passes in `remaining/11-country-and-final-package-proof/cli-lifecycle.json`. |
+| Actual CountryData service/caller | All3native cases pass in11: a real facade with separately identified normal product caller processes, allowed selection, denied canonical resource with unchanged state/revision, separate awaited operation audit, actual native security metrics, Host-spoof resistance and bounded server PEM capture before key preparation. |
+| Current isolated packages | All3Core-only/certificate-only/Entra consumers pass in11 using current nupkg/DLL bytes, fresh private offline restore, real native public behavior and checked dependency separation. Certificate in-process connection evidence is explicitly not a TLS proof. |
+| Example/public testing reuse | All29CountryData unit examples pass in07, including6new security/caller rows using the existing public CommonTesting helpers. Current Core binding/CommonTesting28case proof is retained in06 with its pre-whitespace candidate qualification. |
+| Existing tutorial behavior | All40affected existing source/default/public/package cases pass in12. The full tutorial's package fixture now includes its two actual optional security references; the independent Core-only health probe and public catalog consumer retain their minimal dependencies. |
+| Style/docs/skill | Affected Release builds report0warnings/errors. Scoped pinned whitespace format and verify pass. Strict docs245/245 pass, and bundled skill-creator validation accepts the checked-in security skill. |
+
+These are116distinct native cases across the10full run's113passing cases and
+11's3corrected fixture cases;10itself remains a recorded113passed/3failed run.
+Earlier07compile failures,09's111passed/5failed and every prior receipt/cost
+remain preserved. No failed run is relabelled as an overall green result.
+
+Review corrected availability cutoff ordering and client-authority expiry,
+owned-file rollback/cleanup fault aggregation and private-buffer clearing,
+native key-scope DI disposal order and actual captured server byte bounds.
+Native feedback corrected expected InvalidData capture classification and the
+example's explicit existing Configuration health policy. The native fixture now
+selects its actual Development host through normal creation arguments; no
+production development gate or static canonical identity was weakened.
+
+The ordinary caller performs one explicit operation per invocation and defaults
+to a harmless read. The prescribed allow/deny sequence and its assertions live
+in the native fixture. User-supplied configuration remains explicit. No new DI
+framework, Configuration backend, HTTP stack, scheduler, audit store or test
+harness was introduced.
+
+Final candidate/custody/storage receipts are under
+`.artifacts/security/CIS-0016/final`. Only recorded newly owned key paths are
+checked; the original D residue has a separate exact restoration receipt and
+its original journal remains unchanged. All owned backing is absent. No trust-store installation, machine-key creation or existing user credential access was performed. The conservative
+8MiB native charge remains inside the unchanged6GiB counted ceiling and64MiB
+protected reserve. The preserved specification and user's untracked launch
+settings retain their original SHA-256 values.
+
+AC-02 real AKS federation and AC-24 real cert-manager issuance/mount/renewal
+remain explicitly unverified without authorized infrastructure. Linux native
+execution, broad performance/coverage/mutation and release qualification are
+also unverified. This closes local implementation tasks without marking roadmap
+RM-01 complete, publishing, pushing or merging.
+
+| Task | Check | Evidence | Result | Observation |
+| --- | --- | --- | --- | --- |
+| WORK-005 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1789; failed=253; possibleTokenSavings=591; ledgerDigest=sha256:fa0e7a3b2adf1fe2857cd72fecc47bc7ab5c9d3030f0c671131b73ef1e06a344 |
+| WORK-006 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1791; failed=253; possibleTokenSavings=591; ledgerDigest=sha256:a2a8b9ada841de15ae396e4031ef464894c64219e6d127d31ef81dc05700acc5 |
+| WORK-007 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1793; failed=253; possibleTokenSavings=591; ledgerDigest=sha256:2f5c4f3cbe26514359c41af8bddcb2ad7c1d1d83b63f0c221b5d369230377afc |

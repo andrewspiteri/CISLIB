@@ -95,6 +95,16 @@ public sealed class CertificateDevelopmentGate
             || privateAddresses.Any(permitted => permitted.Equals(address.IsIPv4MappedToIPv6 ? address.MapToIPv4() : address)));
     }
 
+    internal bool PermitsOrigin(Uri origin)
+    {
+        if (origin.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+        return IPAddress.TryParse(origin.Host, out IPAddress? address)
+            && (IPAddress.IsLoopback(address) || privateAddresses.Any(permitted => permitted.Equals(address)));
+    }
+
     private static bool IsPrivate(IPAddress address)
     {
         if (address.IsIPv4MappedToIPv6)
