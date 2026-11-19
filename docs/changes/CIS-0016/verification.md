@@ -57,3 +57,88 @@ Native authorization, JWT, TLS, expiry, revocation, reload/drain, listener, faca
 local setup, metrics and package-consumer observations will be recorded with
 their owning implementation tasks after approval. Broader platform/release,
 coverage/mutation/performance and publication obligations remain distinct.
+
+# Approved implementation authority
+
+After intake Andrew Spiteri explicitly approved P01–P16, seven tasks, the optional
+dependency profile and one shared108,000active seconds/32logical attempts,
+including3,600restoration seconds under the existing6GiB/64MiB physical limits.
+CIS recorded authorization
+cislib:CIS-0016:outcome:3aafc848f9384e88aef0a33e0fabb780 and derived WORK-001–007.
+The applied allocation is work-allocation.json; WORK-001 is InProgress. Earlier
+owners remain closed. The external acceptance gaps above remain unchanged.
+
+Core Security/contracts and facade-stage changes have separate source owners;
+the coordinator owns conditional collector catalogs, central packages/mappings
+and all native commands. Shared signatures stabilize before provider parallelism.
+Source and native costs are retained in ignored
+.cis/local/security-intake/resources.json and per-command receipts; no cost resets.
+Current authored implementation is not a passing native or deployment claim.
+
+# WORK-001 observations in progress
+
+The current Core slice has native-backed complete-grant authorization, immutable
+policy/caller models, explicit native projection and facade stages, additive REST
+security detail signatures, portable fixtures and conditional security metrics.
+The optional credential providers and their deployment proofs remain later work.
+
+The08-core-verification candidate passed68new security Unit cases,12new
+facade/catalog Integration cases and92specifically affected existing application
+and collector regressions, with0failures/skips. Both Release projects built with
+0warnings/errors; scoped pinned whitespace format and verify passed. Receipts
+are under .artifacts/security/CIS-0016/WORK-001/08-core-verification.
+
+Earlier native observations remain retained: an assertion-name analyzer diagnostic,
+missing native routing services in validated non-web use, the correct native
+post-authentication principal restoration expectation, and minimal native handler
+registration's required TimeProvider. Full authentication convenience registration
+also introduced an unnecessary Data Protection hosted owner and violated existing
+collector order. The final minimal services use native AuthCore, WebEncoders,
+Routing, Authorization and TryAdd of the system clock; tests assert no automatic
+key-ring/hosted owner and preservation of a caller-supplied clock. Earlier runs
+used the full helper and remain diagnostic history; no user key-ring material
+was inspected or removed to alter those observations.
+
+Formatter workspace diagnostics identified an unrelated Debug reference with a
+different processor architecture. The formatter now uses process-local Release
+configuration matching the actual verification build, without changing or
+deleting the user's Debug outputs. Its subsequent scoped checks have no workspace
+warnings. Core and existing dependency locks have no semantic expansion.
+
+Review strengthened explicit surface/scheme selection, exact single native
+identity, no earlier-handler grant shortcut, per-evaluation deduplication and
+original native result-handler factory/type/instance ownership. Final review
+also found late native-policy replacement could remove the CIS requirement while
+retaining its scheme. Its private evaluation/required-policy guard and targeted
+regressions are being completed before WORK-001 can close. The existing92-case
+unchanged-host/collector observations retain their scope; current security cases
+will be rerun after this material guard change.
+
+# WORK-001 accepted local checkpoint
+
+The09-core-final candidate passes71security Unit cases and12facade/catalog
+Integration cases,0failures/skips. Both Release builds have0warnings/errors;
+scoped whitespace format and verify pass without workspace warnings. The guard
+requires the actual generated native requirement references, this evaluation's
+private complete-grant success and actual target. Late policy replacement cannot
+remove CIS or configured native checks; caller-added checks remain supported.
+HTTP clears earlier evaluation state before its current native authorization.
+The earlier92affected regressions retain their08candidate scope; the final
+material security change has current focused proof. No provider/JWT/TLS proof is
+inferred from the Core test scheme.
+
+All retained WORK-001 costs total16291961ms (15690000ms conservative source plus
+601961ms across35native invocations),
+with3logical approaches, below18,000,000ms/5attempts while preserving
+600,000ms restoration. Earlier failures are retained. The last physical count is
+5,943,231,494bytes, leaving432,110,586bytes beyond the protected64MiB reserve.
+The preserved user launch settings hash remains unchanged. Core-only dependency
+locks remain semantically unchanged. WORK-001's local scope is complete; optional
+REST enforcement, credential providers, renewal/tool/tutorial proofs remain their
+separate approved successors and AC-02/AC-24 remain unverified.
+| WORK-001 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1749; failed=251; possibleTokenSavings=591; ledgerDigest=sha256:ef032bb7f42657235aac592f324774ca6a8ac99565fe7fdf1dc9c8ac46c362e2 |
+
+Strict documentation validation passes233/233documents with0warnings/errors.
+The initial progress receipt's contracts/security/v1/README.md reference is a
+path typo: the delivered contract guide is contracts/security/README.md; the
+actual v1 fixture paths and native receipts above remain unchanged.

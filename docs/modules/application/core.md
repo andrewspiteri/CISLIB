@@ -105,11 +105,23 @@ once. Initial Configuration loading happens before construction; its later
 activation establishes refresh observation and reconciles the bootstrap gap.
 
 The web listener may serve operational requests while a later initializer is
-still held. Native routing and supported optional operational integration precede
-the existing health branch and business gate. The readiness probe returns 500
-before required startup and 200 after success; business requests return 503 while
-gated. A failed/canceled startup cannot publish readiness. Health policy can close
-the gate later through the existing Healthcheck snapshot.
+still held. Native routing precedes supported operational integrations, the
+existing health branch and the business gate. With explicit CIS Security
+registration, native authentication and trusted caller projection run after
+routing and before those operational integrations. Business authorization runs
+after the readiness gate and before protected endpoint execution. The same
+single provider supplies security services and application services; installing
+an optional package does not select a security profile.
+
+The readiness probe returns 500 before required startup and 200 after success;
+business requests return 503 while gated. A failed/canceled startup cannot
+publish readiness. Health policy can close the gate later through the existing
+Healthcheck snapshot. Detailed health authorization can inspect the authenticated
+caller through its existing predicate. Health and Metrics keep their own access
+policies and do not acquire a global business authorization requirement. See the
+[security guide](../security/README.md) for explicit schemes, capability targets
+and the separate mTLS and operational listener requirements. A middleware branch
+cannot exempt a probe from a TLS client-certificate requirement.
 
 Services exposes the actual built provider; it does not trigger Build or startup.
 Failure retains the first failure actually observed on the facade's lifecycle

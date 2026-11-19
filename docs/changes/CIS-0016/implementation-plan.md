@@ -1,22 +1,24 @@
 ---
 title: RM-01 bounded implementation plan
 type: delivery-plan
-status: Proposed
+status: Approved
 change_id: CIS-0016
 ---
 
-# Proposed delivery and authority
+# Approved delivery and authority
 
 Implement the three RM-01 profiles against the preserved
 [source and reconciliation](../../../planning/security/README.md). The current
-request authorizes intake and preparation. This concrete profile, dependency
-decision and shared allocation await approval before native implementation.
+request authorized intake and preparation. Andrew Spiteri subsequently explicitly
+approved this concrete profile, dependency decision and shared allocation on
+19 November 2026. CIS recorded the authorization and derived seven canonical tasks;
+the finite distribution is recorded in work-allocation.json.
 Earlier completed owners and allocations do not fund this module. No push, merge,
 release, cloud provisioning, cluster changes or use of existing credentials is
 included. External acceptance remains subject to available infrastructure and
 specific operational authority.
 
-## Proposed profile P01–P16
+## Approved profile P01–P16
 
 1. **P01 — Identity and package boundary.** Portable CIS.Security contracts stay
    in CIS.Core with the existing approved runtime closure. Project the existing
@@ -190,7 +192,7 @@ benchmark/mutation/coverage campaign or replay of closed historical evidence.
 No UI or public database-backed endpoint is introduced, so no new UI/cache system
 is justified by this feature. Existing operational/public behavior is preserved.
 
-## One shared proposed allocation
+## One shared approved allocation
 
 **30 active hours (108,000 seconds), 32 logical attempts, including 3,600 seconds
 for restoration.** The task table is one distribution, not seven separate grants.

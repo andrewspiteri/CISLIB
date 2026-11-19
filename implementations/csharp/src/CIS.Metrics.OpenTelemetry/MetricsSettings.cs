@@ -115,6 +115,14 @@ internal sealed class MetricsSettings
     {
         get;
     }
+    internal bool CollectSecurity
+    {
+        get;
+    }
+    internal int SecurityProfileCapacity
+    {
+        get;
+    }
     internal int MaxDefinitions
     {
         get;
@@ -186,10 +194,12 @@ internal sealed class MetricsSettings
 
     // Configured options stay immutable and comparable independently of registration order.
     // Only the final context derives composition before any provider/producer is activated.
-    internal MetricsSettings ForComposition(bool hasRestClient, bool hasWorkflows = false, bool hasStateMachines = false)
-        => new(this, hasRestClient, hasWorkflows, hasStateMachines);
+    internal MetricsSettings ForComposition(bool hasRestClient, bool hasWorkflows = false, bool hasStateMachines = false,
+        int securityProfileCapacity = 0)
+        => new(this, hasRestClient, hasWorkflows, hasStateMachines, securityProfileCapacity);
 
-    private MetricsSettings(MetricsSettings configured, bool hasRestClient, bool hasWorkflows, bool hasStateMachines)
+    private MetricsSettings(MetricsSettings configured, bool hasRestClient, bool hasWorkflows, bool hasStateMachines,
+        int securityProfileCapacity)
     {
         Enabled = configured.Enabled;
         CollectCoreModules = configured.CollectCoreModules;
@@ -199,6 +209,9 @@ internal sealed class MetricsSettings
         CollectRestClient = hasRestClient && CollectCoreModules;
         CollectWorkflows = hasWorkflows && CollectCoreModules;
         CollectStateMachines = hasStateMachines && CollectCoreModules;
+        ArgumentOutOfRangeException.ThrowIfNegative(securityProfileCapacity);
+        SecurityProfileCapacity = securityProfileCapacity;
+        CollectSecurity = securityProfileCapacity > 0 && CollectCoreModules;
         MaxDefinitions = configured.MaxDefinitions;
         MaxStreams = configured.MaxStreams;
         CardinalityLimit = configured.CardinalityLimit;

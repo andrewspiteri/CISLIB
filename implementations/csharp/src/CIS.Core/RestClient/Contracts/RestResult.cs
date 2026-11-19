@@ -189,6 +189,30 @@ public sealed class RestResultContext
     {
         get;
     }
+    /// <summary>Gets a known safe security diagnosis, separately from actual HTTP/transport and outer REST classification.</summary>
+    public CIS.Security.SecurityFailure? SecurityFailure
+    {
+        get;
+    }
+
+    /// <summary>Copies a failed context with typed security detail without replacing the existing constructor or result shape.</summary>
+    public RestResultContext WithSecurityFailure(CIS.Security.SecurityFailure failure)
+    {
+        ArgumentNullException.ThrowIfNull(failure);
+        if (FailureKind == RestFailureKind.None)
+        {
+            throw new InvalidOperationException("Security failure detail belongs to a failed REST result.");
+        }
+        return new(this, failure);
+    }
+
+    private RestResultContext(RestResultContext context, CIS.Security.SecurityFailure failure)
+        : this(context.HttpStatusCode, context.Headers, context.HasValue, context.FailureKind, context.RemoteErrorCode,
+            context.ErrorBody, context.ErrorBodyTruncated, context.ErrorMessageTruncated, context.ClientName,
+            context.OperationName, context.AttemptCount, context.Duration, context.RetryStopReason, context.CorrelationId)
+    {
+        SecurityFailure = failure;
+    }
 }
 
 /// <summary>An immutable typed terminal result. Check Success and Context.HasValue before using Value.</summary>

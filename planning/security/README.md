@@ -5,8 +5,9 @@ is preserved byte for byte, SHA-256
 `d4966a3ad3d1a870d91422a35cc8467cf780d01a9f91cbc3313e5b3fe812ca36`.
 Its handoff, agent instructions and proposed APIs are requirements/reference
 material; they do not grant execution, dependency, credential or deployment
-authority. The current request starts the next module. This intake prepares a
-concrete profile and finite allocation for one approval before implementation.
+authority. The initial request started intake. Andrew Spiteri then explicitly
+approved P01–P16, seven tasks, the optional dependency profile and one shared
+30-hour/32-attempt allocation including 3,600 restoration seconds on19November2026.
 
 CIS registered [CIS-0016](../../docs/changes/CIS-0016/proposal.md) on
 `codex/application-identity-security`, baseline
@@ -17,9 +18,10 @@ runtime integration points. Preserve that example project under the solution's
 examples folder and retain the user's untracked launch settings unchanged.
 
 The [bounded implementation plan](../../docs/changes/CIS-0016/implementation-plan.md)
-contains the proposed P01–P16 profile, seven coherent implementation outcomes,
-acceptance ownership, dependency decision and shared resource limits. No native
-restore, build, test, credential generation or infrastructure operation has run.
+contains the approved P01–P16 profile, seven coherent implementation outcomes,
+acceptance ownership, dependency decision and shared resource limits. At intake,
+no native restore, build, test, credential generation or infrastructure operation
+had run. Subsequent observations belong to their owning implementation tasks.
 All earlier work owners remain complete with their original costs and evidence.
 
 ## Reconciliation with current contracts

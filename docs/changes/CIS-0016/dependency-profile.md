@@ -1,11 +1,17 @@
 ---
 title: RM-01 proposed optional dependency profile
 type: architecture
-status: Proposed
+status: Approved
 change_id: CIS-0016
 ---
 
-# Proposed optional dependencies
+# Approved optional dependency profile
+
+Andrew Spiteri approved this direct-pin and finite-mapping decision with P01–P16
+and the shared allocation on 19 November 2026. Central pins/source mappings are
+now authored; actual optional package restore/deployment evidence remains pending
+its owning provider/consumer tasks. This approval is not a restore or live-provider
+proof.
 
 Core retains its approved two-NuGet closure and Microsoft.AspNetCore.App reference.
 SDK 10.0.401 and qualification runtime 10.0.12 remain unchanged. Optional provider

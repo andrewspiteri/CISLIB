@@ -77,3 +77,21 @@ Runtime projects never reference it. Nonpackable TestSupport forwards its old
 manual-clock type to this one implementation; process runners and internal probes
 remain nonpackable. Public helper recordings and manual triggers are bounded
 consumer support, not production scheduler, health-policy or HTTP implementations.
+
+## Security optional profile
+
+Andrew Spiteri approved the optional RM-01 dependency profile in
+[CIS-0016](../changes/CIS-0016/dependency-profile.md). Core security contracts and
+native authorization use the existing framework; the Core NuGet closure is
+unchanged. The selected direct pins are Azure.Identity1.21.0 and native
+Microsoft.AspNetCore.Authentication.JwtBearer10.0.12 for CIS.Security.Entra,
+and Microsoft.AspNetCore.Authentication.Certificate10.0.12 for
+CIS.Security.Certificates. Certificate-only consumers must not acquire Azure SDKs.
+
+The approved profile lists27exact source-mapping candidates from inspected
+manifests, including potentially pruned dependencies. It is not a resolved
+deployment ledger. The provider tasks must record their actual first restore
+graph and assets, followed by real package-consumer separation in WORK-007.
+Core-only locked restore/build observations do not prove the optional closure.
+SDK10.0.401/runtime10.0.12 remain selected; no native authentication cache or
+Data Protection key-ring service is selected by the three reference profiles.
