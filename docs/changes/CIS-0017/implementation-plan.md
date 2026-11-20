@@ -107,3 +107,17 @@ and public package consumption work. Complete only the actually verified scope.
 Record server/provider/candidate versions and actual Windows/Ubuntu execution.
 The EF recipe is documentation, not an executed EF qualification. Broader release,
 mutation, coverage and performance obligations stay separate.
+
+## Implemented dependency-support amendment
+
+The actual later approval of two retained-package mappings is recorded in the
+[source-mapping proposal](restore-source-mapping-proposal.md). Original five
+started/completed contracts remain unchanged. Supporting WORK-006 owns only the
+approved two-entry correction and verified restore, with 3,600 seconds and one
+attempt transferred from WORK-003; its original restoration reserve remains
+protected. All six tasks share the unchanged 86,400 seconds, 28 attempts,
+2,700 restoration seconds, physical 6 GiB ceiling and 64 MiB reserve.
+The final [verification](verification.md#integrated-rm-02-result--21-november-2026)
+distinguishes actual Windows/Ubuntu runtime proof from unexecuted Linux
+SDK-backed package consumption. This amendment adds no product dependency or
+version change beyond the originally selected test-only Npgsql.

@@ -15,6 +15,7 @@ Derived under `cislib:CIS-0017:outcome:aa6f3736e7f945c5bbd06406e9f22d8d` by Code
 | --- | --- | --- | --- |
 | WORK-001 | [Deliver portable transaction contracts, named configuration and native begin](agent-tasks/WORK-001.md) | Complete |  |
 | WORK-002 | [Complete guarded ADO.NET participation and terminal transaction lifecycle](agent-tasks/WORK-002.md) | Complete | WORK-001 |
-| WORK-003 | [Qualify the isolated PostgreSQL three-table reference consumer](agent-tasks/WORK-003.md) | Draft | WORK-002 |
-| WORK-004 | [Integrate bounded transaction logging and metrics with existing collectors](agent-tasks/WORK-004.md) | Draft | WORK-002 |
-| WORK-005 | [Deliver public transaction testing, package consumption and maintained guidance](agent-tasks/WORK-005.md) | Draft | WORK-002 |
+| WORK-003 | [Qualify the isolated PostgreSQL three-table reference consumer](agent-tasks/WORK-003.md) | Complete | WORK-002 |
+| WORK-004 | [Integrate bounded transaction logging and metrics with existing collectors](agent-tasks/WORK-004.md) | Complete | WORK-002 |
+| WORK-005 | [Deliver public transaction testing, package consumption and maintained guidance](agent-tasks/WORK-005.md) | Complete | WORK-002 |
+| WORK-006 | [Restore the retained integration package graph through approved exact mappings](agent-tasks/WORK-006.md) | Complete | WORK-002 |

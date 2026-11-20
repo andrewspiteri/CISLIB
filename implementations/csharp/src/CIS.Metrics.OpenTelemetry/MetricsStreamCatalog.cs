@@ -77,6 +77,15 @@ internal sealed class MetricsStreamCatalog
                 WorkflowModule("cis.statemachine.handler.duration", MetricKind.Timer, MetricUnit.Seconds,
                     ["handler", "machine", "outcome", "phase"], 384);
             }
+            if (settings.CollectTransactions)
+            {
+                TransactionModule("cis.transaction.duration", MetricKind.Timer, MetricUnit.Seconds,
+                    ["database", "outcome"], 48);
+                TransactionModule("cis.transaction.active", MetricKind.UpDownCounter, MetricUnit.Count,
+                    ["database"], 16);
+                TransactionModule("cis.transaction.failures", MetricKind.Counter, MetricUnit.Count,
+                    ["database", "phase"], 64);
+            }
             if (settings.CollectSecurity)
             {
                 int profileCategories = checked(settings.SecurityProfileCapacity + 1);
@@ -207,6 +216,16 @@ internal sealed class MetricsStreamCatalog
         if (settings.Streams.GetValueOrDefault(name)?.CardinalityLimit is { } configured && configured < minimumCapacity)
         {
             throw new ArgumentException("The security stream override cannot cover its admitted finite profile aliases.");
+        }
+
+        Module(name, kind, unit, keys, minimumCapacity);
+    }
+
+    private void TransactionModule(string name, MetricKind kind, MetricUnit unit, IReadOnlyList<string> keys, int minimumCapacity)
+    {
+        if (settings.Streams.GetValueOrDefault(name)?.CardinalityLimit is { } configured && configured < minimumCapacity)
+        {
+            throw new ArgumentException("The transaction stream override cannot cover its admitted finite database aliases.");
         }
 
         Module(name, kind, unit, keys, minimumCapacity);

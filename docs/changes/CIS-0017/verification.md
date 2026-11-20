@@ -214,3 +214,128 @@ automatic CIS consumption. WORK-003/004/005 can now be admitted under their
 existing finite allocations and stable public/instrumentation contracts.
 | WORK-001 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1860; failed=264; possibleTokenSavings=591; ledgerDigest=sha256:60522c6f33be15bb6e0f5944e0b2628b8e802c5ed7b22dbda99ecf684088ddbf |
 | WORK-002 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1864; failed=264; possibleTokenSavings=591; ledgerDigest=sha256:fa63460b344ab7a83d695ea7124e0c16c61a4235c5c67f2c2bc3ff6bfb90321d |
+| WORK-006 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1883; failed=269; possibleTokenSavings=591; ledgerDigest=sha256:5feb0152ea5148cfdb246cd263620a6fb0cf54c161f553c2b02d22edbef64e9e |
+
+## Integrated RM-02 result — 21 November 2026
+
+The frozen working candidate passed its affected Release build with zero warnings
+and errors. Ordinary solution-scoped whitespace formatting and verify-no-changes
+passed for the eighteen changed integration-stage C# files. Earlier foundation
+and lifecycle formatting/results remain preserved. SDK 10.0.401 and both product
+frameworks 10.0.12 with roll-forward disabled are unchanged.
+
+| Actual group | Windows | Ubuntu 24.04 |
+| --- | --- | --- |
+| Transaction contracts, lifecycle and observations | 73 passed | 73 passed |
+| Public portable helper | 12 passed | 12 passed |
+| Real PostgreSQL three-table consumer | 11 passed | 11 passed |
+| Collector/scrape and affected composition regressions | 33 passed | 33 passed |
+| Isolated Core/CommonTesting public-package consumer | 1 passed | Unexecuted |
+| Total focused executed cases | 130 passed | 129 passed |
+
+Every executed case passed, with zero failures or skips. The 33 collection cases
+contain ten new transaction cases and 23 affected retained module/host cases.
+The actual held-cleanup scrape passed on both systems. Linux ran the current
+built assemblies using the retained Linux ELF runtime and existing managed VSTest;
+it did not execute Windows children. No existing Linux SDK is installed, so the
+unchanged SDK-backed package fixture was executed only on Windows. That explicit
+platform limit is not filled by the portable helper or runtime tests.
+
+The exact aggregate receipt is
+`.artifacts/transactions/CIS-0017/integrated-receipt.json`; it contains every TRX
+path/hash/count, component hashes, runtime configuration and candidate limits.
+Source, Unit and Integration copies match exactly for Core
+`ea1eef108d6efcc07350388e9493d5bb0ca0a81b4309f8bfb7dcb3a7b29eb69b`
+and CommonTesting
+`9071fa1c4b08f74691c7ce8163c6f98be21104e18cdfc37cab514b8c2f7b3174`.
+The optional collector source/Integration copies match
+`a1c9e82a999227b25a71da4b318bd40c0748de9396751eb8034f095c98e150c1`.
+This identifies the built working candidate at HEAD `66e291f4` plus its frozen
+approved source changes; a later metadata commit is not an unexecuted rebuild.
+
+The actual public-package test packed current bytes, restored from a fresh
+local-only feed/cache, built and executed an outside-friend consumer, and checked
+package/deployed/current byte equality and package closure. Its TestContext
+records archive SHA-256 Core
+`13fe6ab348e3bd2126af9211de6feeef2447d32a0772624d80e1a0949401db43`
+and CommonTesting
+`804dafc95e59fbfc948222ee19c5c7e7994072e04133c0d1ca35ba5e0b20df06`.
+Core/CommonTesting introduce no Npgsql, EF or collector dependency. Successful
+existing fixture cleanup removed its temporary feed after recording evidence.
+
+### Dependency correction and native database restoration
+
+The [specific two-mapping approval](restore-source-mapping-proposal.md) is
+implemented without changing any existing dependency declaration or pin. CIS
+preserved started WORK-003 and organized supporting WORK-006 within the same
+24-hour/28-attempt totals and original protected restoration reserves. Its
+[independent review](review-006.md) confirmed all 54 prior package resolved
+versions/content hashes unchanged and Npgsql 10.0.4 as the only addition.
+Ordinary locked restore passed. A fresh resolver output that selected four older
+10.0.0 transitive versions was rejected before build and retained; baseline lock
+entries plus the actual new Npgsql entry were independently validated in locked
+mode. The precise comparison is `WORK-006/retained-lock-comparison.json`.
+
+Real provider acceptance used Npgsql 10.0.4 against the one fresh owned PostgreSQL
+18.7 container, official pinned amd64 digest
+`sha256:68e33adb18d9962952f00d5e3b8644305e10e375f98dd652bf6ee6a1836314ba`.
+Its loopback endpoint worked from both actual Windows and Ubuntu. Server fsync,
+synchronous_commit and full_page_writes remained on, with max_connections 16.
+The cases independently observed three-table visibility, all rollback paths,
+declined business-result commit, all three isolation modes, source survival and
+cancellation only after an independent blocking-session observation confirmed
+the actual query. Schemas/tables were ordinary logged data, not fake SQL.
+
+After both test processes and all package children exited, a fresh query against
+only that owned database confirmed zero remaining fixture schemas and zero other
+database sessions. Owned data was 66,252,800 bytes, below 256 MiB. The exact
+owner/change labels were reverified before normal stop/removal of its container
+and named volume. The newly pulled image was removed only after all its tag/digest
+references were the exact owned digest and no container referenced it. The two
+private generated credential files were removed after absolute-path and reparse
+checks; no secret contents enter evidence. The full Docker allowance remains
+conservatively counted; no engine-cache reclamation is claimed and no prune ran.
+Nonsecret receipts: `.cis/local/transactions-intake/postgres-drained.json` and
+`postgres-restoration.json`. All other resources and the user launch settings are
+preserved.
+
+Independent final [provider](review-003.md), [observation](review-004.md) and
+[public testing/package](review-005.md) reviews inspected actual TRXs and current
+hashes. The only required observation finding was corrected and its two original
+fault/cancellation regressions passed. No required source finding remains.
+The checked-in Transactions skill passed the bundled validator, prerequisite
+links were verified, and a fresh-context read-only usage exercise found no
+consequential ambiguity. No extra runtime, tutorial, test framework or harness
+was introduced.
+
+EF participation remains an unexecuted documentation recipe. Real lost commit
+acknowledgements/network failures, complete Linux package consumption, broader
+release, coverage, mutation and performance qualification remain unverified.
+None is inferred from the native doubles, focused passes or local deployment.
+No push, merge, release or external deployment is included.
+| WORK-003 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1888; failed=269; possibleTokenSavings=591; ledgerDigest=sha256:6e7ad77fb617d8ce4e62e2575cbdca1179ed7a65f1b0ec4be84d71d6e6b1d9b1 |
+| WORK-004 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1889; failed=269; possibleTokenSavings=591; ledgerDigest=sha256:d372dae2263fdaaa87cf3c386463db80a87c018f8a27ce3f94db7ec18d9b8dfd |
+| WORK-005 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1890; failed=269; possibleTokenSavings=591; ledgerDigest=sha256:80cbeaa023c626a0bf8484862feef9f5dc07e60efb26a6c707c894435e261849 |
+
+### Canonical closure and retained limits
+
+CIS returned all six tasks **Complete**, the plan valid and Approved, with known
+accounting state and zero active reservation. No new native work is queued by
+this closeout. Dossier closure remains a separate human decision; no publication,
+push or merge occurred. Final external bookkeeping retains 13.9417 estimated
+source/coordination hours plus 0.1822 measured native hours, six manual logical
+work attempts, all original failed invocations and the 45-minute restoration
+reserve within the approved 24-hour/28-attempt totals. These external observations
+are not represented as automatic CIS consumption: its recorded counters remain
+zero because these processes were not CIS-managed executions.
+
+The final counted filesystem/native observation is 2,960,955,743 bytes. Keeping
+the full 1,073,741,824-byte Docker charge and 67,108,864-byte restoration reserve
+leaves 2,340,644,513 bytes inside the same 6,442,450,944-byte ceiling.
+`.cis/local/transactions-intake/storage-final.json` retains the paths and hashes.
+The preserved original specification and untracked CountryData launch settings
+still match their original hashes; the latter remains outside the commit.
+Aggregate native receipt SHA-256:
+`b87f67decb588c854cbaa606788f125ebde3a7092c4a1195e1439aaff223155e`.
+Later small documentation/accounting metadata remains counted; this observation
+is neither a hard filesystem quota nor a future free-space guarantee.

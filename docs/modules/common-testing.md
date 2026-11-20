@@ -50,3 +50,27 @@ The outside-friend package test references actual Core/CommonTesting packages
 and the hashed compiled CountryData DLL, and directly constructs the catalog.
 It copies no catalog source and uses no internal or reflection bypass. This is
 component/package evidence; it does not execute the unchanged application Main.
+
+## Explicit local transaction substitution
+
+Use `ScriptedLocalTransactionFactory` as the application's public
+`ILocalTransactionFactory`. `Enqueue()` supplies a clean committed result;
+`Enqueue(completion)` supplies immutable commit-request facts, including Unknown
+and ordered cleanup errors. `EnqueueBeginFailure(exception)` preserves the
+original begin fault without creating an owner. Queue and retained-owner
+capacities default to16 each; exhaustion fails before consuming another script,
+without eviction. Create a fresh factory after retained-owner exhaustion.
+
+Pass the returned `Context` to fake stores and compare those received references.
+The separately recorded owner exposes status/completion and whether commit,
+explicit rollback or disposal was requested. MarkRollbackOnly keeps its first
+reason and prevents scripted committed success. Pre-canceled commit returns a
+NotCommitted cancellation snapshot; explicit rollback/disposal select normalized
+noncommit facts. No native operation, callback engine, timer or SQL executes;
+UseAdoNetAsync rejects the portable-only context before invoking its delegate.
+
+See the [main transaction guide](transactions/README.md#portable-consumer-tests)
+and [package consumer](../../implementations/csharp/tests/CIS.Core.IntegrationTests/CommonTesting/CommonTestingPackageTests.cs).
+The latter uses the existing isolated actual-package fixture, public APIs and
+fake-store context propagation; its authored source alone is not a passing claim.
+Real database atomicity belongs to the separate PostgreSQL fixture.

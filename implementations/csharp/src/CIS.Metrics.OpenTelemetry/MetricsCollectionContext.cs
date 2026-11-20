@@ -8,6 +8,7 @@ using CIS.TypeManagement;
 using CIS.RestClient;
 using CIS.Workflows;
 using CIS.Security.Hosting;
+using CIS.Transactions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -25,18 +26,21 @@ internal sealed class MetricsCollectionContext : IAsyncDisposable
     private readonly MetricsStreamCatalog catalog;
     private readonly MetricsRegistrationGuard guard;
     private readonly RestClientComposition? restComposition;
+    private readonly TransactionsComposition? transactionsComposition;
     private ILogger<MetricsCollectionContext>? logger;
     private int active, stopping;
 
     internal MetricsCollectionContext(IServiceProvider root, MetricsSettings settings, MetricsRegistrationGuard guard,
         RestClientComposition? restComposition = null, WorkflowsComposition? workflowsComposition = null,
-        StateMachineComposition? stateMachineComposition = null, SecurityComposition? securityComposition = null)
+        StateMachineComposition? stateMachineComposition = null, SecurityComposition? securityComposition = null,
+        TransactionsComposition? transactionsComposition = null)
     {
         this.root = root;
         this.guard = guard;
         this.restComposition = restComposition;
+        this.transactionsComposition = transactionsComposition;
         settings = settings.ForComposition(restComposition is not null, workflowsComposition is not null,
-            stateMachineComposition is not null, securityComposition?.ProfileCapacity ?? 0);
+            stateMachineComposition is not null, securityComposition?.ProfileCapacity ?? 0, transactionsComposition is not null);
         Settings = settings;
         IMeterFactory factory = root.GetRequiredService<IMeterFactory>();
         CisMeter = factory.Create("CIS.Metrics", "1.0.0");
@@ -153,6 +157,15 @@ internal sealed class MetricsCollectionContext : IAsyncDisposable
         if (Settings.CollectSecurity)
         {
             root.GetRequiredService<SecurityComposition>().Telemetry.AttachMetrics(Runtime);
+        }
+        if (Settings.CollectTransactions)
+        {
+            TransactionInstrumentation owner = root.GetRequiredService<TransactionInstrumentation>();
+            if (!ReferenceEquals(owner.RegistrationIdentity, transactionsComposition!.RegistrationIdentity))
+            {
+                throw new InvalidOperationException("The configured transaction composition must belong to its exact registered instrumentation owner.");
+            }
+            owner.AttachMetrics(Runtime);
         }
         if (restComposition is not null)
         {

@@ -1,13 +1,40 @@
+using CIS.Metrics;
+using Microsoft.Extensions.Logging;
+
 namespace CIS.Transactions;
 
-// One concrete host-local attachment point. The observations outcome adds logging and metrics here.
-internal sealed class TransactionInstrumentation
+// Passive registration identity and one complete optional host binding, never an owner registry.
+internal sealed class TransactionInstrumentation : IMetricsSource
 {
-    public TransactionInstrumentation(TransactionsComposition composition) => RegistrationIdentity = composition.RegistrationIdentity;
+    private readonly MetricsAttachment attachment = new();
+    private readonly ILogger? logger;
+    private TransactionMetrics? metrics;
+
+    public TransactionInstrumentation(TransactionsComposition composition, ILoggerFactory? loggerFactory = null)
+    {
+        RegistrationIdentity = composition.RegistrationIdentity;
+        try
+        {
+            logger = loggerFactory?.CreateLogger("CIS.Transactions");
+        }
+        catch (Exception error) when (TransactionText.IsOrdinary(error))
+        {
+        }
+    }
+
     internal object RegistrationIdentity
     {
         get;
     }
+
     internal ITransactionObservation Capture(string databaseName, TransactionIsolation isolation, bool logCalls)
-        => NullTransactionObservation.Instance;
+        => new TransactionObservationScope(databaseName, isolation, logCalls, logger, Volatile.Read(ref metrics));
+
+    public void AttachMetrics(MetricsRuntime runtime)
+    {
+        if (attachment.Attach(runtime))
+        {
+            Volatile.Write(ref metrics, new TransactionMetrics(runtime));
+        }
+    }
 }

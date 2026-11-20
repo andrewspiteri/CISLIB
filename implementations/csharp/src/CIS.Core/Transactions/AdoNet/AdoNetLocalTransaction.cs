@@ -129,11 +129,13 @@ internal sealed class AdoNetLocalTransaction : ILocalTransaction
                 await callback.ConfigureAwait(false);
             }
             bool commitAttempted = false;
+            bool rollbackOnly;
             TransactionOutcome outcome = TransactionOutcome.NotCommitted;
             TransactionError? primary = null;
             lock (gate)
             {
                 disposalWaitingForCallback = false;
+                rollbackOnly = rollbackReason is not null;
                 if (reason == TransactionEndReason.CommitRequested && rollbackReason is not null)
                 {
                     reason = TransactionEndReason.RollbackOnly;
@@ -179,7 +181,7 @@ internal sealed class AdoNetLocalTransaction : ILocalTransaction
                 completion = result;
                 status = LocalTransactionStatus.Completed;
             }
-            TransactionObservation.Attempt(() => observation.Completed(result));
+            TransactionObservation.Attempt(() => observation.Completed(result, rollbackOnly));
             published.TrySetResult(result);
         }
         catch (Exception error)

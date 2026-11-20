@@ -67,6 +67,18 @@ resource authorization, explicit host stages, sequential credential Startup and
 native TLS/response drain. Keep the default unselected tutorial behavior. Local
 native evidence cannot replace AC-02/AC-24 deployment proof.
 
+## Explicit local transactions
+
+For `CIS.Transactions` implementation, consumer use, tests or observations, read
+the [Transactions skill](.github/skills/cislib-transactions/SKILL.md),
+[portable contract](contracts/transactions/README.md) and
+[current guide](docs/modules/transactions/README.md). Preserve explicit context,
+application-owned data sources, sequential native callbacks, actual cleanup
+settlement and distinct Committed/NotCommitted/Unknown facts. Public test scripts
+do not prove SQL atomicity; use the existing real-provider/package consumers and
+report actual evidence limits. Keep operation-result/outgoing delivery work in
+its later modules and CountryData as the one maintained tutorial.
+
 <!-- cis:repository-guidance:start -->
 ## CIS integration
 

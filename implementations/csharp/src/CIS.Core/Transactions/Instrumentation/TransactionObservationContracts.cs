@@ -13,7 +13,7 @@ internal interface ITransactionObservation
     void OwnerPublished();
     void NativeFailure(TransactionNativePhase phase, bool expectedCancellation = false);
     void BeginCleanupFailure(TransactionError error);
-    void Completed(TransactionCompletion completion);
+    void Completed(TransactionCompletion completion, bool rollbackOnly = false);
 }
 
 internal sealed class NullTransactionObservation : ITransactionObservation
@@ -28,7 +28,7 @@ internal sealed class NullTransactionObservation : ITransactionObservation
     public void BeginCleanupFailure(TransactionError error)
     {
     }
-    public void Completed(TransactionCompletion completion)
+    public void Completed(TransactionCompletion completion, bool rollbackOnly = false)
     {
     }
 }
