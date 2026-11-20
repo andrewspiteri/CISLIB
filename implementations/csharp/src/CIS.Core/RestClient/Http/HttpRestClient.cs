@@ -22,25 +22,42 @@ public sealed class HttpRestClient : IRestClient, IAsyncDisposable
     {
         RestClientSnapshot snapshot = RestClientSnapshot.Capture(options);
         if (snapshot.RetryPolicy.PolicyName is not null)
-        { throw new InvalidOperationException("A named retry policy requires the optional host retry registration."); }
+        {
+            throw new InvalidOperationException("A named retry policy requires the optional host retry registration.");
+        }
         var composition = new RestClientComposition(new object(), snapshot.Operations
             .Select(operation => new RestOperationIdentity(snapshot.ClientName, operation)).ToArray());
-        RestHttpTransport transport = borrowed ?? RestHttpTransport.Create();
+        RestHttpTransport transport = borrowed ?? (snapshot.SecurityBinding is { } binding
+            ? RestHttpTransport.CreateSecurityBound(binding, clock: clock) : RestHttpTransport.Create());
         try
         {
             runtime = new RestClientRuntime(composition, [new(snapshot, transport, borrowed is null)], clock ?? TimeProvider.System,
                 logger: RestCallLogging.CreateLogger(loggerFactory));
         }
-        catch
+        catch (Exception original)
         {
-            if (borrowed is null) { transport.DisposeAsync().AsTask().GetAwaiter().GetResult(); }
+            if (borrowed is null)
+            {
+                try
+                {
+                    transport.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                }
+                catch (Exception cleanup)
+                {
+                    throw new AggregateException("REST construction and owned transport cleanup both failed.", original, cleanup);
+                }
+            }
             throw;
         }
-        name = snapshot.ClientName; ownsRuntime = true;
+        name = snapshot.ClientName;
+        ownsRuntime = true;
     }
 
     internal HttpRestClient(RestClientRuntime runtime, string name)
-    { this.runtime = runtime; this.name = name; }
+    {
+        this.runtime = runtime;
+        this.name = name;
+    }
 
     /// <inheritdoc/>
     public Task<RestResult<T>> Get<T>(string url, RestRequestOptions? options = null, CancellationToken cancellationToken = default)

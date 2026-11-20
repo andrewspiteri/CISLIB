@@ -4,6 +4,8 @@ using System.Xml.Linq;
 using CIS.Metrics.OpenTelemetry;
 using CIS.RestClient.Http;
 using CIS.RestClient.Resilience;
+using CIS.Security.Certificates;
+using CIS.Security.Entra;
 using CIS.TestSupport;
 using CIS.Tests.IntegrationTests.RestClient;
 using CIS.Tests.UnitTests.RestClient;
@@ -24,7 +26,8 @@ public sealed class CountryDataPackageConsumerTests
         string identity = "CountryData." + new string('界', 100);
         Assert.IsTrue(Encoding.UTF8.GetByteCount(identity) > 256 && identity.EnumerateRunes().Count() <= 255);
         using RestPackage package = await RestPackage.PrepareAsync(TestContext, identity, typeof(HttpRestClient).Assembly,
-            typeof(MetricsOptions).Assembly, typeof(RestClientResilienceServiceCollectionExtensions).Assembly);
+            typeof(MetricsOptions).Assembly, typeof(RestClientResilienceServiceCollectionExtensions).Assembly,
+            typeof(CertificateTrustPolicy).Assembly, typeof(EntraSecurityOptions).Assembly);
         string app = Directory.CreateDirectory(Path.Combine(package.Root, "app")).FullName;
         string source = Path.Combine(CandidatePackageFixture.Repository(), "implementations/csharp/examples/CountryData");
         foreach (string file in Directory.GetFiles(source, "*.cs"))
@@ -41,7 +44,8 @@ public sealed class CountryDataPackageConsumerTests
         consumer.Descendants("Import").Remove();
         consumer.Descendants("InternalsVisibleTo").Remove();
         consumer.Root!.AddFirst(new XElement("Sdk", new XAttribute("Name", "CIS.Core"), new XAttribute("Version", package.Version)));
-        consumer.Root.Add(new XElement("ItemGroup", new[] { "CIS.Metrics.OpenTelemetry", "CIS.RestClient.Resilience" }
+        consumer.Root.Add(new XElement("ItemGroup", new[] { "CIS.Metrics.OpenTelemetry", "CIS.RestClient.Resilience",
+            "CIS.Security.Certificates", "CIS.Security.Entra" }
             .Select(id => new XElement("PackageReference", new XAttribute("Include", id), new XAttribute("Version", "[" + package.Version + "]")))));
         string project = Path.Combine(app, "CountryData.csproj"), assemblyName = consumer.Descendants("AssemblyName").Single().Value;
         Assert.AreEqual("CIS.CountryData", assemblyName);

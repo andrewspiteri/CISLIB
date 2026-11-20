@@ -1,6 +1,6 @@
 # CisLib
 
-CisLib implements Logging, Type Manager, Healthcheck, Heartbeat, Startup, Configuration, portable Metrics, typed RestClient and sequential Workflows in the C# `CIS.Core` package and assembly. The optional `CIS.Metrics.OpenTelemetry` package adds bounded Prometheus collection and native HTTP integration; `CIS.RestClient.Resilience` adds explicitly selected retry policies. It targets .NET 10; Core uses the approved Microsoft runtime dependencies and `Microsoft.AspNetCore.App`. Applications own runtime startup, shutdown and resources. The library does not depend on Change Impact Studio.
+CisLib implements Logging, Type Manager, Healthcheck, Heartbeat, Startup, Configuration, portable Metrics, typed RestClient, sequential Workflows and portable security contracts in the C# `CIS.Core` package and assembly. The optional `CIS.Metrics.OpenTelemetry` package adds bounded Prometheus collection and native HTTP integration; `CIS.RestClient.Resilience` adds explicitly selected retry policies. `CIS.Security.Entra` and `CIS.Security.Certificates` provide explicit native identity integration and bounded certificate renewal. It targets .NET 10; Core uses the approved Microsoft runtime dependencies and `Microsoft.AspNetCore.App`. Applications own runtime startup, shutdown and resources. The library does not depend on Change Impact Studio.
 
 The single maintained runnable tutorial is [CountryData](implementations/csharp/examples/CountryData/README.md), using real CIS REST and normal CISApplication startup. Small dedicated test fixtures retain assembly, protocol, ownership and package boundaries; ordinary Git history retains retired application source.
 
@@ -32,6 +32,8 @@ Pack the library and its Type Manager build assets directly:
 dotnet pack src/CIS.Core/CIS.Core.csproj -c Release -o ../../.artifacts/packages
 dotnet pack src/CIS.Metrics.OpenTelemetry/CIS.Metrics.OpenTelemetry.csproj -c Release -o ../../.artifacts/packages
 dotnet pack src/CIS.RestClient.Resilience/CIS.RestClient.Resilience.csproj -c Release -o ../../.artifacts/packages
+dotnet pack src/CIS.Security.Entra/CIS.Security.Entra.csproj -c Release -o ../../.artifacts/packages
+dotnet pack src/CIS.Security.Certificates/CIS.Security.Certificates.csproj -c Release -o ../../.artifacts/packages
 ```
 
 A local development package is not a published release. Scoped checks and current cleanup results are recorded in [cleanup disposition](planning/cis/cleanup-disposition.md). Direct coverage/mutation commands are documented in [native verification](implementations/csharp/verification/mutation/README.md). Complete platform, coverage, mutation, compatibility and release qualification remain separate obligations in [current decisions](planning/decisions.md). The removed preparation, custody, replay and recovery command protocols are retired; they do not require reimplementation in CIS.
@@ -39,6 +41,7 @@ A local development package is not a published release. Scoped checks and curren
 | Product | Current reference |
 | --- | --- |
 | Application | [CISApplication](docs/modules/application/core.md), [CountryData](implementations/csharp/examples/CountryData/README.md) |
+| Security | [Caller and capability contracts](docs/modules/security/README.md), [Entra](docs/modules/security/entra.md), [certificate trust](docs/modules/security/certificates.md), [credential renewal](docs/modules/security/credentials.md), [isolated local setup](docs/modules/security/local-development.md), [CountryData service/caller](docs/modules/security/consumer.md) |
 | Environment and Logging | [EnvironmentOptions](docs/modules/logging/environment-options.md), [runtime ownership](docs/modules/logging/runtime-contract.md), [incoming frontend](docs/modules/logging/incoming-pipeline.md), [processing policies](docs/modules/logging/processing-policies.md), [interpolation](docs/modules/logging/interpolation.md) |
 | Type Manager | [Definition](planning/type-manager/sources/CIS_Type_Manager_Definition_v1.0.md), [inventory build integration](implementations/csharp/build/type-manager/README.md), [Configuration boundary](docs/modules/type-management/configuration-boundary.md) |
 | Healthcheck | [Usage and transports](docs/modules/healthcheck/README.md), [technical intent](planning/healthcheck/technical-intent.md), [contracts](planning/healthcheck/contract-catalog.md) |

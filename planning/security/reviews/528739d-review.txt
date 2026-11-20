@@ -1,0 +1,54 @@
+I reviewed **[`528739d`](https://github.com/andrewspiteri/CISLIB/commit/528739d28574aca8bea54a583b5c6e3fc2fba125)** against the previously reviewed `74fce40`, and confirmed that it is still the branch head.
+
+**The original runtime findings are addressed, and the Windows certificate-chain requirement is now explicit and tested. I found one new P2 issue in the Entra recheck cancellation path that I would correct before merging.**
+
+## Remaining finding
+
+### P2 — A caller joining an existing Entra recheck loses its cancellation request
+
+**Location:** [EntraProfileRuntime.cs, lines 353–355](https://github.com/andrewspiteri/CISLIB/blob/528739d28574aca8bea54a583b5c6e3fc2fba125/implementations/csharp/src/CIS.Security.Entra/EntraProfileRuntime.cs#L353-L355)
+
+The new coalescing path returns the existing recovery task directly:
+
+```csharp
+if (recovery is { IsCompleted: false })
+{
+    return recovery;
+}
+```
+
+That shared task uses the cancellation token belonging to the caller that started it. A subsequent caller’s token is checked before joining, but never observed again. This conflicts with the public control contract’s requirement that the recheck remains under the caller’s operation ownership. [Public contract](https://github.com/andrewspiteri/CISLIB/blob/528739d28574aca8bea54a583b5c6e3fc2fba125/implementations/csharp/src/CIS.Core/Security/Contracts/ISecurityCredentialControl.cs#L11-L13)
+
+The failure sequence is deterministic:
+
+1. Recheck A starts an SDK acquisition with `CancellationToken.None`; the acquisition remains in flight.
+2. Recheck B calls `RequestSourceRecheckAsync(tokenB)` and joins A’s task.
+3. `tokenB` is cancelled while that acquisition is still running.
+4. The SDK acquisition succeeds, and **B also completes successfully**, despite its cancellation.
+
+The existing concurrency test verifies shared work and disposal settlement, but both recheck calls omit a cancellation token, so it misses this case. [Current test](https://github.com/andrewspiteri/CISLIB/blob/528739d28574aca8bea54a583b5c6e3fc2fba125/implementations/csharp/tests/CIS.Security.IntegrationTests/Entra/EntraWorkloadAcquisitionTests.cs#L316-L377)
+
+**Suggested correction:** retain the single shared acquisition and settlement task, but make a cancellable joining caller observe its own cancellation after the shared work settles successfully. Preserve underlying faults and the existing cleanup guarantees.
+
+A focused regression should hold one recovery acquisition, join with a second caller’s token, cancel only that second caller, then release the SDK successfully. Assert that:
+
+- Only one recovery acquisition occurred.
+- The first caller succeeds.
+- The second caller observes cancellation.
+- The underlying SDK work has actually settled.
+
+## Previous findings
+
+| Previous concern | Review outcome |
+|---|---|
+| **Required Entra readiness could become permanently unhealthy** | **Resolved.** The existing Heartbeat owner can now reacquire through the reused SDK credential independently of business requests. The new facade tests exercise initial acquisition failure and failure after idle expiry, followed by recovery on the same host. [Recovery tests](https://github.com/andrewspiteri/CISLIB/blob/528739d28574aca8bea54a583b5c6e3fc2fba125/implementations/csharp/tests/CIS.Security.IntegrationTests/Entra/EntraReadinessRecoveryTests.cs#L29-L119) |
+| **Certificate retirement failure could be swallowed while availability remained healthy** | **Resolved.** Eligible retirement cleanup is awaited before adoption reports success, and terminal transport closure takes precedence in availability. Later cleanup faults from held responses are also observed. The new tests cover both timing cases and preservation of the original exception. [Transport correction](https://github.com/andrewspiteri/CISLIB/blob/528739d28574aca8bea54a583b5c6e3fc2fba125/implementations/csharp/src/CIS.Core/RestClient/Http/RestHttpTransport.cs#L307-L317), [availability correction](https://github.com/andrewspiteri/CISLIB/blob/528739d28574aca8bea54a583b5c6e3fc2fba125/implementations/csharp/src/CIS.Security.Certificates/Hosting/CertificateProfileAvailability.cs#L136-L170), [regression tests](https://github.com/andrewspiteri/CISLIB/blob/528739d28574aca8bea54a583b5c6e3fc2fba125/implementations/csharp/tests/CIS.Security.IntegrationTests/Certificates/CertificateRetirementFailureTests.cs#L23-L143) |
+| **Windows intermediate-chain support was insufficiently qualified** | **Resolved through an explicit deployment contract.** The guide now describes the supported issuer/provisioning arrangements and the unsupported generic root-only peer case. Real TLS tests distinguish Windows and Linux behaviour using an intermediate without AIA. Windows still requires the documented arrangement; the fix does not add implicit certificate-store writes. [Deployment guidance](https://github.com/andrewspiteri/CISLIB/blob/528739d28574aca8bea54a583b5c6e3fc2fba125/docs/modules/security/credentials.md#L173-L196), [TLS tests](https://github.com/andrewspiteri/CISLIB/blob/528739d28574aca8bea54a583b5c6e3fc2fba125/implementations/csharp/tests/CIS.Core.IntegrationTests/RestClient/RestSecurityIntermediateChainTests.cs#L15-L55) |
+
+The Entra recovery approach also preserves the intended architecture: the SDK owns token caching and renewal, while CIS uses its existing Heartbeat and lifecycle owners for availability checks. The checks are coalesced and rate bounded. [Entra lifecycle guidance](https://github.com/andrewspiteri/CISLIB/blob/528739d28574aca8bea54a583b5c6e3fc2fba125/docs/modules/security/entra.md#L197-L255)
+
+## Verification and completion status
+
+The updated verification record reports **125 focused passing cases on each OS**, comprising 47 Entra, 60 certificate, and 18 REST/transport cases. It also records affected Release builds with zero warnings and errors. These are meaningful additions to the previous evidence. **I inspected the source and test design, but did not independently rerun those tests because this review environment has no .NET SDK.** [Verification record](https://github.com/andrewspiteri/CISLIB/blob/528739d28574aca8bea54a583b5c6e3fc2fba125/docs/changes/CIS-0016/verification.md#L333-L358)
+
+Actual **AKS federation (AC-02)** and **cert-manager issuance, mounting and renewal (AC-24)** remain unverified, as the record correctly states. Those deployment acceptance checks still need to be completed before treating RM-01 as fully qualified. [Remaining acceptance scope](https://github.com/andrewspiteri/CISLIB/blob/528739d28574aca8bea54a583b5c6e3fc2fba125/docs/changes/CIS-0016/verification.md#L373-L377)

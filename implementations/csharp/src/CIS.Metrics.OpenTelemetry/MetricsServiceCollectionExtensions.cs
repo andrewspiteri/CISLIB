@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using CIS.RestClient;
 using CIS.Workflows;
+using CIS.Security.Hosting;
 using global::OpenTelemetry.Metrics;
 
 namespace CIS.Metrics.OpenTelemetry;
@@ -55,7 +56,8 @@ public static class MetricsServiceCollectionExtensions
         services.AddSingleton(guard);
         services.AddSingleton(new MetricsHostingOrder(services));
         services.AddSingleton(provider => new MetricsCollectionContext(provider, settings, guard,
-            RestComposition(services), WorkflowComposition(services), StateMachineCompositionMetadata(services)));
+            RestComposition(services), WorkflowComposition(services), StateMachineCompositionMetadata(services),
+            SecurityCompositionMetadata(services)));
         services.AddSingleton<IMetrics>(provider => provider.GetRequiredService<MetricsCollectionContext>().Metrics);
         if (settings.CollectCoreModules)
         {
@@ -148,6 +150,23 @@ public static class MetricsServiceCollectionExtensions
         if (markers.Length != 1 || markers[0].ImplementationInstance is not StateMachineComposition composition)
         {
             throw new InvalidOperationException("State-machine composition must have one passive registration-owned metadata instance.");
+        }
+
+        return composition;
+    }
+
+    private static SecurityComposition? SecurityCompositionMetadata(IServiceCollection services)
+    {
+        ServiceDescriptor[] markers = services.Where(descriptor => !descriptor.IsKeyedService
+            && descriptor.ServiceType == typeof(SecurityComposition)).ToArray();
+        if (markers.Length == 0)
+        {
+            return null;
+        }
+
+        if (markers.Length != 1 || markers[0].ImplementationInstance is not SecurityComposition composition)
+        {
+            throw new InvalidOperationException("Security composition must have one passive registration-owned metadata instance.");
         }
 
         return composition;

@@ -207,3 +207,10 @@ runtime or repeating discovery. A failed Type Manager preparation publishes no
 manager/report, so no synthetic failed-instance gauge is created. Host collection
 admission and actual callback settlement still precede owner disposal. Native
 module/exporter verification is recorded separately in the change evidence.
+
+## Security catalog
+
+The conditional [security catalog](security.md) defines composite authorization
+decisions, material certificate-reload transitions and retained leaf validity.
+Its finite profile reservations share the existing global limits and do not
+duplicate native HTTP measurements.

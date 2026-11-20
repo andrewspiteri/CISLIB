@@ -58,6 +58,15 @@ completion contracts, reports, per-call scope ownership and actual settlement.
 Reuse automatic Logging/Metrics and keep the example and shared skill aligned
 with the implemented APIs.
 
+## Security identity, capabilities and transport
+
+For `CIS.Security`, selected native providers or CountryData security work, read
+the [Security skill](.github/skills/cislib-security/SKILL.md) and its current contract,
+adapter and ownership links. Preserve actual central identity, complete server
+resource authorization, explicit host stages, sequential credential Startup and
+native TLS/response drain. Keep the default unselected tutorial behavior. Local
+native evidence cannot replace AC-02/AC-24 deployment proof.
+
 <!-- cis:repository-guidance:start -->
 ## CIS integration
 

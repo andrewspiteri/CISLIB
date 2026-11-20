@@ -21,7 +21,7 @@ internal sealed record RestLimitsSnapshot(long MaxResponseBytes, int MaxErrorBod
 internal sealed class RestClientSnapshot
 {
     private static readonly string[] FramingHeaders = ["Host", "Content-Length", "Content-Type", "Transfer-Encoding", "Connection", "Upgrade", "Trailer", "TE"];
-    private RestClientSnapshot(RestClientOptions options)
+    private RestClientSnapshot(RestClientOptions options, bool deferredAuthentication)
     {
         if (!RestContractRules.Alias(options.ClientName))
         {
@@ -48,6 +48,7 @@ internal sealed class RestClientSnapshot
         LogCalls = options.LogCalls;
         ConfigureRequest = options.ConfigureRequest;
         Authenticate = options.Authenticate;
+        SecurityBinding = options.SecurityBinding;
         Codec = options.Codec;
         ResponseMapper = options.ResponseMapper;
         var headers = new RestHeaders();
@@ -62,6 +63,7 @@ internal sealed class RestClientSnapshot
         }
         Operations = Array.AsReadOnly(new[] { "request" }.Concat(operations).ToArray());
         string[] origins = Copy(options.AllowedOrigins, 32, "allowedOrigins");
+        ExplicitOrigins = origins.Length != 0;
         if (origins.Length == 0 && BaseUrl is not null)
         {
             origins = [new Uri(BaseUrl).GetLeftPart(UriPartial.Authority)];
@@ -86,6 +88,10 @@ internal sealed class RestClientSnapshot
             throw new ArgumentException("Inherited authentication without a base needs explicit allowed origins.");
         }
         AllowedOrigins = Array.AsReadOnly(normalized.ToArray());
+        if (SecurityBinding is not null)
+        {
+            ApplySecurityBinding(SecurityBinding, deferredAuthentication);
+        }
         CredentialHeaders = Array.AsReadOnly(Copy(options.CredentialHeaders, 32, "credentialHeaders"));
         CredentialQueryParameters = Array.AsReadOnly(Copy(options.CredentialQueryParameters, 32, "credentialQueryParameters"));
         if (CredentialHeaders.Any(name => !RestContractRules.Method(name))
@@ -110,10 +116,48 @@ internal sealed class RestClientSnapshot
         }
         Handlers = Array.AsReadOnly(handlers);
     }
-    internal static RestClientSnapshot Capture(RestClientOptions options)
+    internal static RestClientSnapshot Capture(RestClientOptions options, bool deferredAuthentication = false)
     {
         ArgumentNullException.ThrowIfNull(options);
-        return new(options);
+        return new(options, deferredAuthentication);
+    }
+    internal RestClientSnapshot WithSecurityBinding(RestSecurityBinding binding,
+        Func<RestAuthenticationContext, CancellationToken, Task>? authenticate)
+    {
+        ArgumentNullException.ThrowIfNull(binding);
+        if (SecurityBinding is not null && !ReferenceEquals(SecurityBinding, binding))
+        {
+            throw new InvalidOperationException("The deferred binding cannot replace an already selected security owner.");
+        }
+        var copied = (RestClientSnapshot)MemberwiseClone();
+        copied.Authenticate = authenticate ?? Authenticate;
+        copied.ApplySecurityBinding(binding, deferredAuthentication: false);
+        return copied;
+    }
+
+    private void ApplySecurityBinding(RestSecurityBinding binding, bool deferredAuthentication)
+    {
+        if (ExplicitOrigins && !binding.HasExactOrigins(AllowedOrigins)
+            || BaseUrl is not null && !binding.Allows(new Uri(BaseUrl)))
+        {
+            throw new ArgumentException("The REST client must retain its security binding's exact HTTPS destination policy.");
+        }
+        if (!deferredAuthentication && binding.CredentialKind == RestSecurityCredentialKind.RequestAuthentication
+            && Authenticate is null)
+        {
+            throw new ArgumentException("Request-authenticated security bindings require their selected final callback.");
+        }
+        SecurityBinding = binding;
+        AllowedOrigins = binding.AllowedOrigins;
+    }
+
+    private bool ExplicitOrigins
+    {
+        get;
+    }
+    internal RestSecurityBinding? SecurityBinding
+    {
+        get; private set;
     }
     internal string ClientName
     {
@@ -161,7 +205,7 @@ internal sealed class RestClientSnapshot
     }
     internal Func<RestAuthenticationContext, CancellationToken, Task>? Authenticate
     {
-        get;
+        get; private set;
     }
     internal IRestContentCodec? Codec
     {
@@ -177,7 +221,7 @@ internal sealed class RestClientSnapshot
     }
     internal IReadOnlyList<string> AllowedOrigins
     {
-        get;
+        get; private set;
     }
     internal IReadOnlyList<string> CredentialHeaders
     {
@@ -234,6 +278,10 @@ internal sealed class RestCallSnapshot
     private RestCallSnapshot(RestClientSnapshot client, RestRequestOptions? input, CancellationToken token, TimeSpan? capturedTimeout)
     {
         token.ThrowIfCancellationRequested();
+        if (client.SecurityBinding is not null && (input?.DisableAuthentication == true || input?.Authenticate is not null))
+        {
+            throw new ArgumentException("A security-bound REST call cannot suppress or replace its selected authentication.", nameof(input));
+        }
         if (input is not null && (input.DisableAuthentication && input.Authenticate is not null
             || input.DisableConfigureRequest && input.ConfigureRequest is not null))
         {

@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:cislib:security:v1",
+  "title": "CISLIB portable security data v1; serialization does not establish authentication",
+  "$comment": "Select the applicable $defs entry. Bindings additionally enforce nonblank, control-free well-formed Unicode scalar text and trusted authentication/mapping; this structural schema cannot establish authority.",
+  "$defs": {
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["issuer", "identifier"],
+      "properties": {
+        "issuer": { "type": "string", "minLength": 1, "maxLength": 1024 },
+        "identifier": { "type": "string", "minLength": 1, "maxLength": 1024 }
+      }
+    },
+    "capability": {
+      "type": "string",
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)*$"
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["application", "environment"],
+      "dependentRequired": { "resourceType": ["resourceIdentifier"], "resourceIdentifier": ["resourceType"] },
+      "properties": {
+        "application": { "type": "string", "minLength": 1, "maxLength": 255 },
+        "environment": { "type": "string", "minLength": 1, "maxLength": 255 },
+        "resourceType": { "type": "string", "minLength": 1, "maxLength": 1024 },
+        "resourceIdentifier": { "type": "string", "minLength": 1, "maxLength": 1024 }
+      }
+    },
+    "instance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {
+        "kind": { "enum": ["NotProvided", "Reported", "Verified"] },
+        "reportedIdentifier": { "type": "string", "minLength": 1, "maxLength": 1024 },
+        "verifiedIdentifier": { "type": "string", "minLength": 1, "maxLength": 1024 }
+      },
+      "allOf": [
+        { "if": { "properties": { "kind": { "const": "NotProvided" } } }, "then": { "not": { "anyOf": [ { "required": ["reportedIdentifier"] }, { "required": ["verifiedIdentifier"] } ] } } },
+        { "if": { "properties": { "kind": { "const": "Reported" } } }, "then": { "required": ["reportedIdentifier"], "not": { "required": ["verifiedIdentifier"] } } },
+        { "if": { "properties": { "kind": { "const": "Verified" } } }, "then": { "required": ["verifiedIdentifier"] } }
+      ]
+    },
+    "grant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profile", "capability", "application", "environment", "resourceSelection"],
+      "properties": {
+        "profile": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "capability": { "$ref": "#/$defs/capability" },
+        "application": { "type": "string", "minLength": 1, "maxLength": 255 },
+        "environment": { "type": "string", "minLength": 1, "maxLength": 255 },
+        "subject": { "$ref": "#/$defs/subject" },
+        "mappedRole": { "type": "string", "minLength": 1, "maxLength": 1024 },
+        "requiredProviderRole": { "type": "string", "minLength": 1, "maxLength": 1024 },
+        "resourceSelection": { "enum": ["TargetOnly", "ExactResource", "AllOfType"] },
+        "resourceType": { "type": "string", "minLength": 1, "maxLength": 1024 },
+        "resourceIdentifier": { "type": "string", "minLength": 1, "maxLength": 1024 }
+      },
+      "oneOf": [
+        { "required": ["subject"], "not": { "required": ["mappedRole"] } },
+        { "required": ["mappedRole"], "not": { "required": ["subject"] } }
+      ],
+      "allOf": [
+        { "if": { "properties": { "resourceSelection": { "const": "TargetOnly" } } }, "then": { "not": { "anyOf": [ { "required": ["resourceType"] }, { "required": ["resourceIdentifier"] } ] } } },
+        { "if": { "properties": { "resourceSelection": { "const": "ExactResource" } } }, "then": { "required": ["resourceType", "resourceIdentifier"] } },
+        { "if": { "properties": { "resourceSelection": { "const": "AllOfType" } } }, "then": { "required": ["resourceType"], "not": { "required": ["resourceIdentifier"] } } }
+      ]
+    },
+    "caller": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profile", "authenticationMethod", "subject", "actorKind", "instance", "authentication", "policyVersion"],
+      "dependentRequired": { "application": ["environment"], "environment": ["application"] },
+      "allOf": [
+        { "if": { "required": ["humanSubject"], "properties": { "actorKind": { "const": "Application" } } }, "then": { "required": ["verifiedDelegation"] } }
+      ],
+      "properties": {
+        "profile": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "authenticationMethod": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "subject": { "$ref": "#/$defs/subject" },
+        "actorKind": { "enum": ["Application", "User"] },
+        "application": { "type": "string", "minLength": 1, "maxLength": 255 },
+        "environment": { "type": "string", "minLength": 1, "maxLength": 255 },
+        "instance": { "$ref": "#/$defs/instance" },
+        "authentication": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["validatedAtUtc"],
+          "properties": {
+            "validatedAtUtc": { "type": "string", "format": "date-time" },
+            "expiresAtUtc": { "type": "string", "format": "date-time" },
+            "credentialIdentifier": { "type": "string", "minLength": 1, "maxLength": 1024 }
+          }
+        },
+        "policyVersion": { "type": "string", "minLength": 1, "maxLength": 1024 },
+        "humanSubject": { "$ref": "#/$defs/subject" },
+        "verifiedDelegation": { "type": "string", "minLength": 1, "maxLength": 1024 }
+      }
+    },
+    "failure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message", "source"],
+      "properties": {
+        "code": { "enum": ["security.credential_unavailable", "security.credential_invalid", "security.credential_expired", "security.unauthenticated", "security.identity_unmapped", "security.capability_denied", "security.validation_unavailable", "security.authentication_rejected", "security.cause_unknown"] },
+        "message": { "type": "string", "minLength": 1, "maxLength": 512 },
+        "source": { "enum": ["Local", "Remote", "Unknown"] },
+        "httpStatusCode": { "type": "integer", "minimum": 100, "maximum": 599 },
+        "providerCode": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "transportCode": { "type": "string", "minLength": 1, "maxLength": 128 }
+      }
+    }
+  }
+}

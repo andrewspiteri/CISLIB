@@ -21,11 +21,22 @@ internal sealed class RestResponseLimitException()
     : RestHttpExpectedException("client.response_too_large", "The consumed response exceeds the configured limit.");
 internal sealed class RestResponseReadException(Exception inner, int? status = null)
     : RestHttpExpectedException("client.transport_error", "The response body could not be read.", inner)
-{ internal int? HttpStatusCode { get; } = status; }
+{
+    internal int? HttpStatusCode { get; } = status;
+}
 internal sealed class RestRequestWriteException(Exception inner)
     : RestHttpExpectedException("client.transport_error", "The request payload could not be transferred.", inner);
 internal sealed class RestContentPreparationException(Exception? inner = null)
     : RestHttpExpectedException("client.preparation_failed", "The request content could not be prepared within the selected capability.", inner);
 internal sealed class RestTransportException(Exception inner, RestTransportFailureKind kind)
     : RestHttpExpectedException("client.transport_error", "The HTTP exchange could not be completed.", inner)
-{ internal RestTransportFailureKind Kind { get; } = kind; }
+{
+    internal RestTransportFailureKind Kind { get; } = kind;
+}
+internal sealed class RestCredentialException(CIS.Security.SecurityFailure failure)
+    : RestHttpExpectedException("client.authentication_failed", failure.Message)
+{
+    internal CIS.Security.SecurityFailure Failure { get; } = failure;
+}
+internal sealed class RestSecurityPolicyException()
+    : RestHttpExpectedException("client.preparation_failed", "The native request violates its immutable security binding.");

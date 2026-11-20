@@ -91,3 +91,23 @@ and actual reads, including retransferred payload and any diagnostic probe.
 Unknown partial failed writes are not guessed. Response-header completion is
 separate from body consumption and owned cleanup; native HTTP timing cannot
 replace the entry-to-settlement logical duration.
+
+## Explicit security bindings
+
+Selected security adapters bind the same REST client and native transport to one
+immutable credential/destination policy. The stable transport can adopt at most
+one current and one draining certificate generation while retaining actual
+response/body leases. Server trust is a separate startup snapshot. See
+[security-bound REST](../security/transport.md) for the public binding, constrained
+TLS material seam, renewal ownership and typed failure detail. Unbound clients
+keep the native behavior described above.
+
+Windows native certificate owners settle their certificate only after the actual
+handler/server and response owners drain. If its recorded temporary key backing
+remains, cleanup reopens only that captured user-key container, verifies its exact
+provider/name/unique file identity, deletes it through the native provider, and
+proves the exact file absent. CSP cleanup uses the captured provider type and key
+number with `UseExistingKey`; it cannot create a replacement key. Capture,
+disposal, identity or deletion failures keep the finite custody scope closed and
+unresolved. No certificate-store inventory, directory scan or garbage collection
+is used to claim cleanup.

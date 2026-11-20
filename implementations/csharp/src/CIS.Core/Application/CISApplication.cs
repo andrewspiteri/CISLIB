@@ -2,6 +2,7 @@ using System.Runtime.ExceptionServices;
 using CIS.Healthcheck;
 using CIS.Healthcheck.AspNetCore;
 using CIS.Logging;
+using CIS.Security.Hosting;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -160,6 +161,12 @@ public sealed class CISApplication : IAsyncDisposable
             if (built is WebApplication application)
             {
                 application.UseRouting();
+                bool securityEnabled = application.Services.GetService<SecurityComposition>() is not null;
+                if (securityEnabled)
+                {
+                    application.UseCisSecurityAuthentication();
+                }
+
                 foreach (ICISApplicationIntegration integration in integrations)
                 {
                     integration.ConfigureWeb(application);
@@ -189,6 +196,11 @@ public sealed class CISApplication : IAsyncDisposable
 
                     await next(context).ConfigureAwait(false);
                 });
+                if (securityEnabled)
+                {
+                    application.UseCisSecurityAuthorization();
+                }
+
                 map!(application);
             }
 

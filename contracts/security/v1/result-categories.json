@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "categories": [
+    { "kind": "CredentialUnavailable", "code": "security.credential_unavailable" },
+    { "kind": "CredentialInvalid", "code": "security.credential_invalid" },
+    { "kind": "CredentialExpired", "code": "security.credential_expired" },
+    { "kind": "Unauthenticated", "code": "security.unauthenticated" },
+    { "kind": "IdentityUnmapped", "code": "security.identity_unmapped" },
+    { "kind": "CapabilityDenied", "code": "security.capability_denied" },
+    { "kind": "ValidationUnavailable", "code": "security.validation_unavailable" },
+    { "kind": "AuthenticationRejected", "code": "security.authentication_rejected" },
+    { "kind": "CauseUnknown", "code": "security.cause_unknown" }
+  ],
+  "protocolObservations": [
+    { "observation": "arbitrary-http-403", "httpStatusCode": 403, "knownKind": "CauseUnknown" },
+    { "observation": "native-certificate-authentication-rejected", "httpStatusCode": 403, "knownKind": "Unauthenticated" },
+    { "observation": "tls-handshake-without-http-response", "httpStatusCode": null, "knownKind": "CauseUnknown" }
+  ]
+}

@@ -77,6 +77,16 @@ internal sealed class MetricsStreamCatalog
                 WorkflowModule("cis.statemachine.handler.duration", MetricKind.Timer, MetricUnit.Seconds,
                     ["handler", "machine", "outcome", "phase"], 384);
             }
+            if (settings.CollectSecurity)
+            {
+                int profileCategories = checked(settings.SecurityProfileCapacity + 1);
+                SecurityModule("cis.security.authorization.decisions", MetricKind.Counter, MetricUnit.Count,
+                    ["outcome", "profile"], checked(profileCategories * 2));
+                SecurityModule("cis.security.certificate.reloads", MetricKind.Counter, MetricUnit.Count,
+                    ["outcome", "profile"], checked(profileCategories * 3));
+                SecurityModule("cis.security.certificate.remaining", MetricKind.ObservableGauge, MetricUnit.Seconds,
+                    ["profile"], profileCategories);
+            }
             if (modules.Count > settings.MaxDefinitions)
             {
                 throw new ArgumentException("The known CIS module definitions exceed the configured definition capacity.");
@@ -187,6 +197,16 @@ internal sealed class MetricsStreamCatalog
         if (settings.Streams.GetValueOrDefault(name)?.CardinalityLimit is { } configured && configured < minimumCapacity)
         {
             throw new ArgumentException("The workflow stream override cannot cover its admitted finite alias profile.");
+        }
+
+        Module(name, kind, unit, keys, minimumCapacity);
+    }
+
+    private void SecurityModule(string name, MetricKind kind, MetricUnit unit, IReadOnlyList<string> keys, int minimumCapacity)
+    {
+        if (settings.Streams.GetValueOrDefault(name)?.CardinalityLimit is { } configured && configured < minimumCapacity)
+        {
+            throw new ArgumentException("The security stream override cannot cover its admitted finite profile aliases.");
         }
 
         Module(name, kind, unit, keys, minimumCapacity);

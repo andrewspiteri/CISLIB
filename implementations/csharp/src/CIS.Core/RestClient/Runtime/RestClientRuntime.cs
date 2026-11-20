@@ -55,6 +55,7 @@ internal sealed class RestClientRuntime : IRestClientRuntime, IAsyncDisposable
                 throw new ArgumentException("Use distinct valid client bindings.", nameof(bindings));
             }
             SelectPolicy(binding.Options.RetryPolicy);
+            binding.Transport.ValidateBinding(binding.Options.SecurityBinding, binding.Options.AllowedOrigins);
         }
         var declared = new HashSet<RestOperationIdentity>(composition.Operations);
         var actual = new HashSet<RestOperationIdentity>(this.bindings.Values.SelectMany(binding =>
@@ -398,6 +399,15 @@ internal sealed class RestClientRuntime : IRestClientRuntime, IAsyncDisposable
                 current.RemoteErrorCode = mapped.RemoteErrorCode;
                 current.Outcome = new(current.Status, mapped.FailureKind, mapped.ErrorCode,
                     RetryAfter(current.Headers), current.BodyStarted, CanReplay(), Method: request.Method);
+                if (binding.Options.SecurityBinding is not null && current.Status is 401 or 403)
+                {
+                    current.Outcome = current.Outcome with
+                    {
+                        SecurityFailure = new CIS.Security.SecurityFailure(CIS.Security.SecurityFailureKind.CauseUnknown,
+                            "The remote HTTP status does not establish a precise security cause.",
+                            CIS.Security.SecurityFailureSource.Unknown, current.Status)
+                    };
+                }
             }
             catch (ReplayRejected error)
             {
@@ -507,13 +517,16 @@ internal sealed class RestClientRuntime : IRestClientRuntime, IAsyncDisposable
             if (expected is AttemptRejected declared)
             {
                 current.Outcome = new(current.Status, declared.Failure.Kind, declared.Failure.Code,
-                    BodyReplayable: CanReplay(), RetryEligible: declared.RetryEligible && declared.Failure.Code != "client.unsupported_operation", Method: request?.Method ?? method);
+                    BodyReplayable: CanReplay(), RetryEligible: declared.RetryEligible && declared.Failure.Code != "client.unsupported_operation", Method: request?.Method ?? method)
+                {
+                    SecurityFailure = declared.Failure.SecurityFailure
+                };
                 current.Explanation = declared.Failure.Explanation;
                 current.RemoteErrorCode = declared.Failure.RemoteErrorCode;
             }
             else if (expected is RestHttpExpectedException identified)
             {
-                MapExpected(current, identified, request?.Method ?? method, CanReplay());
+                MapExpected(current, identified, request?.Method ?? method, CanReplay(), binding.Options.SecurityBinding is not null);
             }
             if (caller.IsCancellationRequested)
             {
@@ -752,13 +765,15 @@ internal sealed class RestClientRuntime : IRestClientRuntime, IAsyncDisposable
     private static string? RetryAfter(IReadOnlyDictionary<string, IReadOnlyList<string>> headers)
         => headers.TryGetValue("Retry-After", out var values) ? values.FirstOrDefault() : null;
 
-    private static void MapExpected<T>(AttemptResult<T> current, RestHttpExpectedException error, string method, bool replayable)
+    private static void MapExpected<T>(AttemptResult<T> current, RestHttpExpectedException error, string method, bool replayable, bool securityBound)
     {
         RestFailureKind kind = error switch
         {
             RestDecodingException => RestFailureKind.InvalidResponse,
             RestResponseLimitException => RestFailureKind.LimitExceeded,
             RestContentPreparationException => RestFailureKind.Preparation,
+            RestSecurityPolicyException => RestFailureKind.Preparation,
+            RestCredentialException => RestFailureKind.Authentication,
             _ => RestFailureKind.Transport
         };
         if (error is RestResponseReadException read && current.Status is null)
@@ -768,7 +783,16 @@ internal sealed class RestClientRuntime : IRestClientRuntime, IAsyncDisposable
         current.Decoded = RestDecodedValue<T>.Absent;
         current.Explanation = error.Message;
         current.Outcome = new(current.Status, kind, error.Code, RetryAfter(current.Headers), current.BodyStarted, replayable,
-            true, error is RestTransportException transport ? transport.Kind : kind == RestFailureKind.Transport ? RestTransportFailureKind.Other : null, method);
+            error is not RestCredentialException and not RestSecurityPolicyException,
+            error is RestTransportException transport ? transport.Kind : kind == RestFailureKind.Transport ? RestTransportFailureKind.Other : null, method)
+        {
+            SecurityFailure = error is RestCredentialException credential ? credential.Failure
+                : securityBound && error is RestTransportException native
+                    ? new CIS.Security.SecurityFailure(CIS.Security.SecurityFailureKind.CauseUnknown,
+                        "The native transport failure does not establish a precise security cause.",
+                        CIS.Security.SecurityFailureSource.Unknown, current.Status, transportCode: native.Kind.ToString())
+                    : null
+        };
     }
     private static AttemptResult<T> SourceFailure<T>(RestFailureKind kind, bool attempt = false)
     {
@@ -792,7 +816,8 @@ internal sealed class RestClientRuntime : IRestClientRuntime, IAsyncDisposable
         {
             HttpStatusCode = current.Status ?? current.Outcome.HttpStatusCode,
             FailureKind = kind,
-            ErrorCode = source.Outcome.ErrorCode
+            ErrorCode = source.Outcome.ErrorCode,
+            SecurityFailure = null
         };
         return current;
     }
@@ -810,6 +835,10 @@ internal sealed class RestClientRuntime : IRestClientRuntime, IAsyncDisposable
         var context = new RestResultContext(terminal.Outcome.HttpStatusCode, terminal.Headers, successful && terminal.Decoded.HasValue,
             terminal.Outcome.FailureKind, terminal.RemoteErrorCode, terminal.ErrorBody, terminal.ErrorBodyTruncated,
             message.Truncated, client, call.OperationName, dispatches, elapsed, retryStop, trace);
+        if (!successful && terminal.Outcome.SecurityFailure is { } securityFailure)
+        {
+            context = context.WithSecurityFailure(securityFailure);
+        }
         if (!successful)
         {
             return RestResult<T>.Failed(terminal.Outcome.ErrorCode ?? "client.preparation_failed", message.Message!, context);

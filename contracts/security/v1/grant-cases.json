@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "profile": "fixture",
+  "subject": { "issuer": "issuer-a", "identifier": "application-a" },
+  "capabilities": ["rules.read", "rules.publish"],
+  "grants": [
+    { "capability": "rules.read", "application": "ApplicationA", "environment": "Development", "selection": "TargetOnly" },
+    { "capability": "rules.publish", "application": "ApplicationB", "environment": "Production", "selection": "TargetOnly" },
+    { "capability": "rules.read", "application": "ApplicationA", "environment": "Development", "selection": "ExactResource", "resourceType": "country", "resourceIdentifier": "MT" },
+    { "capability": "rules.read", "application": "ApplicationA", "environment": "Development", "selection": "AllOfType", "resourceType": "status" }
+  ],
+  "cases": [
+    { "id": "complete-read", "requires": ["rules.read"], "application": "ApplicationA", "environment": "Development", "allow": true },
+    { "id": "complete-publish", "requires": ["rules.publish"], "application": "ApplicationB", "environment": "Production", "allow": true },
+    { "id": "no-cross-product-publish", "requires": ["rules.publish"], "application": "ApplicationA", "environment": "Development", "allow": false },
+    { "id": "no-cross-product-read", "requires": ["rules.read"], "application": "ApplicationB", "environment": "Production", "allow": false },
+    { "id": "all-required", "requires": ["rules.read", "rules.publish"], "application": "ApplicationA", "environment": "Development", "allow": false },
+    { "id": "exact-resource", "requires": ["rules.read"], "application": "ApplicationA", "environment": "Development", "resourceType": "country", "resourceIdentifier": "MT", "allow": true },
+    { "id": "wrong-resource", "requires": ["rules.read"], "application": "ApplicationA", "environment": "Development", "resourceType": "country", "resourceIdentifier": "JP", "allow": false },
+    { "id": "all-of-one-type", "requires": ["rules.read"], "application": "ApplicationA", "environment": "Development", "resourceType": "status", "resourceIdentifier": "current", "allow": true },
+    { "id": "all-of-type-is-not-cross-environment", "requires": ["rules.read"], "application": "ApplicationA", "environment": "Production", "resourceType": "status", "resourceIdentifier": "current", "allow": false },
+    { "id": "ordinal-environment", "requires": ["rules.read"], "application": "ApplicationA", "environment": "development", "allow": false },
+    { "id": "unknown-capability", "requires": ["unknown.action"], "application": "ApplicationA", "environment": "Development", "allow": false },
+    { "id": "issuer-qualified-subject", "issuer": "issuer-b", "requires": ["rules.read"], "application": "ApplicationA", "environment": "Development", "allow": false }
+  ]
+}

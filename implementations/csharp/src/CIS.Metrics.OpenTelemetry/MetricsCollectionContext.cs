@@ -7,6 +7,7 @@ using CIS.Logging.MicrosoftLogger;
 using CIS.TypeManagement;
 using CIS.RestClient;
 using CIS.Workflows;
+using CIS.Security.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -29,13 +30,13 @@ internal sealed class MetricsCollectionContext : IAsyncDisposable
 
     internal MetricsCollectionContext(IServiceProvider root, MetricsSettings settings, MetricsRegistrationGuard guard,
         RestClientComposition? restComposition = null, WorkflowsComposition? workflowsComposition = null,
-        StateMachineComposition? stateMachineComposition = null)
+        StateMachineComposition? stateMachineComposition = null, SecurityComposition? securityComposition = null)
     {
         this.root = root;
         this.guard = guard;
         this.restComposition = restComposition;
         settings = settings.ForComposition(restComposition is not null, workflowsComposition is not null,
-            stateMachineComposition is not null);
+            stateMachineComposition is not null, securityComposition?.ProfileCapacity ?? 0);
         Settings = settings;
         IMeterFactory factory = root.GetRequiredService<IMeterFactory>();
         CisMeter = factory.Create("CIS.Metrics", "1.0.0");
@@ -148,6 +149,10 @@ internal sealed class MetricsCollectionContext : IAsyncDisposable
         if (Settings.CollectStateMachines)
         {
             root.GetRequiredService<StateMachineInstrumentation>().AttachMetrics(Runtime);
+        }
+        if (Settings.CollectSecurity)
+        {
+            root.GetRequiredService<SecurityComposition>().Telemetry.AttachMetrics(Runtime);
         }
         if (restComposition is not null)
         {

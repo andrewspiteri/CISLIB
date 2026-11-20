@@ -45,6 +45,13 @@ public sealed class RestClientOptions
     {
         get; set;
     }
+    /// <summary>Gets or sets an explicit immutable security owner/policy; null retains ordinary unbound behavior.</summary>
+    /// <remarks>Provider adapters derive this from the actual root SecurityPolicySnapshot. A low-level
+    /// metadata binding does not activate a security profile or authenticate a caller.</remarks>
+    public RestSecurityBinding? SecurityBinding
+    {
+        get; set;
+    }
     /// <summary>Gets default headers copied during registration.</summary>
     public RestHeaders Headers { get; } = new();
     /// <summary>Gets or sets a positive finite total timeout; default thirty seconds.</summary>
