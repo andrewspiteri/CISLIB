@@ -55,6 +55,20 @@ and pass them through private test configuration/password-file input. Never
 print DSNs/passwords, commit credentials or change global Docker configuration.
 Use a task-private Docker client configuration and the inspected local engine
 endpoint for the public image; do not look up operator registry credentials.
+The private configuration contains
+`{"auths":{"https://index.docker.io/v1/":{}}}`. The reviewed Docker CLI 29.6.1
+[loader](https://github.com/docker/cli/blob/v29.6.1/cli/config/config.go#L154-L163)
+skips default credential-helper discovery when
+[the auth map has an entry](https://github.com/docker/cli/blob/v29.6.1/cli/config/configfile/file.go#L136-L142),
+even though that entry has no credentials. An empty map alone is insufficient.
+Also remove `DOCKER_AUTH_CONFIG` from the child environment by name without
+reading its value: that version's
+[credential lookup](https://github.com/docker/cli/blob/v29.6.1/cli/config/configfile/file.go#L305-L352)
+can otherwise override private file credentials. Use explicit `--config` and the
+known local `--host`, clear child connection/context overrides by name, validate
+the private JSON and confirm the installed CLI version before the registry call.
+No global configuration or parent environment is changed. This four-minute
+read-only source preparation created no Docker resources or credential access.
 Allow only exact created resource IDs/ownership markers for stop/removal.
 Keep the selected image as a counted dependency or remove it only when proven
 newly owned and unshared. No engine/image/volume prune.
@@ -66,7 +80,7 @@ at most three fixture tables, 128 rows per table and 1 KiB per application paylo
 Keep logs bounded. Native test/build lanes are coordinated rather than sharing
 mutable outputs concurrently.
 
-Reserve one counted GiB inside the proposed shared eight-GiB ceiling:
+Reserve one counted GiB inside the approved retained shared six-GiB ceiling:
 
 | Newly owned Docker material | Admission/accounting bound |
 | --- | --- |

@@ -170,4 +170,47 @@ runs never opened; CIS rejected it without applying a change. The corrected
 checkpoint records external results with `closeAttempt=false`, preserving that
 rejection and all measured/source costs. No automatic attempt or consumption was
 invented or reset. The manual external foundation slice is complete.
+
+## WORK-002 lifecycle native checkpoint
+
+Twenty-five new cases qualify admission/reentry, same-callback misuse, external
+disposal joins, accepted final marks, native commit cancellation cutoffs,
+conservative Unknown, original-fault precedence, operation-token lifetime,
+cooperative rollback-budget settlement, three ordered cleanup failures and
+unavailable clocks. They retain the 29 foundation cases. No production, public
+API, instrumentation hook or provider-double changes were needed.
+
+Scoped formatting and verify-no-changes passed. The affected Release build passed
+with zero warnings/errors. Windows and actual Ubuntu each passed all **54 cases**,
+zero failed/skipped. All evidence starts at
+`.artifacts/transactions/CIS-0017/WORK-002/`: `lifecycle-format`,
+`lifecycle-format-verify`, `lifecycle-build/native.log`,
+`lifecycle-test/results/lifecycle-windows.trx`,
+`lifecycle-linux/results/lifecycle-linux.trx` and `lifecycle-receipt.json`.
+The current source-built and executed Core bytes match SHA-256
+`0f7de3247a67cdfde4ac8fbd50f80068cf341274e20272bcb31656e7584e8823`.
+SDK/product-runtime pins remain 10.0.401/10.0.12 with roll-forward disabled.
+
+[Independent lifecycle review](review-002.md) found no required findings and
+confirmed both receipt/TRX hashes and the six-class scope: 8 admission,
+6 cleanup, 11 completion, 3 contract, 13 foundation and 13 registration cases.
+Controlled holds are released and joined in finally paths; cancellation is
+observed through the real rollback token rather than sleep timing. A canceled
+budget does not publish completion before the held provider operation settles.
+
+Source authors reported forty and twenty active minutes within their one shared
+authoring cap, plus the separately retained five-minute preparation. Independent
+review used twelve minutes. Root source/coordination estimates and measured native
+invocations remain separately charged. The only WORK-002 code changes are its
+three new test files; the portable contract explains the verified token lifetime.
+These cases execute no SQL. They do not substitute for actual PostgreSQL,
+concrete Logging/Metrics or public-package consumption, which remain pending.
+
+CIS then returned WORK-002 Complete with valid:true and the approved five-task
+plan retained. Controller progress is at work revision
+`8351035b241f4939ace19b3cc8d71d81:2595`; it records these external results with
+`closeAttempt=false`. The external lifecycle slice is closed without fabricating
+automatic CIS consumption. WORK-003/004/005 can now be admitted under their
+existing finite allocations and stable public/instrumentation contracts.
 | WORK-001 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1860; failed=264; possibleTokenSavings=591; ledgerDigest=sha256:60522c6f33be15bb6e0f5944e0b2628b8e802c5ed7b22dbda99ecf684088ddbf |
+| WORK-002 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1864; failed=264; possibleTokenSavings=591; ledgerDigest=sha256:fa63460b344ab7a83d695ea7124e0c16c61a4235c5c67f2c2bc3ff6bfb90321d |

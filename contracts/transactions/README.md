@@ -61,6 +61,13 @@ reasons are `transaction.work_failed` and `transaction.work_cancelled`; an
 unrelated cancellation exception is a work failure unless the supplied token is
 actually canceled. Ordinary business return values are never inspected.
 
+Tokens belong to the operation that accepts them. Canceling a begin token after
+the owner was returned does not cancel that owner or later calls. Canceling a
+work token after its callback and final checkpoint completed does not
+retroactively poison the transaction. Pass the intended operation token explicitly
+to each begin, native callback and commit. Cancellation never substitutes a
+completed wait for an admitted callback or native invocation's real settlement.
+
 `MarkRollbackOnly` preserves the first nonempty printable ASCII reason of at most
 128 characters. It shares synchronization with completion ownership, so an
 accepted mark cannot be lost before commit. An application deliberately catching
@@ -118,9 +125,16 @@ transitions retain their existing meaning; enclose only short database work,
 pass the context explicitly and inspect the workflow result before committing.
 Remote HTTP/broker/file/cache effects do not participate in this atomic boundary.
 
-The initial Core foundation uses recording native-provider tests for contracts,
-admission and resource ownership. They execute no SQL and cannot prove database
-atomicity. Subsequent owned qualification supplies real PostgreSQL/Npgsql
+Core uses recording native-provider tests for contracts, admission, ownership and
+the terminal lifecycle. Controlled holds cover rejected overlap/reentry,
+same-callback misuse, external disposal joining callbacks/commit/cleanup,
+rollback-only/completion synchronization, exact cancellation cutoffs, original
+fault precedence, cooperative rollback-budget settlement and ordered cleanup
+failures. Clock failure leaves duration unknown. These tests execute no SQL and
+cannot prove database atomicity. The focused lifecycle qualification executed
+54 cases on each actual Windows/Ubuntu lane; see the scoped results and candidate
+hashes in [CIS-0017 verification](../../docs/changes/CIS-0017/verification.md).
+Subsequent owned qualification supplies real PostgreSQL/Npgsql
 three-table/isolation/cancellation evidence, operational observations, public
 CommonTesting/package consumption and the maintained consumer guide. An EF
 interop recipe is not an executed EF adapter, and a simulated lost acknowledgement
