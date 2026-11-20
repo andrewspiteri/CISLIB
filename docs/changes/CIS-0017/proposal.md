@@ -2,7 +2,7 @@
 title: "Local transaction integration (RM-02)"
 type: change-proposal
 record_format: proportionate
-status: Proposed
+status: "Closed"
 change_id: CIS-0017
 outcome: "Implement the specified portable local transaction owner/context and guarded ADO.NET participation in Core, with conservative persistence outcomes and actual cleanup; qualify the PostgreSQL three-table pattern outside Core dependencies, add bounded existing telemetry/public testing/package consumption/docs/skill, preserving laterRM03/RM04 and actual platform/evidence boundaries."
 baseline_kind: git

@@ -339,3 +339,20 @@ Aggregate native receipt SHA-256:
 `b87f67decb588c854cbaa606788f125ebde3a7092c4a1195e1439aaff223155e`.
 Later small documentation/accounting metadata remains counted; this observation
 is neither a hard filesystem quota nor a future free-space guarantee.
+
+## Human-authorized integration closeout — 21 November 2026
+
+Andrew Spiteri explicitly instructed: "push and merge the RM-02 branch to main
+and close it off before moving on to the next module." This authorizes publishing
+the completed branch, merging it into main, closing this dossier and deleting the
+merged feature branch. It supersedes the implementation phase's push/merge
+exclusion for this exact completed work; no release or additional product
+execution is authorized or claimed.
+
+The integration baseline remains 539a05d184432b5b8c131caf8454a44d0134c692;
+01732ec012ee98033360af912b29420cd35bba4c is the completed implementation head.
+All six tasks are Complete. The recorded Windows130/Ubuntu129 focused results,
+exact-candidate receipts, unverified Linux SDK-backed package/EF/network/release
+limits, restored owned resources and protected untracked launch settings remain
+unchanged. This closeout changes documentation/lifecycle records only; it does
+not rerun completed native work or establish a new tested binary.
