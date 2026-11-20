@@ -336,7 +336,17 @@ internal sealed class EntraProfileRuntime : IAsyncDisposable, ISecurityCredentia
         {
             ObjectDisposedException.ThrowIf(admissionClosed, this);
         }
-        return new(RecheckAvailabilityAsync(cancellationToken, explicitRequest: true));
+        Task work = RecheckAvailabilityAsync(cancellationToken, explicitRequest: true);
+        return new(cancellationToken.CanBeCanceled
+            ? CompleteRecheckForCallerAsync(work, cancellationToken)
+            : work);
+    }
+
+    private static async Task CompleteRecheckForCallerAsync(Task work, CancellationToken cancellationToken)
+    {
+        // Retain actual shared settlement and its original fault before observing this caller's cancellation.
+        await work.ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
     }
 
     private Task RecheckAvailabilityAsync(CancellationToken cancellationToken, bool explicitRequest = false)

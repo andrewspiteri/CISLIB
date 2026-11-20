@@ -378,5 +378,49 @@ require authorized infrastructure. Shared30hours/32attempts, every protected
 reserve and the physical6GiB ceiling remain unchanged; conservative manual costs
 and measured native receipts stay separate from CIS automatic counters. No push,
 merge or release accompanies this correction.
+
+# Joining source-recheck cancellation — 20 November 2026
+
+The user's [second review](../../../planning/security/reviews/528739d-review.txt)
+identified one remaining Entra public-control defect. Supporting WORK-011 retains
+the single shared recovery/acquisition task. A cancellable public caller awaits
+that task's real settlement, then checks its own token only after success. An
+underlying SDK or cleanup fault remains primary. The joiner never cancels another
+caller's shared acquisition; noncancellable callers retain the shared task
+directly. SDK cache ownership, cadence, Startup and disposal are unchanged.
+
+Two new rows hold the shared SDK operation, cancel only the joining caller and
+verify no early completion or SDK cancellation. On success the first caller
+succeeds and the joiner receives cancellation with its own token after actual
+settlement. On an unexpected SDK fault, both callers retain the exact original
+exception. The existing noncancellable identity/disposal regression remains.
+
+All receipts below are under `.artifacts/security/CIS-0016/review-follow-up`:
+
+| Check | Actual result | Receipt |
+| --- | --- | --- |
+| Before-fix regression | 1 failed, 1 passed: the successful-SDK row reproduced the missing joining cancellation; the original-fault row already passed. This failed run remains preserved. | `17-cancellation-regression-red/results/joining-red.trx` |
+| Fixed Windows Entra suite | 49 passed, 0 failed/skipped, including both new rows and existing readiness, acquisition, SDK/cache, JWT and drain cases. | `21-cancellation-windows-entra/results/entra-cancellation.trx` |
+| Fixed Linux Entra suite | 49 passed, 0 failed/skipped on the already-qualified Linux ELF10.0.12 host and existing managed VSTest lane. No runtime/SDK installation was needed. | `22-cancellation-linux-entra/results/linux-native.trx` |
+| Build/style | Pinned Release build reports 0 warnings/errors; whitespace format and verify pass for the two changed C# files. | `20-cancellation-fixed-build/native.log`; `native-costs.jsonl` phases18/19 |
+| Independent review | 2 active minutes found no material issue with the production wrapper, precedence, first/joining caller semantics, tests or guide. | WORK-011 completion evidence; current source/guide |
+
+The affected provider/test DLLs match in the integration output. The one new
+Windows key import has its Removed receipt and exact backing absence; no stores
+or existing keys were inventoried. Temporary Linux-test parent access was
+restored exactly and new fixture directories remain protected. Original source
+and user launch settings hashes are unchanged. See the separate
+`.artifacts/security/CIS-0016/review-cancellation` candidate, custody, access,
+preservation and resource receipts. Prior platform/retirement evidence is
+historical and is not relabelled as a fresh run by this narrow correction.
+
+The [fourth delegated distribution](review-follow-up.md#second-review-joining-caller-cancellation)
+funds one shared hour and two attempts from unused WORK-009 ordinary capacity,
+without reopening a completed contract or changing total limits/reserves.
+All agents, intake, tests, native work, docs and closeout share that allocation.
+Actual AKS federation (AC-02), cert-manager deployment (AC-24), broader Linux
+utility/privacy and release qualification remain unverified. This correction
+includes no push, merge or release.
 | WORK-009 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1808; failed=254; possibleTokenSavings=591; ledgerDigest=sha256:60fd36b0ace3cc9e1cf7519ce9ae5fd7534ae43f60ab14d1b0d39452c2e21431 |
 | WORK-010 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1810; failed=254; possibleTokenSavings=591; ledgerDigest=sha256:671a23860c35a2c17274f2caaf2c124c0fc41dbdd6b946e9e2ef6a898c2abf15 |
+| WORK-011 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1817; failed=255; possibleTokenSavings=591; ledgerDigest=sha256:cdb06af62ff9f221d14d03cce9a72f6faf361400ea6548b41663f2286b61be43 |

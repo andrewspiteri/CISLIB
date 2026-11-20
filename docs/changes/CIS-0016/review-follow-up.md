@@ -51,3 +51,26 @@ writes are permitted on either lane.
 
 Actual AKS federation (AC-02), cert-manager issuance/mount/renewal (AC-24) and
 release qualification remain outside this local correction.
+
+## Second review: joining caller cancellation
+
+The user's [review of 528739d](../../../planning/security/reviews/528739d-review.txt)
+identifies a public Entra source-recheck caller that joins existing recovery but
+loses its later cancellation. Supporting WORK-011 owns the narrow correction,
+held-work regression, original-fault precedence, affected Windows/Linux Entra
+tests, guide, formatting and independent review. Public cancellable calls await
+the actual shared settlement before checking their own token. They neither
+abandon settlement nor cancel the shared SDK operation on behalf of a joiner.
+The original shared failure remains primary; calls without cancellable tokens
+retain the shared task directly. SDK ownership and runtime Startup are unchanged.
+
+The fourth delegated redistribution transfers one unused ordinary hour and two
+unused attempts from completed WORK-009 to WORK-011. WORK-009 retains 5,400 seconds
+and 2 attempts, above its recorded actual costs; WORK-011 has 3,600 seconds and 2 attempts.
+The recorded allocation input includes the third distribution already applied
+in the ledger for WORK-009/010 and this fourth transfer.
+Every other allocation, completed contract, historical cost and protected reserve
+is preserved. The shared totals remain 30 hours, 32 attempts and the physical 6 GiB
+ceiling with 64 MiB reserve. This includes intake, all agents, native work, tests,
+documentation and local closeout. The new work includes no push, merge, release
+or external deployment.

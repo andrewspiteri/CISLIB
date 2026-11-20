@@ -243,7 +243,11 @@ configured TCP probe.
 For an enabled Entra outbound role this joins a bounded SDK availability check;
 concurrent requests join the same in-flight work. It does not promise a new
 token, force an SDK renewal, clear its cache or replay an operation. A check
-inside the minimum spacing may complete without another SDK call. Receiving-only
+inside the minimum spacing may complete without another SDK call. A joining
+caller's cancellation does not cancel another caller's shared acquisition or
+complete its wait before actual settlement. After successful shared settlement,
+each cancellable caller checks its own token; an original shared SDK or cleanup
+fault remains primary. Receiving-only
 profiles perform no outgoing check. A borrowed **typed**
 `WorkloadIdentityCredential` factory is a trusted native integration seam, invoked
 only at Startup. The supplying application owns that credential. Application
