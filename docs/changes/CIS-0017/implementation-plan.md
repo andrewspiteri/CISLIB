@@ -1,16 +1,20 @@
 ---
 title: RM-02 local transactions bounded implementation plan
 type: implementation-plan
-status: Proposed
+status: Approved
 ---
 
 # RM-02 local transaction integration
 
-This is a proposed implementation plan against main `539a05d1`, using the
+This is the approved implementation plan against main `539a05d1`, using the
 [preserved specification](../../../planning/transactions/sources/CISLIB_RM02_Local_Transaction_Integration_Specification_v1.0.md).
 The user requested the next module and started Docker after the prerequisite
-question. Those actions permit intake; approval of this scope, dependency and
-allocation is still required before implementation/native execution. No previous
+question. Andrew Spiteri subsequently approved this scope, dependency profile and
+allocation, and CIS registered the five canonical tasks. He then approved retaining
+the original 6 GiB ceiling with exact generated-fixture cleanup, resolving the
+installed allocator's inability to amend a shared ceiling. The
+[storage resolution](storage-resolution-proposal.md) records that decision and
+its bounded cleanup. No previous
 completed owner or unused RM-01 grant authorizes RM-02.
 
 ## Reconciled contract profile
@@ -39,18 +43,18 @@ public-endpoint caching and manual test-catalogue workflows are inapplicable.
 
 ## Five coherent outcomes
 
-WORK labels below are proposed task identities, registered through CIS after the
-single outcome decision. Each includes its tests, docs, formatting, independent
+WORK labels below are canonical task identities, registered through CIS under the
+outcome decision. Each includes its tests, docs, formatting, independent
 review and evidence. Public delivery remains incomplete until all applicable
 outcomes pass; a contract-only checkpoint is not full runtime delivery.
 
-| Proposed task | Owned implementation outcome and acceptance | Dependencies | Shared hours / attempts / restoration sec |
+| Task | Owned implementation outcome and acceptance | Dependencies | Shared hours / attempts / restoration sec |
 | --- | --- | --- | --- |
-| WORK-001 | Contracts, immutable options/registration, native begin and acquired-resource cleanup; portable contract and zero-I/O/ambient/alias/isolation tests. AC-01–04 and registration/ownership part of AC-23. Includes all already-performed intake. | none | 4 / 5 / 300 |
+| WORK-001 | Contracts, immutable options/registration, native begin and acquired-resource cleanup; portable contract and zero-I/O/ambient/alias/isolation tests. AC-01–04 and registration/ownership part of AC-23. Includes all already-performed intake. | none | 5 / 5 / 300 |
 | WORK-002 | Same owner writer completes public native participation, admission/reentry, rollback-only/terminal race, commit outcomes and actual cancellation/disposal. Recording native-provider doubles cover lost acknowledgement, ordered cleanup faults and exact invocation counts. AC-05 identity, AC-08,13–21 and relevant AC-11/12/26. | WORK-001 | 6 / 7 / 900 |
 | WORK-003 | Isolated PostgreSQL fixture, three-table real consumer, explicit provider/config pins, server isolation/query cancellation, host-owned pool survival, dependency inspection and concise DB/EF-recipe documentation. AC-05–07,09–12,22–23 and DB portion of AC-28. | WORK-002 | 5 / 6 / 900 |
 | WORK-004 | Transaction instrumentation plus existing collector/catalog composition, one duration, balanced active lifecycle, safe logging and native-failure phases. Native recorder/actual scrape, late/disabled/host isolation and throwing telemetry. AC-24–26 and diagnostic portions of AC-16/17. | Stable WORK-001/002 hooks | 4 / 5 / 300 |
-| WORK-005 | Bounded public CommonTesting helper, its behavioral tests and actual outside-friend packages; final consumer guide, module indexes, skill/routing and compiling usage integration. AC-27–28 and section 13.1. | Stable WORK-001/002 public contracts; final integration with WORK-003/004 | 5 / 5 / 300 |
+| WORK-005 | Bounded public CommonTesting helper, its behavioral tests and actual outside-friend packages; final consumer guide, module indexes, skill/routing and compiling usage integration. AC-27–28 and section 13.1. | Stable WORK-001/002 public contracts; final integration with WORK-003/004 | 4 / 5 / 300 |
 
 One writer owns the transaction implementation across WORK-001/002. Freeze its
 instrumentation hooks before delegating observations. Then database qualification,
@@ -59,7 +63,7 @@ ownership. One coordinator owns shared project/package/lock/catalog files and
 serializes builds/tests sharing outputs. Native callbacks, commit and cleanup
 remain sequential; source parallelism never changes that runtime contract.
 
-## One proposed shared allocation
+## One approved shared allocation
 
 **24 active hours (86,400 seconds), 28 logical attempts, including 2,700 protected
 restoration seconds.** All agents, intake already performed, research, source,
@@ -68,21 +72,26 @@ these totals. Organization and redistribution are delegated within them; no cost
 reset or multiplication by agent/task count. Conservative source estimates and
 measured native costs remain distinct from automatic CIS counters.
 
-Propose amending the existing physical counted ceiling from **6 to 8 GiB
-(8,589,934,592 bytes)**, retaining its **64 MiB (67,108,864 bytes) reserve**.
-The current retained footprint is about 5.74 GiB, leaving about 204 MiB beyond
-that reserve at the old ceiling. The new ceiling includes a **1 GiB counted
-Docker fixture allowance**, rather than creating another storage pool. Continue
-counting `.artifacts`, `.cis/local`, `implementations/csharp` and the existing
-native charge. The Docker allowance covers the new immutable image/cache,
-owned data, logs and metadata outside those filesystem roots; record it in the
-same manual physical-group observation before native admission. Do not silently
-borrow a Docker cache/volume outside the ceiling or delete historical evidence.
+Retain the existing physical counted ceiling of **6 GiB (6,442,450,944 bytes)**
+and its **64 MiB (67,108,864 bytes) reserve**, under the subsequent explicit
+storage/cleanup decision. The initial approved 8 GiB amendment remains in the
+canonical authorization history; it was never applied to the ledger.
+The two exactly approved generated fixture folders have been removed after host
+exit checks and a retained hash manifest, reclaiming 4,206,421,532 bytes.
+The resulting observation counts 1,957,008,108 bytes before Docker, including the
+existing native charge. The **1 GiB counted Docker fixture allowance** and reserve
+leave 3,344,592,148 bytes beyond them within the same 6 GiB ceiling.
+Continue counting `.artifacts`, `.cis/local`, `implementations/csharp` and the
+existing native charge. Docker image/cache, owned data, logs and metadata outside
+those filesystem roots remain charged through that same allowance and physical
+group observation. Recount before native expansion; never silently borrow an
+uncounted cache/volume or remove other historical evidence.
 
 The [infrastructure profile](dependency-profile.md#isolated-postgresql-operational-boundary)
-gives exact image identity, resource bounds and owned cleanup. Only newly owned
-RM-02 regenerable scratch/container/volume material may be cleaned under this
-proposal. Never prune the engine or touch another project's database/resources.
+gives exact image identity, resource bounds and owned cleanup. Beyond the two
+exact fixture roots already removed under the specific decision, only newly owned
+RM-02 regenerable scratch/container/volume material may be cleaned. Never prune
+the engine or touch another project's database/resources.
 
 Preserve untracked `CountryData/Properties/launchSettings.json` SHA-256
 `ea7e7219222183193f0361ae674998f1edc43a3789f118748c59f166a4d29784`.
