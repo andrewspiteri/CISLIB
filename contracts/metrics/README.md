@@ -6,6 +6,8 @@ Explicit workflow composition reserves the three instruments in the
 [workflow catalog](workflows.md).
 Explicit state-machine composition adds its independent three-instrument
 [state-machine catalog](statemachine.md).
+Explicit local transaction composition adds the three bounded streams in the
+[transaction catalog](transactions.md).
 
 This is the portable Metrics contract selected for CISLIB v1. It accompanies the
 [supplied requirements](../../planning/metrics/sources/CISLIB_Metrics_Implementation_Specification_v1.0.md)

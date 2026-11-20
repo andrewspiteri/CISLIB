@@ -115,8 +115,16 @@ and [fixed catalog](../../../contracts/metrics/rest-client.md). Its captured log
 binding includes retries, body work and actual cleanup, with completed application
 byte observations. Outgoing Auto uses final known REST composition and the exact
 root meter factory. Native outbound duration ends at headers; it does not establish
-logical duration, owned dispatches or consumed bytes. Database/transfer remain
-future modules; do not implement them to add metrics.
+logical duration, owned dispatches or consumed bytes.
+
+For explicit local transactions, use the
+[transaction catalog](../../../contracts/metrics/transactions.md) and
+[observation guide](../../../docs/modules/transactions/observability.md).
+Capture one complete binding before begin I/O, then measure active/duration only
+from owner publication through actual cleanup using the report's same elapsed
+value. Keep registered database aliases bounded and count actual native failures;
+an application callback fault does not identify a native phase. Transfer remains
+a future module.
 
 Update the affected catalog, documentation and meaningful existing native tests.
 Use [portable cases](../../../conformance/metrics/v1/primitive-cases.json) for

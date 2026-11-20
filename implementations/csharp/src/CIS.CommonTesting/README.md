@@ -38,6 +38,19 @@ not proof of Core scheduling, health-policy evaluation, HTTP or hosted shutdown.
   real TimeProvider timers synchronously; SetUtcNow does not move monotonic time.
   Tests must release held callbacks before cleanup. Advancing time does not join
   arbitrary asynchronous work; await that work's actual completion separately.
+- ScriptedLocalTransactionFactory substitutes the portable transaction factory.
+  Pending scripts and retained owners default to16 each and fail clearly on
+  exhaustion without consuming the next script or evicting recordings. Enqueue()
+  scripts a clean commit; Enqueue(completion, defaultIsolation) supplies immutable
+  commit facts, and EnqueueBeginFailure preserves the original exception. The
+  separate context exposes metadata and first-reason rollback-only marking,
+  without native ADO.NET capability. Marking or pre-commit cancellation refuses a
+  committed script; explicit rollback/disposal normalize noncommit facts and
+  cleanup flags. CreatedTransactions is a detached collection of inspectable
+  owners with CommitRequested, RollbackRequested and DisposeRequested flags.
+  These logical facts execute no SQL, native completion, timers or atomicity.
+  Use a new factory after retained-owner exhaustion. See the
+  [transaction guide](../../../../docs/modules/transactions/README.md#portable-consumer-tests).
 
 A short logical-result test uses only public APIs:
 
