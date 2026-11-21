@@ -1,10 +1,41 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using CIS.Security;
+using CIS.Transactions;
 
 namespace CIS.Operations.Hosting;
 
 /// <summary>Passive definition registration in the application's existing service collection.</summary>
 public static class OperationServiceCollectionExtensions
 {
+    /// <summary>Registers the scoped coordinator in the existing provider without resolving application dependencies or opening a database.</summary>
+    /// <remarks>Register an IOperationJournal, the existing transaction factory and established capability authorization.
+    /// Definitions may be added before or after this call; final passive metadata is checked when a scope resolves the coordinator.</remarks>
+    public static IServiceCollection AddCisOperations(this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        _ = InspectRegistration(services);
+        services.TryAddSingleton(new OperationRegistrationSnapshot([], null));
+        services.TryAddSingleton<LocalApplicationIdentity>(_ => LocalApplicationIdentity.Capture());
+        services.TryAddScoped<IDurableOperationService>(provider =>
+        {
+            (OperationDefinition[] definitions, OperationsComposition? composition) = InspectRegistration(services);
+            OperationRegistrationSnapshot snapshot = provider.GetRequiredService<OperationRegistrationSnapshot>();
+            if (!ReferenceEquals(composition, snapshot.Composition)
+                || !definitions.SequenceEqual(snapshot.Definitions, ReferenceEqualityComparer.Instance))
+            {
+                throw new InvalidOperationException("Build a new provider after changing operation definitions; runtime and host metadata must share one snapshot.");
+            }
+            return new DurableOperationService(provider, snapshot.Definitions,
+                provider.GetRequiredService<LocalApplicationIdentity>(),
+                provider.GetRequiredService<ICapabilityAuthorizer>(),
+                provider.GetRequiredService<ICallerContextAccessor>(),
+                provider.GetRequiredService<IOperationJournal>(),
+                provider.GetRequiredService<ILocalTransactionFactory>());
+        });
+        return services;
+    }
+
     /// <summary>Registers one immutable definition and finite metadata without constructing runtime/scoped services.</summary>
     /// <remarks>Definition registration does not open a database, install schema or register a throwing service placeholder.</remarks>
     public static IServiceCollection AddCisOperation<TRequest, TResult>(this IServiceCollection services,
@@ -28,11 +59,15 @@ public static class OperationServiceCollectionExtensions
         {
             services.Remove(descriptor);
         }
-        services.AddSingleton(new OperationsComposition(identity, existing.Append(definition).Select(item => item.Name)));
+        OperationDefinition[] definitions = existing.Append(definition).ToArray();
+        var composition = new OperationsComposition(identity, definitions.Select(item => item.Name));
+        services.AddSingleton(composition);
+        services.RemoveAll<OperationRegistrationSnapshot>();
+        services.AddSingleton(new OperationRegistrationSnapshot(definitions, composition));
         return services;
     }
 
-    private static (OperationDefinition[] Definitions, OperationsComposition? Composition) InspectRegistration(IServiceCollection services)
+    internal static (OperationDefinition[] Definitions, OperationsComposition? Composition) InspectRegistration(IServiceCollection services)
     {
         var existing = new List<OperationDefinition>();
         foreach (ServiceDescriptor descriptor in services.Where(item => item.ServiceType == typeof(OperationDefinition)))
@@ -72,3 +107,5 @@ public static class OperationServiceCollectionExtensions
         return (existing.ToArray(), composition);
     }
 }
+
+internal sealed record OperationRegistrationSnapshot(OperationDefinition[] Definitions, OperationsComposition? Composition);

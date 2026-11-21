@@ -63,7 +63,7 @@
       ],
       "acceptanceCriteria": "P04-P08/P11/P13 and AC02/03/06/07/08/10/12: one nongeneric module-wide weak context admission across instances/types, native claim/read then outside-callback handler then native terminal write; exact original context, separate Prepared/Replayed/business/persistence facts. Existing capability authorization before first/replay/lookup; after-claim between-callback failures poison and preserve originals. Fresh authoritativeRC lookup owns only its read resources and preserves known committed facts plus read cleanup diagnostics.",
       "validation": "Controlled store/ADO tests for cross-instance/generic nested/repeated/concurrent admission, exactcontext/DB/isolation preflight, input snapshot, authorization/denial/audit fault/cancellation beforestore orhandler, nativecallbacknonreentry, handler/encode/size/write/CT faults, rollbackonly refusal, exact resultfidelity/version/conflict/expiry precedence and freshlookup while claim uncommitted. No automatic ownercompletion/retry; docs/style/build and independentreview.",
-      "status": "Draft",
+      "status": "Complete",
       "taskTypeKey": "core.legacy",
       "taskTypeVersion": "1.0",
       "approvalGate": "none",
@@ -197,55 +197,6 @@
       "contractErrors": []
     },
     {
-      "id": "WORK-005",
-      "category": "implementation",
-      "complexity": "medium",
-      "parentId": null,
-      "taskPath": "agent-tasks/WORK-005.md",
-      "title": "Integrate bounded operation logging and existing Metrics collection",
-      "requirementIds": [],
-      "impactIds": [],
-      "dependsOn": [
-        "WORK-002"
-      ],
-      "acceptanceCriteria": "P14/AC14: one captured binding and two conditional operation timers, fixed16aliases times13execute/9lookup outcomes (208\u002B144=352), mandatory centralidentity/standardbuckets and unchanged globalcapacities. Prepared is preparation notcommittedsuccess; no duplicate transaction/polling measurements, rawkeys/scopes/payloads/SQL/exceptionlabels. Normalcallsquiet bydefault, diagnosticfailure cannotreplace originalfacts/faults.",
-      "validation": "Core diagnostic-throw/disabled/lateattach/mismatchedowner and once-timing tests; actual native SDK/exporterscrapes with central labels, finiteoutcomes, bothregistrationorders, explicitsmallprofilevalidation, CoreModulesoptout and hostisolation. WithRM02selected assert26streams/3808capacity and meaningful affectedTransaction/Rest/Security/catalog regressions. Catalog/observationdocs, scopedbuild/style and independentcurrentTRX/hashreview.",
-      "status": "Draft",
-      "taskTypeKey": "core.legacy",
-      "taskTypeVersion": "1.0",
-      "approvalGate": "none",
-      "targets": [],
-      "decisionIds": [],
-      "negativeCriteria": [],
-      "requiredOutputs": [],
-      "frontendType": null,
-      "storyId": null,
-      "instanceKey": "outcome:331e595402bd4d29b05c68895386a167",
-      "workOwnerTaskId": null,
-      "authorizationScopeIds": [
-        "observations"
-      ],
-      "authorizationScopeBasis": "sha256:590c80a48831f95782753ad4f964b519bce18cac5432193b80f720bc91bde276",
-      "workPaths": [],
-      "assignee": "Codex",
-      "verificationObligations": [
-        {
-          "id": "task-contract",
-          "criteria": [
-            "P14/AC14: one captured binding and two conditional operation timers, fixed16aliases times13execute/9lookup outcomes (208\u002B144=352), mandatory centralidentity/standardbuckets and unchanged globalcapacities. Prepared is preparation notcommittedsuccess; no duplicate transaction/polling measurements, rawkeys/scopes/payloads/SQL/exceptionlabels. Normalcallsquiet bydefault, diagnosticfailure cannotreplace originalfacts/faults."
-          ],
-          "description": "Core diagnostic-throw/disabled/lateattach/mismatchedowner and once-timing tests; actual native SDK/exporterscrapes with central labels, finiteoutcomes, bothregistrationorders, explicitsmallprofilevalidation, CoreModulesoptout and hostisolation. WithRM02selected assert26streams/3808capacity and meaningful affectedTransaction/Rest/Security/catalog regressions. Catalog/observationdocs, scopedbuild/style and independentcurrentTRX/hashreview.",
-          "evidenceRoute": "review",
-          "evidenceExpectations": [
-            "Core diagnostic-throw/disabled/lateattach/mismatchedowner and once-timing tests; actual native SDK/exporterscrapes with central labels, finiteoutcomes, bothregistrationorders, explicitsmallprofilevalidation, CoreModulesoptout and hostisolation. WithRM02selected assert26streams/3808capacity and meaningful affectedTransaction/Rest/Security/catalog regressions. Catalog/observationdocs, scopedbuild/style and independentcurrentTRX/hashreview."
-          ],
-          "sharedGateIds": [],
-          "basisReferences": []
-        }
-      ],
-      "contractErrors": []
-    },
-    {
       "id": "WORK-006",
       "category": "implementation",
       "complexity": "medium",
@@ -287,6 +238,56 @@
           "evidenceRoute": "review",
           "evidenceExpectations": [
             "Publichelper normal/conflict/replay/expiry/incompatible/denied/failure/cancellation/bounds/contextrecording tests; actual Windows pack/freshlocalfeedrestore/build/child/deployed/currenthashes and shippingdependencyclosure. Run available Windows/Ubuntu runtimecases; fullLinuxSDKpackage unexecuted if noexistingroute. Validate actualguideAPIs/local links and focusedskill with bundled workflow/fresh-context usage review. No secondtutorial/harness; integratedsource/nativeevidence review and exacttemporarycleanup."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-005",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-005.md",
+      "title": "Integrate bounded operation logging and existing Metrics collection",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-002"
+      ],
+      "acceptanceCriteria": "P14/AC14: one captured binding and two conditional operation timers, fixed16aliases times13execute/9lookup outcomes (208\u002B144=352), mandatory centralidentity/standardbuckets and unchanged globalcapacities. Prepared is preparation notcommittedsuccess; no duplicate transaction/polling measurements, rawkeys/scopes/payloads/SQL/exceptionlabels. Normalcallsquiet bydefault, diagnosticfailure cannotreplace originalfacts/faults. Include only the narrow public-boundary observation decorator, required passive hosting wiring and captured LogCalls option for this already-approved P14 integration; preserve the sequential coordinator protocol and keep runtime concerns independent of collector SDKs.",
+      "validation": "Core diagnostic-throw/disabled/lateattach/mismatchedowner and once-timing tests; actual native SDK/exporterscrapes with central labels, finiteoutcomes, bothregistrationorders, explicitsmallprofilevalidation, CoreModulesoptout and hostisolation. WithRM02selected assert26streams/3808capacity and meaningful affectedTransaction/Rest/Security/catalog regressions. Catalog/observationdocs, scopedbuild/style and independentcurrentTRX/hashreview.",
+      "status": "Draft",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:331e595402bd4d29b05c68895386a167",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "observations",
+        "execution-recovery"
+      ],
+      "authorizationScopeBasis": "sha256:fdfec979f6e533151e027266b08c1f158678264f550232b14b25198a2f5a25e2",
+      "workPaths": [],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "P14/AC14: one captured binding and two conditional operation timers, fixed16aliases times13execute/9lookup outcomes (208\u002B144=352), mandatory centralidentity/standardbuckets and unchanged globalcapacities. Prepared is preparation notcommittedsuccess; no duplicate transaction/polling measurements, rawkeys/scopes/payloads/SQL/exceptionlabels. Normalcallsquiet bydefault, diagnosticfailure cannotreplace originalfacts/faults. Include only the narrow public-boundary observation decorator, required passive hosting wiring and captured LogCalls option for this already-approved P14 integration; preserve the sequential coordinator protocol and keep runtime concerns independent of collector SDKs."
+          ],
+          "description": "Core diagnostic-throw/disabled/lateattach/mismatchedowner and once-timing tests; actual native SDK/exporterscrapes with central labels, finiteoutcomes, bothregistrationorders, explicitsmallprofilevalidation, CoreModulesoptout and hostisolation. WithRM02selected assert26streams/3808capacity and meaningful affectedTransaction/Rest/Security/catalog regressions. Catalog/observationdocs, scopedbuild/style and independentcurrentTRX/hashreview.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Core diagnostic-throw/disabled/lateattach/mismatchedowner and once-timing tests; actual native SDK/exporterscrapes with central labels, finiteoutcomes, bothregistrationorders, explicitsmallprofilevalidation, CoreModulesoptout and hostisolation. WithRM02selected assert26streams/3808capacity and meaningful affectedTransaction/Rest/Security/catalog regressions. Catalog/observationdocs, scopedbuild/style and independentcurrentTRX/hashreview."
           ],
           "sharedGateIds": [],
           "basisReferences": []

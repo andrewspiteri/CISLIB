@@ -15,8 +15,8 @@ depends_on: ["WORK-002"]
 assignee: "Codex"
 authority: derived-outcome-authorization
 outcome_authorization_id: "cislib:CIS-0018:outcome:a5124e88d31b486fafd34f4241c8fa4c"
-authorization_scope_ids: ["observations"]
-authorization_scope_basis: "sha256:590c80a48831f95782753ad4f964b519bce18cac5432193b80f720bc91bde276"
+authorization_scope_ids: ["observations","execution-recovery"]
+authorization_scope_basis: "sha256:fdfec979f6e533151e027266b08c1f158678264f550232b14b25198a2f5a25e2"
 ---
 
 # WORK-005: Integrate bounded operation logging and existing Metrics collection
@@ -29,7 +29,7 @@ Integrate bounded operation logging and existing Metrics collection
 
 ## Acceptance criteria
 
-- [ ] P14/AC14: one captured binding and two conditional operation timers, fixed16aliases times13execute/9lookup outcomes (208+144=352), mandatory centralidentity/standardbuckets and unchanged globalcapacities. Prepared is preparation notcommittedsuccess; no duplicate transaction/polling measurements, rawkeys/scopes/payloads/SQL/exceptionlabels. Normalcallsquiet bydefault, diagnosticfailure cannotreplace originalfacts/faults.
+- [ ] P14/AC14: one captured binding and two conditional operation timers, fixed16aliases times13execute/9lookup outcomes (208+144=352), mandatory centralidentity/standardbuckets and unchanged globalcapacities. Prepared is preparation notcommittedsuccess; no duplicate transaction/polling measurements, rawkeys/scopes/payloads/SQL/exceptionlabels. Normalcallsquiet bydefault, diagnosticfailure cannotreplace originalfacts/faults. Include only the narrow public-boundary observation decorator, required passive hosting wiring and captured LogCalls option for this already-approved P14 integration; preserve the sequential coordinator protocol and keep runtime concerns independent of collector SDKs.
 
 ## Targeted validation
 

@@ -104,3 +104,44 @@ specified; root computed SHA256 constants from those bytes without invoking Core
 encoding. No database, durable coordinator, telemetry or package-consumer pass
 is inferred from this foundation.
 | WORK-001 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1909; failed=270; possibleTokenSavings=591; ledgerDigest=sha256:0d3bd10c2e23f7ea158d297d97861e5b714d1617d726b5352e9b82d8d6342bdf |
+
+## WORK-002 authorized coordinator — actual native checkpoint
+
+The coordinator now authorizes the resolved resource before execution, replay or
+lookup; uses one shared weak context-admission marker; and sequentially awaits
+claim, outside-callback handler, encoding/decoding and terminal write. Prepared
+remains uncommitted. Admitted faults and cancellation poison the original context
+without replacing the fault or the first rollback reason. Fresh result lookup
+owns and actually settles only its ReadCommitted read owner. Known committed
+Found results survive read cleanup faults; transient mapping is restricted to
+native Begin/Read phases.
+
+Scoped pinned formatting and verify-no-changes passed. The final affected Release
+build passed with zero warnings/errors. All84 focused Operations cases passed on
+each actual Windows and Ubuntu24.04 lane, zero failures/skips:28 retained foundation
+cases plus56 new runtime cases. The seven test classes cover authorization and
+fault boundaries, cross-instance/type nested and concurrent admission, exact
+context and callback sequencing, result fidelity and version/expiry precedence,
+and fresh lookup cleanup. Controlled journal/ADO seams use actual RM-02 owners;
+they do not prove SQL uniqueness or atomicity.
+
+Current Core SHA256 is
+f0ade871822e81f22554c256d0cd230eb9e507fab961351347c1b8f6ef82dbd3,
+matching the executed Unit output. The exact receipt is
+.artifacts/operations/CIS-0018/WORK-002/runtime-receipt.json, including all22
+current Operations C# source hashes, test assembly/TRX hashes, class counts,
+portable vectors and runtime configuration. SDK10.0.401 and .NET/ASP.NET10.0.12
+with rollForward Disable remain unchanged. The initial build's three CS0411
+throw-only test-handler inference errors and measured costs are preserved;
+explicit generic arguments corrected those three calls before the clean build.
+
+Independent review is recorded in review-002.md. The bounded passive registration
+snapshot fixes the provider/collection mismatch without invoking opaque factories.
+No DI framework, alternate runtime, SQL simulator or test harness was introduced.
+The observation task's existing approved scope now also binds the already-approved
+execution-recovery paths needed for its narrow public-boundary decorator, passive
+hosting wiring and captured LogCalls option. Canonical task update was applied
+under delegated organization; overall scope, tasks, packages and limits did not
+increase. No PostgreSQL, telemetry exporter, package-consumer or release pass is
+inferred from this coordinator checkpoint.
+| WORK-002 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1918; failed=270; possibleTokenSavings=591; ledgerDigest=sha256:da4f0cf4b5e45cbdb70aff072456f9c2678f85a0302428543e62914c88839ba6 |

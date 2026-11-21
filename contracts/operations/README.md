@@ -13,8 +13,9 @@ The guarantee is at most one committed protected effect for one retained scoped
 identity. A handler may execute again after rollback. External HTTP, files, mail,
 broker delivery and unrelated memory changes are outside that database guarantee.
 
-This contract foundation does not by itself supply a runtime service or database
-schema. The bounded implementation is tracked under
+The Core coordinator is selected with `AddCisOperations`, alongside passive
+`AddCisOperation` definitions and an explicitly selected `IOperationJournal`.
+Registration opens no database and installs no schema. The bounded implementation is tracked under
 [CIS-0018](../../docs/changes/CIS-0018/implementation-plan.md). Registration must
 never provide throwing service placeholders or silently install a database.
 
@@ -172,7 +173,8 @@ Unsupported fingerprint comparison precedes KeyConflict; comparable mismatch
 precedes matching ResultExpired. Unsupported result versions and failed decoding
 never execute the handler.
 
-PostgreSQL execution, independent recovery, explicit bounded maintenance,
-operational observations and package qualification are the later owned parts of
-this same implementation. CountryData remains the sole maintained tutorial,
+The [coordinator guide](../../docs/modules/operations/core.md) covers execution,
+fresh lookup and application ownership. PostgreSQL storage, explicit bounded
+maintenance, operational observations and package qualification are separate
+owned parts of this same implementation. CountryData remains the sole maintained tutorial,
 with its database-free default; no delivery worker or RM-04 dispatcher is implied.
