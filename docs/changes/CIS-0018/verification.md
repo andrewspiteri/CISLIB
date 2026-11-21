@@ -323,3 +323,24 @@ external deployment, broad qualification and release remain unverified/outside
 this bounded outcome. No source push, merge or release was performed.
 | WORK-004 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1931; failed=270; possibleTokenSavings=591; ledgerDigest=sha256:8016a8b56437b3f07245d4c7a16ae88b015cc0d5a4d1184ca53cf6d532b4c35a |
 | WORK-006 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1933; failed=270; possibleTokenSavings=591; ledgerDigest=sha256:698caaca5d158f6e6609082812eda38d361d5e65d453d1a5eb19acb1a9c69cbd |
+
+## Human-authorized integration closeout — 21 November 2026
+
+Andrew Spiteri explicitly instructed: "push and merge the RM-03 branch to main
+and close it off before moving on to the next module." This authorizes publishing
+the completed branch, merging it into main, closing this dossier and deleting the
+merged feature branch. It supersedes the implementation phase's push/merge
+exclusion for this exact completed work. The original implementation approval,
+limits and accounting remain unchanged; no release or additional product
+execution is authorized or claimed.
+
+The integration baseline remains `8ee1858ce9d84dc4210bbfda8690f03ecb6e9fbc`;
+`d18bf5669fa667d9c0eb70c7690da8588a78d54a` is the completed implementation head.
+All six tasks are Complete and the canonical plan is valid. The recorded
+219 focused cases on each actual Windows/Ubuntu runtime, Windows public-package
+consumer, exact-candidate receipts and owned PostgreSQL restoration remain
+unchanged. The Linux SDK-backed package, EF, actual network-fault and broader
+qualification/release limits remain explicit. Protected untracked launch
+settings and the raw handoff retain their original hashes. This closeout changes
+documentation/lifecycle records only; it does not rerun completed native work or
+establish a new tested binary.

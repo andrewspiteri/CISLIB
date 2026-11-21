@@ -2,7 +2,7 @@
 title: "Durable operations and idempotency (RM-03)"
 type: change-proposal
 record_format: proportionate
-status: Proposed
+status: "Closed"
 change_id: CIS-0018
 outcome: "Deliver an explicit authorized durable operation journal over RM-02, preserving one committed protected effect per retained scoped identity, original business-result replay, safe recovery and retention, a provider-free PostgreSQL adapter, bounded existing observations and public testing/docs/skill; keep RM-04 and broader release work separate."
 baseline_kind: git
