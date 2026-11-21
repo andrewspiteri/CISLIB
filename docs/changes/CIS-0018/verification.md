@@ -62,3 +62,45 @@ no product-native duration or implementation attempt is claimed. Ignored
 .cis/local/operations-intake/resources.json retains that breakdown. All future
 implementation/tests/documentation/review/restoration share the same proposed
 limits, including this already-performed intake.
+
+## WORK-001 portable foundation — actual native checkpoint
+
+The approved outcome and shared allocation are applied; the canonical six-task
+plan is valid. WORK-001 delivered eleven Core files, three focused Unit files,
+twelve exact portable byte/digest vectors and the portable Operations contract.
+Definition registration is passive, capped at16 and does not register a throwing
+runtime service. Actual Execute/GetResult orchestration remains WORK-002.
+
+Pinned ordinary formatting and verify-no-changes passed. The latest affected
+Release build passed with0warnings/errors. Exactly28new cases across
+OperationCanonicalTests/OperationContractTests/OperationRegistrationTests passed
+on actual Windows and Ubuntu24.04, zero failures/skips. Both execute the same
+current Core bytes, SHA256
+6bcf070211acae8ee20299a5de605d8b78e0f76df50fb00d50f110538b8a7d9d.
+SDK10.0.401/runtime10.0.12/rollForwardDisable remain unchanged. Receipt:
+.artifacts/operations/CIS-0018/WORK-001/foundation-receipt.json, with source,
+TRX and vector hashes, exact class scope and runtime config.
+
+Early source review found a real passive-DI descriptor bypass; full pre-mutation
+validation now rejects opaque/keyed/duplicate/oversized or mismatched metadata,
+with focused regression cases. The first build exposed a nullable test assertion;
+Assert.IsNotNull now expresses its precondition. Initial Windows execution then
+caught a genuine absent-payload getter defect: the conditional null arm selected
+ReadOnlyMemory's implicit array conversion, producing present empty memory for
+rejection. The explicit nullable arm fixes that boundary; the existing mutable-
+bytes/rejection regression now passes. The other nullable-byte consumers were
+inspected; no duplicated affected getter remained.
+
+That initial case-insensitive namespace filter also selected115retained
+OperationScope cases, all passing, plus27newpasses/1newfailure. Its143-case TRX,
+the failed build and all actual costs are preserved. Latest filters include the
+namespace's trailing dot and run exactly28new cases on each OS. Incidental older
+passes are not advertised as latest-candidate qualification.
+
+Independent source/correction/necessity review is in review-001.md. The small
+closed frame directly supplies the required portable encoding; no rules engine,
+DI/runtime framework or test harness was added. Vector preimage hex was manually
+specified; root computed SHA256 constants from those bytes without invoking Core
+encoding. No database, durable coordinator, telemetry or package-consumer pass
+is inferred from this foundation.
+| WORK-001 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1909; failed=270; possibleTokenSavings=591; ledgerDigest=sha256:0d3bd10c2e23f7ea158d297d97861e5b714d1617d726b5352e9b82d8d6342bdf |
