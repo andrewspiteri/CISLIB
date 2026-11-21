@@ -8,6 +8,8 @@ Explicit state-machine composition adds its independent three-instrument
 [state-machine catalog](statemachine.md).
 Explicit local transaction composition adds the three bounded streams in the
 [transaction catalog](transactions.md).
+Durable operation composition adds the two bounded timers in the
+[operation catalog](operations.md).
 
 This is the portable Metrics contract selected for CISLIB v1. It accompanies the
 [supplied requirements](../../planning/metrics/sources/CISLIB_Metrics_Implementation_Specification_v1.0.md)

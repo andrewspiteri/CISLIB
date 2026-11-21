@@ -126,6 +126,14 @@ value. Keep registered database aliases bounded and count actual native failures
 an application callback fault does not identify a native phase. Transfer remains
 a future module.
 
+For durable operations, use the [operation catalog](../../../contracts/metrics/operations.md)
+and [observation guide](../../../docs/modules/operations/observability.md). Capture
+one binding before authorization and retain it through method-owned lookup cleanup.
+Prepared is preparation, never a commit observation. Use only registered operation
+aliases and fixed outcomes; no key/scope/hash/business-result labels. Missing time
+is omitted, late attachment does not replay an active call, and quiet LogCalls
+defaults false. Keep native transaction measurements with RM-02.
+
 Update the affected catalog, documentation and meaningful existing native tests.
 Use [portable cases](../../../conformance/metrics/v1/primitive-cases.json) for
 portable semantics, and real SDK/exporter output when changing integration.

@@ -1,0 +1,80 @@
+{
+  "frameVersion": 1,
+  "contract": "vector",
+  "contractVersion": 1,
+  "provenance": "Preimage hex specified directly from the portable framing contract, independently of Core.Encode. SHA-256 literals are calculated separately over these exact bytes.",
+  "cases": [
+    {
+      "id": "missing",
+      "input": "Missing",
+      "preimageHex": "4349532e4f5045524154494f4e532e5245515545535400000100000006766563746f72000000010000000000",
+      "sha256": "0e3422c58476ee4d1b85e487dce81c1d62be045b314083f8cc67bf1bc8911e71"
+    },
+    {
+      "id": "null",
+      "input": "Null",
+      "preimageHex": "4349532e4f5045524154494f4e532e5245515545535400000100000006766563746f72000000010100000000",
+      "sha256": "40f77501eeb1008ba7ca6da984172da2d2c970e32e59f5552dc20e634712dc86"
+    },
+    {
+      "id": "false",
+      "input": "Boolean false",
+      "preimageHex": "4349532e4f5045524154494f4e532e5245515545535400000100000006766563746f7200000001020000000100",
+      "sha256": "a2ba7926c5c9e6b25fd004d9bc717325fe9531ed4e589c0d44266334c116533c"
+    },
+    {
+      "id": "integer-negative",
+      "input": "Integer -42",
+      "preimageHex": "4349532e4f5045524154494f4e532e5245515545535400000100000006766563746f720000000103000000032d3432",
+      "sha256": "f084bf8bf3cb13e927ac8b5f94468d120580ad2497066f18a05de290c235b24e"
+    },
+    {
+      "id": "decimal-one",
+      "input": "Decimal 1.00, equivalently 1",
+      "preimageHex": "4349532e4f5045524154494f4e532e5245515545535400000100000006766563746f72000000010400000003000031",
+      "sha256": "641afdcd54253c67689f80fbbe498af13db02a2406fd2bf33c5555addd024cbb"
+    },
+    {
+      "id": "decimal-zero",
+      "input": "Decimal negative zero with scale 2, equivalently positive zero",
+      "preimageHex": "4349532e4f5045524154494f4e532e5245515545535400000100000006766563746f72000000010400000003000030",
+      "sha256": "6e393896f5aa736b83def014c6e9a2396416d49636751a4f47b0c7c6e505a7f7"
+    },
+    {
+      "id": "text-nfc",
+      "input": "Text U+0065 U+0301, equivalently U+00E9",
+      "preimageHex": "4349532e4f5045524154494f4e532e5245515545535400000100000006766563746f72000000010500000002c3a9",
+      "sha256": "6d58295e35019b91f24fa3f9e4607bb1503e356172fff3f268e8398e5eceb2fe"
+    },
+    {
+      "id": "opaque-bytes",
+      "input": "Opaque bytes 00 01 ff",
+      "preimageHex": "4349532e4f5045524154494f4e532e5245515545535400000100000006766563746f720000000106000000030001ff",
+      "sha256": "02f71df8689fadcda459623acf09d0b097da814862af305860b84104d81ee268"
+    },
+    {
+      "id": "ordered-sequence",
+      "input": "Sequence [Integer 1, Null]",
+      "preimageHex": "4349532e4f5045524154494f4e532e5245515545535400000100000006766563746f7200000001070000000f000000020300000001310100000000",
+      "sha256": "9bc672fc5e0fb2fb4f12cdb7e121a7a8d55ed195d9d85ec960d93922ce15b29a"
+    },
+    {
+      "id": "sorted-map",
+      "input": "Map inserted as {b: Integer 2, a: Integer 1}, encoded in UTF-8 key order",
+      "preimageHex": "4349532e4f5045524154494f4e532e5245515545535400000100000006766563746f7200000001080000001c00000002050000000161030000000131050000000162030000000132",
+      "sha256": "175a0ce8220af3a763ccb6a5fa886f1ea73317ed8bce41164e2bdc3b3f48fe85"
+    },
+    {
+      "id": "business-default",
+      "input": "Ordered meaning [Text EUR, Decimal 1.00, Text U+0065 U+0301]; missing currency defaulted by the example normalizer; trace omitted",
+      "preimageHex": "4349532e4f5045524154494f4e532e5245515545535400000100000006766563746f7200000001070000001b00000003050000000345555204000000030000310500000002c3a9",
+      "sha256": "ee2a880bc5fea344102fc36a8d5d434b5795dbbeae55b2de4683c727d2ef3586"
+    },
+    {
+      "id": "business-changed",
+      "input": "Ordered meaning [Text EUR, Decimal 2.00, Text U+00E9]",
+      "preimageHex": "4349532e4f5045524154494f4e532e5245515545535400000100000006766563746f7200000001070000001b00000003050000000345555204000000030000320500000002c3a9",
+      "sha256": "531567a0b41d445743dd9e6b62fa1b4fd12c08dd57692d8b688daa685e8aa1b3"
+    }
+  ]
+}

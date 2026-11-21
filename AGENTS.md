@@ -76,8 +76,18 @@ the [Transactions skill](.github/skills/cislib-transactions/SKILL.md),
 application-owned data sources, sequential native callbacks, actual cleanup
 settlement and distinct Committed/NotCommitted/Unknown facts. Public test scripts
 do not prove SQL atomicity; use the existing real-provider/package consumers and
-report actual evidence limits. Keep operation-result/outgoing delivery work in
-its later modules and CountryData as the one maintained tutorial.
+report actual evidence limits. Use Operations for journaled results and keep CountryData as the one maintained tutorial. Outgoing delivery remains future work.
+
+## Durable operations and result recovery
+
+For `CIS.Operations` implementation, consumers, observations or recovery, read
+[the Operations skill](.github/skills/cislib-operations/SKILL.md), its portable
+contract and current provider/ownership/testing guides. Preserve authorization
+against the resolved resource, owned input and one-shot original-context admission.
+Await the whole Execute before completing its owner. Keep Prepared, the original
+business decision and actual transaction completion separate; recovery uses a
+fresh authorized read. Reuse the existing native/provider and public-package
+fixtures and retain their distinct evidence limits.
 
 <!-- cis:repository-guidance:start -->
 ## CIS integration

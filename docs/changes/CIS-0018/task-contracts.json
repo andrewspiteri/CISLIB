@@ -1,0 +1,86 @@
+{
+  "tasks": [
+    {
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex",
+      "title": "Deliver portable operation identity, definitions and canonical request contracts",
+      "scopeIds": [
+        "contracts-identity"
+      ],
+      "dependsOn": [],
+      "acceptanceCriteria": "P01-P06/P13 foundation: immutable bounded portable identity/decision/execution/lookup/store/codec boundaries, passive16definition registration, owned normalized input and operation-specific deterministic versioned SHA256 frame, stable readers and concrete limits. Include exact portable byte/digest vectors and retain RM02/RM01 contracts. No registered service with unimplemented throwing stubs; this foundation alone is not full RM03 delivery.",
+      "validation": "Meaningful native units for alias/key/scope/UTF8/input/result limits, duplicate definitions, passiveDI, immutable copies, culture/Unicode/decimal/missing-default-null/map-order vectors and input mutation. Build Core/CommonTesting boundary, scoped pinned format+verify, portable contract docs and independent current-source review."
+    },
+    {
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex",
+      "title": "Implement authorized durable execution and independent committed-result lookup",
+      "scopeIds": [
+        "execution-recovery"
+      ],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "acceptanceCriteria": "P04-P08/P11/P13 and AC02/03/06/07/08/10/12: one nongeneric module-wide weak context admission across instances/types, native claim/read then outside-callback handler then native terminal write; exact original context, separate Prepared/Replayed/business/persistence facts. Existing capability authorization before first/replay/lookup; after-claim between-callback failures poison and preserve originals. Fresh authoritativeRC lookup owns only its read resources and preserves known committed facts plus read cleanup diagnostics.",
+      "validation": "Controlled store/ADO tests for cross-instance/generic nested/repeated/concurrent admission, exactcontext/DB/isolation preflight, input snapshot, authorization/denial/audit fault/cancellation beforestore orhandler, nativecallbacknonreentry, handler/encode/size/write/CT faults, rollbackonly refusal, exact resultfidelity/version/conflict/expiry precedence and freshlookup while claim uncommitted. No automatic ownercompletion/retry; docs/style/build and independentreview."
+    },
+    {
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex",
+      "title": "Deliver the production PostgreSQL journal and real atomic arbitration consumer",
+      "scopeIds": [
+        "postgres-journal"
+      ],
+      "dependsOn": [
+        "WORK-002"
+      ],
+      "acceptanceCriteria": "P01/P09/P10/P15 and AC01-08/11/12: provider-free production PostgreSQL adapter plus packaged explicit versioned installationSQL; complete bounded identity unique constraint, schema checks, internal claim and conditional terminal write, subsequent committed-winner read atRC. Real independent-session atomicity, same/different request races, rollback/disposal/freshlookup and explicitly unsupported strongerisolation. Preserve appsource and exact RM02pair; no newpackage/mapping or migration-on-registration.",
+      "validation": "Owned freshDockerPostgreSQL18/nativeNpgsql10.0.4 testonly; recordactualschema/server/durability/candidate and independent observer/blocking evidence. Prove4loggedtablepattern, commit/replay/conflict/rollback/decline, commandtimeout/cancellation/claim55P03 and fresh-transaction retry behavior without sessioncontrol/innerreplay. Record representative end-to-end bytes/rows/shape/concurrency/latency separately from install/unit proof within declaredfixturebounds; no benchmarkcampaign. Exactowned restoration, docs/style/build and independentreview."
+    },
+    {
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex",
+      "title": "Deliver privileged retention maintenance and retained-result recovery",
+      "scopeIds": [
+        "retention-maintenance"
+      ],
+      "dependsOn": [
+        "WORK-003"
+      ],
+      "acceptanceCriteria": "P11-P13/P15 and AC09/11/13: persisted immutable expiry with indefinite defaults, tombstones and logicalexpiry independentofmaintenance; explicit authorizer-gated singleoperation/trustedscope maintenance in ownRM02transaction, max256rows and SKIPLOCKED onlythere. Unsupported/corrupt versions or decode failure retain protection; actual full deletion ends it. Native-commit decorator after realcommit qualifies simulated acknowledgementloss/Unknown recovery without a publicPending/job lifecycle.",
+      "validation": "Native expiry-before-maintenance, mismatch-vs-expiry/version precedence, finite256batch boundary, retained tombstones, whole-row deletion, maintenance/lookup/arbitration races and actual deadlock/retry settlement. Simulated post-realcommit failure must traverse RM02commitboundary toUnknown; freshlookup recovers original, no terminalrollback/commitretry, Committedcleanup errors remainCommitted. Maintenanceauthorization/countnondisclosure and uncertain batchcounts; provider docs/style/build and independentreview."
+    },
+    {
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex",
+      "title": "Integrate bounded operation logging and existing Metrics collection",
+      "scopeIds": [
+        "observations"
+      ],
+      "dependsOn": [
+        "WORK-002"
+      ],
+      "acceptanceCriteria": "P14/AC14: one captured binding and two conditional operation timers, fixed16aliases times13execute/9lookup outcomes (208+144=352), mandatory centralidentity/standardbuckets and unchanged globalcapacities. Prepared is preparation notcommittedsuccess; no duplicate transaction/polling measurements, rawkeys/scopes/payloads/SQL/exceptionlabels. Normalcallsquiet bydefault, diagnosticfailure cannotreplace originalfacts/faults.",
+      "validation": "Core diagnostic-throw/disabled/lateattach/mismatchedowner and once-timing tests; actual native SDK/exporterscrapes with central labels, finiteoutcomes, bothregistrationorders, explicitsmallprofilevalidation, CoreModulesoptout and hostisolation. WithRM02selected assert26streams/3808capacity and meaningful affectedTransaction/Rest/Security/catalog regressions. Catalog/observationdocs, scopedbuild/style and independentcurrentTRX/hashreview."
+    },
+    {
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex",
+      "title": "Deliver public testing substitutes, actual package consumption and maintained guidance",
+      "scopeIds": [
+        "public-testing"
+      ],
+      "dependsOn": [
+        "WORK-002"
+      ],
+      "acceptanceCriteria": "P16-P18/AC14: finite portable CommonTesting durableoperation scripts/recordings using publicCorecontracts, no runtimecopy/nativeSQL/provider/testframework dependency. Extendexisting outsidefriend actualCore/CommonTesting packageconsumer, compiling durableconsumer/guide with explicitPreparedcommit, Replayed and Unknownrecovery; operationsskill/rootroutes/currentindexes. Source may start afterWORK002 freezes; finalcompletion requires integratedWORK003/004/005 and honest lane/evidence limits.",
+      "validation": "Publichelper normal/conflict/replay/expiry/incompatible/denied/failure/cancellation/bounds/contextrecording tests; actual Windows pack/freshlocalfeedrestore/build/child/deployed/currenthashes and shippingdependencyclosure. Run available Windows/Ubuntu runtimecases; fullLinuxSDKpackage unexecuted if noexistingroute. Validate actualguideAPIs/local links and focusedskill with bundled workflow/fresh-context usage review. No secondtutorial/harness; integratedsource/nativeevidence review and exacttemporarycleanup."
+    }
+  ]
+}

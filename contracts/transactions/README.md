@@ -9,9 +9,7 @@ status: Draft
 `CIS.Transactions` in Core supplies portable factory, owner and participant
 interfaces. The database provides atomicity; participants use the same explicit
 context and native connection/transaction. Another connection, request, DI scope
-or matching connection string does not establish participation. No ambient
-transaction lookup, nested transaction, automatic replay, SQL proxy or durable
-operation/outgoing-delivery implementation is introduced.
+or matching connection string does not establish participation. This module adds no ambient transaction lookup, nested transaction, automatic replay or SQL proxy. Compose [CIS.Operations](../operations/README.md) for durable keys and original-result recovery over this explicit ownership boundary; outgoing delivery remains separate future work.
 
 ## Registration and acquisition
 

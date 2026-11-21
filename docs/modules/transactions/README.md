@@ -184,3 +184,12 @@ compiles substitutions against actual Core/CommonTesting packages. Authored sour
 is not passing evidence. Consult [current qualification](../../changes/CIS-0017/verification.md)
 for executed provider/platform groups, candidate hashes and remaining limits.
 Broader release qualification remains separate.
+
+## Durable keys and committed-result recovery
+
+Compose the [Operations coordinator](../operations/core.md) for a durable scoped
+identity, original-result replay and fresh authorized recovery. Pass the original
+context and await the complete Execute before requesting owner completion.
+Prepared is staged business data; inspect the actual transaction completion
+separately. After Unknown, an independent lookup can recover the original result;
+a missing lookup does not resolve persistence and commit is never retried.

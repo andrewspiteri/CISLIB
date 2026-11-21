@@ -51,6 +51,20 @@ not proof of Core scheduling, health-policy evaluation, HTTP or hosted shutdown.
   These logical facts execute no SQL, native completion, timers or atomicity.
   Use a new factory after retained-owner exhaustion. See the
   [transaction guide](../../../../docs/modules/transactions/README.md#portable-consumer-tests).
+- ScriptedDurableOperationService substitutes the public IDurableOperationService
+  with one ordered typed execution/lookup script queue and detached invocation
+  metadata. Queue and retained-call capacities default to16 each; explicit
+  exhaustion fails without consuming a script or evicting an earlier recording.
+  EnqueueExecution/Lookup supply exact logical results; their Failure variants
+  preserve the original fault. A scripted OCE remains faulted; a precanceled call
+  returns canceled without consuming/recording. Call kind/type mismatch also
+  consumes nothing. Calls retain the exact supplied execution context and bounded
+  alias/requested-scope/key/type metadata, with no handler or input/result history.
+  The helper never invokes handlers or performs authorization, hashing, weak
+  admission, SQL or owner completion. Queued typed values remain test-owned
+  references until consumed; capacities bound entry count, not arbitrary scripted
+  payload size. Use a fresh helper when recordings fill. See the
+  [operation testing guide](../../../../docs/modules/operations/testing.md).
 
 A short logical-result test uses only public APIs:
 

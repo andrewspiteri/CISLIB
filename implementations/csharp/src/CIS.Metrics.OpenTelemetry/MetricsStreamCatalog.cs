@@ -86,6 +86,11 @@ internal sealed class MetricsStreamCatalog
                 TransactionModule("cis.transaction.failures", MetricKind.Counter, MetricUnit.Count,
                     ["database", "phase"], 64);
             }
+            if (settings.CollectOperations)
+            {
+                OperationModule("cis.operation.execute.duration", 208);
+                OperationModule("cis.operation.lookup.duration", 144);
+            }
             if (settings.CollectSecurity)
             {
                 int profileCategories = checked(settings.SecurityProfileCapacity + 1);
@@ -219,6 +224,16 @@ internal sealed class MetricsStreamCatalog
         }
 
         Module(name, kind, unit, keys, minimumCapacity);
+    }
+
+    private void OperationModule(string name, int minimumCapacity)
+    {
+        if (settings.Streams.GetValueOrDefault(name)?.CardinalityLimit is { } configured && configured < minimumCapacity)
+        {
+            throw new ArgumentException("The operation stream override cannot cover its admitted finite alias/outcome profile.");
+        }
+
+        Module(name, MetricKind.Timer, MetricUnit.Seconds, ["operation", "outcome"], minimumCapacity);
     }
 
     private void TransactionModule(string name, MetricKind kind, MetricUnit unit, IReadOnlyList<string> keys, int minimumCapacity)
