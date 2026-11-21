@@ -1,0 +1,195 @@
+Implement RM-03 Durable operations and idempotency in andrewspiteri/CISLIB.
+
+Deliver working production code, focused tests, public testing support, consumer documentation, and repository agent guidance. Continue through implementation and verification; a design proposal or scaffolding alone does not complete this request.
+
+## 1. Baseline and working approach
+
+Start from the latest main on a dedicated working branch, preserving existing user changes. The reviewed baseline is 8ee1858ce9d84dc4210bbfda8690f03ecb6e9fbc, which merged RM-02 in PR #11. Record your actual starting commit. If main has advanced, inspect the relevant differences and use the current implemented contracts.
+
+Read AGENTS.md, README.md, planning/decisions.md, and docs/architecture/csharp-dependency-policy.md. The module scope and behavior below are settled; make routine implementation choices without requesting reconfirmation. Follow the current repository workflow and applicable legitimate work authorization. Keep planning and evidence proportionate. Include documentation, focused verification, review, and completion checks in the implementation tasks they support. Do not reopen completed CIS owners, manufacture approvals, or create additional approval stages where the existing authorization covers the work. If a genuinely unresolved gate remains, prepare one concrete, minimal decision package and identify the exact rule requiring it.
+
+The implementation is .NET 10 first, with a portable consumer contract for future languages. Preserve the repository's pinned SDK, runtime, dependency closure, public compatibility, and native MSTest workflow. Use readable C#, nullable analysis, full braces, separate field declarations, and clear logical spacing.
+
+Read these existing integration points before designing new abstractions:
+
+- .github/skills/cislib-transactions/SKILL.md
+- contracts/transactions/README.md
+- docs/modules/transactions/README.md
+- docs/modules/transactions/postgresql.md
+- implementations/csharp/src/CIS.Core/Transactions/Contracts/
+- implementations/csharp/src/CIS.Core/Transactions/AdoNet/
+- .github/skills/cislib-security/SKILL.md and its current authorization contracts
+- .github/skills/cislib-metrics/SKILL.md and its current API and collection policy
+- docs/modules/common-testing.md
+
+RM-02 is already implemented. Its three-store PostgreSQL consumer is a test fixture, not the production RM-03 operation journal. Build the new module on the existing transaction implementation.
+
+## 2. Required outcome and scope
+
+An application can submit an operation, retry it with the same identity, and retrieve its original committed result without repeating its committed business effect.
+
+Implement a short transactional operation journal under the CIS.Operations namespace. The application changes, completed operation result, and any participating outgoing records must commit atomically in one explicit RM-02 transaction.
+
+The guarantee is at most one committed protected effect per scoped operation identity while its duplicate-protection record is retained. A handler may execute again after an earlier attempt rolls back. All protected changes must occur after the key claim and in the supplied transaction.
+
+This version provides durable completion and safe explicit retry. A crash before commit requires resubmission; a crash after commit permits recovery of the original result. Do not add a background job runner, durable Pending queue, lease manager, distributed transaction coordinator, automatic handler retry engine, or public claim/complete lifecycle. External delivery belongs to RM-04 or the relevant provider integration. Do not add EF, Redis, a broker, or a second DI container to satisfy this module.
+
+Keep application financial rules, business uniqueness constraints, SQL schemas for domain data, and external provider semantics in the application. Different idempotency keys identify different intentions; RM-03 does not infer that two separately keyed requests represent the same business action.
+
+## 3. Public contract and ownership
+
+Provide a mockable IDurableOperationService, or an equivalently clear name consistent with the repository, with two principal operations:
+
+- ExecuteAsync: receive an explicit ILocalTransactionContext, an operation request/definition, and an application handler. Claim or compare the identity, invoke the handler only when appropriate, and prepare the result inside the supplied transaction.
+- GetResultAsync: retrieve a committed original result without invoking the business operation handler or producing business effects. Use a fresh read scope against the authoritative database, independent of any caller-owned active write transaction. Clearly document source selection and read-resource ownership, reusing RM-02's factory where appropriate. Never dispose the application's DbDataSource or complete its write transaction.
+
+Keep portable identity, request, business decision, execution disposition, lookup result, and store/codec extension contracts independent of PostgreSQL types, HTTP, EF, and .NET assembly-qualified type identities. Avoid speculative abstractions. Resolve application dependencies through normal DI; a delegate handler is a suitable convenience.
+
+Keep these facts separate:
+
+- Business decision: Succeeded or Rejected, with a typed value or stable application error code/message as appropriate.
+- Execution disposition: Prepared, Replayed, KeyConflict, and clearly documented contention/compatibility/expiry outcomes where applicable.
+- Persistence: RM-02's existing TransactionCompletion and Committed / NotCommitted / Unknown outcomes.
+
+Prepared means the handler and result write completed within an uncommitted application transaction. It must never imply committed success. Replayed means a matching result from a previously committed transaction; the handler was not invoked. A replay's durability does not depend on committing the new transaction used to find it.
+
+Return explicit normal results for business rejections and key conflicts. Preserve unexpected programming failures and cancellation rather than disguising them as business decisions. Document any retryable infrastructure failure mapping and the state of the caller's transaction.
+
+Permit one top-level durable execution attempt per ILocalTransactionContext in v1. Reject nested, concurrent, or repeated durable execution on that same context before a second handler can run. Retries use a fresh RM-02 transaction. The handler can compose multiple ordinary transaction-aware application services sequentially. Enforce this rule across the module's supported entry points with bounded or weak lifetime tracking; do not retain completed contexts in a growing dictionary. This rule prevents reading this transaction's own staged result and falsely reporting a committed replay. GetResultAsync must likewise never present an uncommitted row as Found.
+
+The application must await the entire ExecuteAsync before completing or disposing its owner. Concurrent completion of that owner during RM-03 execution is unsupported. Do not claim RM-02 has a guard spanning the whole application handler.
+
+## 4. Correct use of the implemented RM-02 API
+
+Use the real interfaces, including:
+
+- ILocalTransactionFactory.BeginAsync(databaseName, cancellationToken), or its LocalTransactionOptions overload.
+- ILocalTransaction.Context, CommitAsync(cancellationToken), RollbackAsync(), and asynchronous disposal.
+- ILocalTransactionContext.MarkRollbackOnly(reasonCode).
+- UseAdoNetAsync from CIS.Transactions.AdoNet.
+
+UseAdoNetAsync is exclusive and non-reentrant. The required sequence is:
+
+1. Authorize, normalize, validate limits, and admit the operation attempt.
+2. Claim/read through an awaited UseAdoNetAsync callback.
+3. Invoke the application handler outside that native callback, passing the original participant context.
+4. Serialize and validate the handler's completed business result.
+5. Persist the terminal result through a separate awaited UseAdoNetAsync callback.
+6. Return Prepared only after all these steps finish successfully.
+
+Do not wrap the whole operation in one native callback and then invoke repositories that recursively use UseAdoNetAsync. In each native scope, use the exact borrowed connection and transaction, assign command.Transaction, parameterize values, and dispose commands/readers before returning. Never retain borrowed handles between callbacks, open a second connection for claim/result writes, or issue independent transaction-control SQL.
+
+After acquiring the key, handler failure, result serialization failure, result-size failure, persistence failure, or applicable cancellation must mark the transaction rollback-only before escaping. RM-02 already handles escaping native-callback faults; RM-03 must also cover faults between callbacks. Use stable safe reason codes such as operations.execution_failed, respecting RM-02's first-reason and 128-character printable-ASCII rules. Preserve the original fault. Do not return Prepared if the context is already rollback-only or becomes rollback-only during the handler.
+
+The application alone commits. Treat TransactionCompletion.Outcome as authoritative:
+
+- Committed remains committed even if cleanup reports errors.
+- NotCommitted means native commit was not invoked.
+- Unknown means commit was invoked without confirmed success. Successful later rollback does not resolve Unknown.
+
+Never retry CommitAsync. After completion, do not call RollbackAsync again on that terminal owner. Show correct disposal and completion handling in the compiling consumer.
+
+## 5. Identity, normalization, and fingerprint
+
+Define operation identity from a trusted application namespace, environment, application-resolved scope, stable operation name, and caller-supplied idempotency key. Scope can include tenant, account, or logical caller as required by the application. Document ordinal/case and normalization rules and enforce finite input limits before database work.
+
+Use trusted application/environment identity and the existing RM-01 caller/resource model. Do not trust a request body's tenant or application identity without authorization. Exclude process/pod instance, correlation ID, access-token value, and deployment version from operation uniqueness. Credential rotation and instance replacement must preserve the logical operation identity.
+
+The caller reuses the same key and business request for retries of the same intention. Operation identity is independent of per-attempt tracing. A committed key with different business inputs returns KeyConflict without executing the handler or changing the original result.
+
+Compute the fingerprint server-side from documented normalized business inputs. Include every field that affects the operation's meaning; exclude transport-only data. Resolve semantic defaults deterministically. Specify decimal, null/missing, text, ordering, encoding, and fingerprint-version behavior sufficiently for another language to reproduce it. Use the platform's cryptography and a deterministic representation; do not use GetHashCode, trust a caller-supplied digest, or assume arbitrary default JSON serialization is a portable canonical contract.
+
+Store the fingerprint and its contract version. Keep normalization/fingerprinting operation-specific where necessary, without building a generic rules engine. Supply a small set of shared contract vectors. If a retained fingerprint version cannot be compared safely, return a compatibility outcome and do not execute again. Do not let an algorithm or deployment upgrade bypass an existing identity.
+
+Only a committed record durably binds the key to its request. A fully rolled-back attempt leaves no permanent first-request binding; document this rather than introducing separate durable admission.
+
+## 6. Production operation journal and PostgreSQL adapter
+
+Implement a production journal with a database-enforced unique constraint on the complete operation identity. Acquire that key before invoking the handler, in the same local transaction that stores its final result and protected application changes.
+
+Use ordinary logged tables. Persist the identity, request fingerprint/version, business decision, stable result contract/version, serialized result or business error, relevant recorded timestamps, and retention metadata. Define timestamp semantics honestly; a time written before commit is not an observed commit timestamp. Store only data required by the contract. Provide explicit schema installation/versioning instructions or SQL through the repository's existing conventions; service registration must not open connections or silently migrate a database.
+
+Use a PostgreSQL adapter built on DbConnection, DbTransaction, DbCommand, and RM-02's guarded native access. Preserve Core's dependency closure. The existing Npgsql 10.0.4 reference is private test/reference infrastructure, not approval for a Core runtime dependency. Applications supply their PostgreSQL provider/source. If a runtime provider-specific dependency is demonstrably necessary, isolate it in an optional package and follow the actual dependency process instead of silently adding it to Core.
+
+For normal duplicate arbitration use suitable conflict-handling SQL, such as a non-deferrable unique key with INSERT ... ON CONFLICT DO NOTHING RETURNING. Do not intentionally raise a unique violation, swallow it, and continue using PostgreSQL's aborted transaction. Do not overwrite a completed original result to accommodate a retry.
+
+At ReadCommitted, a competing insert can encounter a row absent from its original statement snapshot. Use a subsequent appropriate read after conflict resolution; do not assume a single insert-or-select CTE always returns the winner. Account for concurrent retention maintenance. Never invoke the handler unless this attempt actually acquired the key.
+
+Preserve the caller's selected isolation. Support or explicitly reject capabilities before business effects; never silently downgrade RepeatableRead or Serializable. Where snapshot/serialization conflicts require another attempt, mark/end the failed transaction correctly and require a fresh transaction with the same identity. Do not retry statements or the handler inside a failed transaction.
+
+Bound lock waits and command/resource usage through explicit configuration and cancellation, following provider settlement rules. Contention means this attempt could not establish ownership; it does not prove the other attempt failed. Keep expected replay/conflict paths distinct from infrastructure failures that poison a transaction.
+
+## 7. Recovery, business rejections, and external work
+
+GetResultAsync must distinguish a found committed result, no committed result observed, expired result with retained duplicate protection, and relevant unavailable/incompatible outcomes. Use the authoritative database. A stale cache or lagging replica cannot establish absence for recovery.
+
+A missing result after Unknown does not prove rollback. An explicit resubmission must use the original scoped identity and request and must win the same database uniqueness arbitration before executing. If the original commits, replay it; if it rolls back, a later attempt can acquire the key. If the database cannot resolve the outcome, preserve that uncertainty. Never generate a replacement key automatically or infer failure from cancellation/timeout.
+
+A final business rejection is an explicit completed decision that can be committed and replayed. A retry of an InsufficientFunds decision returns that original decision even if funds subsequently arrive. A deliberate new intention uses a new key.
+
+Committing a rejection also commits its transaction. The handler must make that rejection before disallowed business mutations, or otherwise leave a transaction whose effects are valid for the rejection. Permitted audit changes can commit. If partial business work must be undone, roll back the transaction; RM-03 must not promise to retain the rejection while undoing arbitrary earlier writes through hidden savepoints or another transaction.
+
+HTTP calls, email, file writes, broker publication, and unrelated in-memory effects are outside the protected database effect. Participating outgoing records can be written in the transaction, but do not implement RM-04 dispatch here. A locally accepted instruction must not be reported as an externally completed action.
+
+## 8. Result fidelity, compatibility, retention, and bounded state
+
+Replay the original stored business result, including original generated identifiers and values. Do not rebuild it from current business state. Transport adapters can regenerate current trace/security headers, but must preserve the business result. Check authorization before disclosure.
+
+Use explicit stable result contracts and versioned codecs. Do not persist arbitrary CLR type names as the cross-language contract. A later deployment must read retained versions through supported readers or report incompatibility; deserialization failure never permits reexecution. Validate result-size limits before returning Prepared; oversize or unencodable results require rollback of the protected changes.
+
+Separate full-result retention from duplicate-protection retention. Expiring the result can remove its payload while retaining a compact identity/fingerprint record. While that record remains, return ResultExpired rather than running the handler. Define precedence for mismatched requests against retained records. Deleting the entire record ends duplicate protection; document that boundary explicitly.
+
+Choose explicit, conservative defaults: do not silently delete keys or impose a generic short cache TTL. Allow retention to match application requirements, including the ledger's configured duplicate look-back. Define expiry timestamps and policy-change behavior consistently, independently of when maintenance happens to run.
+
+Provide bounded, explicitly invoked maintenance only to the extent required by the chosen retention implementation. It must preserve uniqueness and concurrent lookup/execution correctness. Reuse normal application ownership or existing Heartbeat integration if needed; do not create a scheduler or log every cleanup poll. Registration, metric dimensions, scripts, recordings, and other in-memory state must have finite limits or lifecycle-safe weak ownership. Do not introduce unbounded request/result caches or per-attempt durable history.
+
+## 9. Security, registration, and instrumentation
+
+Apply authorization before submission, replay, and lookup against the actual server application, environment, and resource/scope. Reuse ICapabilityAuthorizer, ICallerContextAccessor, and the established RM-01 integration where appropriate. Possession of an idempotency key, serialized caller record, or claimed tenant is not authority. A handler-only check is insufficient because replay and lookup skip the handler. Define the application authorization hook/resource mapping explicitly; do not invent another identity or permissions engine.
+
+Registration is passive and uses the application's existing DI provider and host-owned resources. Validate/copy configuration and operation definitions, enforce finite registered operation-name dimensions, and avoid opening connections, migrations, or background work during registration. Core operation functionality must remain usable when optional telemetry is absent or disabled.
+
+Use the existing CISLIB Logging/Metrics abstractions and their ownership rules. Observe attempt preparation, replay, rejection, conflict, lookup, contention/failure, and relevant latency. Prepared is not a committed-success metric. RM-02 already owns transaction persistence and duration observations; do not invent a commit notification or duplicate its measurements.
+
+Preserve central application/environment labels, bounded dimensions, one captured instrumentation binding, and original results/faults when diagnostics fail. Do not use keys, tenant/customer IDs, hashes of unbounded identifiers, payloads, SQL, credentials, or raw exception messages as metric labels. Avoid routine payload logging and repeated normal-level polling logs. Add only useful instruments, using histogram counts where they already provide the required observation count.
+
+## 10. Focused verification and acceptance
+
+Use existing MSTest projects and ordinary dotnet test/IDE execution. Reuse the RM-02 PostgreSQL fixture pattern: explicitly configured private loopback fixture, application-owned source, isolated per-case schema, ordinary logged tables, independent observing sessions, deterministic synchronization, and cleanup limited to owned resources. Existing guidance is under docs/modules/transactions/postgresql.md and tests/CIS.Core.IntegrationTests/Transactions/.
+
+Do not mistake the RM-02 fixture's three tables, two-row limits, or 1 KiB fixture payloads for production RM-03 requirements. A small named RM-03 fixture or minimal extraction of shared plumbing is acceptable. Missing real database configuration is inconclusive/unverified, not a passing in-memory substitute. Follow current explicit infrastructure authorization; do not provision against an arbitrary database.
+
+Prove these acceptance behaviors with a focused set of tests; parameterize related cases instead of multiplying scaffolding:
+
+1. A new operation produces one committed business effect and one original result; an independent session cannot see either before commit.
+2. Same identity and equivalent input replays without invoking the handler, preserving the exact original business value after current domain data changes.
+3. Different input under a committed identity returns KeyConflict without modifying the original record.
+4. Different service instances and database sessions racing on the same identity produce at most one committed protected effect; same and different input races follow the contract.
+5. Rollback or unfinished-owner disposal leaves no committed effect/result and permits a later same-key attempt.
+6. Handler, serialization, oversize-result, journal-write, and applicable cancellation failures prevent commit, including failures outside native callbacks.
+7. A handler that marks rollback-only cannot yield Prepared. A final business rejection can commit and replay without partial invalid business changes.
+8. A lookup can observe no row while the original claim remains uncommitted; subsequent retry still arbitrates through the database and cannot run ahead of that claim.
+9. Lost commit acknowledgement preserves Unknown until recovery establishes the result; later rollback confirmation cannot downgrade it. Cleanup faults cannot downgrade Committed.
+10. Nested/repeated durable execution on the same transaction is rejected, and no API presents that transaction's uncommitted result as Replayed/Found.
+11. Isolation, contention, deadlock/serialization handling, and cancellation require correct settlement or a fresh transaction without a silent isolation change or in-transaction replay.
+12. Scope and authorization apply to first execution, replay, and lookup, including cross-tenant/caller denial and authorized retries across application instances.
+13. Tombstones, expiry/maintenance races, unsupported result/fingerprint versions, and decode failure do not permit protected reexecution while duplicate protection remains.
+14. Disabled telemetry, bounded labels/recordings, original-fault preservation, passive DI registration, public mocking, and actual packaged consumption behave correctly.
+
+Use real PostgreSQL for SQL atomicity and concurrency. For acknowledgement-loss behavior, a small C# test seam that reports failure after a real commit is acceptable; label it simulated acknowledgement loss. Do not claim actual network-fault qualification unless it was executed. Do not build a proxy/fault-injection framework or a new verification harness for this module.
+
+Run affected builds, meaningful affected tests, and the focused real-provider and public package-consumer checks. Run the pinned formatter on changed C# files, then verify formatting. Broaden testing only for an identified risk or required gate. Reuse valid evidence through the repository's existing process. Do not start broad mutation, performance, platform, or release campaigns without their own need and authority. Report actual tested commits/lanes and any unavailable acceptance honestly.
+
+## 11. Documentation, public test helpers, and handoff
+
+Deliver the implemented contracts and runtime, production PostgreSQL journal/schema instructions, and these focused supporting items:
+
+- contracts/operations/README.md with the portable semantics and compatibility/retention boundaries.
+- docs/modules/operations/README.md with actual compiling usage, explicit commit handling, replay/lookup, unknown-outcome recovery, authorization, and provider setup.
+- A compiling consumer in the existing test/example structure. CountryData remains the only maintained runnable tutorial; preserve its database-free default and add any durable option only explicitly. Do not create another sample application.
+- Small bounded public substitutes in CIS.CommonTesting for ordinary application tests. They use public Core contracts and add no runtime, test-framework, mocking, or provider dependency. Label scripted behavior accurately; do not ship an in-memory store as production durability proof. Extend the existing outside-friend package-consumer fixture.
+- .github/skills/cislib-operations/SKILL.md teaching actual implemented APIs, transaction ownership, same-key retry, prepared versus committed outcomes, authorization, retention, and external-effect limits. Add its concise AGENTS.md link and relevant README, metric-catalog, and CommonTesting documentation updates. Keep the skill focused and avoid a parallel planning or approval workflow.
+
+Keep repository changes cohesive. Coordinate shared solution/project edits and builds if delegating; use clear file ownership. Remove only task-created temporary scaffolding and generated output. Preserve unrelated code, user changes, and historical accepted records. Do not merge main or publish a release as part of this implementation.
+
+Finish with the implemented behavior and public API, key design choices, changed-file overview, actual verification results and limits, and a short usage example covering Prepared plus explicit commit, Replayed, and Unknown recovery. Identify any genuinely incomplete acceptance criterion. A reviewable implementation with honest evidence is the required deliverable.
