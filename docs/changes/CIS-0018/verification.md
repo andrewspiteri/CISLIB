@@ -145,3 +145,181 @@ under delegated organization; overall scope, tasks, packages and limits did not
 increase. No PostgreSQL, telemetry exporter, package-consumer or release pass is
 inferred from this coordinator checkpoint.
 | WORK-002 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1918; failed=270; possibleTokenSavings=591; ledgerDigest=sha256:da4f0cf4b5e45cbdb70aff072456f9c2678f85a0302428543e62914c88839ba6 |
+
+## WORK-003 production journal — actual PostgreSQL checkpoint
+
+The provider-free BCL ADO.NET PostgreSQL adapter and packaged version1 SQL are
+implemented. Installation is explicit and one-time; an existing or partial table
+installation fails. Registration performs no migration. Full five-field ordinal
+identity uses C collation and a real nondeferrable primary key. Claim arbitration
+uses INSERT ON CONFLICT DO NOTHING RETURNING and a separate subsequent read.
+Only the original native xid can finalize its incomplete claim exactly once;
+reads exclude the current transaction's own uncommitted row. Claim-only SQLSTATE
+mapping occurs after RM-02 poisoning, without statement or handler retry.
+
+The latest affected Release build passed with zero warnings/errors; scoped pinned
+formatting and verify-no-changes passed. Exactly19 provider cases passed on each
+actual Windows and Ubuntu24.04 lane, zero failures/skips, against the new isolated
+PostgreSQL18.7 fixture with normal durability. Cases cover atomic visibility,
+commit/replay/conflict/rejection, independent-session races and blocked sessions,
+rollback/disposal retry, cancellation/native timeout/55P03, unsupported isolation,
+incomplete and wrong-version protection, strict installation and the full2488-byte
+identity using uncompressed PLAIN storage. The existing atomicity case now
+submits a forged payload account: the handler receives the authorized resolved
+account and its ordinary retry replays the same original result.
+
+Receipt: .artifacts/operations/CIS-0018/WORK-003/provider-receipt.json.
+Current Core SHA256 f2576bc062d64f95180bd79e644e56865a8f69d8fe12ff97a13ac6a33f988329
+matches source, Unit and Integration output copies. Independent review aligned
+all32 source hashes, Integration assembly, both19-case TRX reports and the actual
+workload facts; review-003.md has no remaining required finding.
+
+The separate workload-evidence.json uses the task's review evidence route and
+retains one actual end-to-end prepare/commit/independent lookup/replay observation
+per OS. Each stores40 identity bytes,20 result bytes and a192-byte journal row,
+with1 journal/business/outgoing row committed together. Observed elapsed times
+were370.7554ms Windows and301.3922ms Ubuntu; these are bounded workload facts,
+not a benchmark or installation-only substitute. Resource/candidate/row-shape
+facts remain separate from the component case totals.
+
+The new fixture has zero live client sessions and zero remaining case schemas;
+its observed data footprint is67035136bytes. provider-idle-handoff.json records
+intentional custody under the same approved shared outcome for dependent
+WORK-004. No owner or native transaction remains active. Only that task, after
+canonical admission, may use this fresh private service and perform exact owned
+restoration. The full1GiB allowance remains inside6GiB, with64MiB protected.
+No historical fixture or existing database is reused.
+
+The initial read-only dependency-count assertion assumed54 and failed. Actual
+baseline and current Integration locks both have55 packages, including the already
+approved Npgsql10.0.4. All identities, versions and content hashes match, and SDK,
+runtime, NuGet source/mapping and central pin files are unchanged. The original
+failed assertion is preserved in dependency-retention-initial-check.json; the
+corrected dependency-retention.json records all55 actual baseline entries. No
+package or approval payload was changed. Explicit retention maintenance and
+simulated acknowledgement-loss recovery remain WORK-004; no network-fault,
+production deployment or release proof is inferred.
+| WORK-003 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1925; failed=270; possibleTokenSavings=591; ledgerDigest=sha256:855e5e81fe411be245c7eaef0916e1b6db41097e7ca78faa9f5000b873a6dd1c |
+
+## WORK-005 observations — actual collector checkpoint
+
+A narrow scoped decorator observes the public Execute/GetResult boundary while
+the sequential coordinator stays independent. It captures a known registered
+alias, exact host bundle, immutable LogCalls setting and monotonic start before
+authorization, then completes after actual method-owned cleanup. Timing remains
+null when the clock is unavailable. Late attachment produces no replay and
+foreign host bindings are refused. Normal calls are quiet by default; guarded
+ordinary diagnostics retain original authorization, cancellation, business and
+cleanup facts without request/context/result or exception histories.
+
+Pinned scoped formatting/verify and affected Release builds passed with zero
+warnings/errors. Each actual Windows/Ubuntu lane passed116 Operations Unit cases
+(32 new observation cases plus84 foundation/coordinator),11 actual SDK exporter
+cases and31 affected catalog regressions (10 Transaction,11 REST,10 Security),
+zero failures/skips. Real exporter assertions cover mandatory identity, standard
+buckets, registration order, host isolation, disabled selection, exact profile
+capacity and lookup timing through held read cleanup. The two conditional timers
+reserve208 execute and144 lookup combinations:352 total. With RM-02 selected,
+the profile is26 streams/3808 combinations within unchanged global limits.
+Prepared is measured as preparation, separately from actual transaction commit.
+
+Receipt: .artifacts/operations/CIS-0018/WORK-005/observations-receipt.json.
+Independent review aligned14 current source/doc hashes, all Core and collector
+copies, Unit/Integration assemblies and six exact native TRX reports. Core SHA256
+is f2576bc062d64f95180bd79e644e56865a8f69d8fe12ff97a13ac6a33f988329.
+review-005.md is Complete with no remaining required finding or framework/harness
+expansion. These collector cases establish no production deployment or release
+proof. WORK-004 retention and WORK-006 final current-package integration remain
+separate active outcomes.
+
+WORK-006's public operation helper also passed25 focused cases on each actual
+OS. The bundled skill validator passed; an independent fresh-context usage review
+found no blocking link/API ambiguity and prompted the now-qualified resolved-
+account example correction. The existing outside-friend Windows package case
+passed once on the interim f2576bc0 candidate using a fresh local feed/cache,
+actual deployed/loaded Core/CommonTesting hashes and embedded/packaged SQL checks.
+That interim package result is retained; a final current-candidate package run
+follows WORK-004's new Core source. Full Linux SDK-backed package execution stays
+unverified under the approved profile; no SDK/tooling installation is added.
+| WORK-005 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1928; failed=270; possibleTokenSavings=591; ledgerDigest=sha256:1b017a939475897a66fdfefe7cc6a376da8bf5cd36baa0fb27e8afa02b78863d |
+
+## Final RM-03 integrated candidate and restoration
+
+The final Core candidate passed **219 focused cases on each actual Windows and
+Ubuntu24.04 runtime**, zero failures or skips:119 Operations Unit (including three
+fresh-maintenance-owner guards),25 public-helper Unit,33 real PostgreSQL journal/
+retention cases (19 retained plus14 new), and42 actual SDK/affected catalog cases.
+The existing outside-friend Windows package consumer also passed on that same
+candidate using a fresh local feed/cache, actual restore/build/child execution,
+restored/deployed/loaded Core/CommonTesting hashes and embedded/packaged SQL.
+Both affected Release builds passed with zero warnings/errors; all changed C#
+passed scoped pinned formatting and verify-no-changes.
+
+Final Core SHA256:
+76df3a0cada0f502bd063a56509b74d684dd1e2503fca83a1990e6deb11c6340.
+CommonTesting SHA256:
+186e29188d446f188ff3d910c9788c27bb11659481e90bd5e6225916daa6b517.
+The integrated receipt is .artifacts/operations/CIS-0018/integrated-receipt.json;
+WORK-004/retention-receipt.json retains the same cohort. It records46 source/vector
+hashes, source/Unit/Integration Core and helper copies, actual collector/test DLLs,
+SDK10.0.401 and .NET/ASP.NET10.0.12 Disable runtime configurations, nine exact TRX
+reports/classes, workload observations and owned-restoration facts.
+
+The separate privileged maintenance service uses the actual selected journal's
+captured settings, existing complete target authorization and a fresh validated
+ReadCommitted owner. One deterministic CTE processes at most256 eligible rows;
+SKIP LOCKED appears only there and payloads are not fetched. Disabled/Denied
+disclose no counts; Executed carries candidate counts and actual completion.
+Only known Committed completion exposes confirmed counts. Existing row expiry,
+identity and fingerprint are retained when payloads clear; only whole-row
+removal ends protection. No schedule, internal batch loop or repair worker exists.
+
+Native cases qualify logical expiry before maintenance, immutable old-row policy,
+version/mismatch precedence, tombstones/deletion, the257-row batch boundary,
+skipped locks, actual deletion/lookup/arbitration races, a real claim deadlock and
+explicit fresh retry, and actual commit/disposal boundaries. The narrow test-only
+BCL decorator performs a real native commit and then reports failure through
+RM-02: actual Unknown and independent committed-result recovery are observed.
+Another native-disposal failure leaves known Committed facts intact. This is
+simulated acknowledgement loss, not a real network fault or fabricated completion.
+
+The first33-case Windows retention run passed32 and failed one blocking
+observation. Its BEFORE DELETE trigger held while the original committed tuple
+still existed, so requiring a unique-index wait was incorrect. The test now holds
+AFTER DELETE in the same uncommitted transaction. Production code, causal server
+blocking assertions, no-early-handler checks and actual cleanup are unchanged.
+The focused correction and full33-case reruns passed; original failure and every
+measured cost remain preserved. No assertion was relaxed or result overwritten.
+
+Independent review-004.md aligned all46 sources, DLLs/configs and nine reports;
+review-006.md independently aligned its public-helper/package scope. Neither has
+a remaining required finding. The focused Operations skill, transaction route and
+Metrics skill pass the bundled validator. An independent fresh-context skill use
+review and55 local-link checks confirm usable routing/public API spelling.
+CountryData remains the one maintained tutorial with its database-free default.
+
+After all consumers settled, actual Docker checks found zero client sessions and
+zero case schemas. Only the newly owned container, labelled volume, unshared
+newly pulled image and two generated secret files were removed, without force or
+engine pruning. Final data before removal was68026368bytes; restoration took
+2864ms native elapsed plus a conservative8 source minutes, within WORK-004's
+protected900seconds. postgres-restoration.json records exact identities/results.
+Historical resources, existing databases and operator credentials were untouched.
+
+Final storage observation is2970127365 filesystem/native bytes. Retaining the
+full conservative1GiB Docker allowance and64MiB reserve still leaves2331472891
+bytes inside the original6GiB ceiling; no cache reclamation or capacity increase
+is claimed. All55 actual baseline package IDs/versions/content hashes and selected
+SDK/runtime/source pins remain unchanged. Protected launch settings and the raw
+handoff retain their original SHA256 values.
+
+All intake, agents, documentation, review, native runs and restoration share the
+approved allocation. final-external-costs.json and the ignored resource/native
+journals distinguish conservative source estimates from measured native elapsed
+and from CIS automatic counters, which do not observe these external tools.
+Six coherent external work attempts were used; no automatic counters were reset
+or invented. Full Linux SDK-backed package execution, EF, actual network faults,
+external deployment, broad qualification and release remain unverified/outside
+this bounded outcome. No source push, merge or release was performed.
+| WORK-004 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1931; failed=270; possibleTokenSavings=591; ledgerDigest=sha256:8016a8b56437b3f07245d4c7a16ae88b015cc0d5a4d1184ca53cf6d532b4c35a |
+| WORK-006 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1933; failed=270; possibleTokenSavings=591; ledgerDigest=sha256:698caaca5d158f6e6609082812eda38d361d5e65d453d1a5eb19acb1a9c69cbd |

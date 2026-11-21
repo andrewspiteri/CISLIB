@@ -12,5 +12,7 @@ does not extend that request or grant native work authority.
 Use the [plan](../../docs/changes/CIS-0018/implementation-plan.md),
 [contract reconciliation](../../docs/changes/CIS-0018/reconciliation.md) and
 [dependency/infrastructure profile](../../docs/changes/CIS-0018/dependency-profile.md).
-Implementation and native verification remain pending a fresh applicable
-outcome/allocation decision. Existing owners are not reopened.
+The actual user outcome/allocation decision is recorded in [authorization](../../docs/changes/CIS-0018/authorization.json). Current implementation tasks and native checkpoints are in the [canonical plan](../../docs/changes/CIS-0018/plan.json) and [verification record](../../docs/changes/CIS-0018/verification.md). Existing completed owners stay unchanged.
+
+
+The current [Operations guides](../../docs/modules/operations/README.md) describe the public coordinator, provider, recovery and testing boundaries.

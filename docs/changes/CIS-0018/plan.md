@@ -15,7 +15,7 @@ Derived under `cislib:CIS-0018:outcome:a5124e88d31b486fafd34f4241c8fa4c` by Code
 | --- | --- | --- | --- |
 | WORK-001 | [Deliver portable operation identity, definitions and canonical request contracts](agent-tasks/WORK-001.md) | Complete |  |
 | WORK-002 | [Implement authorized durable execution and independent committed-result lookup](agent-tasks/WORK-002.md) | Complete | WORK-001 |
-| WORK-003 | [Deliver the production PostgreSQL journal and real atomic arbitration consumer](agent-tasks/WORK-003.md) | Draft | WORK-002 |
-| WORK-004 | [Deliver privileged retention maintenance and retained-result recovery](agent-tasks/WORK-004.md) | Draft | WORK-003 |
-| WORK-006 | [Deliver public testing substitutes, actual package consumption and maintained guidance](agent-tasks/WORK-006.md) | Draft | WORK-002 |
-| WORK-005 | [Integrate bounded operation logging and existing Metrics collection](agent-tasks/WORK-005.md) | Draft | WORK-002 |
+| WORK-003 | [Deliver the production PostgreSQL journal and real atomic arbitration consumer](agent-tasks/WORK-003.md) | Complete | WORK-002 |
+| WORK-004 | [Deliver privileged retention maintenance and retained-result recovery](agent-tasks/WORK-004.md) | Complete | WORK-003 |
+| WORK-006 | [Deliver public testing substitutes, actual package consumption and maintained guidance](agent-tasks/WORK-006.md) | Complete | WORK-002 |
+| WORK-005 | [Integrate bounded operation logging and existing Metrics collection](agent-tasks/WORK-005.md) | Complete | WORK-002 |

@@ -173,6 +173,23 @@ Unsupported fingerprint comparison precedes KeyConflict; comparable mismatch
 precedes matching ResultExpired. Unsupported result versions and failed decoding
 never execute the handler.
 
+## Explicit privileged retention maintenance
+
+`IOperationRetentionMaintenance.RunAsync(OperationMaintenanceRequest, token)`
+selects one registered operation and application-resolved trusted scope. Its
+captured maintenance capabilities must be nonempty; the existing complete target
+authorizer runs before owner acquisition, journal SQL or count disclosure.
+Disabled and Denied carry no counts or completion. The selected PostgreSQL service
+uses the exact registered journal settings and its own authoritative ReadCommitted
+owner, with one deterministic batch of1..256 eligible rows and SKIP LOCKED only
+in this maintenance path. No schedule, batching loop or implicit sweep is selected.
+
+An Executed result includes CandidatePayloadsCleared, CandidateRowsDeleted and
+actual `TransactionCompletion`. Confirmed count properties exist only for known
+Committed completion; Unknown cannot confirm deletion counts. Persisted expiry,
+identity and fingerprint remain when payloads are cleared. Whole-row deletion
+alone ends protection. See the [retention guide](../../docs/modules/operations/retention.md)
+for public registration, ownership, native recovery and evidence boundaries.
 The [coordinator guide](../../docs/modules/operations/core.md) covers execution,
 fresh lookup and application ownership. PostgreSQL storage, explicit bounded
 maintenance, operational observations and package qualification are separate

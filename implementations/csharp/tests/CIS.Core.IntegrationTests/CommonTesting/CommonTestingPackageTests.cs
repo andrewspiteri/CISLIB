@@ -1,4 +1,5 @@
 using System.IO.Compression;
+using System.Security.Cryptography;
 using System.Text.Json.Nodes;
 using System.Xml.Linq;
 using CIS.CommonTesting;
@@ -31,6 +32,11 @@ public sealed class CommonTestingPackageTests
         Assert.IsNotNull(zip.GetEntry("lib/net10.0/CIS.CommonTesting.dll"));
         Assert.IsNotNull(zip.GetEntry("lib/net10.0/CIS.CommonTesting.xml"));
         Assert.IsNotNull(zip.GetEntry("README.md"));
+        using ZipArchive coreZip = ZipFile.OpenRead(Path.Combine(package.Feed, "CIS.Core." + package.Version + ".nupkg"));
+        ZipArchiveEntry? installation = coreZip.GetEntry("contentFiles/any/any/CIS.Operations/PostgreSql/install-v1.sql");
+        Assert.IsNotNull(installation, "Core ships the explicit versioned PostgreSQL installation source.");
+        using Stream installationSource = installation.Open();
+        string installationHash = Convert.ToHexStringLower(SHA256.HashData(installationSource));
         Assert.IsFalse(typeof(ScriptedRestClient).Assembly.GetReferencedAssemblies()
             .Any(name => name.Name is { } id && (id.Contains("TestFramework", StringComparison.OrdinalIgnoreCase)
                 || id.StartsWith("Moq", StringComparison.OrdinalIgnoreCase)
@@ -48,7 +54,11 @@ public sealed class CommonTestingPackageTests
         const string assemblyName = "CIS.CommonTesting.PublicPackageConsumer";
         File.WriteAllText(Path.Combine(app, "Program.cs"), """
             using System.Text.Json;
+            using System.Text;
+            using System.Security.Cryptography;
             using CIS.CommonTesting;
+            using CIS.Operations;
+            using CIS.Operations.PostgreSql;
             using CIS.RestClient;
             using CIS.Transactions;
             using CIS.Transactions.AdoNet;
@@ -130,11 +140,101 @@ public sealed class CommonTestingPackageTests
             {
                 queueExhausted = true;
             }
+            var operationTransactions = new ScriptedLocalTransactionFactory();
+            operationTransactions.Enqueue(new TransactionCompletion(TransactionOutcome.Unknown,
+                TransactionEndReason.CommitRequested, true, false, false));
+            var operations = new ScriptedDurableOperationService(scriptCapacity: 1, recordingCapacity: 2);
+            IDurableOperationService operationPort = operations;
+            var prepared = new OperationExecution<string>(OperationExecutionDisposition.Prepared,
+                OperationDecision<string>.Succeed("original-operation-id"));
+            operations.EnqueueExecution<int, string>(prepared);
+            bool operationQueueBound = false;
+            try
+            {
+                operations.EnqueueLookup<string>(new(OperationLookupDisposition.NotFound));
+            }
+            catch (InvalidOperationException)
+            {
+                operationQueueBound = true;
+            }
+            bool operationContext;
+            bool operationPrepared;
+            bool operationUnknown;
+            int handlerCalls = 0;
+            await using (ILocalTransaction owner = await operationTransactions.BeginAsync("Ledger"))
+            {
+                var result = await operationPort.ExecuteAsync(owner.Context,
+                    new OperationRequest<int>("Debit", "requested-scope", "opaque-key", 42), (_, _, _) =>
+                    {
+                        handlerCalls++;
+                        return Task.FromResult(OperationDecision<string>.Succeed("unexpected-handler"));
+                    });
+                operationContext = ReferenceEquals(owner.Context, operations.Calls.Single().Context);
+                operationPrepared = ReferenceEquals(prepared, result) && owner.Completion is null;
+                operationUnknown = (await owner.CommitAsync()).Outcome == TransactionOutcome.Unknown;
+            }
+            var readCompletion = new TransactionCompletion(TransactionOutcome.NotCommitted,
+                TransactionEndReason.RollbackRequested, false, true, true);
+            var originalLookup = new OperationLookup<string>(OperationLookupDisposition.Found,
+                OperationDecision<string>.Succeed("original-operation-id"), readCompletion);
+            operations.EnqueueLookup(originalLookup);
+            var recovered = await operationPort.GetResultAsync<string>(new("Debit", "requested-scope", "opaque-key"));
+            bool operationRecovered = ReferenceEquals(originalLookup, recovered)
+                && recovered.Decision!.Value == "original-operation-id"
+                && ReferenceEquals(readCompletion, recovered.ReadScopeCompletion)
+                && operations.Calls[1].IsLookup && operations.Calls[1].Context is null;
+            operations.EnqueueLookup<string>(new(OperationLookupDisposition.Unavailable));
+            bool operationRecordingBound = false;
+            try
+            {
+                await operationPort.GetResultAsync<string>(new("Debit", "requested-scope", "another-key"));
+            }
+            catch (InvalidOperationException)
+            {
+                operationRecordingBound = operations.PendingScripts == 1 && operations.Calls.Count == 2;
+            }
+            var faultedOperations = new ScriptedDurableOperationService();
+            var originalFault = new OperationCanceledException("Unrelated scripted operation fault");
+            faultedOperations.EnqueueLookupFailure<string>(originalFault);
+            Task<OperationLookup<string>> faultedOperation = faultedOperations.GetResultAsync<string>(new("Debit", "scope", "key"));
+            bool operationFaultPreserved = false;
+            try
+            {
+                await faultedOperation;
+            }
+            catch (OperationCanceledException error)
+            {
+                operationFaultPreserved = ReferenceEquals(error, originalFault) && faultedOperation.IsFaulted;
+            }
+            string testingPath = typeof(ManualHeartbeat).Assembly.Location;
+            string corePath = typeof(IRestClient).Assembly.Location;
+            using Stream embeddedSource = typeof(PostgreSqlOperationSchema).Assembly.GetManifestResourceStream(
+                "CIS.Operations.PostgreSql.install-v1.sql")
+                ?? throw new InvalidOperationException("Public Core consumer cannot read the operation schema resource.");
+            using var embeddedBuffer = new MemoryStream();
+            embeddedSource.CopyTo(embeddedBuffer);
+            byte[] embeddedBytes = embeddedBuffer.ToArray();
+            string embeddedTemplate = Encoding.UTF8.GetString(embeddedBytes);
+            bool operationSchemaPublic = PostgreSqlOperationSchema.Version == 1
+                && PostgreSqlOperationSchema.GetInstallationSql("outside_schema") == embeddedTemplate.Replace(
+                    "__CIS_OPERATIONS_SCHEMA__", "\"outside_schema\"", StringComparison.Ordinal);
             Console.WriteLine(JsonSerializer.Serialize(new
             {
                 elapsed = clock.GetElapsedTime(0).TotalSeconds,
-                testing = typeof(ManualHeartbeat).Assembly.Location,
-                core = typeof(IRestClient).Assembly.Location,
+                testing = testingPath,
+                core = corePath,
+                testingHash = Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(testingPath))),
+                coreHash = Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(corePath))),
+                operationContext,
+                operationPrepared,
+                operationUnknown,
+                operationRecovered,
+                operationQueueBound,
+                operationRecordingBound,
+                operationFaultPreserved,
+                operationHandlerNotInvoked = handlerCalls == 0,
+                operationSchemaPublic,
+                operationSchemaHash = Convert.ToHexStringLower(SHA256.HashData(embeddedBytes)),
                 sharedContext,
                 rollbackRefused = refused.Outcome == TransactionOutcome.NotCommitted && !refused.CommitAttempted
                     && refused.EndReason == TransactionEndReason.RollbackOnly,
@@ -149,7 +249,9 @@ public sealed class CommonTestingPackageTests
                 recordings = scripts.CreatedTransactions.Count,
                 allDisposed = scripts.CreatedTransactions.All(owner => owner.DisposeRequested),
                 optionalLoaded = AppDomain.CurrentDomain.GetAssemblies().Any(assembly => assembly.GetName().Name is { } name
-                    && (name.StartsWith("Npgsql", StringComparison.OrdinalIgnoreCase)
+                    && (name.Contains("TestFramework", StringComparison.OrdinalIgnoreCase)
+                        || name.StartsWith("Moq", StringComparison.OrdinalIgnoreCase)
+                        || name.StartsWith("Npgsql", StringComparison.OrdinalIgnoreCase)
                         || name.StartsWith("OpenTelemetry", StringComparison.OrdinalIgnoreCase)
                         || name.Contains("EntityFramework", StringComparison.OrdinalIgnoreCase)))
             }));
@@ -184,7 +286,9 @@ public sealed class CommonTestingPackageTests
         JsonObject report = JsonNode.Parse(process.StandardOutput)!.AsObject();
         Assert.AreEqual(1d, report["elapsed"]!.GetValue<double>());
         foreach (string field in new[] { "sharedContext", "rollbackRefused", "unknown", "rollbackNormalized",
-            "nativeRejectedBeforeCallback", "recordingExhaustedWithoutConsumption", "queueExhausted", "allDisposed" })
+            "nativeRejectedBeforeCallback", "recordingExhaustedWithoutConsumption", "queueExhausted", "allDisposed",
+            "operationContext", "operationPrepared", "operationUnknown", "operationRecovered", "operationQueueBound",
+            "operationRecordingBound", "operationFaultPreserved", "operationHandlerNotInvoked", "operationSchemaPublic" })
         {
             Assert.IsTrue(report[field]!.GetValue<bool>(), field);
         }
@@ -194,6 +298,10 @@ public sealed class CommonTestingPackageTests
         Assert.IsFalse(report["optionalLoaded"]!.GetValue<bool>());
         RestPackage.SamePath(Path.Combine(output, "CIS.CommonTesting.dll"), report["testing"]!.GetValue<string>());
         RestPackage.SamePath(Path.Combine(output, "CIS.Core.dll"), report["core"]!.GetValue<string>());
+        Assert.AreEqual(CandidatePackageFixture.Hash(typeof(ManualHeartbeat).Assembly.Location), report["testingHash"]!.GetValue<string>());
+        Assert.AreEqual(CandidatePackageFixture.Hash(typeof(HttpRestClient).Assembly.Location), report["coreHash"]!.GetValue<string>());
+        Assert.AreEqual(installationHash, report["operationSchemaHash"]!.GetValue<string>(),
+            "The outside-friend consumer reads the exact installation bytes shipped with the Core package.");
         package.AssertOriginalAssembliesUnchanged();
     }
 

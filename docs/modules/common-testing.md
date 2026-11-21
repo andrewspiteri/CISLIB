@@ -74,3 +74,17 @@ and [package consumer](../../implementations/csharp/tests/CIS.Core.IntegrationTe
 The latter uses the existing isolated actual-package fixture, public APIs and
 fake-store context propagation; its authored source alone is not a passing claim.
 Real database atomicity belongs to the separate PostgreSQL fixture.
+
+## Durable operation substitution
+
+Use `ScriptedDurableOperationService` through the public `IDurableOperationService`
+port. `EnqueueExecution<TRequest,TResult>`, `EnqueueLookup<TResult>` and their
+failure variants supply explicit logical outcomes. Scripts and call recordings
+default to sixteen each; exhaustion refuses another call before consuming its
+script. Recordings keep the exact borrowed context and bounded request metadata,
+with no arbitrary input/result payload history. The helper runs no handler,
+authorizer or SQL and never completes a transaction owner.
+
+See the [operation testing guide](operations/testing.md) and existing outside-friend
+package consumer for Prepared, Unknown and Found as separate facts. Real journal
+atomicity and recovery use the [PostgreSQL consumer](operations/example.md).

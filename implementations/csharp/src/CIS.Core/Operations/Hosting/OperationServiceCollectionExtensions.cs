@@ -17,6 +17,8 @@ public static class OperationServiceCollectionExtensions
         _ = InspectRegistration(services);
         services.TryAddSingleton(new OperationRegistrationSnapshot([], null));
         services.TryAddSingleton<LocalApplicationIdentity>(_ => LocalApplicationIdentity.Capture());
+        services.TryAddSingleton<TimeProvider>(TimeProvider.System);
+        services.TryAddSingleton<OperationInstrumentation>();
         services.TryAddScoped<IDurableOperationService>(provider =>
         {
             (OperationDefinition[] definitions, OperationsComposition? composition) = InspectRegistration(services);
@@ -26,12 +28,14 @@ public static class OperationServiceCollectionExtensions
             {
                 throw new InvalidOperationException("Build a new provider after changing operation definitions; runtime and host metadata must share one snapshot.");
             }
-            return new DurableOperationService(provider, snapshot.Definitions,
+            var coordinator = new DurableOperationService(provider, snapshot.Definitions,
                 provider.GetRequiredService<LocalApplicationIdentity>(),
                 provider.GetRequiredService<ICapabilityAuthorizer>(),
                 provider.GetRequiredService<ICallerContextAccessor>(),
                 provider.GetRequiredService<IOperationJournal>(),
                 provider.GetRequiredService<ILocalTransactionFactory>());
+            return new ObservedDurableOperationService(coordinator, snapshot.Definitions,
+                provider.GetRequiredService<OperationInstrumentation>());
         });
         return services;
     }
@@ -64,6 +68,8 @@ public static class OperationServiceCollectionExtensions
         services.AddSingleton(composition);
         services.RemoveAll<OperationRegistrationSnapshot>();
         services.AddSingleton(new OperationRegistrationSnapshot(definitions, composition));
+        services.TryAddSingleton<TimeProvider>(TimeProvider.System);
+        services.TryAddSingleton<OperationInstrumentation>();
         return services;
     }
 

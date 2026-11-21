@@ -5,6 +5,11 @@ namespace CIS.Operations.Hosting;
 /// <summary>Mutable setup copied by an operation definition before registration.</summary>
 public sealed class OperationDefinitionOptions
 {
+    /// <summary>Gets or sets optional normal-call debug summaries; false keeps normal calls quiet.</summary>
+    public bool LogCalls
+    {
+        get; set;
+    }
     /// <summary>Gets or sets the canonical frame byte limit, initially 64 KiB and at most one MiB.</summary>
     public int MaximumCanonicalBytes { get; set; } = 65_536;
     /// <summary>Gets or sets the result/error payload limit, initially 256 KiB and at most one MiB.</summary>
@@ -48,10 +53,16 @@ public abstract class OperationDefinition
         MaintenanceCapabilities = CopyCapabilities(options.MaintenanceCapabilities, nameof(options.MaintenanceCapabilities), required: false);
         Retention = new(options.Retention.ResultRetention, options.Retention.DuplicateProtectionRetention);
         ScopeResolver = scopeResolver;
+        LogCalls = options.LogCalls;
     }
 
     /// <summary>Gets the unique ordinal operation alias.</summary>
     public string Name
+    {
+        get;
+    }
+    /// <summary>Gets whether this operation emits safe normal-call debug summaries; initially false.</summary>
+    public bool LogCalls
     {
         get;
     }
