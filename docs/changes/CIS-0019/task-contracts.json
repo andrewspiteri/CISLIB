@@ -1,0 +1,133 @@
+{
+  "tasks": [
+    {
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex",
+      "title": "Deliver portable messaging framing, bounded definitions and infrastructure ports",
+      "scopeIds": [
+        "contracts"
+      ],
+      "dependsOn": [],
+      "acceptanceCriteria": "P01-P04/P15/P17/P19: owned strict envelope/codecs, stable portable names and transport digest distinct from business identity; immutable snapshot/options/route/subscription/request definitions and narrow original-context store/transport/disposition/ticket ports. No registered throwing runtime stubs. This foundation is not complete broker delivery.",
+      "validation": "Meaningful units and portable wire vectors cover UTF8/duplicatekeys/depth/size/requiredfields/version/UUID/precision/ownedbytes, invalid/duplicate registration, passiveDI and result distinctions. Actual affected build/style/docs and independent contract review."
+    },
+    {
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex",
+      "title": "Deliver production PostgreSQL messaging storage and atomic arbitration",
+      "scopeIds": [
+        "postgres-store"
+      ],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "acceptanceCriteria": "P05-P07/P11-P14 and A01/A02/A04/A06/A08/A10: explicit versioned packaged installer, originalRCcontext staging and DBunique inbox claim, metadata reservation/fencedbodyread/settlement, parameterized conditionaldispositions and admin storage. Store never completes owner or calls broker; protect exact bytes/provenance and separate invalidrejection identity.",
+      "validation": "Real newlyownedPostgreSQL commit/rollback business+outbox, same/different subscription/session races, expiredfence/oldowner, postconflictseparate snapshot, retrywinner/uniquehandoff, boundedinspection/redrive/retention and unsupportedisolation guards. Exactcandidate/bytes/shape evidence, docs/scopedstyle/build and independent SQLreview."
+    },
+    {
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex",
+      "title": "Deliver optional RabbitMQ transport, native authority bridge and topology",
+      "scopeIds": [
+        "rabbit-provider"
+      ],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "acceptanceCriteria": "P08-P10/P13/P16/P18 and A03/A05/A09/A12: optionalclient/deploymentclosure, supportedpinned broker, explicitdurableboundedquorumtopology, TLSvalidateduserid privateprojector/current native scope, fourserialized confirms+mandatorypublish lanes and bounded manualackdelivery. One native recoveryowner; noimplicitinstall, defaultTTL/deliverylimitloss or second retryscheduler.",
+      "validation": "Real brokerprincipal/missingorforgeduserid/permission/TLS/route/confirm/ack/restart checks, safeDLX malformedpath, nativebuffer/concurrency/drain guards and optionalCore package separation. Fresh labelled fixture only within resourceadmission, actualversions/prerequisites/restoration, providerdocs/style/build and independentsecurityreview."
+    },
+    {
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex",
+      "title": "Implement committed-only outbox publication and explicit submission",
+      "scopeIds": [
+        "publication"
+      ],
+      "dependsOn": [
+        "WORK-002",
+        "WORK-003"
+      ],
+      "acceptanceCriteria": "P06/P07/P15/P16 and A01-A03/A09/A11: originalcontext typed staging and stable receipts; convenience shortowner submission preservesactualcompletion. Reserveknowncommit, boundedbodyadmission, brokeroutsideSQL, freshfencedsettlement. Unknown/Blocked/transientcappedbackoff preserve accepted work and exact bytes; no publication beforecommit.",
+      "validation": "Controlledandreal publicpath tests for stagedvscommitted, serialization/storefault rollbackonly, metadata+bytecapacity, staleowner, lostconfirm and uncertainstatecommit, cancellation/outage/shutdown actualcleanup, no perpollsuccessstream. Guide/style/build and independent owningboundaryreview."
+    },
+    {
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex",
+      "title": "Implement authorized transactional dispatch and durable operation binding",
+      "scopeIds": [
+        "dispatch"
+      ],
+      "dependsOn": [
+        "WORK-002",
+        "WORK-003"
+      ],
+      "acceptanceCriteria": "P10/P11/P19 and A04-A06/A12: independent established native SecurityHostContextScope/DI scope, capability checks and originalcontext inboxclaim beforeeffects. Handleroutsidecallback, exactlyoneRM03attempt, atomicbusiness/operation/inbox/outgoing/reply and knowncommitbeforeack. Duplicate/replay/newattempt distinctions and Deniedrollback preserve legitimate canonicalidentity.",
+      "validation": "Real independentinstances/subscribers/restart/concurrentduplicateeffect proof; inputdigestvsoperationconflict, denial/audithook/cancellation, prepared/replayed/completion/Unknown, exactsecuredreplyduplicate and actualscope/nativecleanup. Current source/native review, docs/style/build."
+    },
+    {
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex",
+      "title": "Implement durable retry, terminal rejection and authorized redrive",
+      "scopeIds": [
+        "dispositions"
+      ],
+      "dependsOn": [
+        "WORK-004",
+        "WORK-005"
+      ],
+      "acceptanceCriteria": "P12-P14 and A07/A08/A10/A12: fresh postrollbackexpectedstate arbitration, one5ordinal targetedchain andcurrentretryserviceauthority; retainedprovenance/scope exactmatch, noimpersonation. AtomicTerminal+outbox; separateinvalidrejection/canonicalprotection; explicitbounded authorizedinspection/maintenance/redrive generation/horizon.",
+      "validation": "Real retry/terminalcommit/crash/publication/oldordinal/concurrentsuccessgap races; businessrejectiondistinct, schemadenial/contentconflict/exhaustion and malformed safequarantine. Redrive preservesidentity/protection andpendingreferences, max256bounds, noOperationsmaintenance. Docs/style/build and independentstate/recoveryreview."
+    },
+    {
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex",
+      "title": "Integrate hosting, bounded observations and Part A acceptance",
+      "scopeIds": [
+        "composition"
+      ],
+      "dependsOn": [
+        "WORK-004",
+        "WORK-005",
+        "WORK-006"
+      ],
+      "acceptanceCriteria": "P15/P16/P20 and completePartA A01-A12: existingsequentialhosting readiness/schema/topology/resource startup and narrow facade stoporder, actualownerdrain. Sevenfinite streams435capacity, centralidentity/currentbinding/boundeddiagnostics. Focusedrealbroker/database evidence plus one actual metricsandpackage separation checkpoint; no release claim.",
+      "validation": "Actualnative restart/publication/consumer/bytecapacity/shutdown/authority/crossmodule tests and affectedMetricscatalog/exporter scrape, no Rabbit/Npgsql Core-only acquireddependency. Representative bytes/records/shape/concurrency/latency separatefrominstall/units. Integratedcurrentcandidateindependentreview/docs/style/build and concisePartAcheckpoint."
+    },
+    {
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex",
+      "title": "Deliver typed request/reply and current-attempt durable recovery",
+      "scopeIds": [
+        "rpc"
+      ],
+      "dependsOn": [
+        "WORK-007"
+      ],
+      "acceptanceCriteria": "P17-P19 and B01-B06: Query/DurableCommand bindings on same store/dispatcher. Reservewaiter/registerbeforestage; originaltransaction disposableticket retains earlyresponse andmonotonicdeadline; knowncommittedreceiptbeforewait. Exacttrustedreplymatch/oncecompletion/currentattempt resultrecovery, endpointretirement and no remoterollbackorTasks claims.",
+      "validation": "Realfastquery/durabledecision/rejection, timeout/cancelaftercommit/late/duplicate/maliciousreply, concurrentcallers/restart/response loss thennewattempt recoverywithoutsecondcommittedeffect; conflict/denied/expired/incompatible result; active/unknownsubmission/overload/capacitycleanup. Guide/style/build and independentrecoveryreview; metrics/package facts refreshedatPartB."
+    },
+    {
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex",
+      "title": "Deliver bounded public testing, complete consumer guidance and Part B handoff",
+      "scopeIds": [
+        "public-consumer"
+      ],
+      "dependsOn": [
+        "WORK-008"
+      ],
+      "acceptanceCriteria": "P20 and bothparts integrated: boundedpublicCommonTesting publisher/delivery/replyscripts andrecordings with no productionauth/SQL/runtimeemulation; actualexistingoutsidefriendCore/helper/optionalpackageconsumer, completeguides/compilingfixture/example/portablecontract and messaging skill/currentroutes. No newtutorial/harness/framework.",
+      "validation": "Meaningfulhelperoutcome/cancellation/ownership/capacitytests; actualfreshfeedrestore/build/run/currentbytes/packageclosure and PartB exportercheck; available Windows/Ubunturuntime lanes, source/native currentness and independentfinalreview. Validatefocusedskill viainstalledtooling/freshcontextuse/local links, restore exactnewownedresources andrecordcosts/limits/gaps. Complete onlyafterallrequiredpartA/Bacceptance."
+    }
+  ]
+}

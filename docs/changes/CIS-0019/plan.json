@@ -1,0 +1,451 @@
+{
+  "authorizationId": "cislib:CIS-0019:outcome:7f1507a223264cf1986c6524aedc5a6c",
+  "actor": "Codex",
+  "workItems": [
+    {
+      "id": "WORK-001",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-001.md",
+      "title": "Deliver portable messaging framing, bounded definitions and infrastructure ports",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [],
+      "acceptanceCriteria": "P01-P04/P15/P17/P19: owned strict envelope/codecs, stable portable names and transport digest distinct from business identity; immutable snapshot/options/route/subscription/request definitions and narrow original-context store/transport/disposition/ticket ports. No registered throwing runtime stubs. This foundation is not complete broker delivery.",
+      "validation": "Meaningful units and portable wire vectors cover UTF8/duplicatekeys/depth/size/requiredfields/version/UUID/precision/ownedbytes, invalid/duplicate registration, passiveDI and result distinctions. Actual affected build/style/docs and independent contract review.",
+      "status": "InProgress",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:d727709529da471693a39dcdbcf61909",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "contracts"
+      ],
+      "authorizationScopeBasis": "sha256:243b08075c99f308edb4e95fc52263a29c13c552e6278a609aafea1570183c32",
+      "workPaths": [],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "P01-P04/P15/P17/P19: owned strict envelope/codecs, stable portable names and transport digest distinct from business identity; immutable snapshot/options/route/subscription/request definitions and narrow original-context store/transport/disposition/ticket ports. No registered throwing runtime stubs. This foundation is not complete broker delivery."
+          ],
+          "description": "Meaningful units and portable wire vectors cover UTF8/duplicatekeys/depth/size/requiredfields/version/UUID/precision/ownedbytes, invalid/duplicate registration, passiveDI and result distinctions. Actual affected build/style/docs and independent contract review.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Meaningful units and portable wire vectors cover UTF8/duplicatekeys/depth/size/requiredfields/version/UUID/precision/ownedbytes, invalid/duplicate registration, passiveDI and result distinctions. Actual affected build/style/docs and independent contract review."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-002",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-002.md",
+      "title": "Deliver production PostgreSQL messaging storage and atomic arbitration",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "acceptanceCriteria": "P05-P07/P11-P14 and A01/A02/A04/A06/A08/A10: explicit versioned packaged installer, originalRCcontext staging and DBunique inbox claim, metadata reservation/fencedbodyread/settlement, parameterized conditionaldispositions and admin storage. Store never completes owner or calls broker; protect exact bytes/provenance and separate invalidrejection identity.",
+      "validation": "Real newlyownedPostgreSQL commit/rollback business\u002Boutbox, same/different subscription/session races, expiredfence/oldowner, postconflictseparate snapshot, retrywinner/uniquehandoff, boundedinspection/redrive/retention and unsupportedisolation guards. Exactcandidate/bytes/shape evidence, docs/scopedstyle/build and independent SQLreview.",
+      "status": "Draft",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:43223b0564a24dcea966f3eb0a2a2d33",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "postgres-store"
+      ],
+      "authorizationScopeBasis": "sha256:d1794c1de2d0a3a1256b25026b82d573881123fe5051c812c61149136763bedb",
+      "workPaths": [],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "P05-P07/P11-P14 and A01/A02/A04/A06/A08/A10: explicit versioned packaged installer, originalRCcontext staging and DBunique inbox claim, metadata reservation/fencedbodyread/settlement, parameterized conditionaldispositions and admin storage. Store never completes owner or calls broker; protect exact bytes/provenance and separate invalidrejection identity."
+          ],
+          "description": "Real newlyownedPostgreSQL commit/rollback business\u002Boutbox, same/different subscription/session races, expiredfence/oldowner, postconflictseparate snapshot, retrywinner/uniquehandoff, boundedinspection/redrive/retention and unsupportedisolation guards. Exactcandidate/bytes/shape evidence, docs/scopedstyle/build and independent SQLreview.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Real newlyownedPostgreSQL commit/rollback business\u002Boutbox, same/different subscription/session races, expiredfence/oldowner, postconflictseparate snapshot, retrywinner/uniquehandoff, boundedinspection/redrive/retention and unsupportedisolation guards. Exactcandidate/bytes/shape evidence, docs/scopedstyle/build and independent SQLreview."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-003",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-003.md",
+      "title": "Deliver optional RabbitMQ transport, native authority bridge and topology",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "acceptanceCriteria": "P08-P10/P13/P16/P18 and A03/A05/A09/A12: optionalclient/deploymentclosure, supportedpinned broker, explicitdurableboundedquorumtopology, TLSvalidateduserid privateprojector/current native scope, fourserialized confirms\u002Bmandatorypublish lanes and bounded manualackdelivery. One native recoveryowner; noimplicitinstall, defaultTTL/deliverylimitloss or second retryscheduler.",
+      "validation": "Real brokerprincipal/missingorforgeduserid/permission/TLS/route/confirm/ack/restart checks, safeDLX malformedpath, nativebuffer/concurrency/drain guards and optionalCore package separation. Fresh labelled fixture only within resourceadmission, actualversions/prerequisites/restoration, providerdocs/style/build and independentsecurityreview.",
+      "status": "Draft",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:5a7f4367f7014f7d913fd2e36218db1f",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "rabbit-provider"
+      ],
+      "authorizationScopeBasis": "sha256:9b43164d784f41deb269efe0533076a9ef8249b8b1c81008b2fa3332559df3d8",
+      "workPaths": [],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "P08-P10/P13/P16/P18 and A03/A05/A09/A12: optionalclient/deploymentclosure, supportedpinned broker, explicitdurableboundedquorumtopology, TLSvalidateduserid privateprojector/current native scope, fourserialized confirms\u002Bmandatorypublish lanes and bounded manualackdelivery. One native recoveryowner; noimplicitinstall, defaultTTL/deliverylimitloss or second retryscheduler."
+          ],
+          "description": "Real brokerprincipal/missingorforgeduserid/permission/TLS/route/confirm/ack/restart checks, safeDLX malformedpath, nativebuffer/concurrency/drain guards and optionalCore package separation. Fresh labelled fixture only within resourceadmission, actualversions/prerequisites/restoration, providerdocs/style/build and independentsecurityreview.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Real brokerprincipal/missingorforgeduserid/permission/TLS/route/confirm/ack/restart checks, safeDLX malformedpath, nativebuffer/concurrency/drain guards and optionalCore package separation. Fresh labelled fixture only within resourceadmission, actualversions/prerequisites/restoration, providerdocs/style/build and independentsecurityreview."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-004",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-004.md",
+      "title": "Implement committed-only outbox publication and explicit submission",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-002",
+        "WORK-003"
+      ],
+      "acceptanceCriteria": "P06/P07/P15/P16 and A01-A03/A09/A11: originalcontext typed staging and stable receipts; convenience shortowner submission preservesactualcompletion. Reserveknowncommit, boundedbodyadmission, brokeroutsideSQL, freshfencedsettlement. Unknown/Blocked/transientcappedbackoff preserve accepted work and exact bytes; no publication beforecommit.",
+      "validation": "Controlledandreal publicpath tests for stagedvscommitted, serialization/storefault rollbackonly, metadata\u002Bbytecapacity, staleowner, lostconfirm and uncertainstatecommit, cancellation/outage/shutdown actualcleanup, no perpollsuccessstream. Guide/style/build and independent owningboundaryreview.",
+      "status": "Draft",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:30fd7ab9bc1445afb7ff45552d2d5e8e",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "publication"
+      ],
+      "authorizationScopeBasis": "sha256:725b9601de4578e6e9e14d18377516a3fcd1874a23f00a7ad70d4de5050c7329",
+      "workPaths": [],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "P06/P07/P15/P16 and A01-A03/A09/A11: originalcontext typed staging and stable receipts; convenience shortowner submission preservesactualcompletion. Reserveknowncommit, boundedbodyadmission, brokeroutsideSQL, freshfencedsettlement. Unknown/Blocked/transientcappedbackoff preserve accepted work and exact bytes; no publication beforecommit."
+          ],
+          "description": "Controlledandreal publicpath tests for stagedvscommitted, serialization/storefault rollbackonly, metadata\u002Bbytecapacity, staleowner, lostconfirm and uncertainstatecommit, cancellation/outage/shutdown actualcleanup, no perpollsuccessstream. Guide/style/build and independent owningboundaryreview.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Controlledandreal publicpath tests for stagedvscommitted, serialization/storefault rollbackonly, metadata\u002Bbytecapacity, staleowner, lostconfirm and uncertainstatecommit, cancellation/outage/shutdown actualcleanup, no perpollsuccessstream. Guide/style/build and independent owningboundaryreview."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-005",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-005.md",
+      "title": "Implement authorized transactional dispatch and durable operation binding",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-002",
+        "WORK-003"
+      ],
+      "acceptanceCriteria": "P10/P11/P19 and A04-A06/A12: independent established native SecurityHostContextScope/DI scope, capability checks and originalcontext inboxclaim beforeeffects. Handleroutsidecallback, exactlyoneRM03attempt, atomicbusiness/operation/inbox/outgoing/reply and knowncommitbeforeack. Duplicate/replay/newattempt distinctions and Deniedrollback preserve legitimate canonicalidentity.",
+      "validation": "Real independentinstances/subscribers/restart/concurrentduplicateeffect proof; inputdigestvsoperationconflict, denial/audithook/cancellation, prepared/replayed/completion/Unknown, exactsecuredreplyduplicate and actualscope/nativecleanup. Current source/native review, docs/style/build.",
+      "status": "Draft",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:2971f23a8b8144ac82e79bd0e24f820c",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "dispatch"
+      ],
+      "authorizationScopeBasis": "sha256:bb540bd23186b3cf932767351bb75e19f05b50f3eebcef20aa9ac7d722c372ae",
+      "workPaths": [],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "P10/P11/P19 and A04-A06/A12: independent established native SecurityHostContextScope/DI scope, capability checks and originalcontext inboxclaim beforeeffects. Handleroutsidecallback, exactlyoneRM03attempt, atomicbusiness/operation/inbox/outgoing/reply and knowncommitbeforeack. Duplicate/replay/newattempt distinctions and Deniedrollback preserve legitimate canonicalidentity."
+          ],
+          "description": "Real independentinstances/subscribers/restart/concurrentduplicateeffect proof; inputdigestvsoperationconflict, denial/audithook/cancellation, prepared/replayed/completion/Unknown, exactsecuredreplyduplicate and actualscope/nativecleanup. Current source/native review, docs/style/build.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Real independentinstances/subscribers/restart/concurrentduplicateeffect proof; inputdigestvsoperationconflict, denial/audithook/cancellation, prepared/replayed/completion/Unknown, exactsecuredreplyduplicate and actualscope/nativecleanup. Current source/native review, docs/style/build."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-006",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-006.md",
+      "title": "Implement durable retry, terminal rejection and authorized redrive",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-004",
+        "WORK-005"
+      ],
+      "acceptanceCriteria": "P12-P14 and A07/A08/A10/A12: fresh postrollbackexpectedstate arbitration, one5ordinal targetedchain andcurrentretryserviceauthority; retainedprovenance/scope exactmatch, noimpersonation. AtomicTerminal\u002Boutbox; separateinvalidrejection/canonicalprotection; explicitbounded authorizedinspection/maintenance/redrive generation/horizon.",
+      "validation": "Real retry/terminalcommit/crash/publication/oldordinal/concurrentsuccessgap races; businessrejectiondistinct, schemadenial/contentconflict/exhaustion and malformed safequarantine. Redrive preservesidentity/protection andpendingreferences, max256bounds, noOperationsmaintenance. Docs/style/build and independentstate/recoveryreview.",
+      "status": "Draft",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:9f36bcbb537c4517b4e820503c99b86f",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "dispositions"
+      ],
+      "authorizationScopeBasis": "sha256:3c17909eae9120457f6d44cc88e7c00a464850302b92af85626d50a99466a3c2",
+      "workPaths": [],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "P12-P14 and A07/A08/A10/A12: fresh postrollbackexpectedstate arbitration, one5ordinal targetedchain andcurrentretryserviceauthority; retainedprovenance/scope exactmatch, noimpersonation. AtomicTerminal\u002Boutbox; separateinvalidrejection/canonicalprotection; explicitbounded authorizedinspection/maintenance/redrive generation/horizon."
+          ],
+          "description": "Real retry/terminalcommit/crash/publication/oldordinal/concurrentsuccessgap races; businessrejectiondistinct, schemadenial/contentconflict/exhaustion and malformed safequarantine. Redrive preservesidentity/protection andpendingreferences, max256bounds, noOperationsmaintenance. Docs/style/build and independentstate/recoveryreview.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Real retry/terminalcommit/crash/publication/oldordinal/concurrentsuccessgap races; businessrejectiondistinct, schemadenial/contentconflict/exhaustion and malformed safequarantine. Redrive preservesidentity/protection andpendingreferences, max256bounds, noOperationsmaintenance. Docs/style/build and independentstate/recoveryreview."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-007",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-007.md",
+      "title": "Integrate hosting, bounded observations and Part A acceptance",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-004",
+        "WORK-005",
+        "WORK-006"
+      ],
+      "acceptanceCriteria": "P15/P16/P20 and completePartA A01-A12: existingsequentialhosting readiness/schema/topology/resource startup and narrow facade stoporder, actualownerdrain. Sevenfinite streams435capacity, centralidentity/currentbinding/boundeddiagnostics. Focusedrealbroker/database evidence plus one actual metricsandpackage separation checkpoint; no release claim.",
+      "validation": "Actualnative restart/publication/consumer/bytecapacity/shutdown/authority/crossmodule tests and affectedMetricscatalog/exporter scrape, no Rabbit/Npgsql Core-only acquireddependency. Representative bytes/records/shape/concurrency/latency separatefrominstall/units. Integratedcurrentcandidateindependentreview/docs/style/build and concisePartAcheckpoint.",
+      "status": "Draft",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:a73da5422f0c4fe58a72724b9f48c66b",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "composition"
+      ],
+      "authorizationScopeBasis": "sha256:cac67f6f370356ceac0d10e2e57b759f6fd601e807f9505d5b4eb53af0427ab5",
+      "workPaths": [],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "P15/P16/P20 and completePartA A01-A12: existingsequentialhosting readiness/schema/topology/resource startup and narrow facade stoporder, actualownerdrain. Sevenfinite streams435capacity, centralidentity/currentbinding/boundeddiagnostics. Focusedrealbroker/database evidence plus one actual metricsandpackage separation checkpoint; no release claim."
+          ],
+          "description": "Actualnative restart/publication/consumer/bytecapacity/shutdown/authority/crossmodule tests and affectedMetricscatalog/exporter scrape, no Rabbit/Npgsql Core-only acquireddependency. Representative bytes/records/shape/concurrency/latency separatefrominstall/units. Integratedcurrentcandidateindependentreview/docs/style/build and concisePartAcheckpoint.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Actualnative restart/publication/consumer/bytecapacity/shutdown/authority/crossmodule tests and affectedMetricscatalog/exporter scrape, no Rabbit/Npgsql Core-only acquireddependency. Representative bytes/records/shape/concurrency/latency separatefrominstall/units. Integratedcurrentcandidateindependentreview/docs/style/build and concisePartAcheckpoint."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-008",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-008.md",
+      "title": "Deliver typed request/reply and current-attempt durable recovery",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-007"
+      ],
+      "acceptanceCriteria": "P17-P19 and B01-B06: Query/DurableCommand bindings on same store/dispatcher. Reservewaiter/registerbeforestage; originaltransaction disposableticket retains earlyresponse andmonotonicdeadline; knowncommittedreceiptbeforewait. Exacttrustedreplymatch/oncecompletion/currentattempt resultrecovery, endpointretirement and no remoterollbackorTasks claims.",
+      "validation": "Realfastquery/durabledecision/rejection, timeout/cancelaftercommit/late/duplicate/maliciousreply, concurrentcallers/restart/response loss thennewattempt recoverywithoutsecondcommittedeffect; conflict/denied/expired/incompatible result; active/unknownsubmission/overload/capacitycleanup. Guide/style/build and independentrecoveryreview; metrics/package facts refreshedatPartB.",
+      "status": "Draft",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:f03671ca53f34b78bb2363bde61de56a",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "rpc"
+      ],
+      "authorizationScopeBasis": "sha256:640f9401a280b4f85f1f995c657afa48ed9369cb8fde63c83ab44b1f11b0ed26",
+      "workPaths": [],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "P17-P19 and B01-B06: Query/DurableCommand bindings on same store/dispatcher. Reservewaiter/registerbeforestage; originaltransaction disposableticket retains earlyresponse andmonotonicdeadline; knowncommittedreceiptbeforewait. Exacttrustedreplymatch/oncecompletion/currentattempt resultrecovery, endpointretirement and no remoterollbackorTasks claims."
+          ],
+          "description": "Realfastquery/durabledecision/rejection, timeout/cancelaftercommit/late/duplicate/maliciousreply, concurrentcallers/restart/response loss thennewattempt recoverywithoutsecondcommittedeffect; conflict/denied/expired/incompatible result; active/unknownsubmission/overload/capacitycleanup. Guide/style/build and independentrecoveryreview; metrics/package facts refreshedatPartB.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Realfastquery/durabledecision/rejection, timeout/cancelaftercommit/late/duplicate/maliciousreply, concurrentcallers/restart/response loss thennewattempt recoverywithoutsecondcommittedeffect; conflict/denied/expired/incompatible result; active/unknownsubmission/overload/capacitycleanup. Guide/style/build and independentrecoveryreview; metrics/package facts refreshedatPartB."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-009",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-009.md",
+      "title": "Deliver bounded public testing, complete consumer guidance and Part B handoff",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-008"
+      ],
+      "acceptanceCriteria": "P20 and bothparts integrated: boundedpublicCommonTesting publisher/delivery/replyscripts andrecordings with no productionauth/SQL/runtimeemulation; actualexistingoutsidefriendCore/helper/optionalpackageconsumer, completeguides/compilingfixture/example/portablecontract and messaging skill/currentroutes. No newtutorial/harness/framework.",
+      "validation": "Meaningfulhelperoutcome/cancellation/ownership/capacitytests; actualfreshfeedrestore/build/run/currentbytes/packageclosure and PartB exportercheck; available Windows/Ubunturuntime lanes, source/native currentness and independentfinalreview. Validatefocusedskill viainstalledtooling/freshcontextuse/local links, restore exactnewownedresources andrecordcosts/limits/gaps. Complete onlyafterallrequiredpartA/Bacceptance.",
+      "status": "Draft",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:a27f9f013a6549c7baf2cd47dcb217b8",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "public-consumer"
+      ],
+      "authorizationScopeBasis": "sha256:109b8410749da5422779f63ec251b71e7ff9ff96e51bd0999cceab871e4ccb47",
+      "workPaths": [],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "P20 and bothparts integrated: boundedpublicCommonTesting publisher/delivery/replyscripts andrecordings with no productionauth/SQL/runtimeemulation; actualexistingoutsidefriendCore/helper/optionalpackageconsumer, completeguides/compilingfixture/example/portablecontract and messaging skill/currentroutes. No newtutorial/harness/framework."
+          ],
+          "description": "Meaningfulhelperoutcome/cancellation/ownership/capacitytests; actualfreshfeedrestore/build/run/currentbytes/packageclosure and PartB exportercheck; available Windows/Ubunturuntime lanes, source/native currentness and independentfinalreview. Validatefocusedskill viainstalledtooling/freshcontextuse/local links, restore exactnewownedresources andrecordcosts/limits/gaps. Complete onlyafterallrequiredpartA/Bacceptance.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Meaningfulhelperoutcome/cancellation/ownership/capacitytests; actualfreshfeedrestore/build/run/currentbytes/packageclosure and PartB exportercheck; available Windows/Ubunturuntime lanes, source/native currentness and independentfinalreview. Validatefocusedskill viainstalledtooling/freshcontextuse/local links, restore exactnewownedresources andrecordcosts/limits/gaps. Complete onlyafterallrequiredpartA/Bacceptance."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    }
+  ],
+  "source": null
+}
