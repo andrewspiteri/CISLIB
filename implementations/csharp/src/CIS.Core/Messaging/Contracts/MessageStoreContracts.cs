@@ -107,10 +107,11 @@ public enum MessageRedriveDisposition
 /// <param name="Generation">An explicit audited redrive generation, initially zero.</param>
 /// <param name="DiagnosticCode">Safe bounded context without native error text.</param>
 /// <param name="OriginalProvenance">Original audit evidence, never delegated authority.</param>
+/// <param name="TargetSubscription">An explicit configured target, independent of canonical identity for rejection/quarantine.</param>
 public sealed record MessageOutgoingRecord(Guid RecordId, string Application, string Environment,
     MessageDestination Destination, EncodedMessage Message, MessageRecordPurpose Purpose = MessageRecordPurpose.Application,
     TimeSpan Delay = default, MessageProcessingKey? ProcessingKey = null, int DeliveryOrdinal = 1, int Generation = 0,
-    string? DiagnosticCode = null, MessageProvenance? OriginalProvenance = null);
+    string? DiagnosticCode = null, MessageProvenance? OriginalProvenance = null, string? TargetSubscription = null);
 
 /// <summary>Staging identifiers and digest, without a persistence or broker-acceptance claim.</summary>
 /// <param name="RecordId">The stable outgoing-record identity.</param>
@@ -149,10 +150,12 @@ public sealed record MessageReservationRequest(string Application, string Enviro
 /// <param name="CreatedAtUtc">The row's database observation time.</param>
 /// <param name="AttemptCount">The retained bounded publication-attempt counter.</param>
 /// <param name="DiagnosticCode">Safe prior diagnostic context.</param>
+/// <param name="TargetSubscription">The configured targeted consumer, including canonical-free rejection handoffs.</param>
 public sealed record MessageReservation(Guid RecordId, Guid MessageId, string Application, string Environment,
     MessageDestination Destination, MessageRecordPurpose Purpose, int DeliveryOrdinal, int Generation,
     MessageProcessingKey? ProcessingKey, MessageDigest Digest, int EncodedLength, Guid Owner, long Version,
-    DateTimeOffset ExpiresAtUtc, DateTimeOffset CreatedAtUtc, int AttemptCount, string? DiagnosticCode = null);
+    DateTimeOffset ExpiresAtUtc, DateTimeOffset CreatedAtUtc, int AttemptCount, string? DiagnosticCode = null,
+    string? TargetSubscription = null);
 
 /// <summary>A conditional publication-state update; a true store result still requires the enclosing commit.</summary>
 /// <param name="Reservation">The exact owner/version fence.</param>

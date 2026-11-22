@@ -100,3 +100,24 @@ No database/broker was accessed. These tests qualify the contract foundation,
 not Part A/B delivery. The production store and optional provider now follow
 under their existing allocated owners; all later acceptance remains explicit.
 | WORK-001 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1959; failed=272; possibleTokenSavings=591; ledgerDigest=sha256:f040f20075e9b354cf302aa98b296eb8338afdd5d4d2e8c1361fc52b4afc6375 |
+
+## PostgreSQL store checkpoint
+
+WORK-002's actual isolated PostgreSQL 18.7 tests pass **33/33 on Windows and
+33/33 on Ubuntu**, with zero failures or skips. They cover atomic business/outbox
+commit and rollback, independent-session duplicate arbitration, original-context
+guards, current fences, rollback-gap winners, targeted retry/terminal/rejection,
+redrive/retention and finite capacity arithmetic. The affected Release build
+passes with zero warnings/errors. The [independent review](review-002.md) confirms
+the source corrections and current source/binary/TRX hashes in
+`.artifacts/messaging/CIS-0019/WORK-002/store-receipt.json`.
+
+The fresh labelled fixture has fsync, synchronous_commit and full_page_writes
+enabled. No existing database or credentials were used. Fixture data remains
+owned for subsequent same-module integration and final restoration. These are
+storage facts; Part A delivery and Part B request/reply acceptance remain open.
+
+The updated foundation/publication unit cohort also passes **90/90 on each
+actual Windows/Ubuntu runtime**, with no failures/skips. That controlled result
+does not replace the pending combined SQL/broker publication tests.
+| WORK-002 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1978; failed=274; possibleTokenSavings=591; ledgerDigest=sha256:57b13bccb0961f386ecc5e86935f131665bac762944fb5bdf00cb0bebb3dbb49 |
