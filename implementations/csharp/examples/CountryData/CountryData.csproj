@@ -5,7 +5,8 @@
     <IsPackable>false</IsPackable>
     <RuntimeFrameworkVersion>10.0.12</RuntimeFrameworkVersion>
     <RollForward>Disable</RollForward>
-    <RuntimeIdentifiers>win-x64;linux-x64</RuntimeIdentifiers>
+    <!-- Lock both source-checkout targets; package-based deployments keep SDK-selected runtime behavior. -->
+    <RuntimeIdentifiers Condition="Exists('$(MSBuildThisFileDirectory)../../build/type-manager/CIS.TypeManager.targets')">win-x64;linux-x64</RuntimeIdentifiers>
     <CisTypeManagerEnabled>true</CisTypeManagerEnabled>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
   </PropertyGroup>

@@ -62,6 +62,13 @@ counts and elapsed time. It does not run tests, provision services or certify
 release readiness. In Bash, capture `$?` immediately after `dotnet test` and pass
 that value to the same check.
 
+The integration project's ordinary identity-only launch profile supplies its
+known test application/environment before the host captures identity, in both
+CLI and IDE runs. It starts no services and preserves ordinary empty-filter and
+long-test behavior. The explicitly selected service profile adds the CI timeout,
+empty-selection and cleanup gates. Neither profile contains credentials or
+external endpoints; production unknown-identity guards remain unchanged.
+
 For PostgreSQL-only work, exclude tests that also need RabbitMQ:
 
 ```powershell

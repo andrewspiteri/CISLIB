@@ -123,3 +123,34 @@ The original frozen local snapshots/reports remain intact as earlier local-ready
 proof; a separate portable-consumer receipt records the new source/binary delta.
 No executable product/test C# changed for this portability correction. Actual
 Linux selected-service qualification remains required on the corrected head.
+
+The next [Linux run 45028902924](https://github.com/andrewspiteri/CISLIB/actions/runs/45028902924)
+passed fresh locked restore and a zero-warning/error solution build, then executed
+145 service cases: 95 passed, 50 failed, zero skipped. All 50 failures preserved
+the production guard requiring a known captured local application/environment;
+the cold test host had no environment identity. The earlier local helper had
+supplied those facts, exposing a test-launch profile prerequisite rather than a
+broker or production authorization defect. The failed native TRX and exact
+164-second job cost are retained.
+
+The integration project now conditionally selects an anchored identity-only
+native runsettings file for ordinary CLI/IDE launches. The explicitly selected
+strict service profile supplies the same known test identity and retains its
+empty-selection, timeout and cleanup gates. Ordinary focus filters retain their
+previous zero-match success and long-test semantics. No global initializer or
+parent-process environment mutation is added, and production identity/security
+guards remain unchanged. Independent profile review passed. With inherited CORE
+variables removed from the actual SDK process, the initial RabbitMQ cohort passed
+23/23; the final ordinary identity-only profile then passed authentic publication
+1/1 and a deliberately empty ordinary filter exited successfully. Its Docker-free
+fast integration sweep executed 2,557 cases: 2,556 passed and one failed. The
+offline CountryData package consumer copied the new dual-RID source-build
+property into its isolated local-only package feed and requested extra runtime
+packs. The property is now conditional on the exact existing source-import path;
+source checkouts retain both lock targets while packaged deployments retain the
+SDK's selected-runtime behavior. Independent review accepted this narrow change.
+The subsequent full locked restore and solution build pass with zero warnings or
+errors; the actual previously failing package-consumer case passes 1/1 with CORE
+variables cleared and the ordinary project profile. The original failed report
+is retained alongside the 2,556 unchanged passing cases. No product/test C# or
+package versions changed. Actual Linux service qualification remains pending.
