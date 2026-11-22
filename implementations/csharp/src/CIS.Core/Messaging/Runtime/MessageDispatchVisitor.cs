@@ -16,10 +16,13 @@ internal sealed class MessageDispatchPlan
     internal bool HandlerStarted;
     internal Func<MessageProcessingRecord, CancellationToken, ValueTask<bool>>? ValidateRetry;
     internal Func<ILocalTransactionContext, MessageProcessingAttempt, CancellationToken, Task<MessageInvocation>>? Invoke;
+    internal Func<MessageProcessingAttempt, MessageFailureReplyStage>? TerminalReply;
+    internal Func<MessageProcessingAttempt, MessageDeniedReplyStage>? DeniedReply;
 }
 
 internal sealed class MessageDispatchVisitor(IServiceProvider services, CallerContext caller, EncodedMessage message,
-    LocalApplicationIdentity local, IMessageResponseCoordinator? replies, CancellationToken cancellationToken) : IMessageSubscriptionVisitor<Task<MessageDispatchPlan>>
+    LocalApplicationIdentity local, IMessageResponseCoordinator? replies, CancellationToken cancellationToken,
+    MessageResponseAdmission? responseAdmission = null) : IMessageSubscriptionVisitor<Task<MessageDispatchPlan>>
 {
     public async Task<MessageDispatchPlan> Visit<T>(MessageSubscriptionDefinition<T> definition)
     {
@@ -82,6 +85,17 @@ internal sealed class MessageDispatchVisitor(IServiceProvider services, CallerCo
         {
             plan.ValidateRetry = (record, token) => validate(services, input!, caller, record.Provenance, record.OperationBinding, token);
         }
+        if (request)
+        {
+            if (responseAdmission is null)
+            {
+                throw new InvalidOperationException("Admit the bounded response buffer before request effects.");
+            }
+            plan.TerminalReply = attempt => (context, token) => replies!.StageReplyAsync(context, definition, message, attempt,
+                new(durable ? MessageProtocolDisposition.OutcomeUnknown : MessageProtocolDisposition.Unavailable), responseAdmission, token);
+            plan.DeniedReply = attempt => (context, rejection, token) => replies!.StageReplyAsync(context, definition, message, attempt,
+                new(MessageProtocolDisposition.Denied), responseAdmission, token, rejection);
+        }
         plan.Invoke = async (context, attempt, token) =>
         {
             MessageResponse<TResponse> response;
@@ -131,7 +145,7 @@ internal sealed class MessageDispatchVisitor(IServiceProvider services, CallerCo
                     ? new(MessageInvocationKind.Completed)
                     : new(MessageInvocationKind.Terminal, "messaging.operation_protocol_terminal");
             }
-            Guid reply = await replies!.StageReplyAsync(context, definition, message, attempt, response, token).ConfigureAwait(false);
+            Guid reply = await replies!.StageReplyAsync(context, definition, message, attempt, response, responseAdmission!, token).ConfigureAwait(false);
             return new(MessageInvocationKind.Completed, ReplyRecordId: reply);
         };
         return plan;

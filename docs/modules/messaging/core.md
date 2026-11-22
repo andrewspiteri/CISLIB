@@ -103,6 +103,8 @@ local resources and preserves remote uncertainty.
 `InvalidResponse` contains no invalid typed value. A fresh attempt carries the
 same operation reference with new request/correlation identities. Replayed
 results still require the new inbox/reply unit to commit before acknowledgement.
+See [typed requests and recovery](requests.md) for the implemented caller APIs,
+current native authority, strict reply correlation and reserved reply capacity.
 
 ## Current focused checks
 
@@ -117,3 +119,41 @@ consume [independent portable vectors](../../../conformance/messaging/v1/README.
 Their authored source alone establishes no passing result; actual observations
 and provider evidence are recorded in
 [CIS-0019 verification](../../changes/CIS-0019/verification.md).
+
+## CommonTesting boundaries
+
+`CIS.CommonTesting.ScriptedMessagingClient` substitutes the public logical client
+port with bounded ordered scripts and metadata recordings. Its public scripted
+tickets keep disposal explicit; waiting does not take ownership of a caller's
+ticket. These scripts do not execute requests or provide durable recovery.
+
+`ScriptedMessagePublisher` substitutes `IMessagePublisher`. Queue explicit
+`MessagePublicationResult` values, original exceptions, or a held result with
+`EnqueuePendingResult`. Script and metadata-record capacities default separately
+to sixteen. Calls record identifiers, route, purpose, ordinal, generation, size
+and immutable digest; they retain no message bodies or native credentials.
+Pre-cancellation consumes no script. A scripted programming exception, including
+an unrelated `OperationCanceledException`, remains the original faulted task.
+
+`ScriptedMessageDelivery` copies one body after checking the selected finite
+framing bound, captures bounded metadata, and implements `IMessageDelivery`.
+Empty/malformed bodies and bounded invalid claimed metadata support rejection
+tests. Native evidence is always absent: the helper cannot authenticate a
+producer or mint a provider ticket/caller. Configure exactly one acknowledgement,
+requeue, quarantine decision, original exception or pending settlement. Repeated
+identical settlement joins the same operation; competing settlement fails.
+False quarantine, cancellation and faults leave completed settlement absent.
+Represent redelivery with another helper instance.
+
+Both helpers close admission on disposal and join started work. Disposal does
+not release a pending script selected with `observeCancellation: false`; release
+that owned work explicitly before awaiting drain. Delivery stop requests retain
+only the first bounded reason and a saturating count, without acknowledging,
+requeuing or self-joining. The selected operation owns its exception; the delivery
+disposal barrier joins it without replaying or rethrowing that operation.
+
+The [publisher/delivery unit cases](../../../implementations/csharp/tests/CIS.Core.UnitTests/CommonTesting/MessagePublisherDeliveryTests.cs)
+demonstrate these public ownership boundaries. Scripted acceptance, settlement
+and logical results are test inputs. They establish no SQL atomicity, native
+broker acceptance, TLS/authentication, process recovery or deployment proof;
+retain the existing real-provider and package checks for those distinct claims.

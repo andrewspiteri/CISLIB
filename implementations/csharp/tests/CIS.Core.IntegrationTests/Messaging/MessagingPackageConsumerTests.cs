@@ -1,11 +1,15 @@
 using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Xml.Linq;
+using CIS.CommonTesting;
 using CIS.Messaging;
 using CIS.Messaging.RabbitMQ;
+using CIS.TestSupport;
 using CIS.Tests.IntegrationTests.RestClient;
+using CIS.Tests.MessagingCrashFixture;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CIS.Tests.IntegrationTests.Messaging;
@@ -17,12 +21,219 @@ public sealed class MessagingPackageConsumerTests
     public TestContext TestContext { get; set; } = null!;
 
     [TestMethod]
+    public async Task ActualPublicPackagedHostCommitsTypedQueryAndDurableRequestRepliesAndReplaysOneOriginalEffect()
+    {
+        RestPackage package = await RestPackage.PrepareAsync(TestContext, "Messaging.Rpc.Package",
+            typeof(MessageEnvelope).Assembly, typeof(RabbitMqOptions).Assembly);
+        bool packageCleanupConfirmed = true;
+        try
+        {
+            await ImportPinnedNpgsqlAsync(package);
+            string app = Directory.CreateDirectory(Path.Combine(package.Root, "rpc")).FullName;
+            string project = Path.Combine(app, "Consumer.csproj");
+            const string assemblyName = "CIS.Messaging.PublicPackageConsumer.Rpc";
+            string source = Path.Combine(CandidatePackageFixture.Repository(),
+                "implementations/csharp/tests/CIS.Core.IntegrationTests/Messaging/CrashHost");
+            string[] inputs = [Path.Combine(source, "Program.cs"), Path.Combine(source, "Contracts.cs")];
+            string[] inputHashes = inputs.Select(CandidatePackageFixture.Hash).ToArray();
+            new XDocument(new XElement("Project", new XAttribute("Sdk", "Microsoft.NET.Sdk"),
+                new XElement("PropertyGroup", new XElement("OutputType", "Exe"), new XElement("AssemblyName", assemblyName),
+                    new XElement("EnableDefaultCompileItems", false)),
+                new XElement("ItemGroup", new XElement("FrameworkReference", new XAttribute("Include", "Microsoft.AspNetCore.App")),
+                    new[] { "CIS.Core", "CIS.Messaging.RabbitMQ" }.Select(id => new XElement("PackageReference", new XAttribute("Include", id),
+                        new XAttribute("Version", "[" + package.Version + "]"))),
+                    new XElement("PackageReference", new XAttribute("Include", "Npgsql"), new XAttribute("Version", "[10.0.4]")),
+                    inputs.Select(path => new XElement("Compile", new XAttribute("Include", path), new XAttribute("Link", Path.GetFileName(path))))))).Save(project);
+            await package.RunAsync(["restore", project, "--configfile", package.Config, "--no-cache"], package.Root);
+            AssertRuntimeRestore(package, app);
+            await package.RunAsync(["build", project, "-c", "Release", "--no-restore"], package.Root);
+            string output = Path.Combine(app, "bin/Release/net10.0");
+            package.AssertDeployed(output, assemblyName);
+            Assert.AreEqual(package.DependencyHash("npgsql.10.0.4.nupkg", "Npgsql"),
+                CandidatePackageFixture.Hash(Path.Combine(output, "Npgsql.dll")));
+
+            MessageRpcProcessFixture fixture = await MessageRpcProcessFixture.CreateAsync(minimum: true);
+            try
+            {
+                CrashDescriptor descriptor = fixture.Descriptor("roundtrip", "public-package", minimum: true);
+                MessageRpcProcessFixture.RpcChild child = await fixture.StartAsync(descriptor, Path.Combine(output, assemblyName + ".dll"));
+                ProcessResult process = await child.Execution;
+                packageCleanupConfirmed &= process.OutputDrained;
+                Assert.IsTrue(process.OutputDrained && !process.CaptureTruncated);
+                Assert.AreEqual(0, process.ExitCode, process.StandardError);
+                Assert.AreEqual("", process.StandardError);
+                CrashReport report = await fixture.ReportAsync(child);
+                Assert.AreEqual(fixture.Broker.Local.Application, report.Application);
+                Assert.AreEqual(fixture.Broker.Local.Environment, report.Environment);
+                Assert.AreEqual("OutboxCommitted", report.Submission);
+                Assert.AreEqual("Committed", report.Completion);
+                Assert.AreEqual("ResponseReceived", report.Exchange);
+                Assert.AreEqual("Completed", report.Protocol);
+                Assert.AreEqual("Succeeded", report.Business);
+                Assert.AreEqual("original:7", report.Value);
+                Assert.AreEqual(report.Value, report.ReplayedValue);
+                Assert.AreEqual("query:7", report.QueryValue);
+                Assert.AreEqual(1L, report.EffectCount);
+                Assert.AreEqual(1L, report.JournalCount);
+                Assert.AreEqual(1L, await fixture.ScalarAsync($"SELECT total::bigint FROM {fixture.Server.Table("rpc_effect_counter")}"));
+                Assert.AreEqual(1L, await fixture.ScalarAsync($"SELECT count(*) FROM \"{fixture.OperationSchema}\".operation_journal"));
+                Assert.AreNotEqual(Guid.Empty, report.MessageId);
+                Assert.AreNotEqual(report.MessageId, report.SecondMessageId);
+                Assert.AreNotEqual(Guid.Empty, report.AttemptId);
+                Assert.AreNotEqual(report.AttemptId, report.SecondAttemptId);
+                Assert.AreNotEqual(Guid.Empty, report.EndpointId);
+                Assert.AreEqual(CandidatePackageFixture.Hash(typeof(MessageEnvelope).Assembly.Location), report.CoreHash);
+                TestContext.WriteLine("MESSAGING-PACKAGE-RPC " + JsonSerializer.Serialize(report));
+            }
+            catch (ProcessTimeoutException failure)
+            {
+                packageCleanupConfirmed &= failure.CleanupCompleted;
+                throw;
+            }
+            catch (ProcessOutputLimitException failure)
+            {
+                packageCleanupConfirmed &= failure.Result.OutputDrained;
+                throw;
+            }
+            finally
+            {
+                try
+                {
+                    await fixture.DisposeAsync();
+                }
+                catch
+                {
+                    packageCleanupConfirmed = false;
+                    throw;
+                }
+            }
+            CollectionAssert.AreEqual(inputHashes, inputs.Select(CandidatePackageFixture.Hash).ToArray(), "Package consumption must not rewrite the shared public entry source.");
+            package.AssertOriginalAssembliesUnchanged();
+        }
+        finally
+        {
+            if (packageCleanupConfirmed)
+            {
+                package.Dispose();
+            }
+            else
+            {
+                TestContext.WriteLine("Retained packaged RPC consumer because owned child cleanup is unconfirmed: " + package.Root);
+            }
+        }
+    }
+
+    private static async Task ImportPinnedNpgsqlAsync(RestPackage package)
+    {
+        string assetsPath = Path.Combine(CandidatePackageFixture.Repository(), "implementations/csharp/tests/CIS.Core.IntegrationTests/obj/project.assets.json");
+        JsonObject assets = RestPackage.Assets(assetsPath);
+        JsonNode library = assets["libraries"]!["Npgsql/10.0.4"]!;
+        Assert.AreEqual("package", library["type"]!.GetValue<string>());
+        string? source = assets["packageFolders"]!.AsObject().Select(folder => Path.Combine(folder.Key, "npgsql", "10.0.4", "npgsql.10.0.4.nupkg"))
+            .FirstOrDefault(File.Exists);
+        Assert.IsNotNull(source, "Use only the existing selected test-only provider archive.");
+        string directory = Path.GetDirectoryName(source)!;
+        JsonObject metadata = RestPackage.Assets(Path.Combine(directory, ".nupkg.metadata"));
+        Assert.AreEqual(library["sha512"]!.GetValue<string>(), metadata["contentHash"]!.GetValue<string>());
+        byte[] bytes = await File.ReadAllBytesAsync(source);
+        Assert.AreEqual((await File.ReadAllTextAsync(source + ".sha512")).Trim(), Convert.ToBase64String(SHA512.HashData(bytes)));
+        using (ZipArchive archive = ZipFile.OpenRead(source))
+        {
+            using Stream manifest = archive.GetEntry("Npgsql.nuspec")!.Open();
+            XDocument identity = XDocument.Load(manifest);
+            Assert.AreEqual("Npgsql", identity.Descendants().Single(element => element.Name.LocalName == "id").Value);
+            Assert.AreEqual("10.0.4", identity.Descendants().Single(element => element.Name.LocalName == "version").Value);
+            using Stream assembly = archive.GetEntry("lib/net10.0/Npgsql.dll")!.Open();
+            Assert.AreEqual(CandidatePackageFixture.Hash(typeof(Npgsql.NpgsqlConnection).Assembly.Location), Convert.ToHexStringLower(SHA256.HashData(assembly)));
+        }
+        await File.WriteAllBytesAsync(Path.Combine(package.Feed, "npgsql.10.0.4.nupkg"), bytes);
+    }
+
+    private static void AssertRuntimeRestore(RestPackage package, string app)
+    {
+        JsonObject assets = RestPackage.Assets(Path.Combine(app, "obj/project.assets.json"));
+        Assert.AreEqual(1, assets["packageFolders"]!.AsObject().Count);
+        string cache = Path.Combine(package.Root, "packages");
+        RestPackage.SamePath(cache, assets["packageFolders"]!.AsObject().Single().Key);
+        Assert.IsTrue(assets["libraries"]!.AsObject().All(item => item.Value!["type"]!.GetValue<string>() == "package"));
+        string[] approved = ["CIS.Core/" + package.Version, "CIS.Messaging.RabbitMQ/" + package.Version,
+            "Npgsql/10.0.4", "RabbitMQ.Client/7.2.2", "Microsoft.Extensions.Logging.Abstractions/10.0.12",
+            "Microsoft.Extensions.DependencyInjection.Abstractions/10.0.12"];
+        string[] restored = RestPackage.Packages(assets).ToArray();
+        Assert.IsTrue(restored.All(dependency => approved.Contains(dependency, StringComparer.Ordinal)));
+        foreach (string required in approved.Take(4))
+        {
+            CollectionAssert.Contains(restored, required);
+        }
+        string[] archives = Directory.GetFiles(package.Feed, "*.nupkg");
+        foreach (string dependency in restored)
+        {
+            string[] identity = dependency.Split('/');
+            string id = identity[0].ToLowerInvariant();
+            string version = identity[1].ToLowerInvariant();
+            string file = id + "." + version + ".nupkg";
+            string selected = archives.Single(path => string.Equals(Path.GetFileName(path), file, StringComparison.OrdinalIgnoreCase));
+            Assert.AreEqual(CandidatePackageFixture.Hash(selected), CandidatePackageFixture.Hash(Path.Combine(cache, id, version, file)));
+        }
+    }
+
+    [TestMethod]
+    public async Task CurrentCommonTestingPackageExposesPublicMessagingSubstitutesWithoutNativeProviders()
+    {
+        using RestPackage package = await RestPackage.PrepareAsync(TestContext, "Messaging.Helpers.Package",
+            typeof(MessageEnvelope).Assembly, typeof(ScriptedMessagingClient).Assembly);
+        using (ZipArchive archive = ZipFile.OpenRead(Path.Combine(package.Feed, "CIS.CommonTesting." + package.Version + ".nupkg")))
+        {
+            Assert.IsNotNull(archive.GetEntry("lib/net10.0/CIS.CommonTesting.dll"));
+            Assert.IsNotNull(archive.GetEntry("lib/net10.0/CIS.CommonTesting.xml"));
+            Assert.IsNotNull(archive.GetEntry("README.md"));
+            using Stream manifest = archive.Entries.Single(entry => entry.FullName.EndsWith(".nuspec", StringComparison.Ordinal)).Open();
+            string[] dependencies = XDocument.Load(manifest).Descendants().Where(element => element.Name.LocalName == "dependency")
+                .Select(element => (string)element.Attribute("id")!).ToArray();
+            CollectionAssert.AreEquivalent(new[] { "CIS.Core" }, dependencies);
+        }
+        string app = Directory.CreateDirectory(Path.Combine(package.Root, "helpers")).FullName;
+        string project = Path.Combine(app, "Consumer.csproj");
+        const string assemblyName = "CIS.Messaging.PublicPackageConsumer.Helpers";
+        File.WriteAllText(Path.Combine(app, "Program.cs"), HelperProgram);
+        new XDocument(new XElement("Project", new XAttribute("Sdk", "Microsoft.NET.Sdk"),
+            new XElement("PropertyGroup", new XElement("OutputType", "Exe"), new XElement("AssemblyName", assemblyName)),
+            new XElement("ItemGroup", new XElement("FrameworkReference", new XAttribute("Include", "Microsoft.AspNetCore.App")),
+                new[] { "CIS.Core", "CIS.CommonTesting" }.Select(id => new XElement("PackageReference", new XAttribute("Include", id),
+                    new XAttribute("Version", "[" + package.Version + "]")))))).Save(project);
+        await package.RunAsync(["restore", project, "--configfile", package.Config, "--no-cache"], package.Root);
+        package.AssertRestored(app);
+        string[] approved = ["CIS.Core/" + package.Version, "CIS.CommonTesting/" + package.Version,
+            "Microsoft.Extensions.Logging.Abstractions/10.0.12", "Microsoft.Extensions.DependencyInjection.Abstractions/10.0.12"];
+        Assert.IsTrue(RestPackage.Packages(RestPackage.Assets(Path.Combine(app, "obj/project.assets.json")))
+            .All(dependency => approved.Contains(dependency, StringComparer.Ordinal)));
+        await package.RunAsync(["build", project, "-c", "Release", "--no-restore"], package.Root);
+        string output = Path.Combine(app, "bin/Release/net10.0");
+        package.AssertDeployed(output, assemblyName);
+        var process = await package.RunAsync(["exec", "--fx-version", "10.0.12", "--roll-forward", "Disable",
+            Path.Combine(output, assemblyName + ".dll")], package.Root);
+        Assert.AreEqual("", process.StandardError);
+        JsonObject report = JsonNode.Parse(process.StandardOutput)!.AsObject();
+        foreach (string fact in new[] { "publication", "unsecuredDelivery", "typedRequest", "typedWait", "ticketOwnership", "originalFault", "finiteRecords" })
+        {
+            Assert.IsTrue(report[fact]!.GetValue<bool>(), fact);
+        }
+        Assert.IsFalse(report["nativeProviderLoaded"]!.GetValue<bool>());
+        RestPackage.SamePath(Path.Combine(output, "CIS.Core.dll"), report["corePath"]!.GetValue<string>());
+        RestPackage.SamePath(Path.Combine(output, "CIS.CommonTesting.dll"), report["helperPath"]!.GetValue<string>());
+        Assert.AreEqual(CandidatePackageFixture.Hash(typeof(MessageEnvelope).Assembly.Location), report["coreHash"]!.GetValue<string>());
+        Assert.AreEqual(CandidatePackageFixture.Hash(typeof(ScriptedMessagingClient).Assembly.Location), report["helperHash"]!.GetValue<string>());
+        TestContext.WriteLine("MESSAGING-PACKAGE-HELPERS " + process.StandardOutput);
+        package.AssertOriginalAssembliesUnchanged();
+    }
+
+    [TestMethod]
     public async Task CurrentCoreAndOptionalPackagesExposePublicWireSchemaAndPassiveHostingWithoutNativeStartup()
     {
         using RestPackage package = await RestPackage.PrepareAsync(TestContext, "Messaging.Package",
             typeof(MessageEnvelope).Assembly, typeof(RabbitMqOptions).Assembly);
         using ZipArchive core = ZipFile.OpenRead(Path.Combine(package.Feed, "CIS.Core." + package.Version + ".nupkg"));
-        ZipArchiveEntry? installation = core.GetEntry("contentFiles/any/any/CIS.Messaging/PostgreSql/install-v1.sql");
+        ZipArchiveEntry? installation = core.GetEntry("contentFiles/any/any/CIS.Messaging/PostgreSql/install-v2.sql");
         Assert.IsNotNull(installation);
         string installationHash;
         using (var reader = new StreamReader(installation.Open()))
@@ -181,7 +392,7 @@ public sealed class MessagingPackageConsumerTests
         Console.WriteLine(JsonSerializer.Serialize(new
         {
             ownedWire, payloadPrecision, passiveGraph, immutableSettings, optionalSelected, unselectedProviderLoaded,
-            schemaPublic = PostgreSqlMessagingSchema.Version == 1 && installation.Contains("\"package_fixture\"", StringComparison.Ordinal),
+            schemaPublic = PostgreSqlMessagingSchema.Version == 2 && installation.Contains("\"package_fixture\"", StringComparison.Ordinal),
             installationHash = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(installation))),
             corePath, coreHash = Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(corePath))), adapterPath, adapterHash
         }));
@@ -196,5 +407,81 @@ public sealed class MessagingPackageConsumerTests
                 return value is not null;
             }
         }
+        """;
+
+    private const string HelperProgram = """
+        using System.Security.Cryptography;
+        using System.Text.Json;
+        using CIS.CommonTesting;
+        using CIS.Messaging;
+        using CIS.Operations;
+
+        EncodedMessage message = MessageWire.Encode(new(Guid.NewGuid(), MessageKind.Event,
+            new("package.number", 1), "package", "test", DateTimeOffset.UnixEpoch, "1"u8.ToArray()));
+        await using var publisher = new ScriptedMessagePublisher(scriptCapacity: 1, recordingCapacity: 1);
+        var confirmation = new MessagePublicationResult(MessagePublicationDisposition.Confirmed);
+        publisher.EnqueueResult(confirmation);
+        bool publication = ReferenceEquals(confirmation, await publisher.PublishAsync(
+            new(message, new("events"), MessageRecordPurpose.Application, 1, Guid.NewGuid())))
+            && publisher.Calls.Single().Digest.Equals(message.Digest);
+        await using var delivery = new ScriptedMessageDelivery(message.CopyBytes(), "A", new("events"));
+        delivery.EnqueueQuarantine(false);
+        bool unsecuredDelivery = await delivery.GetNativeEvidenceAsync() is null
+            && !await delivery.QuarantineMalformedAsync("package.malformed")
+            && delivery.CompletedSettlement is null;
+
+        var receipt = new MessageStageReceipt(Guid.NewGuid(), message.Envelope.MessageId, "Ledger", "package", "test", message.Digest);
+        var reference = new MessageRequestReference("Lookup", Guid.NewGuid(), receipt,
+            new("package", "test", Guid.NewGuid()), new("package.result", 1));
+        var ticket = new ScriptedMessageRequestTicket<string>(reference);
+        var expected = new MessageRequestResult<string>(MessageExchangeOutcome.ResponseReceived,
+            new(MessageSubmissionOutcome.OutboxCommitted, receipt), reference,
+            new(MessageProtocolDisposition.Completed, OperationDecision<string>.Succeed("original")));
+        var client = new ScriptedMessagingClient(scriptCapacity: 1, recordingCapacity: 3);
+        IMessagingClient port = client;
+        client.EnqueueRequest<int, string>(expected);
+        bool typedRequest = ReferenceEquals(expected, await port.RequestAsync<int, string>(new("Lookup", 7)));
+        client.EnqueueWaitForReply(expected);
+        bool typedWait = ReferenceEquals(expected, await port.WaitForReplyAsync(ticket))
+            && client.Calls[1].RequestAttemptId == reference.RequestAttemptId;
+        bool ticketOwnership = !ticket.DisposeRequested;
+        await ticket.DisposeAsync();
+        await ticket.DisposeAsync();
+        ticketOwnership &= ticket.DisposeRequested;
+
+        var original = new OperationCanceledException("Explicit unrelated scripted fault");
+        client.EnqueueRequestFailure<int, string>(original);
+        Task<MessageRequestResult<string>> faulted = port.RequestAsync<int, string>(new("Lookup", 7));
+        bool originalFault = false;
+        try
+        {
+            await faulted;
+        }
+        catch (OperationCanceledException error)
+        {
+            originalFault = ReferenceEquals(original, error) && faulted.IsFaulted;
+        }
+        client.EnqueueSend<int>(new(MessageSubmissionOutcome.NotSubmitted));
+        bool finiteRecords = false;
+        try
+        {
+            await port.SendAsync("commands", 1);
+        }
+        catch (InvalidOperationException)
+        {
+            finiteRecords = client.PendingScripts == 1 && client.Calls.Count == 3;
+        }
+        string corePath = typeof(MessageEnvelope).Assembly.Location;
+        string helperPath = typeof(ScriptedMessagingClient).Assembly.Location;
+        bool nativeProviderLoaded = AppDomain.CurrentDomain.GetAssemblies().Any(assembly => assembly.GetName().Name is { } name
+            && (name.StartsWith("RabbitMQ", StringComparison.Ordinal) || name == "CIS.Messaging.RabbitMQ"
+                || name.StartsWith("Npgsql", StringComparison.Ordinal) || name.StartsWith("OpenTelemetry", StringComparison.Ordinal)
+                || name.StartsWith("Polly", StringComparison.Ordinal)));
+        Console.WriteLine(JsonSerializer.Serialize(new
+        {
+            publication, unsecuredDelivery, typedRequest, typedWait, ticketOwnership, originalFault, finiteRecords, nativeProviderLoaded,
+            corePath, coreHash = Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(corePath))),
+            helperPath, helperHash = Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(helperPath)))
+        }));
         """;
 }

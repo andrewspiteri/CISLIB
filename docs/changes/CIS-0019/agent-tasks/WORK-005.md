@@ -2,11 +2,11 @@
 title: "WORK-005 Implement authorized transactional dispatch and durable operation binding"
 type: agent-task
 status: Draft
-task_status: InProgress
+task_status: Decomposed
 task_id: WORK-005
 parent_id: none
 category: implementation
-complexity: medium
+complexity: high
 task_type: core.legacy
 task_type_version: 1.0
 work_owner_task_id: null

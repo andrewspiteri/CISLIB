@@ -55,6 +55,11 @@ public sealed class MessagingSnapshot
     /// <summary>Validates the complete selected graph without database, broker, service resolution or worker startup.</summary>
     public void Validate()
     {
+        if (Requests.Count != 0 && (Settings.MaximumConcurrentDeliveries < 2
+            || Settings.MaximumEncodedBufferBytes < 12L * Settings.Limits.MaximumEnvelopeBytes))
+        {
+            throw new InvalidOperationException("RPC requires reserved reply work and encoded headroom alongside request/response work.");
+        }
         if (Subscriptions.Any(item => item.Alias == MessagingSystemSubscriptions.Replies))
         {
             throw new InvalidOperationException("The native requester reply callback subscription is reserved.");

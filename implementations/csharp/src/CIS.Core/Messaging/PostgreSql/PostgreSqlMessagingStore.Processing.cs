@@ -192,7 +192,9 @@ public sealed partial class PostgreSqlMessagingStore
                     AND operation_binding IS NOT DISTINCT FROM @binding
                     AND (@reply IS NULL OR EXISTS(SELECT 1 FROM {Outbox} AS reply WHERE reply.record_id=@reply AND reply.purpose=3
                         AND reply.processing_application=@application AND reply.processing_environment=@environment
-                        AND reply.subscription=@subscription AND reply.original_message_id=@message))
+                        AND reply.application=@application AND reply.environment=@environment AND reply.staged_xid=pg_current_xact_id()
+                        AND reply.subscription=@subscription AND reply.original_message_id=@message AND reply.reply_to_message_id=@message
+                        AND reply.ordinal=@ordinal AND reply.generation=@generation AND reply.rejection_id IS NULL))
                 RETURNING true
                 """);
             AddKey(command, completion.Key);
@@ -261,7 +263,7 @@ public sealed partial class PostgreSqlMessagingStore
             await InsertOutgoingAsync(connection, transaction, request.Handoff, token).ConfigureAwait(false);
             await using DbCommand update = Command(connection, transaction, $"""
                 UPDATE {Processing} SET state=@state, ordinal=@ordinal, handoff_id=@handoff, safe_code=@code,
-                    version=version+1, updated_at=clock_timestamp(),
+                    version=version+1, updated_at=clock_timestamp(),claim_xid=pg_current_xact_id(),reply_id=NULL,
                     payload_expires=CASE WHEN @state=3 AND payload_retention_micros IS NOT NULL
                         THEN clock_timestamp()+payload_retention_micros*INTERVAL '1 microsecond' ELSE NULL END,
                     terminal_expires=CASE WHEN @state=3 AND terminal_retention_micros IS NOT NULL

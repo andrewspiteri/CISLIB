@@ -257,6 +257,10 @@ internal sealed class PublicationBroker : IMessagePublisher
 
 internal sealed class PublicationStore : IMessagingStore
 {
+    public Task<bool> AttachReplyAsync(ILocalTransactionContext context, MessageReplyAttachment attachment,
+        CancellationToken cancellationToken = default)
+        => throw new InvalidOperationException("No reply attachment is expected in this publication unit substitute.");
+
     internal MessageOutgoingRecord? Staged;
     internal ILocalTransactionContext? StageContext;
     internal Exception? StageFault;

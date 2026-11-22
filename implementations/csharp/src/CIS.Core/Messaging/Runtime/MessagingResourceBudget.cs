@@ -11,11 +11,16 @@ internal sealed class MessagingResourceBudget : IMessageBufferAdmission, IAsyncD
     private int ownedLeases;
     private int ownedWaiters;
 
-    internal MessagingResourceBudget(MessagingSettings settings)
+    internal MessagingResourceBudget(MessagingSettings settings, bool reserveReplyIngress = false)
     {
         ArgumentNullException.ThrowIfNull(settings);
+        int replyBytes = reserveReplyIngress ? checked(4 * settings.Limits.MaximumEnvelopeBytes) : 0;
+        if (reserveReplyIngress && (settings.MaximumConcurrentDeliveries < 2 || settings.MaximumEncodedBufferBytes < 3L * replyBytes))
+        {
+            throw new ArgumentException("RPC requires two work slots and room for incoming, response and reserved reply buffers.", nameof(settings));
+        }
         var profile = new Profile(settings.MaximumConcurrentDeliveries, settings.MaximumOutstandingRequests,
-            settings.PublisherConcurrency, settings.MaximumEncodedBufferBytes);
+            settings.PublisherConcurrency, settings.MaximumEncodedBufferBytes, replyBytes);
         lock (SharedGate)
         {
             if (shared is not null && shared.Profile != profile)
@@ -30,9 +35,28 @@ internal sealed class MessagingResourceBudget : IMessageBufferAdmission, IAsyncD
     internal bool TryAcquireDelivery(out IDisposable? lease) => TryAcquire(Kind.Delivery, 0, out lease);
     internal bool TryAcquireRequest(out IDisposable? lease) => TryAcquire(Kind.Request, 0, out lease);
     internal bool TryAcquirePublication(out IDisposable? lease) => TryAcquire(Kind.Publication, 0, out lease);
+    internal bool ReplyIngressEnabled => state.Profile.ReplyBytes != 0;
 
     internal ValueTask<IDisposable> AcquireDeliveryAsync(CancellationToken cancellationToken = default)
         => AcquireAsync(Kind.Delivery, 0, cancellationToken);
+
+    internal ValueTask<IDisposable> AcquireReplyDeliveryAsync(CancellationToken cancellationToken = default)
+    {
+        if (!ReplyIngressEnabled)
+        {
+            throw new InvalidOperationException("This captured process profile has no reserved reply lane.");
+        }
+        return AcquireAsync(Kind.ReplyDelivery, 0, cancellationToken);
+    }
+
+    internal ValueTask<IDisposable> AcquireReplyBytesAsync(int bytes, CancellationToken cancellationToken = default)
+    {
+        if (bytes < 1 || bytes > state.Profile.ReplyBytes)
+        {
+            throw new ArgumentOutOfRangeException(nameof(bytes));
+        }
+        return AcquireAsync(Kind.ReplyBytes, bytes, cancellationToken);
+    }
 
     internal bool TryAcquireBytes(int bytes, out IDisposable? lease)
     {
@@ -96,17 +120,24 @@ internal sealed class MessagingResourceBudget : IMessageBufferAdmission, IAsyncD
         int index = (int)kind;
         int maximum = kind switch
         {
-            Kind.Delivery => state.Profile.Deliveries,
+            Kind.Delivery => state.Profile.Deliveries - (ReplyIngressEnabled ? 1 : 0),
             Kind.Request => state.Profile.Requests,
             Kind.Publication => state.Profile.Publications,
+            Kind.ReplyDelivery => ReplyIngressEnabled ? 1 : 0,
             _ => state.BufferLeaseCapacity
         };
-        if (state.Used[index] >= maximum || kind == Kind.Bytes && state.Bytes + bytes > state.Profile.Bytes)
+        if (state.Used[index] >= maximum || state.Bytes + bytes > state.Profile.Bytes
+            || kind == Kind.Bytes && state.NormalBytes + bytes > state.Profile.Bytes - state.Profile.ReplyBytes
+            || kind == Kind.ReplyBytes && state.Bytes - state.NormalBytes + bytes > state.Profile.ReplyBytes)
         {
             return null;
         }
         state.Used[index]++;
         state.Bytes += bytes;
+        if (kind == Kind.Bytes)
+        {
+            state.NormalBytes += bytes;
+        }
         state.ActiveLeases++;
         ownedLeases++;
         return new Lease(this, kind, bytes);
@@ -150,6 +181,10 @@ internal sealed class MessagingResourceBudget : IMessageBufferAdmission, IAsyncD
         {
             state.Used[(int)kind]--;
             state.Bytes -= bytes;
+            if (kind == Kind.Bytes)
+            {
+                state.NormalBytes -= bytes;
+            }
             state.ActiveLeases--;
             ownedLeases--;
             Pulse();
@@ -178,7 +213,7 @@ internal sealed class MessagingResourceBudget : IMessageBufferAdmission, IAsyncD
 
     private void ValidateBytes(int bytes)
     {
-        if (bytes < 1 || bytes > state.Profile.Bytes)
+        if (bytes < 1 || bytes > state.Profile.Bytes - state.Profile.ReplyBytes)
         {
             throw new ArgumentOutOfRangeException(nameof(bytes), "Reserve a positive byte count within the shared process budget.");
         }
@@ -186,20 +221,21 @@ internal sealed class MessagingResourceBudget : IMessageBufferAdmission, IAsyncD
 
     private static TaskCompletionSource NewSignal() => new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-    private enum Kind { Delivery, Request, Publication, Bytes }
-    private sealed record Profile(int Deliveries, int Requests, int Publications, long Bytes);
+    private enum Kind { Delivery, Request, Publication, Bytes, ReplyDelivery, ReplyBytes }
+    private sealed record Profile(int Deliveries, int Requests, int Publications, long Bytes, int ReplyBytes);
 
     private sealed class SharedState(Profile profile)
     {
         internal Profile Profile { get; } = profile;
         internal int WaiterCapacity { get; } = Math.Max(128, checked(profile.Deliveries + profile.Requests + profile.Publications));
         internal int BufferLeaseCapacity { get; } = checked((profile.Deliveries + profile.Requests + profile.Publications) * 4);
-        internal int[] Used { get; } = new int[4];
+        internal int[] Used { get; } = new int[6];
         internal TaskCompletionSource Changed { get; set; } = NewSignal();
         internal int Owners;
         internal int ActiveLeases;
         internal int Waiters;
         internal long Bytes;
+        internal long NormalBytes;
     }
 
     private sealed class Lease(MessagingResourceBudget owner, Kind kind, int bytes) : IDisposable

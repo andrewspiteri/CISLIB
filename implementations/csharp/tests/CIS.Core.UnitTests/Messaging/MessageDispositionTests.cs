@@ -140,6 +140,69 @@ public sealed class MessageDispositionTests
     }
 
     [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task ARequiredTerminalReplyMustAttachUnderTheFreshOwnersExactVersionBeforeCommit(bool attach)
+    {
+        await using var fixture = new DispositionUnitFixture();
+        fixture.Script(TransactionOutcome.Committed);
+        fixture.Store.AttachResult = attach;
+        Guid replyId = Guid.NewGuid();
+        MessageFailedDelivery failed = fixture.Failure(MessageDeliveryFailureKind.CanonicalTerminal) with
+        {
+            Reply = (context, _) =>
+            {
+                Assert.AreSame(fixture.Store.Context, context);
+                return Task.FromResult(replyId);
+            }
+        };
+        MessageDispositionHandling result = await fixture.Coordinator.HandleAsync(failed);
+        Assert.AreEqual(attach ? MessageDispositionHandlingKind.ResponsibilityCommitted : MessageDispositionHandlingKind.Stop, result.Kind);
+        Assert.AreEqual(attach ? TransactionOutcome.Committed : TransactionOutcome.NotCommitted, result.Completion!.Outcome);
+        Assert.AreEqual(replyId, fixture.Store.Attachment!.ReplyRecordId);
+        Assert.AreEqual(failed.Attempt!.Key, fixture.Store.Attachment.ProcessingKey);
+        Assert.AreEqual(2L, fixture.Store.Attachment.ExpectedVersion);
+        Assert.AreEqual(1, fixture.Store.Attachment.ExpectedOrdinal);
+        Assert.IsNull(fixture.Store.Attachment.RejectionId);
+    }
+
+    [TestMethod]
+    [DataRow("messaging.handler_denied", true)]
+    [DataRow("messaging.operation_denied", true)]
+    [DataRow("messaging.producer_untrusted", false)]
+    [DataRow("messaging.delivery_metadata_invalid", false)]
+    public async Task OnlyExplicitPrevalidatedDenialsCanAttachACanonicalFreeSafeReply(string code, bool permitted)
+    {
+        await using var fixture = new DispositionUnitFixture();
+        fixture.Script(TransactionOutcome.Committed);
+        int replyCalls = 0;
+        MessageDispositionHandling result = await fixture.Coordinator.HandleAsync(fixture.Failure(MessageDeliveryFailureKind.Rejected) with
+        {
+            SafeCode = code,
+            CanonicalEligible = false,
+            DeniedReply = (context, rejectionId, _) =>
+            {
+                replyCalls++;
+                Assert.AreSame(fixture.Store.Context, context);
+                Assert.AreEqual(fixture.Store.Rejection!.RejectionId, rejectionId);
+                return Task.FromResult(Guid.NewGuid());
+            }
+        });
+        Assert.AreEqual(MessageDispositionHandlingKind.ResponsibilityCommitted, result.Kind);
+        Assert.AreEqual(permitted ? 1 : 0, replyCalls);
+        Assert.IsNull(fixture.Store.Disposition);
+        if (permitted)
+        {
+            Assert.AreEqual(fixture.Store.Rejection!.RejectionId, fixture.Store.Attachment!.RejectionId);
+            Assert.IsNull(fixture.Store.Attachment.ProcessingKey);
+        }
+        else
+        {
+            Assert.IsNull(fixture.Store.Attachment);
+        }
+    }
+
+    [TestMethod]
     public async Task ARequiredTerminalReplyFaultRollsBackTheWholeFreshResponsibilityOwner()
     {
         await using var fixture = new DispositionUnitFixture();
@@ -227,6 +290,15 @@ internal sealed class DispositionUnitStore : IMessagingStore
     internal MessageProcessingRecord? Processing;
     internal MessageMaintenanceCounts Counts = new(1, 0, 0);
     internal Func<Task>? Hold;
+    internal bool AttachResult = true;
+    internal MessageReplyAttachment? Attachment;
+
+    public Task<bool> AttachReplyAsync(ILocalTransactionContext context, MessageReplyAttachment attachment, CancellationToken cancellationToken = default)
+    {
+        Assert.AreSame(Context, context);
+        Attachment = attachment;
+        return Task.FromResult(AttachResult);
+    }
 
     public Task<MessageDispositionResult> SecureDispositionAsync(ILocalTransactionContext context, MessageDispositionRequest request, CancellationToken cancellationToken = default)
     {

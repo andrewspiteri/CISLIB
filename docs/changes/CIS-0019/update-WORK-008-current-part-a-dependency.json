@@ -1,0 +1,19 @@
+{
+  "tasks": [
+    {
+      "title": "Deliver typed request/reply and current-attempt durable recovery",
+      "category": "implementation",
+      "complexity": "medium",
+      "scopeIds": [
+        "rpc"
+      ],
+      "dependsOn": [
+        "WORK-013"
+      ],
+      "assignee": "Codex",
+      "acceptanceCriteria": "P17-P19 and B01-B06: Query/DurableCommand bindings on same store/dispatcher. Reservewaiter/registerbeforestage; originaltransaction disposableticket retains earlyresponse andmonotonicdeadline; knowncommittedreceiptbeforewait. Exacttrustedreplymatch/oncecompletion/currentattempt resultrecovery, endpointretirement and no remoterollbackorTasks claims.",
+      "validation": "Realfastquery/durabledecision/rejection, timeout/cancelaftercommit/late/duplicate/maliciousreply, concurrentcallers/restart/response loss thennewattempt recoverywithoutsecondcommittedeffect; conflict/denied/expired/incompatible result; active/unknownsubmission/overload/capacitycleanup. Guide/style/build and independentrecoveryreview; metrics/package facts refreshedatPartB.",
+      "paths": []
+    }
+  ]
+}

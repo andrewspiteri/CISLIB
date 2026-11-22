@@ -155,7 +155,7 @@ public static class MessageWire
 
     // Retain at most two envelope capacities across all segments. Flatten once into the final owned wire.
     // Together with one owned codec payload, staging's four-envelope reservation covers every live buffer.
-    private sealed class BoundedWireBuffer(int maximumEnvelopeBytes) : IBufferWriter<byte>
+    internal sealed class BoundedWireBuffer(int maximumEnvelopeBytes) : IBufferWriter<byte>
     {
         private readonly List<(byte[] Bytes, int Written)> completed = [];
         private byte[] current = [];

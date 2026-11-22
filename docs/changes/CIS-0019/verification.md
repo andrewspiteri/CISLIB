@@ -120,4 +120,112 @@ storage facts; Part A delivery and Part B request/reply acceptance remain open.
 The updated foundation/publication unit cohort also passes **90/90 on each
 actual Windows/Ubuntu runtime**, with no failures/skips. That controlled result
 does not replace the pending combined SQL/broker publication tests.
+
+## Optional broker checkpoint
+
+WORK-003 passes **21/21 on Windows and 21/21 on actual Ubuntu**, zero failures or
+skips, against owned RabbitMQ 4.4.1 with TLS. The existing compiled-reference/Core
+dependency closure check also passes **1/1 on Windows**. See
+[source/native review and evidence limits](review-003.md) and the ignored
+`.artifacts/messaging/CIS-0019/WORK-003/provider-receipt.json`.
+
+The combined actual PostgreSQL/Core publisher/RabbitMQ cases pass **3/3 on each
+runtime**: original commit visibility versus rollback, exact accepted bytes and
+retained/repeated identical bytes after a controlled lost-confirmation result.
+That seam follows a real broker confirmation; it is not network-fault injection
+or an inbox guarantee. Subsequent dispatch resource/observation refinements must
+be compiled and qualified before closing publication WORK-004.
+
+Existing affected Messaging/Operations units also passed **359/359 on each
+runtime** at the first dispatch compile milestone. Later dispatch, disposition
+and host tests are authored but remain unverified until their actual runs.
 | WORK-002 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=1978; failed=274; possibleTokenSavings=591; ledgerDigest=sha256:57b13bccb0961f386ecc5e86935f131665bac762944fb5bdf00cb0bebb3dbb49 |
+| WORK-003 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2020; failed=281; possibleTokenSavings=591; ledgerDigest=sha256:59215f70f96907990e556ecb9324ade4c398291241b6f38b497b772358b96a69 |
+| WORK-004 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2023; failed=281; possibleTokenSavings=591; ledgerDigest=sha256:cf57811b70067f30fb758e241a1c9f3d66d1a9cde70e81a4739365232a10a052 |
+| WORK-010 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2024; failed=281; possibleTokenSavings=591; ledgerDigest=sha256:225b7f1f1761d025e47e0aa0cf65721d1471bd5bd4a5f8c29d1842fef26096ee |
+| WORK-011 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2025; failed=281; possibleTokenSavings=591; ledgerDigest=sha256:262b90eab846692300e58980371d61aa6122256341752abf8c9c4db747b70271 |
+| WORK-006 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2026; failed=281; possibleTokenSavings=591; ledgerDigest=sha256:4926096c727f04a30e281e053ebaba98e46048d1352304bee2df8f36e1aecd7f |
+
+## Part A integrated checkpoint
+
+The complete Part A runtime is locally committed as `fb232bb9`. Current component
+proofs retain immutable candidate-1/2/3 custody rather than overwritten build paths.
+Windows and actual Ubuntu runtime lanes pass 425 affected Messaging/Operations
+units, 21 TLS RabbitMQ provider cases, three committed-publication cases, four
+transactional-dispatch cases and four SQL disposition cases each. The earlier
+unchanged production-store component has 33 passing actual SQL cases per lane.
+Current Core package/reference closure passes its existing check.
+
+Actual console/web facade cases pass 2/2 and actual Messaging exporter cases pass
+12/12 on both platforms. Two public outside-friend Core-only/optional package
+consumers pass on the Windows SDK with exact deployed assembly/dependency and
+packaged/embedded SQL bindings. This is passive package composition, not a claim
+of package-loaded broker operation. That integrated consumer is refreshed in Part B.
+
+The fixed real-provider footprint workload passes on both platforms: sixteen
+4 KiB payloads at concurrency four, sixteen confirmations/effects, an empty final
+ready queue and encoded-admission samples 0 / 69,872 / 0 within 1 MiB. Native
+elapsed is 0.787s Windows / 0.725s Ubuntu; managed retained deltas are 385,792 /
+724,072 bytes including fixture/pool/test state. These are observations, not
+performance thresholds. The new public CommonTesting helpers additionally pass
+19/19 focused units on each platform and do not claim native guarantees.
+
+Additional existing host regressions pass 120/120 Windows. Ubuntu initially
+passes 119/120; the unchanged Heartbeat monotonic/UTC-boundary test then passes
+1/1 in isolation. Independent source review identifies a plausible manual-clock
+relative-rearm race without proving its exact interleaving. Both results remain;
+no Heartbeat scheduler/test source was changed and no full green cohort is claimed.
+
+See [publication review](review-004.md), [dispatch/Operations review](review-005.md),
+[failure review](review-006.md), [host/observations review](review-007.md), the
+current provider receipt and `WORK-007/part-a-host-observations-receipt.json` under
+ignored `.artifacts/messaging/CIS-0019`. The actual fixture versions are PostgreSQL
+18.7, RabbitMQ 4.4.1 and RabbitMQ.Client 7.2.2; SDK/runtime are 10.0.401/10.0.12.
+Single-node developer restart evidence is not multi-node quorum failover,
+deployment, a Linux SDK package build or release qualification. Part B remains
+required and continues under the same delegated finite authority.
+| WORK-012 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2029; failed=281; possibleTokenSavings=591; ledgerDigest=sha256:d2b6befdf3254a6c50e71579103627c3fdde3f1ccf3ca48a58bf27e5f988a07c |
+| WORK-013 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2030; failed=281; possibleTokenSavings=591; ledgerDigest=sha256:774cd3aa5f29841781242143cc883cffa7aa477a79d46f785b7324a4d605e2c0 |
+
+## Parts A and B final integrated checkpoint
+
+Both parts now have actual local implementation and native proof. The corrected
+affected Messaging/Operations/helper unit cohort passes **502/502 on Windows and
+502/502 on Ubuntu**. Current Core bytes exactly match the preserved corrected-unit
+candidate. The schema-v2 store retains **41/41** and protocol/disposition component
+**56/56** per lane; unchanged optional broker component proof remains **21/21** per
+lane. Those retained component scopes are distinct from the refreshed integrated
+current-Core behavior.
+
+Actual B01–B06 passes **12/12 per runtime**, including genuine caller/responder
+process death after the committed effect/result/reply anchor, new endpoint/attempt
+recovery, rejection quarantine before legitimate response release, duplicate reply
+identity, local timeout/cancellation, current permission/result conditions, Unknown,
+Overloaded and capacity cleanup. The revised real B06 automatic HTTP metrics export
+passes **1/1 Windows**, and is included in the Ubuntu twelve-case pass. The final
+affected integration refresh passes **26/26 per runtime**: host 2, exporter 12,
+publication 3, dispatch 4, disposition 4 and fixed footprint 1.
+
+The actual fresh public package RPC consumer passes **1/1 Windows**; the refreshed
+passive Core/optional consumer and CommonTesting consumer methods pass **2/2**.
+Their earlier run retains a pre-start hash-comparison failure followed by the
+strictly corrected passing actual RPC retry. The current Core approved runtime
+closure passes **1/1 Windows**. All affected builds and scoped formatting/verification
+pass. See [request/recovery review](review-008.md) and
+[public handoff/restoration review](review-009.md) for material reuse, exact source
+ownership and the signed archive/test-only lock distinctions.
+
+The ignored final integrated receipt preserves 102 source hashes, immutable
+binary custody and thirteen passing TRX cohort bindings, plus the original package
+failure and two genuine passes. Final exact restoration removes three owned
+containers, two volumes, two new unshared pinned images and nine generated private
+inputs after verified process/connection drain. The user-owned untracked
+`CountryData/Properties/launchSettings.json` retains SHA256
+`ea7e7219222183193f0361ae674998f1edc43a3789f118748c59f166a4d29784`.
+
+The earlier unrelated Heartbeat Ubuntu 119/120 cohort and isolated unchanged 1/1
+pass remain an intermittent limitation; no full green broad cohort is claimed.
+No Linux SDK package build, multi-node failover, deployment, push, merge,
+publication or release qualification is asserted.
+| WORK-008 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2057; failed=284; possibleTokenSavings=591; ledgerDigest=sha256:bcde294abafb213352d959bcc54b3206fbb86641690372ccc6f5907fc778a560 |
+| WORK-009 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2060; failed=284; possibleTokenSavings=591; ledgerDigest=sha256:ea4d52a7c152ce5be9c049512ef1fb9eb46ab80b3533880041b983cc054c3f1f |

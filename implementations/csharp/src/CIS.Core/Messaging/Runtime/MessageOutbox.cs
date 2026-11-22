@@ -79,7 +79,8 @@ internal sealed class MessageOutbox : IMessageOutbox
     }
 
     internal MessagePreparedStage? Prepare<T>(string routeAlias, MessageKind kind, T value, MessageSendOptions? options,
-        CancellationToken cancellationToken, out MessageStageResult? failure)
+        CancellationToken cancellationToken, out MessageStageResult? failure, Guid? requestAttemptId = null,
+        MessageReplyRoute? replyRoute = null)
     {
         cancellationToken.ThrowIfCancellationRequested();
         lock (gate)
@@ -102,7 +103,7 @@ internal sealed class MessageOutbox : IMessageOutbox
             }
             MessageRouteDefinition<T> route = snapshot.GetRoute(routeAlias) as MessageRouteDefinition<T>
                 ?? throw new ArgumentException("The value type must match the registered route codec.", nameof(value));
-            if (route.Kind != kind || route.Codec.Contract != route.Contract)
+            if (route.Kind != (kind == MessageKind.Request ? MessageKind.Command : kind) || route.Codec.Contract != route.Contract)
             {
                 throw new ArgumentException("The pattern or mutable codec contract disagrees with its captured route.", nameof(routeAlias));
             }
@@ -124,7 +125,7 @@ internal sealed class MessageOutbox : IMessageOutbox
             }
             cancellationToken.ThrowIfCancellationRequested();
             var envelope = new MessageEnvelope(Guid.NewGuid(), kind, route.Contract, identity.Application, identity.Environment,
-                clock.GetUtcNow(), payload, null, null, null, options.Operation, options.CorrelationId, options.CausationId,
+                clock.GetUtcNow(), payload, requestAttemptId, replyRoute, null, options.Operation, options.CorrelationId, options.CausationId,
                 options.Headers, validatedPayload: false);
             EncodedMessage message = MessageWire.Encode(envelope, snapshot.Settings.Limits);
             var record = new MessageOutgoingRecord(Guid.NewGuid(), identity.Application, identity.Environment,
@@ -246,8 +247,10 @@ internal sealed class MessageOutbox : IMessageOutbox
 internal sealed class MessagePreparedStage(MessageOutbox owner, MessageOutgoingRecord record, IDisposable bytes, Action release) : IDisposable
 {
     private IDisposable? bytes = bytes;
+    private MessageOutgoingRecord? record = record;
     internal MessageOutbox Owner { get; } = owner;
-    internal MessageOutgoingRecord Record { get; } = record;
+    internal MessageOutgoingRecord Record => Volatile.Read(ref record)
+        ?? throw new ObjectDisposedException(nameof(MessagePreparedStage));
     internal bool IsDisposed => Volatile.Read(ref bytes) is null;
 
     public void Dispose()
@@ -255,6 +258,7 @@ internal sealed class MessagePreparedStage(MessageOutbox owner, MessageOutgoingR
         IDisposable? held = Interlocked.Exchange(ref bytes, null);
         if (held is not null)
         {
+            record = null;
             held.Dispose();
             release();
         }

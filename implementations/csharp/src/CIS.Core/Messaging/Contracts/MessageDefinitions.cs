@@ -183,7 +183,7 @@ public abstract class MessageRequestDefinition
 {
     private protected MessageRequestDefinition(string alias, string routeAlias, MessageContract requestContract,
         MessageContract responseContract, MessageRequestMode mode, string responderApplication, string responderEnvironment,
-        string? operationName)
+        string? operationName, IEnumerable<string>? responseCapabilities)
     {
         Alias = MessageText.Alias(alias, nameof(alias));
         RouteAlias = MessageText.Alias(routeAlias, nameof(routeAlias));
@@ -204,6 +204,7 @@ public abstract class MessageRequestDefinition
         ResponderApplication = responder.Application;
         ResponderEnvironment = responder.Environment;
         OperationName = operationName is null ? null : MessageText.Alias(operationName, nameof(operationName));
+        ResponseCapabilities = MessageText.Capabilities(responseCapabilities ?? ["messaging.reply"], nameof(responseCapabilities));
     }
 
     /// <summary>Gets the caller's registered request category.</summary>
@@ -246,6 +247,8 @@ public abstract class MessageRequestDefinition
     {
         get;
     }
+    /// <summary>Gets current capabilities required of the actual responder to reply to this local request category.</summary>
+    public IReadOnlyList<string> ResponseCapabilities { get; }
     internal abstract Type RequestType
     {
         get;
@@ -262,10 +265,10 @@ public sealed class MessageRequestDefinition<TRequest, TResponse> : MessageReque
     /// <summary>Captures caller contracts and expected remote authority.</summary>
     public MessageRequestDefinition(string alias, string routeAlias, IMessageCodec<TRequest> requestCodec,
         IMessageCodec<TResponse> responseCodec, MessageRequestMode mode, string responderApplication,
-        string responderEnvironment, string? operationName = null)
+        string responderEnvironment, string? operationName = null, IEnumerable<string>? responseCapabilities = null)
         : base(alias, routeAlias, requestCodec?.Contract ?? throw new ArgumentNullException(nameof(requestCodec)),
             responseCodec?.Contract ?? throw new ArgumentNullException(nameof(responseCodec)), mode,
-            responderApplication, responderEnvironment, operationName)
+            responderApplication, responderEnvironment, operationName, responseCapabilities)
     {
         RequestCodec = requestCodec;
         ResponseCodec = responseCodec;

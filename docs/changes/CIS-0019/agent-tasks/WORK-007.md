@@ -2,16 +2,16 @@
 title: "WORK-007 Integrate hosting, bounded observations and Part A acceptance"
 type: agent-task
 status: Draft
-task_status: Draft
+task_status: Decomposed
 task_id: WORK-007
 parent_id: none
 category: implementation
-complexity: medium
+complexity: high
 task_type: core.legacy
 task_type_version: 1.0
 work_owner_task_id: null
 instance_key: "outcome:a73da5422f0c4fe58a72724b9f48c66b"
-depends_on: ["WORK-004","WORK-005","WORK-006"]
+depends_on: ["WORK-001"]
 assignee: "Codex"
 authority: derived-outcome-authorization
 outcome_authorization_id: "cislib:CIS-0019:outcome:7f1507a223264cf1986c6524aedc5a6c"
@@ -29,11 +29,11 @@ Integrate hosting, bounded observations and Part A acceptance
 
 ## Acceptance criteria
 
-- [ ] P15/P16/P20 and completePartA A01-A12: existingsequentialhosting readiness/schema/topology/resource startup and narrow facade stoporder, actualownerdrain. Sevenfinite streams435capacity, centralidentity/currentbinding/boundeddiagnostics. Focusedrealbroker/database evidence plus one actual metricsandpackage separation checkpoint; no release claim.
+- [ ] P15/P16/P20 and completePartA A01-A12: existingsequentialhosting readiness/schema/topology/resource startup and narrow facade stoporder, actualownerdrain. Sevenfinite streams435capacity, centralidentity/currentbinding/boundeddiagnostics. Focusedrealbroker/database evidence plus one actual metricsandpackage separation checkpoint; no release claim. Source may proceed against compiled frozen WORK004/005/006 constructors and module ports after WORK001, in parallel with their tests. Final PartA completion still requires completed WORK004/005/006 and actual integrated lifecycle/exporter/package acceptance. Preserve existing public constructor signatures when extending Metrics metadata; no new lifecycle framework.
 
 ## Targeted validation
 
-- [ ] Actualnative restart/publication/consumer/bytecapacity/shutdown/authority/crossmodule tests and affectedMetricscatalog/exporter scrape, no Rabbit/Npgsql Core-only acquireddependency. Representative bytes/records/shape/concurrency/latency separatefrominstall/units. Integratedcurrentcandidateindependentreview/docs/style/build and concisePartAcheckpoint.
+- [ ] Actualnative restart/publication/consumer/bytecapacity/shutdown/authority/crossmodule tests and affectedMetricscatalog/exporter scrape, no Rabbit/Npgsql Core-only acquireddependency. Representative bytes/records/shape/concurrency/latency separatefrominstall/units. Integratedcurrentcandidateindependentreview/docs/style/build and concisePartAcheckpoint. Do not complete until WORK004/005/006 are Complete; runtime startup remains sequential. Verify callback-owner drain before Metrics/Heartbeat/data-source disposal and passive no-I/O composition.
 
 ## Completion evidence
 

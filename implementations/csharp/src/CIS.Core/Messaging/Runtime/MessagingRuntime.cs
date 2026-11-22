@@ -30,6 +30,7 @@ internal sealed class MessagingRuntime : IStartable, IAsyncDisposable
     private readonly CancellationTokenSource loopStopping = new();
     private readonly string database;
     private readonly bool requireTransport;
+    private MessageRequestCoordinator? requests;
     private Task? starting;
     private Task? stopping;
     private Task? cutoff;
@@ -80,6 +81,19 @@ internal sealed class MessagingRuntime : IStartable, IAsyncDisposable
             {
                 return started && !closing && storeAvailable && loopFault is null && (!requireTransport || transport.IsReady);
             }
+        }
+    }
+
+    internal void BindRequests(MessageRequestCoordinator coordinator)
+    {
+        ArgumentNullException.ThrowIfNull(coordinator);
+        lock (gate)
+        {
+            if (starting is not null || closing || requests is not null)
+            {
+                throw new InvalidOperationException("Bind the single request owner before Messaging startup.");
+            }
+            requests = coordinator;
         }
     }
 
@@ -252,11 +266,12 @@ internal sealed class MessagingRuntime : IStartable, IAsyncDisposable
     private async Task CloseAdmissionAsync(TaskCompletionSource completion)
     {
         var failures = new List<Exception>();
+        Task requestDrain = StartDrain(() => requests?.StopAsync() ?? Task.CompletedTask, failures);
         Task callerDrain = StartDrain(outbox.StopAsync, failures);
         Task dispatchDrain = StartDrain(dispatcher.StopAsync, failures);
         Task consumerDrain = StartDrain(transport.StopConsumersAsync, failures);
         await CaptureAsync(startupStopping.CancelAsync, failures).ConfigureAwait(false);
-        await CaptureAsync(() => Task.WhenAll(callerDrain, dispatchDrain, consumerDrain), failures).ConfigureAwait(false);
+        await CaptureAsync(() => Task.WhenAll(requestDrain, callerDrain, dispatchDrain, consumerDrain), failures).ConfigureAwait(false);
         Complete(completion, failures);
     }
 

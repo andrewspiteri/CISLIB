@@ -495,6 +495,8 @@ internal sealed class DispatchStore : IMessagingStore
     }
     public Task<MessageProcessingRecord?> ReadProcessingAsync(ILocalTransactionContext context, MessageProcessingKey key, CancellationToken cancellationToken = default)
         => Task.FromResult(Retained);
+    public Task<bool> AttachReplyAsync(ILocalTransactionContext context, MessageReplyAttachment attachment, CancellationToken cancellationToken = default)
+        => Unexpected<bool>();
     public Task<MessageStageReceipt> StageAsync(ILocalTransactionContext context, MessageOutgoingRecord record, CancellationToken cancellationToken = default) => Unexpected<MessageStageReceipt>();
     public Task<IReadOnlyList<MessageReservation>> ReserveAsync(ILocalTransactionContext context, MessageReservationRequest request, CancellationToken cancellationToken = default) => Unexpected<IReadOnlyList<MessageReservation>>();
     public Task<EncodedMessage?> ReadReservedMessageAsync(ILocalTransactionContext context, MessageReservation reservation, CancellationToken cancellationToken = default) => Unexpected<EncodedMessage?>();

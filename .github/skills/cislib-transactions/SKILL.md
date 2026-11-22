@@ -52,4 +52,4 @@ tests, with bounded scripts/recordings and fake stores receiving the same contex
 It provides no native capability or SQL engine. Keep real native/provider proof
 in existing tests, and distinguish actual executions from authored source, EF
 recipes, scripted lost acknowledgements and deployment claims. CountryData stays
-the sole maintained tutorial. Use [the Operations skill](../cislib-operations/SKILL.md) for durable keys and original-result recovery over these owners. Outgoing delivery, background reconciliation workers and EF adapters remain separate scope.
+the sole maintained tutorial. Use [the Operations skill](../cislib-operations/SKILL.md) for durable keys and original-result recovery and [the Messaging skill](../cislib-messaging/SKILL.md) for transactional outgoing delivery over these owners. Background reconciliation workers and EF adapters remain separate scope.

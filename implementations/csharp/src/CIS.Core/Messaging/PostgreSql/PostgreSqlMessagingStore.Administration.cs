@@ -73,7 +73,7 @@ public sealed partial class PostgreSqlMessagingStore
                 TargetSubscription: transition.Key.Subscription), token).ConfigureAwait(false);
             await using DbCommand update = Command(connection, transaction, $"""
                 UPDATE {Processing} SET state=2, ordinal=1, generation=@generation, version=version+1, handoff_id=@handoff,
-                    safe_code=@code, updated_at=clock_timestamp(), payload_expires=NULL, terminal_expires=NULL
+                    safe_code=@code, updated_at=clock_timestamp(), payload_expires=NULL, terminal_expires=NULL,reply_id=NULL
                 WHERE {KeyPredicate} AND version=@version RETURNING true
                 """);
             AddKey(update, transition.Key);
@@ -214,7 +214,7 @@ public sealed partial class PostgreSqlMessagingStore
                 WHERE application=@application AND environment=@environment AND (state=2 OR reply_expired) AND envelope IS NOT NULL
                     AND payload_expires<=clock_timestamp()
                     AND NOT EXISTS(SELECT 1 FROM {Processing} AS p WHERE (p.handoff_id=o.record_id OR p.reply_id=o.record_id) AND p.state<>1)
-                    AND NOT EXISTS(SELECT 1 FROM {Rejections} AS r WHERE r.handoff_id=o.record_id)
+                    AND NOT EXISTS(SELECT 1 FROM {Rejections} AS r WHERE r.handoff_id=o.record_id OR r.reply_id=o.record_id)
                 ORDER BY payload_expires,record_id FOR UPDATE OF o SKIP LOCKED LIMIT @maximum
             ), changed AS
             (
@@ -282,7 +282,9 @@ public sealed partial class PostgreSqlMessagingStore
             WITH selected AS
             (
                 SELECT r.record_id FROM {Rejections} AS r JOIN {Outbox} AS o ON o.record_id=r.handoff_id
+                LEFT JOIN {Outbox} AS reply ON reply.record_id=r.reply_id
                 WHERE r.application=@application AND r.environment=@environment AND r.terminal_expires<=clock_timestamp() AND o.state=2
+                    AND (r.reply_id IS NULL OR reply.state=2 OR reply.reply_expired)
                 ORDER BY r.terminal_expires,r.record_id FOR UPDATE OF r SKIP LOCKED LIMIT @maximum
             ), changed AS
             (

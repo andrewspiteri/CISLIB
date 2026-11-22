@@ -147,6 +147,10 @@ public sealed class MessagingDisposalTests
 
     private sealed class ReadinessStore : IMessagingStore
     {
+        public Task<bool> AttachReplyAsync(ILocalTransactionContext context, MessageReplyAttachment attachment,
+            CancellationToken cancellationToken = default)
+            => throw new NotSupportedException();
+
         internal readonly TaskCompletionSource ReserveEntered = new(TaskCreationOptions.RunContinuationsAsynchronously);
         internal int Reservations;
         internal int Observations;

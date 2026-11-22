@@ -38,15 +38,19 @@ public sealed partial class PostgreSqlMessagingStore
 
     private async Task InsertOutgoingAsync(DbConnection connection, DbTransaction transaction, MessageOutgoingRecord record, CancellationToken token)
     {
+        if (record.Purpose == MessageRecordPurpose.Reply)
+        {
+            await ValidateReplyAnchorAsync(connection, transaction, record, token).ConfigureAwait(false);
+        }
         await AccountAsync(connection, transaction, record.Application, record.Environment, record.Message.Length, token).ConfigureAwait(false);
         await using DbCommand command = Command(connection, transaction, $"""
             INSERT INTO {Outbox}
                 (record_id, application, environment, message_id, route_alias, target_subscription, reply_application, reply_environment, reply_endpoint,
                  purpose, digest, envelope, encoded_length, processing_application, processing_environment, subscription, original_message_id,
-                 ordinal, generation, provenance, eligible_at, safe_code, payload_retention_micros)
+                 ordinal, generation, provenance, eligible_at, safe_code, payload_retention_micros, rejection_id, reply_to_message_id)
             VALUES (@id, @application, @environment, @message, @route, @target_subscription, @reply_application, @reply_environment, @reply_endpoint,
                  @purpose, @digest, @envelope, @length, @processing_application, @processing_environment, @subscription, @original,
-                 @ordinal, @generation, @provenance, clock_timestamp() + @delay::bigint * INTERVAL '1 microsecond', @code, @retention)
+                 @ordinal, @generation, @provenance, clock_timestamp() + @delay::bigint * INTERVAL '1 microsecond', @code, @retention, @rejection, @reply_to)
             """);
         AddOwner(command, record.Application, record.Environment);
         Parameter(command, "id", DbType.Guid, record.RecordId);
@@ -64,6 +68,8 @@ public sealed partial class PostgreSqlMessagingStore
         Parameter(command, "processing_environment", DbType.String, record.ProcessingKey?.Environment);
         Parameter(command, "subscription", DbType.String, record.ProcessingKey?.Subscription);
         Parameter(command, "original", DbType.Guid, record.ProcessingKey?.MessageId);
+        Parameter(command, "rejection", DbType.Guid, record.RejectionId);
+        Parameter(command, "reply_to", DbType.Guid, record.Message.Envelope.InReplyToMessageId);
         Parameter(command, "ordinal", DbType.Int32, record.DeliveryOrdinal);
         Parameter(command, "generation", DbType.Int32, record.Generation);
         Parameter(command, "provenance", DbType.String, record.OriginalProvenance is null ? null : Json(record.OriginalProvenance));

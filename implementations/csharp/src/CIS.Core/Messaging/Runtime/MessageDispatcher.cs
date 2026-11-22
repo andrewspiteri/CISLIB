@@ -151,7 +151,21 @@ internal sealed class MessageDispatcher : IAsyncDisposable
             {
                 return await QuarantineAsync(delivery, "messaging.envelope_invalid").ConfigureAwait(false);
             }
-            return await DispatchEnvelopeAsync(delivery, message!, cancellationToken).ConfigureAwait(false);
+            MessageResponseAdmission? response = null;
+            if (message!.Envelope.Kind == MessageKind.Request && delivery.SubscriptionAlias != MessagingSystemSubscriptions.Replies
+                && replies is not null && snapshot.Subscriptions.Any(item => item.Alias == delivery.SubscriptionAlias && item.RequestMetadata is not null))
+            {
+                if (!resources.TryAcquireBytes(checked(4 * snapshot.Settings.Limits.MaximumEnvelopeBytes), out IDisposable? responseBytes))
+                {
+                    delivery.RequestConsumerStop("messaging.response_capacity");
+                    return new(MessageDispatchOutcome.Unknown, "messaging.response_capacity");
+                }
+                response = new(resources, responseBytes!);
+            }
+            using (response)
+            {
+                return await DispatchEnvelopeAsync(delivery, message, cancellationToken, response).ConfigureAwait(false);
+            }
         }
     }
 
@@ -159,8 +173,11 @@ internal sealed class MessageDispatcher : IAsyncDisposable
     {
         try
         {
-            return bytes == 0 ? await resources.AcquireDeliveryAsync(cancellationToken).ConfigureAwait(false)
-                : await resources.AcquireAsync(bytes, cancellationToken).ConfigureAwait(false);
+            bool reply = resources.ReplyIngressEnabled && delivery.SubscriptionAlias == MessagingSystemSubscriptions.Replies;
+            return bytes == 0 ? reply ? await resources.AcquireReplyDeliveryAsync(cancellationToken).ConfigureAwait(false)
+                    : await resources.AcquireDeliveryAsync(cancellationToken).ConfigureAwait(false)
+                : reply ? await resources.AcquireReplyBytesAsync(bytes, cancellationToken).ConfigureAwait(false)
+                    : await resources.AcquireAsync(bytes, cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -180,12 +197,12 @@ internal sealed class MessageDispatcher : IAsyncDisposable
             : new(MessageDispatchOutcome.Unknown, "messaging.admission_capacity");
 
     private async Task<MessageDispatchResult> DispatchEnvelopeAsync(IMessageDelivery delivery, EncodedMessage message,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken, MessageResponseAdmission? responseAdmission)
     {
         DispatchResolution resolution;
         try
         {
-            resolution = await ResolveEnvelopeAsync(delivery, message, cancellationToken).ConfigureAwait(false);
+            resolution = await ResolveEnvelopeAsync(delivery, message, cancellationToken, responseAdmission).ConfigureAwait(false);
         }
         catch (OperationCanceledException error) when (cancellationToken.IsCancellationRequested)
         {
@@ -213,7 +230,7 @@ internal sealed class MessageDispatcher : IAsyncDisposable
     }
 
     private async Task<DispatchResolution> ResolveEnvelopeAsync(IMessageDelivery delivery, EncodedMessage message,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken, MessageResponseAdmission? responseAdmission)
     {
         MessageSubscriptionDefinition? subscription = snapshot.Subscriptions.SingleOrDefault(item => item.Alias == delivery.SubscriptionAlias);
         bool replyIngress = delivery.SubscriptionAlias == MessagingSystemSubscriptions.Replies;
@@ -259,7 +276,7 @@ internal sealed class MessageDispatcher : IAsyncDisposable
                     var provenance = new MessageProvenance(evidence.Provenance.BrokerAlias, evidence.Provenance.VirtualHost,
                         caller.Subject, evidence.Provenance.UserId, caller.Application, caller.Environment);
                     resolution = await PrepareAndExecuteAsync(subscription!, message, delivery.Metadata, provenance,
-                        caller, scope.Services, cancellationToken).ConfigureAwait(false);
+                        caller, scope.Services, cancellationToken, responseAdmission).ConfigureAwait(false);
                 }
             }
         }
@@ -269,7 +286,7 @@ internal sealed class MessageDispatcher : IAsyncDisposable
 
     private async Task<DispatchResolution> PrepareAndExecuteAsync(MessageSubscriptionDefinition subscription, EncodedMessage message,
         MessageDeliveryMetadata metadata, MessageProvenance current, CallerContext caller, IServiceProvider services,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken, MessageResponseAdmission? responseAdmission)
     {
         bool retry = metadata.Purpose is MessageRecordPurpose.Retry or MessageRecordPurpose.Redrive;
         bool initial = metadata.Purpose == MessageRecordPurpose.Application;
@@ -290,18 +307,22 @@ internal sealed class MessageDispatcher : IAsyncDisposable
             return await FailAsync(new(message, subscription, MessageDeliveryFailureKind.Rejected, "messaging.producer_mismatch",
                 Services: services), cancellationToken).ConfigureAwait(false);
         }
-        var visitor = new MessageDispatchVisitor(services, caller, message, local, replies, cancellationToken);
+        var visitor = new MessageDispatchVisitor(services, caller, message, local, replies, cancellationToken, responseAdmission);
         MessageDispatchPlan plan = await subscription.Accept(visitor).ConfigureAwait(false);
         if (plan.Rejection is { } reason)
         {
             return await FailAsync(new(message, subscription, MessageDeliveryFailureKind.Rejected, reason, Services: services), cancellationToken).ConfigureAwait(false);
         }
         ICapabilityAuthorizer authorizer = services.GetRequiredService<ICapabilityAuthorizer>();
+        bool initialReplyAllowed = initial && message.Envelope.Kind == MessageKind.Request
+            && await AuthorizeReplyAsync(subscription, message, current, authorizer, cancellationToken).ConfigureAwait(false);
         if (!(await authorizer.AuthorizeAsync(subscription.Capabilities, plan.Target!, cancellationToken).ConfigureAwait(false)).IsAllowed
             || retry && !(await authorizer.AuthorizeAsync(subscription.Settings.RetryCapabilities, plan.Target!, cancellationToken).ConfigureAwait(false)).IsAllowed)
         {
+            var denied = new MessageProcessingAttempt(new(local.Application, local.Environment, subscription.Alias, message.Envelope.MessageId),
+                message, current, metadata.DeliveryOrdinal, metadata.Generation, plan.Binding);
             return await FailAsync(new(message, subscription, MessageDeliveryFailureKind.Rejected, "messaging.handler_denied",
-                Services: services), cancellationToken).ConfigureAwait(false);
+                denied, Services: services, DeniedReply: initialReplyAllowed ? plan.DeniedReply?.Invoke(denied) : null), cancellationToken).ConfigureAwait(false);
         }
         var key = new MessageProcessingKey(local.Application, local.Environment, subscription.Alias, message.Envelope.MessageId);
         MessageProvenance original = current;
@@ -326,10 +347,7 @@ internal sealed class MessageDispatcher : IAsyncDisposable
         }
         if (message.Envelope.Kind == MessageKind.Request)
         {
-            MessageReplyRoute destination = message.Envelope.ReplyRoute!;
-            if (destination.Application != original.Application || destination.Environment != original.Environment
-                || !(await authorizer.AuthorizeAsync(subscription.Settings.ReplyCapabilities,
-                    new(destination.Application, destination.Environment, "messaging.reply", subscription.RequestMetadata!.Alias), cancellationToken).ConfigureAwait(false)).IsAllowed)
+            if (!(initial ? initialReplyAllowed : await AuthorizeReplyAsync(subscription, message, original, authorizer, cancellationToken).ConfigureAwait(false)))
             {
                 return await FailAsync(new(message, subscription, MessageDeliveryFailureKind.Rejected, "messaging.reply_denied",
                     Services: services), cancellationToken).ConfigureAwait(false);
@@ -338,6 +356,15 @@ internal sealed class MessageDispatcher : IAsyncDisposable
         var attempt = new MessageProcessingAttempt(key, message, original, metadata.DeliveryOrdinal, metadata.Generation,
             plan.Binding, metadata.Purpose, retry ? metadata.OutboxRecordId : null);
         return await ExecutePlanAsync(subscription, message, plan, attempt, services, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async ValueTask<bool> AuthorizeReplyAsync(MessageSubscriptionDefinition subscription, EncodedMessage message,
+        MessageProvenance original, ICapabilityAuthorizer authorizer, CancellationToken token)
+    {
+        MessageReplyRoute destination = message.Envelope.ReplyRoute!;
+        return destination.Application == original.Application && destination.Environment == original.Environment
+            && (await authorizer.AuthorizeAsync(subscription.Settings.ReplyCapabilities,
+                new(destination.Application, destination.Environment, "messaging.reply", subscription.RequestMetadata!.Alias), token).ConfigureAwait(false)).IsAllowed;
     }
 
     private async Task<DispatchResolution> ExecutePlanAsync(MessageSubscriptionDefinition subscription, EncodedMessage message,
@@ -413,7 +440,10 @@ internal sealed class MessageDispatcher : IAsyncDisposable
         string code = invocation?.SafeCode ?? (kind == MessageDeliveryFailureKind.Rejected ? "messaging.claim_rejected"
             : kind == MessageDeliveryFailureKind.PersistenceUnknown ? "messaging.persistence_unknown" : "messaging.delivery_failed");
         return await FailAsync(new(message, subscription, kind, code, attempt,
-            acquired && kind is not MessageDeliveryFailureKind.Rejected, completion, fault, services), cancellationToken).ConfigureAwait(false);
+            acquired && kind is not MessageDeliveryFailureKind.Rejected, completion, fault, services,
+            Reply: acquired ? plan.TerminalReply?.Invoke(attempt) : null,
+            DeniedReply: kind == MessageDeliveryFailureKind.Rejected && code == "messaging.operation_denied"
+                ? plan.DeniedReply?.Invoke(attempt) : null), cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<MessageProcessingRecord?> ReadPriorAsync(string databaseName, MessageProcessingKey key, CancellationToken cancellationToken)

@@ -90,12 +90,21 @@ internal sealed class MessageDeliveryDispositionCoordinator : IMessageDeliveryDi
             if (rejection)
             {
                 handoff = Guid.NewGuid();
+                Guid rejectionId = Guid.NewGuid();
                 var outgoing = new MessageOutgoingRecord(handoff.Value, identity.Application, identity.Environment,
                     new(failure.Subscription.RouteAlias), failure.Message, MessageRecordPurpose.Rejection,
                     DiagnosticCode: failure.SafeCode, OriginalProvenance: failure.Attempt?.Provenance,
                     TargetSubscription: failure.Subscription.Alias);
-                await store.RecordRejectionAsync(owner.Context, new(Guid.NewGuid(), identity.Application, identity.Environment,
+                await store.RecordRejectionAsync(owner.Context, new(rejectionId, identity.Application, identity.Environment,
                     failure.Subscription.Alias, failure.Message, failure.SafeCode, outgoing, failure.Attempt?.Provenance), token).ConfigureAwait(false);
+                if (failure.DeniedReply is not null && failure.SafeCode is "messaging.handler_denied" or "messaging.operation_denied")
+                {
+                    Guid reply = MessageText.Id(await failure.DeniedReply(owner.Context, rejectionId, token).ConfigureAwait(false), "replyRecordId");
+                    if (!await store.AttachReplyAsync(owner.Context, new(reply, RejectionId: rejectionId), token).ConfigureAwait(false))
+                    {
+                        throw new InvalidDataException("The newly owned rejection could not attach its staged safe reply.");
+                    }
+                }
                 secured = true;
             }
             else
@@ -126,10 +135,23 @@ internal sealed class MessageDeliveryDispositionCoordinator : IMessageDeliveryDi
                     secured = true;
                     handoff = result.HandoffRecordId;
                     disposition = result.Record?.Disposition ?? disposition;
+                    if (failure.Message.Envelope.Kind == MessageKind.Request
+                        && result.Disposition != MessageDispositionResultKind.Secured
+                        && result.Record is { Disposition: MessageProcessingDisposition.Handled or MessageProcessingDisposition.Terminal, ReplyRecordId: null })
+                    {
+                        throw new InvalidDataException("A retained completed request has no secured reply reference.");
+                    }
                     if (result.Disposition == MessageDispositionResultKind.Secured && terminal && failure.Reply is not null)
                     {
                         // Part B supplies safe response staging, never a second business invocation.
-                        MessageText.Id(await failure.Reply(owner.Context, token).ConfigureAwait(false), "replyRecordId");
+                        Guid reply = MessageText.Id(await failure.Reply(owner.Context, token).ConfigureAwait(false), "replyRecordId");
+                        MessageProcessingRecord retained = result.Record
+                            ?? throw new InvalidDataException("The freshly secured terminal request has no expected-state record.");
+                        if (!await store.AttachReplyAsync(owner.Context,
+                            new(reply, attempt.Key, retained.Version, retained.DeliveryOrdinal, retained.Generation), token).ConfigureAwait(false))
+                        {
+                            throw new InvalidDataException("The newly secured terminal request could not attach its staged reply.");
+                        }
                     }
                 }
                 else
@@ -165,7 +187,7 @@ internal sealed class MessageDeliveryDispositionCoordinator : IMessageDeliveryDi
         if (rejectConflict && completion?.Outcome == TransactionOutcome.NotCommitted && !token.IsCancellationRequested)
         {
             // One bounded separate rejection after the failed canonical transition has actually rolled back.
-            return await SecureAsync(failure with { SafeCode = "messaging.delivery.conflict", Reply = null }, rejection: true, token).ConfigureAwait(false);
+            return await SecureAsync(failure with { SafeCode = "messaging.delivery.conflict", Reply = null, DeniedReply = null }, rejection: true, token).ConfigureAwait(false);
         }
         if (secured && completion?.Outcome == TransactionOutcome.Committed)
         {

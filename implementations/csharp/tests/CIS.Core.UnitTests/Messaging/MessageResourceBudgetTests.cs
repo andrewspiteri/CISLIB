@@ -209,6 +209,35 @@ public sealed class MessageResourceBudgetTests
         using IDisposable replacement = await first.AcquireDeliveryAsync();
     }
 
+    [TestMethod]
+    public async Task RpcReplyLaneAndEncodedHeadroomRemainAvailableInsideTheSharedTotalsWhenNormalWorkIsFull()
+    {
+        MessagingSettings settings = Settings(deliveries: 2, bytes: 200_000);
+        await using var first = new MessagingResourceBudget(settings, true);
+        await using var second = new MessagingResourceBudget(settings, true);
+        int reserved = 4 * settings.Limits.MaximumEnvelopeBytes;
+        using IDisposable business = await first.AcquireDeliveryAsync();
+        using IDisposable normal = await first.AcquireAsync(200_000 - reserved);
+        Assert.IsFalse(second.TryAcquireDelivery(out _));
+        Assert.IsFalse(second.TryAcquireBytes(1, out _));
+        using IDisposable replyWork = await second.AcquireReplyDeliveryAsync();
+        using IDisposable replyBytes = await second.AcquireReplyBytesAsync(reserved);
+        using var cancel = new CancellationTokenSource();
+        Task<IDisposable> waiting = first.AcquireReplyBytesAsync(1, cancel.Token).AsTask();
+        Assert.IsFalse(waiting.IsCompleted);
+        cancel.Cancel();
+        await Assert.ThrowsAsync<OperationCanceledException>(() => waiting);
+        Assert.ThrowsExactly<InvalidOperationException>(() => new MessagingResourceBudget(settings));
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => first.TryAcquireBytes(200_000, out _));
+    }
+
+    [TestMethod]
+    public void InvalidRpcProfilesFailBeforeAnyWorkCanMultiplyOrStarveReplyIngress()
+    {
+        Assert.ThrowsExactly<ArgumentException>(() => new MessagingResourceBudget(Settings(), true));
+        Assert.ThrowsExactly<ArgumentException>(() => new MessagingResourceBudget(Settings(deliveries: 2), true));
+    }
+
     private static MessagingSettings Settings(int deliveries = 1, int requests = 1, int publications = 1,
         long bytes = ByteCapacity) => new MessagingOptions
         {

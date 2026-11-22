@@ -41,7 +41,8 @@ public static class MessagingHostingExtensions
         services.AddSingleton(new MessagingComposition(snapshot));
         services.TryAddSingleton<TimeProvider>(TimeProvider.System);
         services.TryAddSingleton(_ => LocalApplicationIdentity.Capture());
-        services.TryAddSingleton(root => new MessagingResourceBudget(root.GetRequiredService<MessagingSnapshot>().Settings));
+        services.TryAddSingleton(root => new MessagingResourceBudget(root.GetRequiredService<MessagingSnapshot>().Settings,
+            root.GetRequiredService<MessagingSnapshot>().Requests.Count != 0));
         services.TryAddSingleton(root => new MessagingInstrumentation(root.GetRequiredService<MessagingSnapshot>(),
             root.GetService<TimeProvider>(), root.GetService<ILoggerFactory>()));
         services.TryAddSingleton(root => new MessageOutbox(root.GetRequiredService<MessagingSnapshot>(),
@@ -62,6 +63,14 @@ public static class MessagingHostingExtensions
         services.TryAddSingleton<IMessageOutbox>(root => root.GetRequiredService<MessageOutbox>());
         services.TryAddSingleton<IMessagingClient>(root => new MessageSubmissionClient(root.GetRequiredService<MessageOutbox>(),
             root.GetRequiredService<ILocalTransactionFactory>(), root.GetRequiredService<MessageOutboxPublisher>().Wake));
+        if (snapshot.Requests.Count != 0)
+        {
+            services.TryAddSingleton(root => new MessageRequestCoordinator(root.GetRequiredService<MessagingSnapshot>(),
+                root.GetRequiredService<IMessagingStore>(), root.GetRequiredService<ILocalTransactionFactory>(),
+                root.GetRequiredService<IMessageTransport>(), root.GetRequiredService<MessageOutbox>(),
+                root.GetRequiredService<MessagingResourceBudget>(), root.GetRequiredService<LocalApplicationIdentity>(),
+                root.GetService<TimeProvider>(), root.GetRequiredService<MessagingInstrumentation>(), root.GetRequiredService<MessageOutboxPublisher>().Wake));
+        }
         services.TryAddScoped<IMessageAdministration>(root =>
         {
             MessagingRuntime runtime = root.GetRequiredService<MessagingRuntime>();
@@ -72,13 +81,23 @@ public static class MessagingHostingExtensions
                 root.GetRequiredService<MessagingResourceBudget>(), root.GetRequiredService<MessageOutboxPublisher>().Wake,
                 accepting: () => runtime.IsAccepting);
         });
-        services.TryAddSingleton(root => new MessagingRuntime(root.GetRequiredService<MessagingSnapshot>(),
+        services.TryAddSingleton(root =>
+        {
+            var runtime = new MessagingRuntime(root.GetRequiredService<MessagingSnapshot>(),
             root.GetRequiredService<MessagingComposition>(), root.GetRequiredService<IMessagingStore>(),
             root.GetRequiredService<ILocalTransactionFactory>(), root.GetRequiredService<IMessageTransport>(),
             root.GetRequiredService<MessagingResourceBudget>(), root.GetRequiredService<MessageOutbox>(),
             root.GetRequiredService<MessageOutboxPublisher>(), root.GetRequiredService<MessageDispatcher>(),
             root.GetRequiredService<MessagingInstrumentation>(), root.GetRequiredService<LocalApplicationIdentity>(),
-            root.GetService<IHealthMonitorFactory>(), root.GetService<ILogger<MessagingRuntime>>(), root.GetService<TimeProvider>()));
+                root.GetService<IHealthMonitorFactory>(), root.GetService<ILogger<MessagingRuntime>>(), root.GetService<TimeProvider>());
+            if (root.GetService<MessageRequestCoordinator>() is { } coordinator)
+            {
+                root.GetRequiredService<MessageOutbox>().BindRequests(coordinator);
+                root.GetRequiredService<MessageDispatcher>().BindReplies(coordinator);
+                runtime.BindRequests(coordinator);
+            }
+            return runtime;
+        });
         services.TryAddSingleton(new MessagingHostingOrder(services));
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IStartable, MessagingStartable>());
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IHostedService, MessagingHostedService>());

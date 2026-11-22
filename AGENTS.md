@@ -76,7 +76,8 @@ the [Transactions skill](.github/skills/cislib-transactions/SKILL.md),
 application-owned data sources, sequential native callbacks, actual cleanup
 settlement and distinct Committed/NotCommitted/Unknown facts. Public test scripts
 do not prove SQL atomicity; use the existing real-provider/package consumers and
-report actual evidence limits. Use Operations for journaled results and keep CountryData as the one maintained tutorial. Outgoing delivery remains future work.
+report actual evidence limits. Use Operations for journaled results, Messaging for
+transactional outgoing delivery, and keep CountryData as the one maintained tutorial.
 
 ## Durable operations and result recovery
 
@@ -88,6 +89,19 @@ Await the whole Execute before completing its owner. Keep Prepared, the original
 business decision and actual transaction completion separate; recovery uses a
 fresh authorized read. Reuse the existing native/provider and public-package
 fixtures and retain their distinct evidence limits.
+
+## Transactional messaging and request recovery
+
+For `CIS.Messaging`, the optional RabbitMQ provider or messaging consumer tests,
+read the [Messaging skill](.github/skills/cislib-messaging/SKILL.md), its portable
+contract and current ownership/provider/testing guides, including
+[typed requests and recovery](docs/modules/messaging/requests.md). Preserve original-context
+staging, database arbitration before effects, exact immutable transport identity,
+current native authority and actual owner drain. Keep submission, confirmation,
+processing and typed exchange facts distinct. Result recovery uses the existing
+Operations journal and a new authorized request attempt; local timeout does not
+prove remote rollback. Reuse the named native and public-package fixtures and
+bounded CommonTesting helpers, with their distinct evidence limits.
 
 <!-- cis:repository-guidance:start -->
 ## CIS integration

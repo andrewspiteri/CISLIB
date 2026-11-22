@@ -108,10 +108,12 @@ public enum MessageRedriveDisposition
 /// <param name="DiagnosticCode">Safe bounded context without native error text.</param>
 /// <param name="OriginalProvenance">Original audit evidence, never delegated authority.</param>
 /// <param name="TargetSubscription">An explicit configured target, independent of canonical identity for rejection/quarantine.</param>
+/// <param name="RejectionId">The newly owned rejection anchor for a canonical-free protocol reply.</param>
 public sealed record MessageOutgoingRecord(Guid RecordId, string Application, string Environment,
     MessageDestination Destination, EncodedMessage Message, MessageRecordPurpose Purpose = MessageRecordPurpose.Application,
     TimeSpan Delay = default, MessageProcessingKey? ProcessingKey = null, int DeliveryOrdinal = 1, int Generation = 0,
-    string? DiagnosticCode = null, MessageProvenance? OriginalProvenance = null, string? TargetSubscription = null);
+    string? DiagnosticCode = null, MessageProvenance? OriginalProvenance = null, string? TargetSubscription = null,
+    Guid? RejectionId = null);
 
 /// <summary>Staging identifiers and digest, without a persistence or broker-acceptance claim.</summary>
 /// <param name="RecordId">The stable outgoing-record identity.</param>
@@ -210,6 +212,16 @@ public sealed record MessageProcessingClaim(MessageClaimDisposition Disposition,
 /// <param name="OperationBinding">Resolved operation binding retained before a reply or retry.</param>
 public sealed record MessageProcessingCompletion(MessageProcessingKey Key, long ExpectedVersion, int ExpectedOrdinal,
     int Generation = 0, Guid? ReplyRecordId = null, MessageOperationBinding? OperationBinding = null);
+
+/// <summary>One reply reference to attach under the same native owner that freshly secured its terminal or rejection anchor.</summary>
+/// <param name="ReplyRecordId">The staged reply outgoing identity.</param>
+/// <param name="ProcessingKey">The canonical Terminal anchor, exclusive with RejectionId.</param>
+/// <param name="ExpectedVersion">The freshly secured canonical version.</param>
+/// <param name="ExpectedOrdinal">The exact canonical ordinal.</param>
+/// <param name="Generation">The exact canonical generation, or zero for rejection.</param>
+/// <param name="RejectionId">The newly created rejection anchor, exclusive with ProcessingKey.</param>
+public sealed record MessageReplyAttachment(Guid ReplyRecordId, MessageProcessingKey? ProcessingKey = null,
+    long? ExpectedVersion = null, int? ExpectedOrdinal = null, int Generation = 0, Guid? RejectionId = null);
 
 /// <summary>A failed-attempt transition and exactly one handoff to secure in a fresh short owner.</summary>
 /// <param name="Attempt">Verified immutable original identity, digest and provenance.</param>
@@ -332,6 +344,9 @@ public interface IMessagingStore
         CancellationToken cancellationToken = default);
     /// <summary>Stages successful processing and its already staged reply reference under the expected state.</summary>
     Task<bool> CompleteProcessingAsync(ILocalTransactionContext context, MessageProcessingCompletion completion,
+        CancellationToken cancellationToken = default);
+    /// <summary>Attaches an already staged reply only to its freshly secured same-owner Terminal or separate rejection anchor.</summary>
+    Task<bool> AttachReplyAsync(ILocalTransactionContext context, MessageReplyAttachment attachment,
         CancellationToken cancellationToken = default);
     /// <summary>Reacquires expected failed state and atomically stages one targeted retry/terminal handoff; preserves gap winners.</summary>
     Task<MessageDispositionResult> SecureDispositionAsync(ILocalTransactionContext context, MessageDispositionRequest request,

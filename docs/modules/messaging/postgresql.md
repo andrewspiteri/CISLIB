@@ -19,11 +19,17 @@ TransactionCompletion installed = await install.CommitAsync(cancellationToken);
 
 The equivalent complete script is returned by
 `PostgreSqlMessagingSchema.GetInstallationSql("cis_messaging")`. Core embeds
-`CIS.Messaging.PostgreSql.install-v1.sql` and packages the same script at
-`contentFiles/any/any/CIS.Messaging/PostgreSql/install-v1.sql`. It is a one-time
+`CIS.Messaging.PostgreSql.install-v2.sql` and packages the same script at
+`contentFiles/any/any/CIS.Messaging/PostgreSql/install-v2.sql`. It is a one-time
 installer, not an idempotent migration or automatic repair: existing/partial owned
 tables fail. Installation participates in the caller's deployment transaction.
 It contains no SQL transaction control or session-setting mutation.
+
+The current independent database schema version is **2**; the portable envelope
+version remains **1**. Runtime checks reject schema 1 before store work. There is
+no automatic migration or in-place repair. The earlier unreleased installer is
+retained in Git history; deployments deliberately select a new schema or their
+own separately reviewed migration before using this version.
 
 Registration remains passive:
 
@@ -178,3 +184,44 @@ reuse ordinary MSTest, existing test-only Npgsql and the existing narrow real-co
 then failure seam. A simulated acknowledgement loss is not a real network fault.
 Store proof is distinct from subsequent actual broker/host/RPC acceptance; see
 [CIS-0019 verification](../../changes/CIS-0019/verification.md) for actual results.
+
+## Atomic reply references
+
+A Reply outgoing row has exactly one canonical processing or separate rejection
+anchor. Native `staged_xid` and original-message metadata preserve the original
+owner and correlation without decoding reply payloads inside SQL. Canonical
+reply staging requires this transaction's Ready claim or freshly secured Terminal
+transition, with matching ordinal and generation. Rejection-linked staging
+requires a rejection created by the same transaction, same receiver identity,
+original request and configured route. A later unrelated transaction cannot
+retarget either anchor.
+
+Successful Handled processing continues to use `CompleteProcessingAsync` with
+its freshly staged reply. A newly secured Terminal or rejection uses
+`AttachReplyAsync` before the same owner commits. Terminal attachment checks
+version, ordinal, generation, empty reply reference and current native claim;
+rejection attachment checks its current creator transaction. Attachment returning
+false is not secured responsibility: the coordinator rolls back the whole unit
+and leaves the source unacknowledged. Terminal/quarantine/reply changes therefore
+commit together. Duplicate completed requests retain their original reply
+reference and do not invoke another handler or select a new destination.
+
+Denied replies never manufacture canonical processing. The dispatcher must first
+establish the actual producer, exact typed request and current permitted reply
+recipient. Only its explicit safe-denial delegate may stage a rejection-linked
+reply. Conflicting or untrusted deliveries keep quarantine responsibility alone.
+The response wrapper's original-request digest binding and native reply authority
+are checked by the typed runtime, not established by these low-level store ports.
+
+Explicit redrive clears the previous generation's current reply reference while
+preserving older pending outbox responsibility. Finite maintenance cannot delete
+a rejection while its linked reply remains Pending, Reserved or ordinary Blocked.
+Only Published or the narrowly classified expired reply resolves that dependency.
+Resolved outbox tombstones remain valid when their deleted protection/rejection
+foreign key is detached; unresolved rows cannot lose both anchors.
+
+The [reply SQL cases](../../../implementations/csharp/tests/CIS.Core.IntegrationTests/Messaging/PostgresMessageReplyTests.cs)
+cover same-owner/version/ordinal fences, separate denied responsibility, atomic
+rollback on a missing attachment, generation replacement, pending cleanup and
+strict old-version rejection. Their script payloads and supplied policy
+preconditions are not native authentication or complete typed RPC proof.

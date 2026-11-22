@@ -1,11 +1,11 @@
--- CIS.Messaging PostgreSQL schema v1. Execute explicitly once, with deployment privileges.
+-- CIS.Messaging PostgreSQL schema v2. Execute explicitly once, with deployment privileges.
 -- No transaction control, migration, implicit repair, extension or Operations schema dependency.
 DO $cis_messaging$
 BEGIN
     IF current_setting('server_version_num')::integer < 180000
         OR current_setting('server_encoding') <> 'UTF8'
         OR current_setting('block_size')::integer < 8192 THEN
-        RAISE EXCEPTION 'CIS.Messaging v1 requires PostgreSQL 18+, UTF8 and block_size >= 8192';
+        RAISE EXCEPTION 'CIS.Messaging v2 requires PostgreSQL 18+, UTF8 and block_size >= 8192';
     END IF;
 END
 $cis_messaging$;
@@ -14,9 +14,9 @@ CREATE SCHEMA IF NOT EXISTS __CIS_MESSAGING_SCHEMA__;
 CREATE TABLE __CIS_MESSAGING_SCHEMA__.schema_version
 (
     singleton boolean PRIMARY KEY CHECK (singleton),
-    version integer NOT NULL CHECK (version = 1)
+    version integer NOT NULL CHECK (version = 2)
 );
-INSERT INTO __CIS_MESSAGING_SCHEMA__.schema_version VALUES (true, 1);
+INSERT INTO __CIS_MESSAGING_SCHEMA__.schema_version VALUES (true, 2);
 
 CREATE TABLE __CIS_MESSAGING_SCHEMA__.storage_budget
 (
@@ -72,6 +72,7 @@ CREATE TABLE __CIS_MESSAGING_SCHEMA__.outbox
     reply_application text COLLATE "C" NULL,
     reply_environment text COLLATE "C" NULL,
     reply_endpoint uuid NULL,
+    reply_to_message_id uuid NULL,
     purpose smallint NOT NULL CHECK (purpose BETWEEN 0 AND 5),
     digest bytea NOT NULL CHECK (octet_length(digest) = 32),
     envelope bytea NULL CHECK (octet_length(envelope) BETWEEN 1 AND 1064960),
@@ -80,6 +81,8 @@ CREATE TABLE __CIS_MESSAGING_SCHEMA__.outbox
     processing_environment text COLLATE "C" NULL,
     subscription text COLLATE "C" NULL,
     original_message_id uuid NULL,
+    rejection_id uuid NULL,
+    staged_xid xid8 NOT NULL DEFAULT pg_current_xact_id(),
     ordinal integer NOT NULL CHECK (ordinal BETWEEN 1 AND 32),
     generation integer NOT NULL DEFAULT 0 CHECK (generation >= 0),
     provenance text NULL CHECK (octet_length(provenance) BETWEEN 1 AND 32768),
@@ -102,6 +105,10 @@ CREATE TABLE __CIS_MESSAGING_SCHEMA__.outbox
         OR (reply_application IS NOT NULL AND reply_environment IS NOT NULL AND reply_endpoint IS NOT NULL)),
     CHECK ((processing_application IS NULL AND processing_environment IS NULL AND subscription IS NULL AND original_message_id IS NULL)
         OR (processing_application IS NOT NULL AND processing_environment IS NOT NULL AND subscription IS NOT NULL AND original_message_id IS NOT NULL)),
+    CHECK (processing_application IS NULL OR rejection_id IS NULL),
+    CHECK (rejection_id IS NULL OR purpose=3),
+    CHECK ((purpose=3) = (reply_to_message_id IS NOT NULL)),
+    CHECK (purpose<>3 OR state=2 OR reply_expired OR ((processing_application IS NOT NULL) <> (rejection_id IS NOT NULL))),
     CHECK (state <> 1 OR (reservation_owner IS NOT NULL AND reserved_until IS NOT NULL)),
     CHECK (NOT reply_expired OR (purpose=3 AND state=3 AND safe_code IS NOT NULL AND safe_code='messaging.reply_destination_expired')),
     CHECK (state = 2 OR reply_expired OR envelope IS NOT NULL),
@@ -127,7 +134,12 @@ CREATE TABLE __CIS_MESSAGING_SCHEMA__.rejections
     digest bytea NOT NULL CHECK (octet_length(digest) = 32),
     provenance text NULL CHECK (octet_length(provenance) BETWEEN 1 AND 32768),
     handoff_id uuid NOT NULL REFERENCES __CIS_MESSAGING_SCHEMA__.outbox(record_id),
+    reply_id uuid NULL REFERENCES __CIS_MESSAGING_SCHEMA__.outbox(record_id),
+    created_xid xid8 NOT NULL DEFAULT pg_current_xact_id(),
     safe_code text NOT NULL CHECK (octet_length(safe_code) BETWEEN 1 AND 128),
     created_at timestamptz NOT NULL DEFAULT clock_timestamp(),
     terminal_expires timestamptz NULL
 );
+ALTER TABLE __CIS_MESSAGING_SCHEMA__.outbox ADD FOREIGN KEY (rejection_id)
+    REFERENCES __CIS_MESSAGING_SCHEMA__.rejections(record_id) ON DELETE SET NULL;
+CREATE UNIQUE INDEX outbox_rejection_reply ON __CIS_MESSAGING_SCHEMA__.outbox(rejection_id) WHERE rejection_id IS NOT NULL;

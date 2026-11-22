@@ -111,6 +111,27 @@ internal sealed class RabbitMqMessageFixture : IAsyncDisposable
     internal string EventExchange => RabbitMqTopology.GetRouteExchange(Options.Capture(), "events");
     internal string Queue => RabbitMqTopology.GetSubscriptionQueue(Options.Capture(), Local.Application, Local.Environment, "A");
     internal string QuarantineQueue => Options.Namespace + ".quarantine.local.A";
+
+    internal void TrackReplyEndpoint(Guid endpointId)
+    {
+        if (endpointId == Guid.Empty)
+        {
+            throw new ArgumentException("Track only an endpoint observed from the newly owned process.", nameof(endpointId));
+        }
+        string queue = RabbitMqTopology.GetReplyQueue(Options.Capture(), new(Local.Application, Local.Environment, endpointId));
+        lock (ownership)
+        {
+            if (ownership.ReplyQueues.Contains(queue, StringComparer.Ordinal))
+            {
+                return;
+            }
+            if (ownership.ReplyQueues.Count == 16)
+            {
+                throw new InvalidOperationException("The owned fixture permits at most sixteen tracked reply endpoints.");
+            }
+            ownership.ReplyQueues.Add(queue);
+        }
+    }
     internal RabbitMqOptions SetupOptions
     {
         get

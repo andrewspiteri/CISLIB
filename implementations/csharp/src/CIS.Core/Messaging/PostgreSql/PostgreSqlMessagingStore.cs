@@ -8,7 +8,7 @@ using CIS.Transactions.AdoNet;
 
 namespace CIS.Messaging.PostgreSql;
 
-/// <summary>PostgreSQL v1 transactional inbox/outbox; it never completes owners or performs broker work.</summary>
+/// <summary>PostgreSQL v2 transactional inbox/outbox; it never completes owners or performs broker work.</summary>
 /// <remarks>Only original ReadCommitted participants are supported. Callers own authorization, bounded byte admission,
 /// completion and cleanup. Constructors and registration perform no database work or schema installation.</remarks>
 public sealed partial class PostgreSqlMessagingStore : IMessagingStore
@@ -33,7 +33,7 @@ public sealed partial class PostgreSqlMessagingStore : IMessagingStore
         ArgumentNullException.ThrowIfNull(context);
         if (context.Isolation != TransactionIsolation.ReadCommitted)
         {
-            throw new NotSupportedException("PostgreSQL messaging v1 requires the original ReadCommitted participant.");
+            throw new NotSupportedException("PostgreSQL messaging v2 requires the original ReadCommitted participant.");
         }
         if (context.IsRollbackOnly)
         {
@@ -160,9 +160,22 @@ public sealed partial class PostgreSqlMessagingStore : IMessagingStore
         {
             throw new ArgumentException("An internal handoff requires the retained processing key and original provenance.", nameof(record));
         }
-        if (record.Purpose == MessageRecordPurpose.Reply && (record.ProcessingKey is null || record.Message.Envelope.Kind != MessageKind.Reply))
+        if (record.RejectionId is { } rejection)
         {
-            throw new ArgumentException("A reply must be linked to its original processing identity.", nameof(record));
+            MessageText.Id(rejection, nameof(record.RejectionId));
+            if (record.Purpose != MessageRecordPurpose.Reply || record.ProcessingKey is not null)
+            {
+                throw new ArgumentException("A rejection anchor belongs only to a canonical-free reply.", nameof(record));
+            }
+        }
+        if (record.Purpose == MessageRecordPurpose.Reply
+            && ((record.ProcessingKey is null) == (record.RejectionId is null) || record.Message.Envelope.Kind != MessageKind.Reply))
+        {
+            throw new ArgumentException("A reply requires exactly one canonical or rejection anchor.", nameof(record));
+        }
+        if (record.Purpose != MessageRecordPurpose.Reply && record.Message.Envelope.Kind == MessageKind.Reply)
+        {
+            throw new ArgumentException("A reply envelope requires the explicit reply purpose and anchor.", nameof(record));
         }
         if (record.Purpose == MessageRecordPurpose.Rejection && record.ProcessingKey is not null)
         {

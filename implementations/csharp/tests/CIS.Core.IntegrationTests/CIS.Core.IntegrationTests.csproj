@@ -6,6 +6,9 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Npgsql" PrivateAssets="all" />
+    <Compile Remove="Messaging/CrashHost/**/*.cs" />
+    <Compile Include="Messaging/CrashHost/Contracts.cs" Link="Messaging/CrashContracts.cs" />
+    <ProjectReference Include="Messaging/CrashHost/CrashHost.csproj" ReferenceOutputAssembly="false" Private="false" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="../CIS.Core.UnitTests/RestClient/RestHttpTestSupport.cs" Link="RestClient/RestHttpTestSupport.cs" />
@@ -96,6 +99,12 @@
       <DiscoveryFixtureFiles Include="../fixtures/DiscoveryHost/bin/$(Configuration)/$(TargetFramework)/*" />
     </ItemGroup>
     <Copy SourceFiles="@(DiscoveryFixtureFiles)" DestinationFolder="$(TargetDir)discovery-fixture" />
+  </Target>
+  <Target Name="CopyMessagingCrashFixture" AfterTargets="Build">
+    <ItemGroup>
+      <MessagingCrashFiles Include="Messaging/CrashHost/bin/$(Configuration)/$(TargetFramework)/*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(MessagingCrashFiles)" DestinationFolder="$(TargetDir)messaging-crash-host" />
   </Target>
   <Target Name="CopyHealthcheckFixtures" AfterTargets="Build">
     <ItemGroup>

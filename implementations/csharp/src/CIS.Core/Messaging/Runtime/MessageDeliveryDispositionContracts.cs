@@ -25,10 +25,13 @@ internal sealed record MessageFailedDelivery(EncodedMessage Message, MessageSubs
     MessageDeliveryFailureKind Kind, string SafeCode, MessageProcessingAttempt? Attempt = null,
     bool CanonicalEligible = false, TransactionCompletion? OriginalCompletion = null,
     ExceptionDispatchInfo? OriginalFault = null, IServiceProvider? Services = null,
-    MessageFailureReplyStage? Reply = null);
+    MessageFailureReplyStage? Reply = null, MessageDeniedReplyStage? DeniedReply = null);
 
 // Optional Part-B safe protocol response staging, never a business handler or an Operations invocation.
 internal delegate Task<Guid> MessageFailureReplyStage(ILocalTransactionContext context, CancellationToken cancellationToken);
+
+// Supplied only after independent current producer/request/recipient permission checks, never for a canonical conflict.
+internal delegate Task<Guid> MessageDeniedReplyStage(ILocalTransactionContext context, Guid rejectionId, CancellationToken cancellationToken);
 
 internal sealed record MessageDispositionHandling(MessageDispositionHandlingKind Kind,
     TransactionCompletion? Completion = null, MessageProcessingDisposition? Disposition = null,
@@ -43,7 +46,8 @@ internal interface IMessageResponseCoordinator
 {
     Task<Guid> StageReplyAsync<TRequest, TResponse>(ILocalTransactionContext context,
         MessageRequestSubscriptionDefinition<TRequest, TResponse> definition, EncodedMessage request,
-        MessageProcessingAttempt attempt, MessageResponse<TResponse> response, CancellationToken cancellationToken);
+        MessageProcessingAttempt attempt, MessageResponse<TResponse> response, MessageResponseAdmission admission,
+        CancellationToken cancellationToken, Guid? rejectionId = null);
     Task<MessageReplyHandling> ReceiveReplyAsync(EncodedMessage reply, IServiceProvider scopedServices,
         CancellationToken cancellationToken);
 }

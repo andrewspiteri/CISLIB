@@ -2,7 +2,7 @@
 title: "WORK-004 Implement committed-only outbox publication and explicit submission"
 type: agent-task
 status: Draft
-task_status: InProgress
+task_status: Complete
 task_id: WORK-004
 parent_id: none
 category: implementation
@@ -29,13 +29,15 @@ Implement committed-only outbox publication and explicit submission
 
 ## Acceptance criteria
 
-- [ ] P06/P07/P15/P16 and A01-A03/A09/A11: originalcontext typed staging and stable receipts; convenience shortowner submission preservesactualcompletion. Reserveknowncommit, boundedbodyadmission, brokeroutsideSQL, freshfencedsettlement. Unknown/Blocked/transientcappedbackoff preserve accepted work and exact bytes; no publication beforecommit. Source may start after frozen WORK001 contracts to provide the already-required shared encoded-byte admission port for the independent optional provider. Final acceptance still requires completed WORK002 and WORK003 and their real store/broker integration; this is not an early delivery or completion claim.
+- [x] P06/P07/P15/P16 and A01-A03/A09/A11: originalcontext typed staging and stable receipts; convenience shortowner submission preservesactualcompletion. Reserveknowncommit, boundedbodyadmission, brokeroutsideSQL, freshfencedsettlement. Unknown/Blocked/transientcappedbackoff preserve accepted work and exact bytes; no publication beforecommit. Source may start after frozen WORK001 contracts to provide the already-required shared encoded-byte admission port for the independent optional provider. Final acceptance still requires completed WORK002 and WORK003 and their real store/broker integration; this is not an early delivery or completion claim.
 
 ## Targeted validation
 
-- [ ] Controlledandreal publicpath tests for stagedvscommitted, serialization/storefault rollbackonly, metadata+bytecapacity, staleowner, lostconfirm and uncertainstatecommit, cancellation/outage/shutdown actualcleanup, no perpollsuccessstream. Guide/style/build and independent owningboundaryreview. Verify shared process work/byte/wait admission and optional-provider byte lease through actual settlement; complete only after WORK002/003 are Complete and publication runs against them.
+- [x] Controlledandreal publicpath tests for stagedvscommitted, serialization/storefault rollbackonly, metadata+bytecapacity, staleowner, lostconfirm and uncertainstatecommit, cancellation/outage/shutdown actualcleanup, no perpollsuccessstream. Guide/style/build and independent owningboundaryreview. Verify shared process work/byte/wait admission and optional-provider byte lease through actual settlement; complete only after WORK002/003 are Complete and publication runs against them.
 
 ## Completion evidence
 
 | Check | Result | Evidence |
 | --- | --- | --- |
+| Bounded acceptance | 425 affected units each actual Windows/Ubuntu and current real-provider component cases; exact candidate custody retained | [Review](../review-004.md), `.artifacts/messaging/CIS-0019/WORK-004/part-a-component-receipt.json` |
+| CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2023; failed=281; possibleTokenSavings=591; ledgerDigest=sha256:cf57811b70067f30fb758e241a1c9f3d66d1a9cde70e81a4739365232a10a052 |

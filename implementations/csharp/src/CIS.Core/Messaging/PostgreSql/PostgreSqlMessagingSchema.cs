@@ -8,13 +8,13 @@ namespace CIS.Messaging.PostgreSql;
 public static class PostgreSqlMessagingSchema
 {
     /// <summary>The independent messaging schema version.</summary>
-    public const int Version = 1;
+    public const int Version = 2;
 
     /// <summary>Returns the embedded, packaged script with one validated quoted schema identifier.</summary>
     public static string GetInstallationSql(string schema = "cis_messaging")
     {
         string selected = PostgreSqlMessagingSettings.SchemaName(schema);
-        using Stream resource = typeof(PostgreSqlMessagingSchema).Assembly.GetManifestResourceStream("CIS.Messaging.PostgreSql.install-v1.sql")
+        using Stream resource = typeof(PostgreSqlMessagingSchema).Assembly.GetManifestResourceStream("CIS.Messaging.PostgreSql.install-v2.sql")
             ?? throw new InvalidOperationException("The Core package is missing its messaging installation SQL.");
         using var reader = new StreamReader(resource);
         return reader.ReadToEnd().Replace("__CIS_MESSAGING_SCHEMA__", $"\"{selected}\"", StringComparison.Ordinal);
