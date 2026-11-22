@@ -143,7 +143,8 @@ public sealed class MessagingOptions
     {
         get; set;
     }
-    /// <summary>Gets or sets whether required request-serving readiness includes a live broker.</summary>
+    /// <summary>Gets or sets whether subscriptions and typed requests require a live broker for readiness after startup.</summary>
+    /// <remarks>Initial transport startup and store readiness remain required. Staging-only readiness does not require a live broker.</remarks>
     public bool RequireLiveBrokerForReadiness { get; set; } = true;
     /// <summary>Gets or sets explicit immutable retention policy, initially indefinite.</summary>
     public MessageRetentionPolicy Retention { get; set; } = new();

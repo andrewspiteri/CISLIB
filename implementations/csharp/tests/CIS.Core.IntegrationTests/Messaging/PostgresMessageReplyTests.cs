@@ -12,6 +12,50 @@ namespace CIS.Tests.IntegrationTests.Messaging;
 public sealed class PostgresMessageReplyTests
 {
     [TestMethod]
+    public async Task AnOriginalReplyCanBeQuarantineDataWithoutCreatingABusinessReplyAnchor()
+    {
+        await using PostgresMessageFixture fixture = await PostgresMessageFixture.CreateAsync();
+        EncodedMessage reply = Reply(Request()).Message;
+        await using (ILocalTransaction application = await fixture.Factory.BeginAsync("Messaging"))
+        {
+            await Assert.ThrowsExactlyAsync<ArgumentException>(() => fixture.Store.StageAsync(application.Context,
+                PostgresMessageFixture.Outgoing(reply)));
+            Assert.IsTrue(application.Context.IsRollbackOnly);
+            Assert.AreEqual(TransactionOutcome.NotCommitted, (await application.CommitAsync()).Outcome);
+        }
+        var quarantine = new MessageOutgoingRecord(Guid.NewGuid(), PostgresMessageFixture.Application,
+            PostgresMessageFixture.EnvironmentName, new("CountryEvents"), reply, MessageRecordPurpose.Rejection,
+            DiagnosticCode: "messaging.delivery_metadata_invalid", TargetSubscription: "Countries");
+        await using (ILocalTransaction rejection = await fixture.Factory.BeginAsync("Messaging"))
+        {
+            await fixture.Store.RecordRejectionAsync(rejection.Context, new(Guid.NewGuid(),
+                PostgresMessageFixture.Application, PostgresMessageFixture.EnvironmentName,
+                "Countries", reply, "messaging.delivery_metadata_invalid", quarantine));
+            Assert.AreEqual(TransactionOutcome.Committed, (await rejection.CommitAsync()).Outcome);
+        }
+
+        Assert.AreEqual(0L, await fixture.CountAsync("processing"));
+        Assert.AreEqual(1L, await fixture.CountAsync("rejections"));
+        MessageReservation reservation = (await fixture.ReserveCommittedAsync()).Single();
+        Assert.AreEqual(MessageRecordPurpose.Rejection, reservation.Purpose);
+        Assert.IsNull(reservation.ProcessingKey);
+        Assert.IsNull(reservation.Destination.ReplyRoute);
+        await using (ILocalTransaction read = await fixture.Factory.BeginAsync("Messaging"))
+        {
+            EncodedMessage? retained = await fixture.Store.ReadReservedMessageAsync(read.Context, reservation);
+            Assert.IsNotNull(retained);
+            CollectionAssert.AreEqual(reply.CopyBytes(), retained.CopyBytes());
+            Assert.AreEqual(reply.Digest, retained.Digest);
+            Assert.AreEqual(reply.Envelope.InReplyToMessageId, retained.Envelope.InReplyToMessageId);
+            await read.RollbackAsync();
+        }
+        await using DbConnection connection = await fixture.Source.OpenConnectionAsync();
+        await using DbCommand command = connection.CreateCommand();
+        command.CommandText = $"SELECT reply_to_message_id IS NULL AND rejection_id IS NULL AND processing_application IS NULL FROM {fixture.Table("outbox")}";
+        Assert.IsTrue((bool)(await command.ExecuteScalarAsync())!);
+    }
+
+    [TestMethod]
     public async Task FreshTerminalReplyAttachmentRequiresExactVersionOrdinalGenerationAndTheSameNativeOwner()
     {
         await using PostgresMessageFixture fixture = await PostgresMessageFixture.CreateAsync();
@@ -24,9 +68,18 @@ public sealed class PostgresMessageReplyTests
             replyId = reply.RecordId;
             await fixture.Store.StageAsync(owner.Context, reply);
             var expected = new MessageReplyAttachment(replyId, attempt.Key, terminal.Record!.Version, 1);
-            Assert.IsFalse(await fixture.Store.AttachReplyAsync(owner.Context, expected with { ExpectedVersion = expected.ExpectedVersion + 1 }));
-            Assert.IsFalse(await fixture.Store.AttachReplyAsync(owner.Context, expected with { ExpectedOrdinal = 2 }));
-            Assert.IsFalse(await fixture.Store.AttachReplyAsync(owner.Context, expected with { Generation = 1 }));
+            Assert.IsFalse(await fixture.Store.AttachReplyAsync(owner.Context, expected with
+            {
+                ExpectedVersion = expected.ExpectedVersion + 1
+            }));
+            Assert.IsFalse(await fixture.Store.AttachReplyAsync(owner.Context, expected with
+            {
+                ExpectedOrdinal = 2
+            }));
+            Assert.IsFalse(await fixture.Store.AttachReplyAsync(owner.Context, expected with
+            {
+                Generation = 1
+            }));
             Assert.IsTrue(await fixture.Store.AttachReplyAsync(owner.Context, expected));
             Assert.IsFalse(await fixture.Store.AttachReplyAsync(owner.Context, expected));
             Assert.AreEqual(TransactionOutcome.Committed, (await owner.CommitAsync()).Outcome);
@@ -162,7 +215,12 @@ public sealed class PostgresMessageReplyTests
             Assert.IsNull(redriven.Record!.ReplyRecordId);
             await owner.CommitAsync();
         }
-        MessageProcessingAttempt retry = initial with { Generation = 1, Purpose = MessageRecordPurpose.Redrive, HandoffRecordId = redriven.HandoffRecordId };
+        MessageProcessingAttempt retry = initial with
+        {
+            Generation = 1,
+            Purpose = MessageRecordPurpose.Redrive,
+            HandoffRecordId = redriven.HandoffRecordId
+        };
         await using (ILocalTransaction failed = await fixture.Factory.BeginAsync("Messaging"))
         {
             Assert.AreEqual(MessageClaimDisposition.Acquired, (await fixture.Store.ClaimProcessingAsync(failed.Context, retry)).Disposition);

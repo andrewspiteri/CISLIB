@@ -9,6 +9,7 @@ using CIS.Metrics.OpenTelemetry;
 using CIS.Security;
 using CIS.Security.Hosting;
 using CIS.Startup;
+using CIS.Startup.Hosting;
 using CIS.TestSupport;
 using CIS.Tests.IntegrationTests.Application;
 using CIS.Transactions;
@@ -27,6 +28,61 @@ namespace CIS.Tests.IntegrationTests.Messaging;
 [DoNotParallelize]
 public sealed class MessagingHostingTests
 {
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task ActualNativeDisconnectUsesTheConfiguredRequestReadinessPolicy(bool requireLiveBroker)
+    {
+        await using PostgresMessageFixture database = await PostgresMessageFixture.CreateAsync();
+        await using RabbitMqMessageFixture broker = await RabbitMqMessageFixture.CreateAsync(
+            withSubscription: false, withRequests: true, transformSnapshot: original =>
+                new(new MessagingOptions { RequireLiveBrokerForReadiness = requireLiveBroker },
+                    original.Routes, [new("Messaging", "Messaging")], [], original.Requests));
+        HostApplicationBuilder builder = Host.CreateApplicationBuilder();
+        builder.Logging.ClearProviders();
+        RegisterNative(builder.Services, broker, database);
+        builder.Services.AddCisMessaging();
+        builder.Services.AddCisStartup();
+        IHost host = builder.Build();
+        try
+        {
+            await host.StartAsync().WaitAsync(TimeSpan.FromSeconds(30));
+            var runtime = host.Services.GetRequiredService<MessagingRuntime>();
+            var transport = host.Services.GetRequiredService<RabbitMqTransport>();
+            Assert.IsTrue(transport.IsReady);
+            Assert.IsTrue(runtime.IsReady);
+            MessageReplyRoute? endpoint = transport.ReplyEndpoint;
+            Assert.IsNotNull(endpoint);
+            broker.TrackReplyEndpoint(endpoint.EndpointId);
+
+            // Close this root's actual native connection while its runtime and SQL store stay live.
+            // This establishes the readiness policy after real disconnection, not automatic recovery.
+            await transport.StopAsync().WaitAsync(TimeSpan.FromSeconds(30));
+            Assert.IsFalse(transport.IsReady);
+            Assert.AreEqual(!requireLiveBroker, runtime.IsReady);
+            Assert.AreEqual(0L, await database.CountAsync("outbox"));
+            Assert.AreEqual(0L, await database.CountAsync("processing"));
+        }
+        finally
+        {
+            try
+            {
+                await host.StopAsync(CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(30));
+            }
+            finally
+            {
+                if (host is IAsyncDisposable asynchronous)
+                {
+                    await asynchronous.DisposeAsync();
+                }
+                else
+                {
+                    host.Dispose();
+                }
+            }
+        }
+    }
+
     [TestMethod]
     [DataRow(false)]
     [DataRow(true)]

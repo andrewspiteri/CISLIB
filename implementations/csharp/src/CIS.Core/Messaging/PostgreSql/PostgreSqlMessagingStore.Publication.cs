@@ -69,7 +69,8 @@ public sealed partial class PostgreSqlMessagingStore
         Parameter(command, "subscription", DbType.String, record.ProcessingKey?.Subscription);
         Parameter(command, "original", DbType.Guid, record.ProcessingKey?.MessageId);
         Parameter(command, "rejection", DbType.Guid, record.RejectionId);
-        Parameter(command, "reply_to", DbType.Guid, record.Message.Envelope.InReplyToMessageId);
+        Parameter(command, "reply_to", DbType.Guid,
+            record.Purpose == MessageRecordPurpose.Reply ? record.Message.Envelope.InReplyToMessageId : null);
         Parameter(command, "ordinal", DbType.Int32, record.DeliveryOrdinal);
         Parameter(command, "generation", DbType.Int32, record.Generation);
         Parameter(command, "provenance", DbType.String, record.OriginalProvenance is null ? null : Json(record.OriginalProvenance));

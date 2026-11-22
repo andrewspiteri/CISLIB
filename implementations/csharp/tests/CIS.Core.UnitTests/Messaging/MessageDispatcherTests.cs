@@ -3,6 +3,7 @@ using System.Diagnostics.Metrics;
 using CIS.CommonTesting;
 using CIS.Messaging;
 using CIS.Metrics;
+using CIS.Operations;
 using CIS.Security;
 using CIS.Security.Hosting;
 using CIS.Tests.UnitTests.Security;
@@ -317,13 +318,16 @@ internal sealed class DispatchUnitFixture : IAsyncDisposable
     internal readonly MessagingInstrumentation? Observations;
     internal readonly MessageProvenance Provenance;
     internal readonly PublicationNumberCodec Codec = new();
+    internal readonly DispatchReplies? Replies;
     internal Func<MessageHandlerContext, int, CancellationToken, Task>? OnHandle;
     internal int HandlerCalls;
     private readonly string producerApplication;
     private readonly string producerEnvironment;
+    private readonly bool requests;
 
-    internal DispatchUnitFixture(bool grant = true, bool retry = false, bool observe = false)
+    internal DispatchUnitFixture(bool grant = true, bool retry = false, bool observe = false, bool requests = false)
     {
+        this.requests = requests;
         producerApplication = retry ? Local.Application : "caller-a";
         producerEnvironment = retry ? Local.Environment : "Development";
         Provenance = new("Broker", "fixture", SecurityTestSupport.Subject, "application-a", producerApplication, producerEnvironment);
@@ -338,6 +342,12 @@ internal sealed class DispatchUnitFixture : IAsyncDisposable
         if (grant)
         {
             security.Grants.Add(new(SecurityTestSupport.Profile, "rules.read", Local.Application, Local.Environment, subject: SecurityTestSupport.Subject));
+            if (requests)
+            {
+                security.Grants.Add(new(SecurityTestSupport.Profile, "rules.read", producerApplication, producerEnvironment,
+                    subject: SecurityTestSupport.Subject, resourceSelection: CapabilityResourceSelection.ExactResource,
+                    resourceType: "messaging.reply", resourceIdentifier: "Query"));
+            }
         }
         var services = new ServiceCollection();
         services.AddLogging();
@@ -356,34 +366,67 @@ internal sealed class DispatchUnitFixture : IAsyncDisposable
             return new SecurityTestSupport.FixtureProjector(null, null);
         });
         Provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateOnBuild = true, ValidateScopes = true });
-        var subscription = new MessageSubscriptionDefinition<int>("A", "Ledger", "events", Codec,
+        async Task HandleAsync(MessageHandlerContext context, int value, CancellationToken token)
+        {
+            HandlerCalls++;
+            if (OnHandle is { } handler)
+            {
+                await handler(context, value, token);
+            }
+        }
+        MessageRequestDefinition<int, int>? request = requests
+            ? new("Query", "commands", Codec, Codec, MessageRequestMode.Query, Local.Application, Local.Environment,
+                responseCapabilities: ["rules.read"])
+            : null;
+        MessageSubscriptionDefinition subscription = request is not null
+            ? new MessageRequestSubscriptionDefinition<int, int>("A", "Ledger", request,
+                _ => new DispatchRequestHandler(async (context, value, token) =>
+                {
+                    await HandleAsync(context, value, token);
+                    return OperationDecision<int>.Succeed(value);
+                }), (_, _, _, _) => ValueTask.FromResult(new CapabilityTarget(Local.Application, Local.Environment)),
+                ["rules.read"], new()
+                {
+                    ReplyCapabilities = ["rules.read"]
+                })
+            : new MessageSubscriptionDefinition<int>("A", "Ledger", "events", Codec,
             _ => new DispatchHandler(async (context, value, token) =>
             {
-                HandlerCalls++;
-                if (OnHandle is { } handler)
-                {
-                    await handler(context, value, token);
-                }
+                await HandleAsync(context, value, token);
             }), (_, _, _, _) => ValueTask.FromResult(new CapabilityTarget(Local.Application, Local.Environment)),
-            ["rules.read"], new() { RetryCapabilities = ["rules.read"] });
+            ["rules.read"], new()
+            {
+                RetryCapabilities = ["rules.read"]
+            });
         Snapshot = new(new MessagingOptions
         {
             MaximumPayloadBytes = 16,
-            MaximumConcurrentDeliveries = 1,
+            MaximumConcurrentDeliveries = requests ? 3 : 1,
             MaximumOutstandingRequests = 1,
             PublisherConcurrency = 1,
-            MaximumEncodedBufferBytes = ByteCapacity
-        }, [new MessageRouteDefinition<int>("events", MessageKind.Event, Codec)], [new("Messaging", "Ledger")], [subscription]);
-        Resources = new(Snapshot.Settings);
+            MaximumEncodedBufferBytes = requests ? 12 * new MessagingLimits(16).MaximumEnvelopeBytes : ByteCapacity
+        }, [new MessageRouteDefinition<int>(requests ? "commands" : "events", requests ? MessageKind.Command : MessageKind.Event, Codec)],
+            [new("Messaging", "Ledger")], [subscription], request is null ? [] : [request]);
+        Resources = new(Snapshot.Settings, reserveReplyIngress: requests);
         Observations = observe ? new(Snapshot) : null;
         Dispatcher = new(Provider, Snapshot, Store, Transactions, Resources, Local, Dispositions, instrumentation: Observations);
+        if (requests)
+        {
+            Replies = new(Resources);
+            Dispatcher.BindReplies(Replies);
+        }
     }
 
-    internal EncodedMessage Message() => MessageWire.Encode(new(Guid.NewGuid(), MessageKind.Event, Codec.Contract,
-        producerApplication, producerEnvironment, DateTimeOffset.UnixEpoch, "7"u8.ToArray()));
+    internal EncodedMessage Message() => MessageWire.Encode(new(Guid.NewGuid(), requests ? MessageKind.Request : MessageKind.Event, Codec.Contract,
+        producerApplication, producerEnvironment, DateTimeOffset.UnixEpoch, "7"u8.ToArray(),
+        requests ? Guid.NewGuid() : null,
+        requests ? new MessageReplyRoute(producerApplication, producerEnvironment, Guid.NewGuid()) : null));
 
     internal DispatchDelivery Delivery(ReadOnlyMemory<byte> body) => new(body,
-        new(SecurityTestSupport.Profile, SecurityTestSupport.NativeAuthentication(), Provenance));
+        new(SecurityTestSupport.Profile, SecurityTestSupport.NativeAuthentication(), Provenance))
+    {
+        Headers = new(requests ? "commands" : "events")
+    };
 
     public async ValueTask DisposeAsync()
     {
@@ -407,6 +450,30 @@ internal sealed class DispatchHandler(Func<MessageHandlerContext, int, Cancellat
 {
     public Task HandleAsync(MessageHandlerContext context, int value, CancellationToken cancellationToken = default)
         => handler(context, value, cancellationToken);
+}
+
+internal sealed class DispatchRequestHandler(Func<MessageHandlerContext, int, CancellationToken, Task<OperationDecision<int>>> handler)
+    : IRequestHandler<int, int>
+{
+    public Task<OperationDecision<int>> HandleAsync(MessageHandlerContext context, int value, CancellationToken cancellationToken = default)
+        => handler(context, value, cancellationToken);
+}
+
+internal sealed class DispatchReplies(MessagingResourceBudget resources) : IMessageResponseCoordinator
+{
+    internal int Staged;
+    public Task<Guid> StageReplyAsync<TRequest, TResponse>(ILocalTransactionContext context,
+        MessageRequestSubscriptionDefinition<TRequest, TResponse> definition, EncodedMessage request,
+        MessageProcessingAttempt attempt, MessageResponse<TResponse> response, MessageResponseAdmission admission,
+        CancellationToken cancellationToken, Guid? rejectionId = null)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        admission.Require(resources);
+        Staged++;
+        return Task.FromResult(Guid.NewGuid());
+    }
+    public Task<MessageReplyHandling> ReceiveReplyAsync(EncodedMessage reply, IServiceProvider scopedServices,
+        CancellationToken cancellationToken) => throw new InvalidOperationException("This fixture admits request dispatch only.");
 }
 
 internal sealed class DispatchDelivery(ReadOnlyMemory<byte> body, MessageNativeEvidence evidence) : IMessageDelivery
@@ -451,8 +518,12 @@ internal sealed class ObservedMessageMemory(byte[] bytes) : MemoryManager<byte>
         return bytes;
     }
     public override MemoryHandle Pin(int elementIndex = 0) => throw new NotSupportedException();
-    public override void Unpin() { }
-    protected override void Dispose(bool disposing) { }
+    public override void Unpin()
+    {
+    }
+    protected override void Dispose(bool disposing)
+    {
+    }
 }
 
 internal sealed class DispatchDispositions : IMessageDeliveryDispositionCoordinator

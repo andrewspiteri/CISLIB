@@ -1,0 +1,16 @@
+{
+  "tasks": [
+    {
+      "title": "Correct messaging pressure, quarantine and broker readiness continuation",
+      "category": "implementation",
+      "complexity": "medium",
+      "scopeIds": [
+        "messaging-corrections"
+      ],
+      "dependsOn": [],
+      "assignee": "Codex",
+      "acceptanceCriteria": "Temporary RPC byte pressure under valid12xEnvelope/3work-slot settings atomically defers before decoding and resumes both requests plus next delivery without consumer stop, including cancellation/cleanup; a wellformed Reply on ordinary ingress commits canonical-free rejection/quarantine preserving original bytes, publishes to quarantine and permits valid Event with same MessageId; RequireLiveBrokerForReadiness true/false yields documented difference after native broker disconnect while staging-only/startup/store/stop gates remain unchanged. Fix only these paths using existing ownership and machinery; include tests/docs and independent escaped-handoff review.",
+      "validation": "Focused units for combined admission/cancellation/resource release, quarantine validation/purpose metadata and readiness profile matrix; actual isolatedPostgreSQL+TLSRabbit concurrency and misroutedReply→same-IDvalidEvent continuation, actual native readiness disconnect/recovery if supported existing fixture. Build affectedprojects0warnings/errors, scoped pinnedSDK whitespace+verify, run affectedMessaging/Operations units onWindows/Ubuntu and affectednative tests; verify exactcurrentCore/source/TRXbindings and closure without broadcampaign. Independent review must confirm promised continuation and no material responsibility/harness expansion. Restore exact ownedfixtures/privateinputs afteractualdrain; resolve task acceptance/checklist/evidence and complete supported CIS lifecycle. All work including intake fits shared6h/8attempts and existing6GiBphysicalceiling; no push/merge."
+    }
+  ]
+}

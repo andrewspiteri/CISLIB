@@ -1,3 +1,4 @@
+using System.Data.Common;
 using CIS.CommonTesting;
 using CIS.Healthcheck;
 using CIS.Messaging;
@@ -13,6 +14,77 @@ namespace CIS.Tests.UnitTests.Messaging;
 [DoNotParallelize]
 public sealed class MessagingDisposalTests
 {
+    [TestMethod]
+    [DataRow("staging", true, true)]
+    [DataRow("staging", false, true)]
+    [DataRow("subscription", true, false)]
+    [DataRow("subscription", false, true)]
+    [DataRow("caller", true, false)]
+    [DataRow("caller", false, true)]
+    [DataRow("responder", true, false)]
+    [DataRow("responder", false, true)]
+    public async Task ReadinessUsesTheCapturedBrokerPolicyForEachConfiguredResponsibility(
+        string profile, bool requireLiveBroker, bool readyWithoutBroker)
+    {
+        await WithReadinessRuntimeAsync(profile, requireLiveBroker, async (runtime, store, transport) =>
+        {
+            Assert.IsFalse(runtime.IsReady, "The broker policy cannot bypass startup.");
+            await runtime.StartAsync(CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(10));
+            await store.ReserveEntered.Task.WaitAsync(TimeSpan.FromSeconds(10));
+            Assert.AreEqual(1, transport.Starts, "Every profile still establishes its selected transport at startup.");
+            Assert.IsTrue(runtime.IsReady);
+
+            transport.Ready = false;
+            Assert.AreEqual(readyWithoutBroker, runtime.IsReady);
+            transport.Ready = true;
+            Assert.IsTrue(runtime.IsReady);
+
+            runtime.BeginStopping();
+            Assert.IsFalse(runtime.IsReady, "An optional live broker cannot bypass module cutoff.");
+            await runtime.StopAsync().WaitAsync(TimeSpan.FromSeconds(10));
+            Assert.IsFalse(runtime.IsReady);
+        });
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task AFailedStoreRefreshMakesReadinessFalseForEitherBrokerPolicy(bool requireLiveBroker)
+    {
+        await WithReadinessRuntimeAsync("responder", requireLiveBroker, async (runtime, store, transport) =>
+        {
+            await runtime.StartAsync(CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(10));
+            await store.ReserveEntered.Task.WaitAsync(TimeSpan.FromSeconds(10));
+            Assert.IsTrue(runtime.IsReady);
+            store.FailObservation = true;
+            store.ReleaseReservation.TrySetResult();
+            await store.ObservationFailed.Task.WaitAsync(TimeSpan.FromSeconds(10));
+            using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            while (runtime.IsReady)
+            {
+                await Task.Delay(TimeSpan.FromMilliseconds(10), deadline.Token);
+            }
+            Assert.IsTrue(transport.IsReady, "This case loses only the store observation.");
+            Assert.AreEqual(2, store.Observations);
+            await runtime.StopAsync().WaitAsync(TimeSpan.FromSeconds(10));
+        });
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task AFailedInitialStoreObservationCannotBeBypassedByTheBrokerPolicy(bool requireLiveBroker)
+    {
+        await WithReadinessRuntimeAsync("caller", requireLiveBroker, async (runtime, store, transport) =>
+        {
+            store.FailObservation = true;
+            await Assert.ThrowsExactlyAsync<ReadinessObservationException>(
+                () => runtime.StartAsync(CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(10)));
+            Assert.IsFalse(runtime.IsReady);
+            Assert.AreEqual(0, transport.Starts, "Sequential startup must reject the failed store before native transport startup.");
+        });
+    }
+
     [TestMethod]
     public async Task ConcurrentDisposalJoinsOneHeldMonitorCleanupAndPreservesStopAndCleanupFaultsAfterResourceDrain()
     {
@@ -84,7 +156,65 @@ public sealed class MessagingDisposalTests
         }
     }
 
-    // These private bounded substitutes establish disposal ownership, never native broker or SQL evidence.
+    private static async Task WithReadinessRuntimeAsync(string profile, bool requireLiveBroker,
+        Func<MessagingRuntime, ReadinessStore, ReadinessTransport, Task> check)
+    {
+        var codec = new PublicationNumberCodec();
+        var request = new MessageRequestDefinition<int, int>("Query", "commands", codec, codec,
+            MessageRequestMode.Query, "responder", "test");
+        MessageSubscriptionDefinition[] subscriptions = profile switch
+        {
+            "subscription" => [new MessageSubscriptionDefinition<int>("A", "Ledger", "events", codec,
+                _ => throw new InvalidOperationException("A readiness test must not construct a business handler."),
+                (_, _, _, _) => ValueTask.FromResult(new CapabilityTarget("responder", "test")), ["fixture.handle"])],
+            "responder" => [new MessageRequestSubscriptionDefinition<int, int>("A", "Ledger", request,
+                _ => throw new InvalidOperationException("A readiness test must not construct a request handler."),
+                (_, _, _, _) => ValueTask.FromResult(new CapabilityTarget("responder", "test")), ["fixture.handle"])],
+            _ => []
+        };
+        var snapshot = new MessagingSnapshot(new MessagingOptions
+        {
+            RequireLiveBrokerForReadiness = requireLiveBroker,
+            IdlePollInterval = TimeSpan.FromMinutes(1)
+        }, [new MessageRouteDefinition<int>("events", MessageKind.Event, codec),
+            new MessageRouteDefinition<int>("commands", MessageKind.Command, codec)], [new("Messaging", "Ledger")],
+            subscriptions, profile is "caller" or "responder" ? [request] : []);
+        var store = new ReadinessStore();
+        var transactions = new ScriptedLocalTransactionFactory();
+        transactions.Enqueue();
+        transactions.Enqueue();
+        transactions.Enqueue();
+        var identity = LocalApplicationIdentity.Capture();
+        await using ServiceProvider services = new ServiceCollection().BuildServiceProvider();
+        await using var resources = new MessagingResourceBudget(snapshot.Settings, snapshot.Requests.Count != 0);
+        var outbox = new MessageOutbox(snapshot, store, resources, identity);
+        var transport = new ReadinessTransport();
+        await using var publisher = new MessageOutboxPublisher(snapshot, store, transactions, transport, resources, identity);
+        await using var dispatcher = new MessageDispatcher(services, snapshot, store, transactions, resources, identity);
+        await using var runtime = new MessagingRuntime(snapshot, new(snapshot), store, transactions, transport,
+            resources, outbox, publisher, dispatcher, new(snapshot), identity);
+        await check(runtime, store, transport);
+    }
+
+    // These private bounded substitutes establish readiness/disposal ownership, never native broker or SQL evidence.
+    private sealed class ReadinessTransport : IMessageTransport
+    {
+        internal bool Ready = true;
+        internal int Starts;
+        public MessageReplyRoute? ReplyEndpoint => null;
+        public bool IsReady => Ready;
+        public Task StartAsync(Func<IMessageDelivery, CancellationToken, Task> dispatch, CancellationToken cancellationToken = default)
+        {
+            Starts++;
+            return Task.CompletedTask;
+        }
+        public Task<MessagePublicationResult> PublishAsync(MessagePublication publication, CancellationToken cancellationToken = default)
+            => throw new NotSupportedException("No publication is expected in a readiness case.");
+        public Task StopConsumersAsync() => Task.CompletedTask;
+        public Task StopAsync() => Task.CompletedTask;
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+    }
+
     private sealed class DisposalTransport(Exception stopFault) : IMessageTransport
     {
         internal int Stops;
@@ -131,10 +261,16 @@ public sealed class MessagingDisposalTests
         public Guid MonitorId { get; } = Guid.NewGuid();
         public string? Name => "Messaging";
         public bool IsCritical => true;
-        public void Flag(HealthDiagnostic? diagnostic = null) { }
-        public void Clear() { }
+        public void Flag(HealthDiagnostic? diagnostic = null)
+        {
+        }
+        public void Clear()
+        {
+        }
         public void ReportMeasurement(HealthMeasurement measurement) => throw new NotSupportedException();
-        public void Withdraw() { }
+        public void Withdraw()
+        {
+        }
         public Task WaitForDisposalAsync(CancellationToken waitCancellation = default) => ReleaseDispose.Task.WaitAsync(waitCancellation);
         public async ValueTask DisposeAsync()
         {
@@ -152,18 +288,26 @@ public sealed class MessagingDisposalTests
             => throw new NotSupportedException();
 
         internal readonly TaskCompletionSource ReserveEntered = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal readonly TaskCompletionSource ReleaseReservation = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal readonly TaskCompletionSource ObservationFailed = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal bool FailObservation;
         internal int Reservations;
         internal int Observations;
         public Task<MessageStoreObservation> ObserveAsync(ILocalTransactionContext context, MessageObservationRequest request, CancellationToken cancellationToken = default)
         {
             Observations++;
+            if (FailObservation)
+            {
+                ObservationFailed.TrySetResult();
+                return Task.FromException<MessageStoreObservation>(new ReadinessObservationException());
+            }
             return Task.FromResult(new MessageStoreObservation(DateTimeOffset.UnixEpoch, 0, null, true));
         }
         public async Task<IReadOnlyList<MessageReservation>> ReserveAsync(ILocalTransactionContext context, MessageReservationRequest request, CancellationToken cancellationToken = default)
         {
             Reservations++;
             ReserveEntered.TrySetResult();
-            await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+            await ReleaseReservation.Task.WaitAsync(cancellationToken);
             return [];
         }
         public Task<MessageStageReceipt> StageAsync(ILocalTransactionContext context, MessageOutgoingRecord record, CancellationToken cancellationToken = default) => throw new NotSupportedException();
@@ -178,5 +322,12 @@ public sealed class MessagingDisposalTests
         public Task<MessageRedriveResult> RedriveAsync(ILocalTransactionContext context, MessageRedriveTransition transition, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<IReadOnlyList<MessageInspectionRecord>> InspectAsync(ILocalTransactionContext context, MessageInspectionRequest request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<MessageMaintenanceCounts> MaintainAsync(ILocalTransactionContext context, MessageMaintenanceRequest request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+    }
+
+    private sealed class ReadinessObservationException : DbException
+    {
+        internal ReadinessObservationException() : base("The bounded readiness substitute lost its store observation.")
+        {
+        }
     }
 }

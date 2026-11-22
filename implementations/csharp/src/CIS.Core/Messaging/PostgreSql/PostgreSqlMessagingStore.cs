@@ -173,9 +173,10 @@ public sealed partial class PostgreSqlMessagingStore : IMessagingStore
         {
             throw new ArgumentException("A reply requires exactly one canonical or rejection anchor.", nameof(record));
         }
-        if (record.Purpose != MessageRecordPurpose.Reply && record.Message.Envelope.Kind == MessageKind.Reply)
+        if (record.Purpose is not (MessageRecordPurpose.Reply or MessageRecordPurpose.Rejection)
+            && record.Message.Envelope.Kind == MessageKind.Reply)
         {
-            throw new ArgumentException("A reply envelope requires the explicit reply purpose and anchor.", nameof(record));
+            throw new ArgumentException("A reply envelope requires an anchored reply or canonical-free rejection purpose.", nameof(record));
         }
         if (record.Purpose == MessageRecordPurpose.Rejection && record.ProcessingKey is not null)
         {

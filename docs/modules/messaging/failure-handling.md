@@ -33,6 +33,10 @@ bookkeeping.
 Unsupported contracts, denied input, conflicting content/provenance and invalid
 ordinals use a separate rejection identity and a targeted quarantine outbox row.
 They do not reserve or overwrite the legitimate canonical processing key. A
+well-formed Reply on an ordinary event/command route follows this rejection path:
+its exact wire is quarantine evidence, rather than a business reply addressed to
+the wire's original requester. Securing that responsibility leaves the consumer
+available for a later valid delivery with the same MessageId. A
 conflict discovered during fresh bookkeeping first rolls back that owner, then
 attempts one separate rejection transaction. Malformed or oversized bytes use the
 provider's explicitly configured safe native dead-letter path, or remain

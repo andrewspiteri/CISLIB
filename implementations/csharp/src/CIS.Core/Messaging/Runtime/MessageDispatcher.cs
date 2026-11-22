@@ -6,7 +6,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CIS.Messaging;
 
-internal enum MessageDispatchOutcome { Handled, Duplicate, Retry, Terminal, Unknown, Cancelled }
+internal enum MessageDispatchOutcome
+{
+    Handled, Duplicate, Retry, Terminal, Unknown, Cancelled
+}
 internal sealed record MessageDispatchResult(MessageDispatchOutcome Outcome, string SafeCode,
     TransactionCompletion? Completion = null, ExceptionDispatchInfo? Fault = null);
 
@@ -140,7 +143,11 @@ internal sealed class MessageDispatcher : IAsyncDisposable
         {
             return await QuarantineAsync(delivery, "messaging.envelope_size").ConfigureAwait(false);
         }
-        IDisposable? bytes = await AdmitAsync(delivery, checked(4 * delivery.Body.Length), cancellationToken).ConfigureAwait(false);
+        bool reserveResponse = delivery.SubscriptionAlias != MessagingSystemSubscriptions.Replies
+            && replies is not null && snapshot.Subscriptions.Any(item => item.Alias == delivery.SubscriptionAlias && item.RequestMetadata is not null);
+        int bytesRequired = checked(4 * delivery.Body.Length
+            + (reserveResponse ? 4 * snapshot.Settings.Limits.MaximumEnvelopeBytes : 0));
+        IDisposable? bytes = await AdmitAsync(delivery, bytesRequired, cancellationToken).ConfigureAwait(false);
         if (bytes is null)
         {
             return AdmissionRefused(cancellationToken);
@@ -152,15 +159,11 @@ internal sealed class MessageDispatcher : IAsyncDisposable
                 return await QuarantineAsync(delivery, "messaging.envelope_invalid").ConfigureAwait(false);
             }
             MessageResponseAdmission? response = null;
-            if (message!.Envelope.Kind == MessageKind.Request && delivery.SubscriptionAlias != MessagingSystemSubscriptions.Replies
-                && replies is not null && snapshot.Subscriptions.Any(item => item.Alias == delivery.SubscriptionAlias && item.RequestMetadata is not null))
+            if (message!.Envelope.Kind == MessageKind.Request && reserveResponse)
             {
-                if (!resources.TryAcquireBytes(checked(4 * snapshot.Settings.Limits.MaximumEnvelopeBytes), out IDisposable? responseBytes))
-                {
-                    delivery.RequestConsumerStop("messaging.response_capacity");
-                    return new(MessageDispatchOutcome.Unknown, "messaging.response_capacity");
-                }
-                response = new(resources, responseBytes!);
+                // Input and prospective response share one pre-decode admission through actual settlement.
+                // The underlying lease is idempotent; waiting deliveries retain no partial byte reservation.
+                response = new(resources, bytes);
             }
             using (response)
             {
@@ -476,11 +479,11 @@ internal sealed class MessageDispatcher : IAsyncDisposable
             });
         }
         MessageDispatchOutcome outcome = secured ? handling.Disposition switch
-            {
-                MessageProcessingDisposition.Handled => MessageDispatchOutcome.Duplicate,
-                MessageProcessingDisposition.RetryScheduled => MessageDispatchOutcome.Retry,
-                _ => MessageDispatchOutcome.Terminal
-            }
+        {
+            MessageProcessingDisposition.Handled => MessageDispatchOutcome.Duplicate,
+            MessageProcessingDisposition.RetryScheduled => MessageDispatchOutcome.Retry,
+            _ => MessageDispatchOutcome.Terminal
+        }
             : failure.Kind == MessageDeliveryFailureKind.Shutdown ? MessageDispatchOutcome.Cancelled : MessageDispatchOutcome.Unknown;
         return new(new(outcome, failure.SafeCode, handling.Completion ?? failure.OriginalCompletion, failure.OriginalFault ?? handling.Fault),
             secured ? BrokerAction.Acknowledge : handling.Kind == MessageDispositionHandlingKind.Requeue ? BrokerAction.Requeue : BrokerAction.Stop);
@@ -553,6 +556,9 @@ internal sealed class MessageDispatcher : IAsyncDisposable
         }
     }
 
-    private enum BrokerAction { Acknowledge, Requeue, Quarantine, Stop }
+    private enum BrokerAction
+    {
+        Acknowledge, Requeue, Quarantine, Stop
+    }
     private sealed record DispatchResolution(MessageDispatchResult Result, BrokerAction Action);
 }

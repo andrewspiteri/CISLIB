@@ -134,7 +134,11 @@ current retry service and validate the actual same resolved operation resource.
 outbox record. It never inserts, locks or alters the canonical processing identity.
 `TargetSubscription` is separate metadata, so rejection can target the affected
 consumer without inventing a canonical processing key. Untrusted or conflicting
-messages cannot poison legitimate processing. Malformed/oversize bytes use the
+messages cannot poison legitimate processing. A well-formed Reply received on an
+ordinary route can be retained unchanged as Rejection quarantine data. Its wire
+correlation fields remain inside the immutable envelope; the outbox's business
+reply link and anchor columns remain absent, and publication targets only the
+configured quarantine subscription. Malformed/oversize bytes use the
 provider's verified safe native quarantine path instead of this bounded envelope
 store. Failed/unknown responsibility settlement never licenses source acknowledgement.
 

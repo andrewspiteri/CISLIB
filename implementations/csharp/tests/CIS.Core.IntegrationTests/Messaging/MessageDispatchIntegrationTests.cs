@@ -16,8 +16,72 @@ namespace CIS.Tests.IntegrationTests.Messaging;
 
 [TestClass]
 [DoNotParallelize]
-public sealed class MessageDispatchIntegrationTests
+public sealed partial class MessageDispatchIntegrationTests
 {
+    [TestMethod]
+    public async Task AReplyOnAnOrdinaryRouteCommitsExactQuarantineAndTheSameConsumerHandlesTheLegitimateIdentity()
+    {
+        await using PostgresMessageFixture database = await PostgresMessageFixture.CreateAsync();
+        var effects = new ConcurrentBag<NativeEventHandler>();
+        await using RabbitMqMessageFixture broker = await RabbitMqMessageFixture.CreateAsync(transformSnapshot: initial =>
+            Events(initial, effects, ["A"], (context, _, _) =>
+                database.InsertBusinessAsync(context.Transaction, context.Envelope.MessageId, "A")),
+            configureServices: services => services.AddScoped(_ => new NativeHandlerScope()));
+        await using var resources = new MessagingResourceBudget(broker.Snapshot.Settings);
+        await using var dispatcher = new MessageDispatcher(broker.Services, broker.Snapshot, database.Store,
+            database.Factory, resources, broker.Local,
+            new MessageDeliveryDispositionCoordinator(broker.Snapshot, database.Store, database.Factory, broker.Local));
+        await using var publisher = new MessageOutboxPublisher(broker.Snapshot, database.Store, database.Factory,
+            broker.Transport, resources, broker.Local);
+        var capture = new DispatchCapture(dispatcher, 2);
+        await broker.Transport.StartAsync(capture.ReceiveAsync);
+        EncodedMessage misrouted = MessageWire.Encode(new(Guid.NewGuid(), MessageKind.Reply, new("fixture.number", 1),
+            broker.Local.Application, broker.Local.Environment, DateTimeOffset.UtcNow, JsonSerializer.SerializeToUtf8Bytes(7),
+            requestAttemptId: Guid.NewGuid(), inReplyToMessageId: Guid.NewGuid()));
+
+        await broker.PublishRawAsync(misrouted.CopyBytes(), "service");
+        await capture.WaitForCountAsync();
+
+        Assert.AreEqual(0L, await database.CountAsync("processing"));
+        Assert.AreEqual(0L, await database.CountAsync("business_record"));
+        Assert.AreEqual(1L, await database.CountAsync("rejections"));
+        Assert.AreEqual(1L, await database.CountAsync("outbox"));
+        Assert.AreEqual(0, effects.Count);
+        Assert.IsTrue(broker.Transport.IsReady);
+        MessagePumpResult publication = await publisher.PumpAsync();
+        Assert.AreEqual(1, publication.Confirmed);
+        Assert.AreEqual(TransactionOutcome.Committed, publication.Attempts.Single().SettlementCompletion!.Outcome);
+        await using (var connection = await broker.ConnectAsync())
+        {
+            await using var channel = await connection.CreateChannelAsync();
+            await RabbitMqMessageFixture.UntilAsync(async () => await channel.MessageCountAsync(broker.QuarantineQueue) == 1);
+            var quarantined = await channel.BasicGetAsync(broker.QuarantineQueue, false);
+            Assert.IsNotNull(quarantined);
+            CollectionAssert.AreEqual(misrouted.CopyBytes(), quarantined.Body.ToArray());
+            Assert.IsTrue(MessageWire.TryDecode(quarantined.Body, out EncodedMessage? retained, out _));
+            Assert.AreEqual(misrouted.Digest, retained!.Digest);
+            Assert.AreEqual(MessageKind.Reply, retained.Envelope.Kind);
+            Assert.AreEqual(misrouted.Envelope.InReplyToMessageId, retained.Envelope.InReplyToMessageId);
+            await channel.BasicAckAsync(quarantined.DeliveryTag, false);
+        }
+
+        EncodedMessage legitimate = MessageWire.Encode(new(misrouted.Envelope.MessageId, MessageKind.Event,
+            misrouted.Envelope.Contract, broker.Local.Application, broker.Local.Environment,
+            misrouted.Envelope.CreatedAtUtc, JsonSerializer.SerializeToUtf8Bytes(7)));
+        await broker.PublishRawAsync(legitimate.CopyBytes(), "service");
+        MessageDispatchResult[] results = await capture.Completed.Task.WaitAsync(TimeSpan.FromSeconds(30));
+
+        Assert.AreEqual(MessageDispatchOutcome.Terminal, results[0].Outcome);
+        Assert.AreEqual("messaging.delivery_metadata_invalid", results[0].SafeCode);
+        Assert.AreEqual(TransactionOutcome.Committed, results[0].Completion!.Outcome);
+        Assert.AreEqual(MessageDispatchOutcome.Handled, results[1].Outcome);
+        Assert.AreEqual(1, effects.Count);
+        Assert.AreEqual(1L, await database.CountAsync("business_record"));
+        Assert.AreEqual(1L, await database.CountAsync("processing"));
+        Assert.AreEqual(1L, await database.CountAsync("rejections"));
+        Assert.IsTrue(broker.Transport.IsReady);
+    }
+
     [TestMethod]
     public async Task IndependentSubscriptionsAndReconstructedRuntimeSuppressConcurrentAndLaterTransportDuplicates()
     {
@@ -163,7 +227,11 @@ public sealed class MessageDispatchIntegrationTests
         var codec = new NativeNumberCodec();
         var operation = new OperationDefinition<int, string>("Submit", "Messaging", new("dispatch.input", 1),
             new NativeNormalizer(), new NativeResultCodec(), _ => new NativeScopeResolver(),
-            new() { ExecuteCapabilities = ["dispatch.execute"], LookupCapabilities = ["dispatch.lookup"] });
+            new()
+            {
+                ExecuteCapabilities = ["dispatch.execute"],
+                LookupCapabilities = ["dispatch.lookup"]
+            });
         var request = new MessageRequestDefinition<int, string>("SubmitRequest", "commands", codec,
             new NativeResponseCodec(), MessageRequestMode.DurableCommand, local.Application, local.Environment, "Submit");
         try
@@ -181,7 +249,10 @@ public sealed class MessageDispatchIntegrationTests
                 configureServices: services =>
                 {
                     services.AddSingleton<ILocalTransactionFactory>(database.Factory);
-                    services.AddSingleton<IOperationJournal>(new PostgreSqlOperationJournal(new() { Schema = operationSchema }));
+                    services.AddSingleton<IOperationJournal>(new PostgreSqlOperationJournal(new()
+                    {
+                        Schema = operationSchema
+                    }));
                     services.AddCisOperations();
                     services.AddCisOperation(operation);
                 }, configureSecurity: options =>

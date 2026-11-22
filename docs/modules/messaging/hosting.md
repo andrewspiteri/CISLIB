@@ -62,12 +62,17 @@ Startup awaits these steps in order:
    hint, and publish readiness.
 
 The runtime is independent of CISApplication, Heartbeat and collector SDKs. Its
-readiness condition uses current store availability and, for deployments with
-subscriptions or typed requests, current transport availability. A staging-only
-deployment can remain ready during a later broker outage while its store remains
-available. Initial startup still requires the explicitly selected transport to
-establish its configured resources. Native automatic recovery remains the sole
-reconnect/topology owner. There is no second consumer registration loop.
+readiness condition always requires current store availability. With subscriptions
+or typed requests, `RequireLiveBrokerForReadiness` defaults to `true` and also
+requires current transport availability. Explicitly selecting `false` permits
+that module readiness condition to remain clear during a later broker outage;
+it does not claim that remote work can complete during the outage. A staging-only
+deployment can remain ready during a later broker outage for either option value
+while its store remains available. Initial startup still requires the explicitly
+selected transport to establish its configured resources. Store failures,
+unexpected background faults and shutdown still make Messaging unready for either
+option value. Native automatic recovery remains the sole reconnect/topology owner.
+There is no second consumer registration loop.
 
 Each pump refreshes a bounded store observation outside scrape callbacks. A store
 failure invalidates the retained observation and readiness. Normal polling emits

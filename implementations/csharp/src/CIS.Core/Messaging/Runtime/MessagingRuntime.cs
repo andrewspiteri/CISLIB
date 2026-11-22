@@ -70,7 +70,8 @@ internal sealed class MessagingRuntime : IStartable, IAsyncDisposable
         this.logger = logger;
         clock = timeProvider ?? TimeProvider.System;
         database = snapshot.Stores.Single(item => item.Alias == snapshot.Settings.StoreAlias).DatabaseName;
-        requireTransport = snapshot.Subscriptions.Count != 0 || snapshot.Requests.Count != 0;
+        requireTransport = snapshot.Settings.RequireLiveBrokerForReadiness
+            && (snapshot.Subscriptions.Count != 0 || snapshot.Requests.Count != 0);
     }
 
     internal bool IsReady

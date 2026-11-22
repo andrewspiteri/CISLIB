@@ -131,7 +131,10 @@ public sealed class MessageDispositionTests
         fixture.Script(TransactionOutcome.Committed);
         var original = new InvalidOperationException("private-handler-detail");
         fixture.Store.Fault = new IOException("private-storage-detail");
-        MessageDispositionHandling result = await fixture.Coordinator.HandleAsync(fixture.Failure() with { OriginalFault = ExceptionDispatchInfo.Capture(original) });
+        MessageDispositionHandling result = await fixture.Coordinator.HandleAsync(fixture.Failure() with
+        {
+            OriginalFault = ExceptionDispatchInfo.Capture(original)
+        });
         Assert.AreEqual(MessageDispositionHandlingKind.Stop, result.Kind);
         Assert.AreSame(original, result.Fault!.SourceException);
         Assert.AreEqual(TransactionOutcome.NotCommitted, result.Completion!.Outcome);
@@ -203,6 +206,32 @@ public sealed class MessageDispositionTests
     }
 
     [TestMethod]
+    public async Task AMisroutedReplyRetainsItsExactBytesAsCanonicalFreeQuarantineRatherThanAProtocolResponse()
+    {
+        await using var fixture = new DispositionUnitFixture();
+        fixture.Script(TransactionOutcome.Committed);
+        EncodedMessage reply = MessageWire.Encode(new(Guid.NewGuid(), MessageKind.Reply, fixture.Codec.Contract,
+            "producer", "test", DateTimeOffset.UnixEpoch, "1"u8.ToArray(),
+            requestAttemptId: Guid.NewGuid(), inReplyToMessageId: Guid.NewGuid()));
+        var failure = new MessageFailedDelivery(reply, fixture.Subscription, MessageDeliveryFailureKind.Rejected,
+            "messaging.delivery_metadata_invalid");
+
+        MessageDispositionHandling result = await fixture.Coordinator.HandleAsync(failure);
+
+        Assert.AreEqual(MessageDispositionHandlingKind.ResponsibilityCommitted, result.Kind);
+        Assert.AreEqual(TransactionOutcome.Committed, result.Completion!.Outcome);
+        Assert.AreSame(reply, fixture.Store.Rejection!.Message);
+        Assert.AreSame(reply, fixture.Store.Rejection.Quarantine.Message);
+        Assert.AreEqual(MessageRecordPurpose.Rejection, fixture.Store.Rejection.Quarantine.Purpose);
+        Assert.AreEqual(fixture.Subscription.Alias, fixture.Store.Rejection.Quarantine.TargetSubscription);
+        Assert.IsNull(fixture.Store.Rejection.Quarantine.ProcessingKey);
+        Assert.IsNull(fixture.Store.Rejection.Quarantine.RejectionId);
+        Assert.IsNull(fixture.Store.Rejection.Quarantine.Destination.ReplyRoute);
+        Assert.IsNull(fixture.Store.Disposition);
+        Assert.IsNull(fixture.Store.Attachment);
+    }
+
+    [TestMethod]
     public async Task ARequiredTerminalReplyFaultRollsBackTheWholeFreshResponsibilityOwner()
     {
         await using var fixture = new DispositionUnitFixture();
@@ -242,7 +271,12 @@ internal sealed class DispositionUnitFixture : IAsyncDisposable
         Subscription = new("Countries", "Ledger", "events", Codec,
             _ => throw new InvalidOperationException("No handler may run during bookkeeping."),
             (_, _, _, _) => ValueTask.FromResult(new CapabilityTarget(Identity.Application, Identity.Environment, "country", "MT")),
-            ["country.read"], new() { MaximumDeliveryOrdinals = 3, RetryDelays = [TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5)], RetryJitterRatio = 0.1 });
+            ["country.read"], new()
+            {
+                MaximumDeliveryOrdinals = 3,
+                RetryDelays = [TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5)],
+                RetryJitterRatio = 0.1
+            });
         Snapshot = new(options ?? new(), [new MessageRouteDefinition<int>("events", MessageKind.Event, Codec)],
             [new("Messaging", "Ledger")], [Subscription]);
         Resources = new(Snapshot.Settings);

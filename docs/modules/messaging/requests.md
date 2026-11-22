@@ -101,6 +101,13 @@ encoded capacity. Responder encoding reserves its bounded working bytes before
 effects; local submission releases preparation after actual settlement and before
 waiting, so saturated self requests can still receive their replies.
 
+On a request-capable subscription, input and prospective response bytes enter
+through one combined reservation before copying or decoding the native body.
+Temporary pressure waits cooperatively without retaining a partial input buffer
+or stopping the consumer. Cancelling that wait still awaits the native requeue;
+shutdown joins admitted handlers and their actual cleanup. The reserved reply
+lane remains available inside the same process totals.
+
 An early response keeps its owned encoded-byte lease until consumption or ticket
 disposal. The charge covers both its retained immutable wire and the codec input,
 including codecs that return `ReadOnlyMemory<byte>`. On consumption the typed
