@@ -4,6 +4,7 @@
     <IsTestProject>true</IsTestProject>
     <IsPackable>false</IsPackable>
     <RunSettingsFilePath Condition="'$(RunSettingsFilePath)' == ''">$(MSBuildProjectDirectory)/Infrastructure/integration.runsettings</RunSettingsFilePath>
+    <ShouldUnsetParentConfigurationAndPlatform>false</ShouldUnsetParentConfigurationAndPlatform>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Npgsql" PrivateAssets="all" />
@@ -104,6 +105,7 @@
     <Copy SourceFiles="@(DiscoveryFixtureFiles)" DestinationFolder="$(TargetDir)discovery-fixture" />
   </Target>
   <Target Name="CopyMessagingCrashFixture" AfterTargets="Build">
+    <Error Condition="!Exists('Messaging/CrashHost/bin/$(Configuration)/$(TargetFramework)/CIS.Messaging.RpcCrashFixture.dll') Or !Exists('Messaging/CrashHost/bin/$(Configuration)/$(TargetFramework)/CIS.Messaging.RpcCrashFixture.runtimeconfig.json') Or !Exists('Messaging/CrashHost/bin/$(Configuration)/$(TargetFramework)/CIS.Messaging.RpcCrashFixture.deps.json')" Text="The messaging process fixture must build in the parent configuration before its executable files are copied." />
     <ItemGroup>
       <MessagingCrashFiles Include="Messaging/CrashHost/bin/$(Configuration)/$(TargetFramework)/*" />
     </ItemGroup>

@@ -309,6 +309,8 @@ public sealed class RabbitMqTransportTests
         var recovered = new HashSet<string>(StringComparer.Ordinal);
         try
         {
+            // RabbitMQ 4.4.1 retries unconfirmed dead letters every 180 seconds. With a
+            // capacity-one target, two confirmed source records can need two rounds.
             await RabbitMqMessageFixture.UntilAsync(async () =>
             {
                 BasicGetResult? message = await channel.BasicGetAsync(fixture.QuarantineQueue, false);
@@ -321,7 +323,7 @@ public sealed class RabbitMqTransportTests
                 }
                 return recovered.Count == expected.Length && await fixture.TotalQueuedAsync(fixture.Queue) == 0
                     && await channel.MessageCountAsync(fixture.QuarantineQueue) == 0;
-            }, TimeSpan.FromSeconds(210));
+            }, TimeSpan.FromSeconds(390));
         }
         catch (AssertFailedException)
         {

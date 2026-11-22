@@ -122,6 +122,11 @@ setup privileges or the broker server key. Pass descriptor paths explicitly to
 each child; do not introduce process-global environment changes or restore the old
 manual `CIS_RM02/03/04_*_CONNECTION_FILE` prerequisites.
 
+Solution builds preserve the selected configuration for the RPC child and fail
+if its executable metadata is missing. The safe-DLX recovery case permits 390
+seconds for two native 180-second confirmation retry rounds under a capacity-one
+target; this observation deadline does not promise production delivery latency.
+
 Normal completion and failed startup/test paths attempt exact owned cleanup after
 actual client/child drain. Preserve original and cleanup failures, capture capped
 redacted fixture diagnostics in the native report, and keep the Resource Reaper as

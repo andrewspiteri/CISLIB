@@ -154,3 +154,31 @@ errors; the actual previously failing package-consumer case passes 1/1 with CORE
 variables cleared and the ordinary project profile. The original failed report
 is retained alongside the 2,556 unchanged passing cases. No product/test C# or
 package versions changed. Actual Linux service qualification remains pending.
+
+The next [Linux run 45031970822](https://github.com/andrewspiteri/CISLIB/actions/runs/45031970822)
+restored and built successfully, then passed 133 of 145 cases with zero skips.
+Eleven RPC failures came from the clean solution build placing its unlisted child
+project under Debug while the Release parent copied an empty Release glob. The
+integration project now preserves parent configuration for unmapped references
+and fails its build clearly if the required child DLL/runtimeconfig/deps are
+absent. After the exact old child/copy outputs were preserved and removed, a
+fresh solution build produced the Release child and passed with zero warnings or
+errors.
+
+The remaining safe-DLX case recovered three of four confirmed records and
+observed the fourth retained in the source, with no transport failure. RabbitMQ
+4.4.1's [native confirmation retry default](https://github.com/rabbitmq/rabbitmq-server/blob/v4.4.1/deps/rabbit/Makefile)
+is 180 seconds. A capacity-one target can require two such rounds for two
+confirmed source records. Its bounded observation is now 390 seconds; all exact
+accepted-byte, recovered-set and source/target-empty assertions remain intact.
+Broker defaults and the overall 20-minute service limit remain unchanged. This
+test deadline is not a production delivery-latency guarantee. The original failed
+TRX is retained; focused and subsequent Linux outcomes are recorded separately.
+
+The resulting Windows focused RPC/DLX run passes 12/12, zero failures/skips,
+in 5 minutes 11 seconds, with inherited CORE identity cleared. It includes all
+11 real RPC child-process cases and the unchanged exact-record DLX recovery
+assertions. Scoped formatting/verification and the affected build pass. The four
+current source, Unit, Integration and actual child Core copies match SHA256
+`838154abc0f9cad16162bf49ff6c884c5aab19129a69bf42c166a65d3e55e466`;
+earlier immutable binary snapshots retain their historical hashes.
