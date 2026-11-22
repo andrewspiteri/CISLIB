@@ -5,6 +5,7 @@ using CIS.Workflows;
 using CIS.Security.Hosting;
 using CIS.Transactions;
 using CIS.Operations.Hosting;
+using CIS.Messaging.Hosting;
 using global::OpenTelemetry.Metrics;
 
 namespace CIS.Metrics.OpenTelemetry;
@@ -59,7 +60,8 @@ public static class MetricsServiceCollectionExtensions
         services.AddSingleton(new MetricsHostingOrder(services));
         services.AddSingleton(provider => new MetricsCollectionContext(provider, settings, guard,
             RestComposition(services), WorkflowComposition(services), StateMachineCompositionMetadata(services),
-            SecurityCompositionMetadata(services), TransactionCompositionMetadata(services), OperationCompositionMetadata(services)));
+            SecurityCompositionMetadata(services), TransactionCompositionMetadata(services), OperationCompositionMetadata(services),
+            MessagingCompositionMetadata(services)));
         services.AddSingleton<IMetrics>(provider => provider.GetRequiredService<MetricsCollectionContext>().Metrics);
         if (settings.CollectCoreModules)
         {
@@ -85,7 +87,8 @@ public static class MetricsServiceCollectionExtensions
         // Preserve the existing Core bridge tail, including when Metrics is installed after it.
         // Only descriptors added by this invocation move; no foreign service is reordered.
         ServiceDescriptor? bridge = precedingHosted.FirstOrDefault(descriptor =>
-            descriptor.ImplementationType == typeof(CIS.Workflows.Hosting.PipelineHostedService)
+            descriptor.ImplementationType == typeof(MessagingHostedService)
+            || descriptor.ImplementationType == typeof(CIS.Workflows.Hosting.PipelineHostedService)
             || descriptor.ImplementationType == typeof(CIS.RestClient.Hosting.RestHostedService)
             || descriptor.ImplementationType == typeof(CIS.Heartbeat.Hosting.HeartbeatHostedService)
             || descriptor.ImplementationType == typeof(CIS.Startup.Hosting.StartupHostedService));
@@ -187,6 +190,20 @@ public static class MetricsServiceCollectionExtensions
             throw new InvalidOperationException("Operation composition must have one passive registration-owned metadata instance.");
         }
 
+        return composition;
+    }
+
+    private static MessagingComposition? MessagingCompositionMetadata(IServiceCollection services)
+    {
+        ServiceDescriptor[] markers = services.Where(descriptor => descriptor.ServiceType == typeof(MessagingComposition)).ToArray();
+        if (markers.Length == 0)
+        {
+            return null;
+        }
+        if (markers.Length != 1 || markers[0].IsKeyedService || markers[0].ImplementationInstance is not MessagingComposition composition)
+        {
+            throw new InvalidOperationException("Messaging composition must have one passive registration-owned metadata instance.");
+        }
         return composition;
     }
 

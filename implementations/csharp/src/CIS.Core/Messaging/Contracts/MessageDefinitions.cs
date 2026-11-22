@@ -22,6 +22,17 @@ public enum MessageRequestMode
 public delegate ValueTask<CapabilityTarget> MessageTargetResolver<T>(IServiceProvider services, T value,
     CallerContext? caller, CancellationToken cancellationToken);
 
+/// <summary>Optional current application policy for original-producer reauthorization during a trusted retry/redrive.</summary>
+/// <param name="services">Services in the current retry service's independently established scope.</param>
+/// <param name="value">The decoded business input.</param>
+/// <param name="caller">The current authenticated retry service, never an impersonated original caller.</param>
+/// <param name="original">Retained verified original audit facts, not delegated authority.</param>
+/// <param name="binding">The exact retained operation scope/resource when this delivery uses Operations.</param>
+/// <param name="cancellationToken">Cooperative current execution cancellation.</param>
+/// <returns>Whether additional current application rules permit execution or replay disclosure.</returns>
+public delegate ValueTask<bool> MessageRetryValidator<T>(IServiceProvider services, T value, CallerContext caller,
+    MessageProvenance original, MessageOperationBinding? binding, CancellationToken cancellationToken);
+
 /// <summary>Explicit delivery services and participant context, without transaction-completion ownership.</summary>
 public sealed class MessageHandlerContext
 {
@@ -445,7 +456,7 @@ public sealed class MessageSubscriptionDefinition<T> : MessageSubscriptionDefini
     /// <summary>Captures factories without resolving them or performing network/database work.</summary>
     public MessageSubscriptionDefinition(string alias, string databaseName, string routeAlias, IMessageCodec<T> codec,
         Func<IServiceProvider, IMessageHandler<T>> handlerFactory, MessageTargetResolver<T> targetResolver,
-        IEnumerable<string> capabilities, MessageSubscriptionOptions? options = null)
+        IEnumerable<string> capabilities, MessageSubscriptionOptions? options = null, MessageRetryValidator<T>? retryValidator = null)
         : base(alias, databaseName, routeAlias, codec?.Contract ?? throw new ArgumentNullException(nameof(codec)), capabilities, options)
     {
         ArgumentNullException.ThrowIfNull(handlerFactory);
@@ -453,6 +464,7 @@ public sealed class MessageSubscriptionDefinition<T> : MessageSubscriptionDefini
         Codec = codec;
         HandlerFactory = handlerFactory;
         TargetResolver = targetResolver;
+        RetryValidator = retryValidator;
     }
 
     /// <summary>Gets the explicit typed DTO codec.</summary>
@@ -470,6 +482,8 @@ public sealed class MessageSubscriptionDefinition<T> : MessageSubscriptionDefini
     {
         get;
     }
+    /// <summary>Gets optional explicit current original-producer policy; registration never invokes it.</summary>
+    public MessageRetryValidator<T>? RetryValidator { get; }
     internal override Type ValueType => typeof(T);
     internal override TResult Accept<TResult>(IMessageSubscriptionVisitor<TResult> visitor) => visitor.Visit(this);
 }
@@ -481,7 +495,8 @@ public sealed class MessageRequestSubscriptionDefinition<TRequest, TResponse> : 
     public MessageRequestSubscriptionDefinition(string alias, string databaseName,
         MessageRequestDefinition<TRequest, TResponse> request,
         Func<IServiceProvider, IRequestHandler<TRequest, TResponse>> handlerFactory,
-        MessageTargetResolver<TRequest> targetResolver, IEnumerable<string> capabilities, MessageSubscriptionOptions? options = null)
+        MessageTargetResolver<TRequest> targetResolver, IEnumerable<string> capabilities, MessageSubscriptionOptions? options = null,
+        MessageRetryValidator<TRequest>? retryValidator = null)
         : base(alias, databaseName, request?.RouteAlias ?? throw new ArgumentNullException(nameof(request)), request.RequestContract,
             capabilities, options)
     {
@@ -490,6 +505,7 @@ public sealed class MessageRequestSubscriptionDefinition<TRequest, TResponse> : 
         Request = request;
         HandlerFactory = handlerFactory;
         TargetResolver = targetResolver;
+        RetryValidator = retryValidator;
     }
 
     /// <summary>Gets the exact caller/responder codec and mode contract.</summary>
@@ -507,6 +523,8 @@ public sealed class MessageRequestSubscriptionDefinition<TRequest, TResponse> : 
     {
         get;
     }
+    /// <summary>Gets optional current original-producer policy, checked before execution and replay disclosure.</summary>
+    public MessageRetryValidator<TRequest>? RetryValidator { get; }
     internal override Type ValueType => typeof(TRequest);
     internal override MessageRequestDefinition? RequestMetadata => Request;
     internal override TResult Accept<TResult>(IMessageSubscriptionVisitor<TResult> visitor) => visitor.Visit(this);

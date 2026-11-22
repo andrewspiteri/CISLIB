@@ -147,6 +147,10 @@ public sealed class MessagingOptions
     public bool RequireLiveBrokerForReadiness { get; set; } = true;
     /// <summary>Gets or sets explicit immutable retention policy, initially indefinite.</summary>
     public MessageRetentionPolicy Retention { get; set; } = new();
+    /// <summary>Gets or sets capabilities for bounded metadata inspection; empty disables this administrative entry point.</summary>
+    public IReadOnlyList<string> InspectionCapabilities { get; set; } = [];
+    /// <summary>Gets or sets capabilities for explicit bounded retention maintenance; empty disables this entry point.</summary>
+    public IReadOnlyList<string> MaintenanceCapabilities { get; set; } = [];
 
     /// <summary>Validates and captures this setup without resolving services or performing I/O.</summary>
     public MessagingSettings Capture() => new(this);
@@ -189,6 +193,8 @@ public sealed class MessagingSettings
         DrainTimeout = MessageText.Duration(options.DrainTimeout, TimeSpan.FromMilliseconds(1), TimeSpan.FromMinutes(5), nameof(options.DrainTimeout));
         ArgumentNullException.ThrowIfNull(options.Retention);
         Retention = options.Retention;
+        InspectionCapabilities = MessageText.Capabilities(options.InspectionCapabilities, nameof(options.InspectionCapabilities), required: false);
+        MaintenanceCapabilities = MessageText.Capabilities(options.MaintenanceCapabilities, nameof(options.MaintenanceCapabilities), required: false);
         LogCalls = options.LogCalls;
         RequireLiveBrokerForReadiness = options.RequireLiveBrokerForReadiness;
     }
@@ -285,6 +291,16 @@ public sealed class MessagingSettings
     }
     /// <summary>Gets immutable explicit history policy.</summary>
     public MessageRetentionPolicy Retention
+    {
+        get;
+    }
+    /// <summary>Gets immutable metadata inspection capabilities; empty means disabled.</summary>
+    public IReadOnlyList<string> InspectionCapabilities
+    {
+        get;
+    }
+    /// <summary>Gets immutable maintenance capabilities; empty means disabled.</summary>
+    public IReadOnlyList<string> MaintenanceCapabilities
     {
         get;
     }

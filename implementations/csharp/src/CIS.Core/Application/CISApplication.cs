@@ -354,6 +354,10 @@ public sealed class CISApplication : IAsyncDisposable
             }
 
             CloseModuleAdmission(errors);
+            if (composition.Messaging is { } messaging)
+            {
+                await CaptureAsync(messaging.StopAsync, errors).ConfigureAwait(false);
+            }
             if (composition.Rest is { } rest)
             {
                 await CaptureAsync(rest.StopAsync, errors).ConfigureAwait(false);
@@ -539,12 +543,16 @@ public sealed class CISApplication : IAsyncDisposable
 
     private void CloseModuleAdmission(List<Exception> errors)
     {
+        Close(() => composition.Messaging?.BeginStopping());
         Close(() => composition.BoundHealth?.BeginStopping());
         Close(() => composition.Rest?.BeginStopping());
         Close(() => composition.Workflows?.BeginStopping());
         Close(() => composition.Configuration?.BeginStopping());
         Close(() => composition.BoundHeartbeat?.BeginStopping());
-        Close(() => composition.Metrics?.BeginStopping());
+        if (composition.Messaging is null)
+        {
+            Close(() => composition.Metrics?.BeginStopping());
+        }
 
         void Close(Action action)
         {

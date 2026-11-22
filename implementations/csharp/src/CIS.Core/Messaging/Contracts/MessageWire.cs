@@ -33,7 +33,7 @@ public static class MessageWire
         {
             throw new ArgumentException("The payload violates the selected byte/depth/JSON contract.", nameof(envelope));
         }
-        var buffer = new ArrayBufferWriter<byte>();
+        var buffer = new BoundedWireBuffer(selected.MaximumEnvelopeBytes);
         using (var writer = new Utf8JsonWriter(buffer))
         {
             writer.WriteStartObject();
@@ -90,7 +90,10 @@ public static class MessageWire
             }
             writer.WriteEndObject();
         }
-        if (!TryDecode(buffer.WrittenMemory, out EncodedMessage? encoded, out _, selected))
+        byte[] owned = buffer.CopyWritten();
+        EncodedMessage? encoded = null;
+        if (!ValidateJson(owned, selected.MaximumJsonDepth + 2)
+            || !TryReadOwned(owned, out encoded, out _, selected))
         {
             throw new ArgumentException("The envelope exceeds the selected framing contract.", nameof(envelope));
         }
@@ -113,9 +116,15 @@ public static class MessageWire
         {
             return false;
         }
+        return TryReadOwned(bytes.ToArray(), out message, out failure, selected);
+    }
+
+    private static bool TryReadOwned(byte[] owned, out EncodedMessage? message, out MessageWireFailure failure, MessagingLimits selected)
+    {
+        message = null;
+        failure = MessageWireFailure.Invalid;
         try
         {
-            byte[] owned = bytes.ToArray();
             MessageEnvelope envelope = ReadEnvelope(owned, selected, out bool unsupported);
             if (unsupported)
             {
@@ -141,6 +150,79 @@ public static class MessageWire
             or FormatException or OverflowException)
         {
             return false;
+        }
+    }
+
+    // Retain at most two envelope capacities across all segments. Flatten once into the final owned wire.
+    // Together with one owned codec payload, staging's four-envelope reservation covers every live buffer.
+    private sealed class BoundedWireBuffer(int maximumEnvelopeBytes) : IBufferWriter<byte>
+    {
+        private readonly List<(byte[] Bytes, int Written)> completed = [];
+        private byte[] current = [];
+        private int written;
+        private int totalWritten;
+        private int allocated;
+
+        public void Advance(int count)
+        {
+            if (count < 0 || count > current.Length - written)
+            {
+                throw new ArgumentOutOfRangeException(nameof(count));
+            }
+            written += count;
+            totalWritten += count;
+        }
+
+        public Memory<byte> GetMemory(int sizeHint = 0)
+        {
+            Ensure(sizeHint);
+            return current.AsMemory(written);
+        }
+
+        public Span<byte> GetSpan(int sizeHint = 0)
+        {
+            Ensure(sizeHint);
+            return current.AsSpan(written);
+        }
+
+        private void Ensure(int sizeHint)
+        {
+            ArgumentOutOfRangeException.ThrowIfNegative(sizeHint);
+            int required = Math.Max(1, sizeHint);
+            if (current.Length - written >= required)
+            {
+                return;
+            }
+            int remaining = checked(2 * maximumEnvelopeBytes) - allocated;
+            if (required > remaining)
+            {
+                throw new ArgumentException("The encoded envelope exceeds its bounded writer capacity.");
+            }
+            int next = Math.Min(remaining, Math.Max(required, current.Length == 0 ? 256 : checked(2 * current.Length)));
+            if (written != 0)
+            {
+                completed.Add((current, written));
+            }
+            current = new byte[next];
+            allocated += next;
+            written = 0;
+        }
+
+        internal byte[] CopyWritten()
+        {
+            if (totalWritten > maximumEnvelopeBytes)
+            {
+                throw new ArgumentException("The encoded envelope exceeds the selected framing limit.");
+            }
+            var owned = new byte[totalWritten];
+            int position = 0;
+            foreach ((byte[] bytes, int count) in completed)
+            {
+                bytes.AsSpan(0, count).CopyTo(owned.AsSpan(position));
+                position += count;
+            }
+            current.AsSpan(0, written).CopyTo(owned.AsSpan(position));
+            return owned;
         }
     }
 

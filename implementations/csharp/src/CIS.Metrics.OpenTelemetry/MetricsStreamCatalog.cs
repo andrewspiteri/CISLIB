@@ -91,6 +91,16 @@ internal sealed class MetricsStreamCatalog
                 OperationModule("cis.operation.execute.duration", 208);
                 OperationModule("cis.operation.lookup.duration", 144);
             }
+            if (settings.CollectMessaging)
+            {
+                MessagingModule("cis.messaging.publish.duration", MetricKind.Timer, MetricUnit.Seconds, ["outcome", "route"], 80);
+                MessagingModule("cis.messaging.delivery.duration", MetricKind.Timer, MetricUnit.Seconds, ["outcome", "subscription"], 112);
+                MessagingModule("cis.messaging.rpc.duration", MetricKind.Timer, MetricUnit.Seconds, ["outcome", "request"], 160);
+                MessagingModule("cis.messaging.active", MetricKind.UpDownCounter, MetricUnit.Count, ["kind"], 3);
+                MessagingModule("cis.messaging.dispositions", MetricKind.Counter, MetricUnit.Count, ["disposition", "subscription"], 48);
+                MessagingModule("cis.messaging.outbox.pending", MetricKind.ObservableGauge, MetricUnit.Count, ["store"], 16);
+                MessagingModule("cis.messaging.outbox.oldest.age", MetricKind.ObservableGauge, MetricUnit.Seconds, ["store"], 16);
+            }
             if (settings.CollectSecurity)
             {
                 int profileCategories = checked(settings.SecurityProfileCapacity + 1);
@@ -234,6 +244,15 @@ internal sealed class MetricsStreamCatalog
         }
 
         Module(name, MetricKind.Timer, MetricUnit.Seconds, ["operation", "outcome"], minimumCapacity);
+    }
+
+    private void MessagingModule(string name, MetricKind kind, MetricUnit unit, IReadOnlyList<string> keys, int minimumCapacity)
+    {
+        if (settings.Streams.GetValueOrDefault(name)?.CardinalityLimit is { } configured && configured < minimumCapacity)
+        {
+            throw new ArgumentException("The messaging stream override cannot cover its finite alias/outcome profile.");
+        }
+        Module(name, kind, unit, keys, minimumCapacity);
     }
 
     private void TransactionModule(string name, MetricKind kind, MetricUnit unit, IReadOnlyList<string> keys, int minimumCapacity)

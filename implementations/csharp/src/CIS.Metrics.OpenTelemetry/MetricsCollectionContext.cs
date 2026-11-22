@@ -11,6 +11,8 @@ using CIS.Security.Hosting;
 using CIS.Transactions;
 using CIS.Operations;
 using CIS.Operations.Hosting;
+using CIS.Messaging;
+using CIS.Messaging.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -30,22 +32,25 @@ internal sealed class MetricsCollectionContext : IAsyncDisposable
     private readonly RestClientComposition? restComposition;
     private readonly TransactionsComposition? transactionsComposition;
     private readonly OperationsComposition? operationsComposition;
+    private readonly MessagingComposition? messagingComposition;
     private ILogger<MetricsCollectionContext>? logger;
     private int active, stopping;
 
     internal MetricsCollectionContext(IServiceProvider root, MetricsSettings settings, MetricsRegistrationGuard guard,
         RestClientComposition? restComposition = null, WorkflowsComposition? workflowsComposition = null,
         StateMachineComposition? stateMachineComposition = null, SecurityComposition? securityComposition = null,
-        TransactionsComposition? transactionsComposition = null, OperationsComposition? operationsComposition = null)
+        TransactionsComposition? transactionsComposition = null, OperationsComposition? operationsComposition = null,
+        MessagingComposition? messagingComposition = null)
     {
         this.root = root;
         this.guard = guard;
         this.restComposition = restComposition;
         this.transactionsComposition = transactionsComposition;
         this.operationsComposition = operationsComposition;
+        this.messagingComposition = messagingComposition;
         settings = settings.ForComposition(restComposition is not null, workflowsComposition is not null,
             stateMachineComposition is not null, securityComposition?.ProfileCapacity ?? 0, transactionsComposition is not null,
-            operationsComposition is not null);
+            operationsComposition is not null, messagingComposition is not null);
         Settings = settings;
         IMeterFactory factory = root.GetRequiredService<IMeterFactory>();
         CisMeter = factory.Create("CIS.Metrics", "1.0.0");
@@ -178,6 +183,15 @@ internal sealed class MetricsCollectionContext : IAsyncDisposable
             if (!ReferenceEquals(owner.RegistrationIdentity, operationsComposition!.RegistrationIdentity))
             {
                 throw new InvalidOperationException("The configured operation composition must belong to its exact registered instrumentation owner.");
+            }
+            owner.AttachMetrics(Runtime);
+        }
+        if (Settings.CollectMessaging)
+        {
+            MessagingInstrumentation owner = root.GetRequiredService<MessagingInstrumentation>();
+            if (!ReferenceEquals(owner.RegistrationIdentity, messagingComposition!.RegistrationIdentity))
+            {
+                throw new InvalidOperationException("The configured messaging composition must belong to its exact instrumentation owner.");
             }
             owner.AttachMetrics(Runtime);
         }

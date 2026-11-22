@@ -24,6 +24,8 @@ internal sealed class DurableOperationService(IServiceProvider services, Operati
         ValidateContext(context, definition);
         cancellationToken.ThrowIfCancellationRequested();
         OperationScope scope = await ResolveScopeAsync(definition, request.RequestedScope, cancellationToken).ConfigureAwait(false);
+        OperationAdmission.CheckBinding(context, Identity(definition, scope, request.Key),
+            new(application.Application, application.Environment, scope.ResourceType, scope.ResourceIdentifier));
         if (!await AuthorizeAsync(definition.ExecuteCapabilities, scope, cancellationToken).ConfigureAwait(false))
         {
             return new(OperationExecutionDisposition.Denied);

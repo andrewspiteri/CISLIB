@@ -2,6 +2,7 @@ using CIS.Heartbeat.Hosting;
 using CIS.Startup.Hosting;
 using CIS.RestClient.Hosting;
 using CIS.Workflows.Hosting;
+using CIS.Messaging.Hosting;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -21,20 +22,27 @@ internal sealed class MetricsHostingOrder(IServiceCollection services)
             && item.ServiceType == typeof(IHostedService)).ToArray();
         int activation = Array.FindIndex(hosted, item => item.ImplementationType == typeof(MetricsProviderActivation));
         if (activation < 0 || hosted.Count(item => item.ImplementationType == typeof(MetricsProviderActivation)) != 1)
-        { throw new InvalidOperationException("Install one Metrics activation service in the existing host."); }
+        {
+            throw new InvalidOperationException("Install one Metrics activation service in the existing host.");
+        }
         int bridge = Array.FindIndex(hosted, item => item.ImplementationType == typeof(PipelineHostedService)
+            || item.ImplementationType == typeof(MessagingHostedService)
             || item.ImplementationType == typeof(RestHostedService)
             || item.ImplementationType == typeof(HeartbeatHostedService)
             || item.ImplementationType == typeof(StartupHostedService));
         if (bridge >= 0)
         {
             if (activation >= bridge)
-            { throw new InvalidOperationException("Install Metrics activation before the existing Workflow/REST/Heartbeat/Startup shutdown bridge."); }
+            {
+                throw new InvalidOperationException("Install Metrics activation before the existing Workflow/REST/Heartbeat/Startup shutdown bridge.");
+            }
             return;
         }
         bool final = activation == hosted.Length - 1
             || activation == hosted.Length - 2 && WebHost is not null && hosted[^1].ImplementationType == WebHost;
         if (!final)
-        { throw new InvalidOperationException("Without a Heartbeat/Startup bridge, install Metrics after callback-owner hosted services; only the framework web host may follow it."); }
+        {
+            throw new InvalidOperationException("Without a Heartbeat/Startup bridge, install Metrics after callback-owner hosted services; only the framework web host may follow it.");
+        }
     }
 }

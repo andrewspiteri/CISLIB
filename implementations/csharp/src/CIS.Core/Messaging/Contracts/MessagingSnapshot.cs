@@ -55,6 +55,10 @@ public sealed class MessagingSnapshot
     /// <summary>Validates the complete selected graph without database, broker, service resolution or worker startup.</summary>
     public void Validate()
     {
+        if (Subscriptions.Any(item => item.Alias == MessagingSystemSubscriptions.Replies))
+        {
+            throw new InvalidOperationException("The native requester reply callback subscription is reserved.");
+        }
         MessageStoreDefinition selected = Stores.SingleOrDefault(item => item.Alias == Settings.StoreAlias)
             ?? throw new InvalidOperationException("Register the selected messaging store before starting the runtime.");
         foreach (MessageRouteDefinition route in Routes.Where(item => item.Kind == MessageKind.Command))

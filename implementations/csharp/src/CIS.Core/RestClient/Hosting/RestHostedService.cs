@@ -1,5 +1,6 @@
 using CIS.Heartbeat.Hosting;
 using CIS.Metrics;
+using CIS.Messaging;
 using CIS.Startup.Hosting;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,12 +15,16 @@ internal sealed class RestHostedService(IRestClientRuntime runtime, IServiceProv
     : IHostedLifecycleService, IAsyncDisposable
 {
     private readonly MetricsRuntime? metrics = root.GetService<IMetrics>() as MetricsRuntime;
-    private CancellationTokenRegistration stopping, startupStopping;
+    private readonly MessagingRuntime? messaging = root.GetService<MessagingRuntime>();
+    private CancellationTokenRegistration stopping;
+    private CancellationTokenRegistration startupStopping;
 
     public Task StartingAsync(CancellationToken cancellationToken)
     {
         if (options.Value.ServicesStartConcurrently || options.Value.ServicesStopConcurrently || !order.IsValid())
-        { throw new InvalidOperationException("Install REST after its dependencies and before the Heartbeat/Startup tail; disable concurrent host start and stop."); }
+        {
+            throw new InvalidOperationException("Install REST after its dependencies and before the Heartbeat/Startup tail; disable concurrent host start and stop.");
+        }
         stopping = lifetime.ApplicationStopping.UnsafeRegister(static state => ((RestHostedService)state!).BeginStopping(), this);
         startupStopping = cancellationToken.UnsafeRegister(static state => ((RestHostedService)state!).BeginStopping(), this);
         return Task.CompletedTask;
@@ -32,17 +37,33 @@ internal sealed class RestHostedService(IRestClientRuntime runtime, IServiceProv
 
     private void BeginStopping()
     {
+        messaging?.BeginStopping();
         runtime.BeginStopping();
-        metrics?.BeginStopping();
+        if (messaging is null)
+        {
+            metrics?.BeginStopping();
+        }
     }
-    private Task StopCoreAsync()
+    private async Task StopCoreAsync()
     {
         BeginStopping();
-        return Task.WhenAll(runtime.StopAsync(), metrics?.StopAsync() ?? Task.CompletedTask);
+        Task messagingDrain = messaging?.StopAsync() ?? Task.CompletedTask;
+        try
+        {
+            await messagingDrain.ConfigureAwait(false);
+        }
+        catch (Exception)
+        {
+            // The original fault remains joined below; it cannot skip REST or Metrics cleanup.
+        }
+        await Task.WhenAll(messagingDrain, runtime.StopAsync(), metrics?.StopAsync() ?? Task.CompletedTask).ConfigureAwait(false);
     }
     public async ValueTask DisposeAsync()
     {
-        try { await StopCoreAsync().ConfigureAwait(false); }
+        try
+        {
+            await StopCoreAsync().ConfigureAwait(false);
+        }
         finally { startupStopping.Dispose(); stopping.Dispose(); }
     }
 }
@@ -57,11 +78,23 @@ internal sealed class RestHostingOrder(IServiceCollection services)
         ServiceDescriptor[] hosted = services.Where(item => !item.IsKeyedService
             && item.ServiceType == typeof(IHostedService)).ToArray();
         int rest = Array.FindIndex(hosted, item => item.ImplementationType == typeof(RestHostedService));
-        if (rest < 0 || hosted.Count(item => item.ImplementationType == typeof(RestHostedService)) != 1) { return false; }
+        if (rest < 0 || hosted.Count(item => item.ImplementationType == typeof(RestHostedService)) != 1)
+        {
+            return false;
+        }
         int cursor = rest + 1;
-        if (cursor < hosted.Length && hosted[cursor].ImplementationType == typeof(HeartbeatHostedService)) { cursor++; }
-        if (cursor < hosted.Length && hosted[cursor].ImplementationType == typeof(StartupHostedService)) { cursor++; }
-        if (cursor < hosted.Length && WebHost is not null && hosted[cursor].ImplementationType == WebHost) { cursor++; }
+        if (cursor < hosted.Length && hosted[cursor].ImplementationType == typeof(HeartbeatHostedService))
+        {
+            cursor++;
+        }
+        if (cursor < hosted.Length && hosted[cursor].ImplementationType == typeof(StartupHostedService))
+        {
+            cursor++;
+        }
+        if (cursor < hosted.Length && WebHost is not null && hosted[cursor].ImplementationType == WebHost)
+        {
+            cursor++;
+        }
         return cursor == hosted.Length;
     }
 }
