@@ -21,6 +21,9 @@ public sealed class MessagingPackageConsumerTests
     public TestContext TestContext { get; set; } = null!;
 
     [TestMethod]
+    [TestCategory("RequiresDocker")]
+    [TestCategory("PostgreSql")]
+    [TestCategory("RabbitMq")]
     public async Task ActualPublicPackagedHostCommitsTypedQueryAndDurableRequestRepliesAndReplaysOneOriginalEffect()
     {
         RestPackage package = await RestPackage.PrepareAsync(TestContext, "Messaging.Rpc.Package",

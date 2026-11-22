@@ -14,6 +14,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CIS.Tests.IntegrationTests.Messaging;
 
 [TestClass]
+[TestCategory("RequiresDocker")]
+[TestCategory("PostgreSql")]
+[TestCategory("RabbitMq")]
 [DoNotParallelize]
 public sealed class MessageRequestAdmissionIntegrationTests
 {

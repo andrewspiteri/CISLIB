@@ -10,6 +10,8 @@ namespace CIS.Tests.IntegrationTests.Operations;
 
 [TestClass]
 [DoNotParallelize]
+[TestCategory("RequiresDocker")]
+[TestCategory("PostgreSql")]
 public sealed class PostgresOperationRetentionTests
 {
     [TestMethod]

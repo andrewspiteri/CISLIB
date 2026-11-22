@@ -8,6 +8,8 @@ namespace CIS.Tests.IntegrationTests.Messaging;
 
 [TestClass]
 [DoNotParallelize]
+[TestCategory("RequiresDocker")]
+[TestCategory("PostgreSql")]
 public sealed class PostgresMessageStoreTests
 {
     [TestMethod]
@@ -39,7 +41,10 @@ public sealed class PostgresMessageStoreTests
         EncodedMessage message = PostgresMessageFixture.Message();
         await using ILocalTransaction owner = await fixture.Factory.BeginAsync("Messaging");
         await fixture.InsertBusinessAsync(owner.Context, message.Envelope.MessageId);
-        MessageOutgoingRecord invalid = PostgresMessageFixture.Outgoing(message) with { Message = null! };
+        MessageOutgoingRecord invalid = PostgresMessageFixture.Outgoing(message) with
+        {
+            Message = null!
+        };
         await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => fixture.Store.StageAsync(owner.Context, invalid));
         Assert.IsTrue(owner.Context.IsRollbackOnly);
         Assert.AreEqual(TransactionOutcome.NotCommitted, (await owner.CommitAsync()).Outcome);
@@ -169,10 +174,16 @@ public sealed class PostgresMessageStoreTests
         await using ILocalTransaction owner = await fixture.Factory.BeginAsync("Messaging");
         MessageProcessingRecord original = (await fixture.Store.ReadProcessingAsync(owner.Context, attempt.Key))!;
         MessageProcessingClaim content = await fixture.Store.ClaimProcessingAsync(owner.Context,
-            attempt with { Message = PostgresMessageFixture.Message(attempt.Key.MessageId, 2) });
+            attempt with
+            {
+                Message = PostgresMessageFixture.Message(attempt.Key.MessageId, 2)
+            });
         Assert.AreEqual(MessageClaimDisposition.ContentConflict, content.Disposition);
         MessageProcessingClaim provenance = await fixture.Store.ClaimProcessingAsync(owner.Context,
-            attempt with { Provenance = PostgresMessageFixture.Provenance("other-publisher") });
+            attempt with
+            {
+                Provenance = PostgresMessageFixture.Provenance("other-publisher")
+            });
         Assert.AreEqual(MessageClaimDisposition.ProvenanceConflict, provenance.Disposition);
         Assert.AreEqual(original, await fixture.Store.ReadProcessingAsync(owner.Context, attempt.Key));
         Assert.AreEqual(1L, await fixture.CountAsync("business_record"));
@@ -208,11 +219,19 @@ public sealed class PostgresMessageStoreTests
         Assert.AreEqual(MessageDispositionResultKind.Secured, secured.Disposition);
         Assert.AreEqual(MessageDispositionResultKind.AlreadySecured, (await SecureCommittedAsync(fixture, initial)).Disposition);
         Assert.AreEqual(1L, await fixture.CountAsync("outbox"));
-        MessageProcessingAttempt retry = initial with { DeliveryOrdinal = 2, Purpose = MessageRecordPurpose.Retry, HandoffRecordId = secured.HandoffRecordId };
+        MessageProcessingAttempt retry = initial with
+        {
+            DeliveryOrdinal = 2,
+            Purpose = MessageRecordPurpose.Retry,
+            HandoffRecordId = secured.HandoffRecordId
+        };
         await using (ILocalTransaction owner = await fixture.Factory.BeginAsync("Messaging"))
         {
             Assert.AreEqual(MessageClaimDisposition.InvalidOrdinal, (await fixture.Store.ClaimProcessingAsync(owner.Context,
-                retry with { HandoffRecordId = Guid.NewGuid() })).Disposition);
+                retry with
+                {
+                    HandoffRecordId = Guid.NewGuid()
+                })).Disposition);
             MessageProcessingClaim claim = await fixture.Store.ClaimProcessingAsync(owner.Context, retry);
             Assert.AreEqual(MessageClaimDisposition.Acquired, claim.Disposition);
             await fixture.InsertBusinessAsync(owner.Context, retry.Key.MessageId);
@@ -346,7 +365,12 @@ public sealed class PostgresMessageStoreTests
             Assert.AreEqual(1, redrive.Record.DeliveryOrdinal);
             await using ILocalTransaction retry = await fixture.Factory.BeginAsync("Messaging");
             MessageProcessingClaim claim = await fixture.Store.ClaimProcessingAsync(retry.Context,
-                initial with { Purpose = MessageRecordPurpose.Redrive, Generation = 1, HandoffRecordId = redrive.HandoffRecordId });
+                initial with
+                {
+                    Purpose = MessageRecordPurpose.Redrive,
+                    Generation = 1,
+                    HandoffRecordId = redrive.HandoffRecordId
+                });
             Assert.AreEqual(MessageClaimDisposition.Acquired, claim.Disposition);
         }
     }
@@ -437,7 +461,12 @@ public sealed class PostgresMessageStoreTests
                 new(PostgresMessageFixture.Application, PostgresMessageFixture.EnvironmentName, "country", "MT"))
         };
         MessageDispositionResult secured = await SecureCommittedAsync(fixture, attempt);
-        MessageProcessingAttempt retry = attempt with { DeliveryOrdinal = 2, Purpose = MessageRecordPurpose.Retry, HandoffRecordId = secured.HandoffRecordId };
+        MessageProcessingAttempt retry = attempt with
+        {
+            DeliveryOrdinal = 2,
+            Purpose = MessageRecordPurpose.Retry,
+            HandoffRecordId = secured.HandoffRecordId
+        };
         await using ILocalTransaction owner = await fixture.Factory.BeginAsync("Messaging");
         Assert.AreEqual(MessageClaimDisposition.ProvenanceConflict, (await fixture.Store.ClaimProcessingAsync(owner.Context, retry with
         {
@@ -501,7 +530,10 @@ public sealed class PostgresMessageStoreTests
             await rollback.RollbackAsync();
         }
         await StageCommittedAsync(fixture, message);
-        var differentMode = new PostgreSqlMessagingStore(new() { Schema = fixture.Schema });
+        var differentMode = new PostgreSqlMessagingStore(new()
+        {
+            Schema = fixture.Schema
+        });
         await using ILocalTransaction owner = await fixture.Factory.BeginAsync("Messaging");
         await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => differentMode.StageAsync(owner.Context,
             PostgresMessageFixture.Outgoing(message)));
@@ -514,14 +546,20 @@ public sealed class PostgresMessageStoreTests
     {
         EncodedMessage message = PostgresMessageFixture.Message();
         await using PostgresMessageFixture fixture = await PostgresMessageFixture.CreateAsync(capacity: message.Length);
-        MessageOutgoingRecord outgoing = PostgresMessageFixture.Outgoing(message) with { Application = "another-service" };
+        MessageOutgoingRecord outgoing = PostgresMessageFixture.Outgoing(message) with
+        {
+            Application = "another-service"
+        };
         await using (ILocalTransaction first = await fixture.Factory.BeginAsync("Messaging"))
         {
             await fixture.Store.StageAsync(first.Context, outgoing);
             await first.RollbackAsync();
         }
         // A different mode is permissible because the first owner's mode never committed.
-        var indefinite = new PostgreSqlMessagingStore(new() { Schema = fixture.Schema });
+        var indefinite = new PostgreSqlMessagingStore(new()
+        {
+            Schema = fixture.Schema
+        });
         await using ILocalTransaction second = await fixture.Factory.BeginAsync("Messaging");
         MessageStageReceipt receipt = await indefinite.StageAsync(second.Context, outgoing);
         Assert.AreEqual("another-service", receipt.Application);
@@ -535,7 +573,10 @@ public sealed class PostgresMessageStoreTests
         await using PostgresMessageFixture fixture = await PostgresMessageFixture.CreateAsync();
         await using (ILocalTransaction stage = await fixture.Factory.BeginAsync("Messaging"))
         {
-            await fixture.Store.StageAsync(stage.Context, PostgresMessageFixture.Outgoing(PostgresMessageFixture.Message()) with { Delay = TimeSpan.FromHours(1) });
+            await fixture.Store.StageAsync(stage.Context, PostgresMessageFixture.Outgoing(PostgresMessageFixture.Message()) with
+            {
+                Delay = TimeSpan.FromHours(1)
+            });
             Assert.AreEqual(TransactionOutcome.Committed, (await stage.CommitAsync()).Outcome);
         }
         await using ILocalTransaction observe = await fixture.Factory.BeginAsync("Messaging");
@@ -682,7 +723,10 @@ public sealed class PostgresMessageStoreTests
                 var forbidden = new MessagePublicationResult(MessagePublicationDisposition.Rejected, MessagePublicationFailure.ReplyDestinationExpired);
                 await Assert.ThrowsExactlyAsync<ArgumentException>(() => fixture.Store.RecordPublicationAsync(settle.Context, new(reservation, forbidden)));
                 Assert.IsFalse(await fixture.Store.RecordPublicationAsync(settle.Context,
-                    new(reservation with { Purpose = MessageRecordPurpose.Reply }, forbidden)), "The SQL guard checks actual stored purpose too.");
+                    new(reservation with
+                    {
+                        Purpose = MessageRecordPurpose.Reply
+                    }, forbidden)), "The SQL guard checks actual stored purpose too.");
             }
             Assert.IsTrue(await fixture.Store.RecordPublicationAsync(settle.Context, new(reservation,
                 new(MessagePublicationDisposition.Rejected, expired ? MessagePublicationFailure.ReplyDestinationExpired : MessagePublicationFailure.Unroutable,

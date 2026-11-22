@@ -1,6 +1,7 @@
 using System.Data.Common;
 using CIS.Transactions;
 using CIS.Transactions.Hosting;
+using CIS.Tests.IntegrationTests.Infrastructure.Containers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Npgsql;
@@ -10,9 +11,11 @@ namespace CIS.Tests.IntegrationTests.Transactions;
 internal sealed class PostgresTransactionFixture : IAsyncDisposable
 {
     private bool schemaCreated;
+    private IDisposable? serviceLease;
 
-    private PostgresTransactionFixture(NpgsqlDataSource source)
+    private PostgresTransactionFixture(NpgsqlDataSource source, IDisposable serviceLease)
     {
+        this.serviceLease = serviceLease;
         Source = source;
         Schema = "cis_rm02_" + Guid.NewGuid().ToString("N");
         BusinessTable = Qualified("business_record");
@@ -60,44 +63,14 @@ internal sealed class PostgresTransactionFixture : IAsyncDisposable
 
     internal static async Task<PostgresTransactionFixture> CreateAsync()
     {
-        string? file = Environment.GetEnvironmentVariable("CIS_RM02_POSTGRES_CONNECTION_FILE");
-        if (string.IsNullOrWhiteSpace(file) || !File.Exists(file))
-        {
-            Assert.Inconclusive("Set CIS_RM02_POSTGRES_CONNECTION_FILE to the private connection-string file for the explicitly provisioned isolated RM-02 PostgreSQL fixture. No default database is used.");
-        }
-        if (!Path.IsPathFullyQualified(file!))
-        {
-            throw new InvalidOperationException("The explicit PostgreSQL fixture file path must be absolute.");
-        }
-        var information = new FileInfo(file!);
-        if (!information.Exists || information.Length is <= 0 or > 16_384)
-        {
-            throw new InvalidOperationException("The explicit PostgreSQL fixture file must be nonempty and at most 16 KiB.");
-        }
-        string connectionString = (await File.ReadAllTextAsync(information.FullName)).Trim();
-        NpgsqlConnectionStringBuilder options;
+        OwnedPostgresService service = await IntegrationServices.GetPostgresAsync();
+        IDisposable lease = service.AcquireClientLease();
+        NpgsqlDataSource? source = null;
+        PostgresTransactionFixture? fixture = null;
         try
         {
-            options = new NpgsqlConnectionStringBuilder(connectionString);
-        }
-        catch (ArgumentException)
-        {
-            throw new InvalidOperationException("The explicit PostgreSQL fixture file must contain a valid connection string.");
-        }
-        if (options.Host is not ("127.0.0.1" or "localhost" or "::1")
-            || string.IsNullOrWhiteSpace(options.Database) || string.IsNullOrWhiteSpace(options.Username)
-            || string.IsNullOrEmpty(options.Password) || !string.IsNullOrEmpty(options.Passfile)
-            || !options.Pooling || options.MinPoolSize != 0 || options.MaxPoolSize is <= 0 or > 4
-            || options.Timeout != 15 || options.CommandTimeout != 30 || options.CancellationTimeout != 2_000
-            || options.Enlist || options.NoResetOnClose || options.SslMode != SslMode.Disable
-            || !string.Equals(options["GSS Encryption Mode"]?.ToString(), "Disable", StringComparison.OrdinalIgnoreCase))
-        {
-            throw new InvalidOperationException("The fixture requires an explicit loopback database/user/password, no passfile, SSL and GSS encryption disabled for isolated local use, pool 0..4, Timeout=15, Command Timeout=30, Cancellation Timeout=2000, Enlist=false and No Reset On Close=false.");
-        }
-
-        var fixture = new PostgresTransactionFixture(NpgsqlDataSource.Create(connectionString));
-        try
-        {
+            source = NpgsqlDataSource.Create(service.CreateConnectionString(4));
+            fixture = new(source, lease);
             await fixture.InitializeAsync();
             return fixture;
         }
@@ -105,7 +78,18 @@ internal sealed class PostgresTransactionFixture : IAsyncDisposable
         {
             try
             {
-                await fixture.DisposeAsync();
+                if (fixture is not null)
+                {
+                    await fixture.DisposeAsync();
+                }
+                else
+                {
+                    if (source is not null)
+                    {
+                        await source.DisposeAsync();
+                    }
+                    lease.Dispose();
+                }
             }
             catch (Exception cleanup)
             {
@@ -141,6 +125,14 @@ internal sealed class PostgresTransactionFixture : IAsyncDisposable
         {
             int number = int.Parse((string)(await version.ExecuteScalarAsync())!, System.Globalization.CultureInfo.InvariantCulture);
             Assert.IsTrue(number is >= 180_000 and < 190_000, "This reference fixture qualifies the selected PostgreSQL 18 major version.");
+        }
+        await using (var durability = new NpgsqlCommand("SELECT current_setting('fsync'), current_setting('full_page_writes'), current_setting('synchronous_commit')", connection))
+        await using (NpgsqlDataReader settings = await durability.ExecuteReaderAsync())
+        {
+            Assert.IsTrue(await settings.ReadAsync());
+            Assert.AreEqual("on", settings.GetString(0));
+            Assert.AreEqual("on", settings.GetString(1));
+            Assert.AreEqual("on", settings.GetString(2));
         }
         await using (var createSchema = new NpgsqlCommand($"CREATE SCHEMA \"{Schema}\"", connection))
         {
@@ -203,6 +195,7 @@ internal sealed class PostgresTransactionFixture : IAsyncDisposable
         {
             throw new AggregateException("Owned PostgreSQL fixture cleanup failed.", failures);
         }
+        Interlocked.Exchange(ref serviceLease, null)?.Dispose();
     }
 }
 

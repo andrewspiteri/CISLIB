@@ -1,0 +1,96 @@
+name: CISLIB service tests
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cislib-service-tests-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  service-tests:
+    name: PostgreSQL and RabbitMQ integration
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: bash
+        working-directory: implementations/csharp
+    env:
+      DOTNET_INSTALL_DIR: ${{ runner.temp }}/cislib-dotnet
+      DOTNET_CLI_HOME: ${{ runner.temp }}/cislib-cli
+      DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+      DOTNET_NOLOGO: "1"
+      DOTNET_CLI_USE_MSBUILD_SERVER: "0"
+      MSBUILDDISABLENODEREUSE: "1"
+      UseSharedCompilation: "false"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install pinned SDK
+        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          dotnet-version: "10.0.401"
+          architecture: x64
+          check-latest: false
+          skip-lts-prepass: true
+          cache: false
+
+      - name: Verify selected runtimes and Docker
+        timeout-minutes: 8
+        run: |
+          set -euo pipefail
+          test "$(dotnet --version)" = "10.0.401"
+          installer="$RUNNER_TEMP/cislib-dotnet-install.sh"
+          for runtime in dotnet aspnetcore; do
+            framework="Microsoft.NETCore.App"
+            if [ "$runtime" = "aspnetcore" ]; then framework="Microsoft.AspNetCore.App"; fi
+            if ! dotnet --list-runtimes | grep -F "$framework 10.0.12 [" > /dev/null; then
+              if [ ! -f "$installer" ]; then
+                curl --fail --silent --show-error --location --max-time 60 https://dot.net/v1/dotnet-install.sh --output "$installer"
+              fi
+              bash "$installer" --runtime "$runtime" --version 10.0.12 --architecture x64 --install-dir "$DOTNET_INSTALL_DIR" --skip-non-versioned-files --no-path
+            fi
+            dotnet --list-runtimes | grep -F "$framework 10.0.12 ["
+          done
+          docker_profile="$(docker version --format '{{.Server.Os}}/{{.Server.Arch}}')"
+          test "$docker_profile" = "linux/amd64"
+          printf 'Docker profile: %s\n' "$docker_profile"
+
+      - name: Locked restore
+        timeout-minutes: 8
+        run: dotnet restore CisLib.slnx --locked-mode
+
+      - name: Build
+        timeout-minutes: 8
+        run: dotnet build CisLib.slnx -c Release --no-restore
+
+      - name: Run and verify selected services
+        timeout-minutes: 22
+        run: |
+          set -euo pipefail
+          results="$RUNNER_TEMP/cislib-service-results"
+          mkdir -p "$results"
+          set +e
+          dotnet test tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj -c Release --no-build --no-restore --settings tests/CIS.Core.IntegrationTests/service-tests.runsettings --filter "TestCategory=RequiresDocker&TestCategory!=PerformanceObservation&TestCategory!=ExtendedStress" --logger "trx;LogFileName=service-tests.trx" --results-directory "$results"
+          service_exit=$?
+          set -e
+          dotnet run --file eng/VerifyServiceTestReport.cs --artifacts-path "$RUNNER_TEMP/cislib-service-guard" -- "$results/service-tests.trx" "$service_exit"
+
+      - name: Retain service result and capped fixture diagnostics
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: cislib-service-tests
+          path: ${{ runner.temp }}/cislib-service-results/service-tests.trx
+          retention-days: 7
+          if-no-files-found: ignore
+          include-hidden-files: false

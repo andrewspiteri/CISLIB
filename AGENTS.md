@@ -24,6 +24,15 @@ a retired app. Each minimal assembly/process/ownership/package fixture needs a
 named distinct requirement. Preserve historical evidence and accounting without
 presenting it as current application verification.
 
+External-service integration tests use automatically provisioned, isolated
+Testcontainers instances in nonpackable test infrastructure. Preserve production
+durability, TLS, permissions and real-provider assertions. Selected service tests
+fail when required infrastructure is unavailable; fast checks explicitly exclude
+them. Use pinned images, generated endpoints, authenticated readiness, per-test
+isolation and joined owned cleanup. Follow the canonical
+[testing guide](implementations/csharp/tests/README.md) and apply these requirements
+when adding another external-service adapter; keep runtime packages Docker-free.
+
 ## Metrics in modules and applications
 
 For Metrics work, read the [Metrics skill](.github/skills/cislib-metrics/SKILL.md),

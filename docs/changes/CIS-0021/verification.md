@@ -1,0 +1,89 @@
+---
+title: CIS-0021 verification
+type: verification-record
+status: Draft
+change_id: CIS-0021
+---
+
+# Verification
+
+| Task ID | Check | Command or artifact | Result | Notes |
+| --- | --- | --- | --- | --- |
+| WORK-001 | Pinned locked restore and full solution build | `solution-locked-restore`, `solution-build-null-fixed` | Passed | SDK 10.0.401, NET/ASP 10.0.12; zero build warnings/errors. Later narrow RabbitMQ corrections also build cleanly. |
+| WORK-001 | PostgreSQL lifecycle and retained-result recovery | `postgres-owned-lifecycle-restart` | Passed | Windows: 5 passed, 0 failed/skipped, 36 seconds. Includes independent containers, client lease protection, failed-start cleanup, failed schema reconstruction followed by continuation, and clean same-storage restart. |
+| WORK-002 | Initial unavailability and two restart boundaries | `rabbit-reconciled-restarts` | Passed | Windows: 3 passed, 0 failed/skipped, 52 seconds. Live application restart and full container restart have distinct evidence boundaries below. |
+| WORK-001 / WORK-002 | Actual image and resource profile | Ignored intake manifests and selective Docker observations | Observed | PostgreSQL 18.7 / RabbitMQ 4.4.1 immutable Linux amd64 manifests; Ryuk 0.14.0 pinned index supports the same platform. Broker TLS-only loopback, 512 MiB/2 CPU/256 PIDs; enabled Ryuk is nonprivileged. No Ryuk hard-memory cap is claimed. |
+| WORK-001 / WORK-002 | Full selected service lane, Windows | `windows-selected-services` | Passed | 145 passed, 0 failed/skipped; native TRX elapsed 461.141 seconds. Includes the actual outside-friend packaged RPC and genuine process-death/recovery cases. |
+| WORK-003 | Ordinary whole-solution fast selection, Windows | `windows-fast-unreachable-docker` | Passed | 9,956 passed, 0 failed/skipped across seven families; command elapsed 383.917 seconds. Docker endpoint deliberately unreachable; zero containers before/after. |
+| WORK-003 | Actual BCL result checker | `guard-current-service-report-fixed`, `guard-negative-controls-fixed` | Passed | Accepts the real 145-case TRX; rejects zero, skipped, failed-summary, cleanup-error and nonzero native-exit controls with controlled exit 1. |
+| WORK-001 / WORK-003 | Shipping closure and dependency direction | Fast Architecture cohort; ignored `shipping-direction-assets.json` | Passed | 361 Architecture cases include the current Core package closure. Seven shipping asset graphs and actual package/project edges have no Testcontainers/Docker dependency. |
+| WORK-001 / WORK-002 | Exact local restoration | Ignored `local-restoration.json` | Passed | Zero retained owned children, containers or volumes; three newly pulled unshared image references removed. Removed 39 owned scratch directories / 63,253,292 bytes after drain, retaining hashes/reports/capped logs. |
+| WORK-003 | Linux service CI | Authored `.github/workflows/service-tests.yml` | Pending | An observed nonempty successful PR run is required before merge. Authored workflow and passing Windows work are not a Linux CI pass. |
+| All | Independent final local receipt review | [Review](review.md), frozen receipt | Passed | All 51 source, six context and ten report hashes match; ten binary/configuration snapshots match both their original and snapshot paths. Actual result counts/counters agree; closure, restoration and protected user file independently checked. |
+
+Native phase receipts and reports are retained under ignored
+`.artifacts/testcontainers/CIS-0021/`; accounting and exact resource observations
+are under `.cis/local/testcontainers-intake/`. Actual Linux CI remains pending at
+this local-ready checkpoint.
+
+The frozen local receipt is
+`.artifacts/testcontainers/CIS-0021/frozen-local/receipt.json`, SHA256
+`f1469af9e3bbc866c64807a92899352545030d01871da60337ec6b71c9782306`.
+It binds 51 source inputs, ten immutable binary/configuration snapshots and ten
+passing TRX reports. Core SHA256 is
+`c250069427bca3cb23cae887e8a8635430d7e2666df01be2f2f0217a27f0dd27`,
+identical in the source, Unit, Integration and actual RPC child outputs. Mutable
+CIS closeout documents/catalog metadata are excluded. The working candidate is
+based on merged main `df1e5d90584fd88d7b48bfb0144ff574166bb1a5`; subsequent source
+commit/CI identities will be recorded separately.
+
+Fast family counts are Unit 6,679; Integration 2,557; Architecture 361;
+Compatibility 179; Security 126; CountryData 29; Business Cases 25. Selected
+services cover 11 transaction, 19 operation, 14 retention, two operation restart,
+three PostgreSQL lifecycle, 42 message store/reply, 23 RabbitMQ transport and
+31 combined host/publication/dispatch/request/footprint/package cases. Every
+selected service result passed; the fixed real-service footprint case remains
+selected rather than being hidden as optional performance work.
+
+At local readiness, conservative source/preparation estimates total 446 minutes
+(including the brief unmeasured first direct guard probe); separately measured
+native elapsed including failures/restoration is 27.4915 minutes. Four external
+logical attempts are retained under the shared 12 hours / 16 attempts. Automatic
+CIS counters remain separate and are not fabricated. Counted local storage is
+5,651,310,024 / 6,442,450,944 bytes before the small frozen snapshots, including
+the conservative 2 GiB Docker allowance, cache charges and 64 MiB reserve. All
+restoration reserves remain protected. The user-owned untracked launch settings
+remain byte-identical at SHA256
+`ea7e7219222183193f0361ae674998f1edc43a3789f118748c59f166a4d29784`.
+
+## Retained failures and restart reconciliation
+
+The first sandbox formatting invocation could not connect to Roslyn's native
+pipe. Native formatting and verification then passed. Compilation identified
+unsupported `WithUser` and nullable API usage in the new test-only RabbitMQ owner;
+the supported native create modifier and guarded nullable access corrected them.
+Those failures and their costs remain in the native ledger.
+
+The first broker startup exposed a module binding/readiness mismatch: two builder
+bindings were configured while the native modifier removed one. The fixture now
+moves the module's single random binding to TLS 5671, removes plaintext exposure,
+retains the module startup wait and adds actual internal TLS-port readiness before
+authenticated AMQP readiness. Its failed-start path removed its owned resources.
+
+Separate full stop/start and atomic engine restart both changed the assigned
+host port on Docker Desktop 29.6.1. The decisive atomic probe retained its container
+but changed port 53195 to 50992 after authenticated fresh readiness. That combined
+same-live-endpoint proof failed and is not presented as passing. An earlier atomic
+probe also exposed old startup-log matching before fresh readiness, with a cleanup
+connection failure masking the original fault; retained diagnostics and reaper
+postflight distinguish that path from normal explicit cleanup.
+
+The reconciled tests preserve the meaningful behaviors separately. A real RabbitMQ
+application stop/start keeps the Erlang VM and Docker network, asserts the same
+original endpoint, and exercises the unchanged live transport's native recovery,
+persistent unacknowledged redelivery and a subsequent confirmed publication. A full
+same-container/data-volume stop/start retains persistent unacknowledged work for a
+fresh production transport at the current inspected endpoint. No live transport is
+retargeted, no fixed host port or proxy is introduced, and production code is
+unchanged. Application restart does not establish Erlang VM/container restart;
+single-node container restart does not establish power loss or multi-node failover.

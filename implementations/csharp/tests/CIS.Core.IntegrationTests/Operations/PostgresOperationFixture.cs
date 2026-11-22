@@ -6,24 +6,30 @@ using CIS.Security;
 using CIS.Transactions;
 using CIS.Transactions.AdoNet;
 using CIS.Transactions.Hosting;
+using CIS.Tests.IntegrationTests.Infrastructure.Containers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Npgsql;
 
 namespace CIS.Tests.IntegrationTests.Operations;
 
-// Each test owns a fresh schema on the explicitly selected isolated fixture; no default database is used.
+// Each test owns its schema and clients on the run's automatically owned PostgreSQL service.
 internal sealed class PostgresOperationFixture : IAsyncDisposable
 {
     private bool schemaCreated;
     private readonly ServiceProvider provider;
+    private readonly OwnedPostgresService database;
+    private IDisposable? serviceLease;
 
-    private PostgresOperationFixture(NpgsqlDataSource source, int commandTimeout, OperationRetentionPolicy? retention,
-        bool nativeCommitBoundary, bool maintenanceEnabled)
+    private PostgresOperationFixture(NpgsqlDataSource source, OwnedPostgresService database, IDisposable serviceLease,
+        int commandTimeout, OperationRetentionPolicy? retention, bool nativeCommitBoundary, bool maintenanceEnabled,
+        string? existingSchema)
     {
+        this.database = database;
+        this.serviceLease = serviceLease;
         Source = source;
         CommitBoundary = nativeCommitBoundary ? new(source) : null;
-        Schema = "cis_rm03_" + Guid.NewGuid().ToString("N");
+        Schema = existingSchema ?? "cis_rm03_" + Guid.NewGuid().ToString("N");
         Journal = new(new()
         {
             Schema = Schema,
@@ -91,55 +97,51 @@ internal sealed class PostgresOperationFixture : IAsyncDisposable
         string scope = "alpha") => new("Debit", scope, key, new("account", amount, accepted));
 
     internal static async Task<PostgresOperationFixture> CreateAsync(int commandTimeout = 15,
-        OperationRetentionPolicy? retention = null, bool nativeCommitBoundary = false, bool maintenanceEnabled = true)
+        OperationRetentionPolicy? retention = null, bool nativeCommitBoundary = false, bool maintenanceEnabled = true,
+        OwnedPostgresService? database = null)
     {
-        string? file = Environment.GetEnvironmentVariable("CIS_RM03_POSTGRES_CONNECTION_FILE");
-        if (string.IsNullOrWhiteSpace(file) || !File.Exists(file))
-        {
-            Assert.Inconclusive("Set CIS_RM03_POSTGRES_CONNECTION_FILE to the private absolute connection-file path for the explicitly provisioned isolated RM-03 fixture.");
-        }
-        if (!Path.IsPathFullyQualified(file!))
-        {
-            throw new InvalidOperationException("The explicit PostgreSQL fixture file path must be absolute.");
-        }
-        var information = new FileInfo(file!);
-        if (!information.Exists || information.Length is <= 0 or > 16_384)
-        {
-            throw new InvalidOperationException("The explicit PostgreSQL fixture file must be nonempty and at most 16 KiB.");
-        }
-        string connectionString = (await File.ReadAllTextAsync(information.FullName)).Trim();
-        NpgsqlConnectionStringBuilder options;
-        try
-        {
-            options = new(connectionString);
-        }
-        catch (ArgumentException)
-        {
-            throw new InvalidOperationException("The explicit PostgreSQL fixture file must contain a valid connection string.");
-        }
-        if (options.Host is not ("127.0.0.1" or "localhost" or "::1")
-            || string.IsNullOrWhiteSpace(options.Database) || string.IsNullOrWhiteSpace(options.Username)
-            || string.IsNullOrEmpty(options.Password) || !string.IsNullOrEmpty(options.Passfile)
-            || !options.Pooling || options.MinPoolSize != 0 || options.MaxPoolSize is <= 0 or > 6
-            || options.Timeout != 15 || options.CommandTimeout != 30 || options.CancellationTimeout != 2_000
-            || options.Enlist || options.NoResetOnClose || options.SslMode != SslMode.Disable
-            || !string.Equals(options["GSS Encryption Mode"]?.ToString(), "Disable", StringComparison.OrdinalIgnoreCase))
-        {
-            throw new InvalidOperationException("The owned loopback fixture requires explicit database/user/password, no passfile, pool0..6, timeouts15/30/2000, Enlist=false, No Reset On Close=false and isolated SSL/GSS Disable.");
-        }
+        database ??= await IntegrationServices.GetPostgresAsync();
+        return await CreateOwnedAsync(database, commandTimeout, retention, nativeCommitBoundary, maintenanceEnabled, null);
+    }
 
-        var fixture = new PostgresOperationFixture(NpgsqlDataSource.Create(connectionString), commandTimeout,
-            retention, nativeCommitBoundary, maintenanceEnabled);
+    internal static async Task<PostgresOperationFixture> ReopenAsync(PostgresOperationFixture previous)
+    {
+        ArgumentNullException.ThrowIfNull(previous);
+        PostgresOperationFixture replacement = await CreateOwnedAsync(previous.database, 15, null, false, true, previous.Schema);
+        replacement.schemaCreated = true;
+        previous.schemaCreated = false;
+        return replacement;
+    }
+
+    private static async Task<PostgresOperationFixture> CreateOwnedAsync(OwnedPostgresService database, int commandTimeout,
+        OperationRetentionPolicy? retention, bool nativeCommitBoundary, bool maintenanceEnabled, string? existingSchema)
+    {
+        IDisposable lease = database.AcquireClientLease();
+        NpgsqlDataSource? source = null;
+        PostgresOperationFixture? fixture = null;
         try
         {
-            await fixture.InitializeAsync();
+            source = NpgsqlDataSource.Create(database.CreateConnectionString(6));
+            fixture = new(source, database, lease, commandTimeout, retention, nativeCommitBoundary, maintenanceEnabled, existingSchema);
+            await fixture.InitializeAsync(installSchema: existingSchema is null);
             return fixture;
         }
         catch (Exception original)
         {
             try
             {
-                await fixture.DisposeAsync();
+                if (fixture is not null)
+                {
+                    await fixture.DisposeAsync();
+                }
+                else
+                {
+                    if (source is not null)
+                    {
+                        await source.DisposeAsync();
+                    }
+                    lease.Dispose();
+                }
             }
             catch (Exception cleanup)
             {
@@ -234,7 +236,7 @@ internal sealed class PostgresOperationFixture : IAsyncDisposable
         command.Parameters.Add(parameter);
     }
 
-    private async Task InitializeAsync()
+    private async Task InitializeAsync(bool installSchema)
     {
         await using NpgsqlConnection connection = await Source.OpenConnectionAsync();
         await using (var version = new NpgsqlCommand("SELECT current_setting('server_version_num')::integer, current_setting('fsync'), current_setting('synchronous_commit'), current_setting('full_page_writes')", connection))
@@ -246,19 +248,20 @@ internal sealed class PostgresOperationFixture : IAsyncDisposable
             Assert.AreEqual("on", reader.GetString(2));
             Assert.AreEqual("on", reader.GetString(3));
         }
-        // Record ownership before sending installation: partial successful DDL must also be removed.
-        schemaCreated = true;
-        await using (var install = new NpgsqlCommand(PostgreSqlOperationSchema.GetInstallationSql(Schema), connection))
+        if (installSchema)
         {
-            await install.ExecuteNonQueryAsync();
-        }
-        await using (var tables = new NpgsqlCommand($"""
+            // A new installation owns partial state; reconstruction borrows the previous owner's schema until it succeeds.
+            schemaCreated = true;
+            await using (var install = new NpgsqlCommand(PostgreSqlOperationSchema.GetInstallationSql(Schema), connection))
+            {
+                await install.ExecuteNonQueryAsync();
+            }
+            await using var tables = new NpgsqlCommand($"""
             CREATE TABLE {BusinessTable}
                 (record_id uuid PRIMARY KEY, payload text NOT NULL CHECK (octet_length(payload) <= 4096), native_xid xid8 NOT NULL DEFAULT pg_current_xact_id());
             CREATE TABLE {OutgoingTable}
                 (record_id uuid PRIMARY KEY, payload text NOT NULL CHECK (octet_length(payload) <= 4096), native_xid xid8 NOT NULL DEFAULT pg_current_xact_id());
-            """, connection))
-        {
+            """, connection);
             await tables.ExecuteNonQueryAsync();
         }
         await using var logged = new NpgsqlCommand("""
@@ -306,6 +309,7 @@ internal sealed class PostgresOperationFixture : IAsyncDisposable
         {
             throw new AggregateException("Owned operation PostgreSQL fixture cleanup failed.", errors);
         }
+        Interlocked.Exchange(ref serviceLease, null)?.Dispose();
     }
 }
 

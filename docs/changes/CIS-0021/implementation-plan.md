@@ -1,0 +1,32 @@
+# Testcontainers correction implementation plan
+
+RM-04 was merged through [PR13](https://github.com/andrewspiteri/CISLIB/pull/13) at `df1e5d90584fd88d7b48bfb0144ff574166bb1a5`. Work continues on `codex/testcontainers-integration`. The exact attachment is retained under [planning/testing/sources](../../../planning/testing/sources/CISLIB_Testcontainers_Implementation_Instructions.txt); its audit predates the two current RM-04 fixes and does not override the merged contracts.
+
+The current user requests the merge and Testcontainers correction. This is test infrastructure only. Three medium implementation outcomes include their tests, categories, documentation, independent review and restoration. Codex selects one shared **12 active hours / 16 logical attempts**, including **1,800 restoration seconds**, under the unchanged physical **6 GiB / 64 MiB reserve**. The numeric proposal is controller-selected under the action request and persistent autonomous-work preference; no separate human exact-payload review is asserted. Preserve completed CIS-0019/0020 owners and actual costs.
+
+1. **Owned lazy services and PostgreSQL migration:** add the two test-only modules at 4.17.0 and exact actual source mappings/locks; freeze a small typed ownership API; migrate all three PGfixtures and add the missing clean same-storage restart and lifecycle proof. Preserve per-test schemas, independent transaction owners, pools and actual durability checks.
+2. **Secure RabbitMQ and child/package migration:** retain all existing TLS, principal, topology, confirmation, return, redelivery and recovery assertions. Replace the fixed CLI/pipe/manual file prerequisite with owned API acquisition and short-lived minimal child descriptors. Investigate dynamic-port restart behavior before choosing a mechanism; do not hide a changed recovery promise.
+3. **Selection, CI and current guidance:** keep fast tests Docker-free, categories reflect actual dependencies, selected service failures fail and zero/skipped service reports reject. Author one stable Linux job and a small native-result check. Update one canonical testing guide, short AGENTS rule and affected current links. A local Linux pass is not an observed CI pass.
+
+Source work may overlap only after the small shared typed contract freezes and files are assigned. Native builds/lanes remain serialized; application Startup and native callbacks remain sequential. Task2 final acceptance requires the qualified PGfoundation; task3 final acceptance requires both providers. Their source frontiers are independent so their canonical source tasks do not form a build-order deadlock.
+
+Initial native profile is configured **local** rootful Linux Docker or Windows Docker Desktop Linux containers. Dynamic loopback host ports and owned container identities replace ambient DSNs. Preserve local PG plaintext policy and fail unsupported non-loopback profiles explicitly; do not silently weaken transport security. Ryuk stays enabled at its pinned digest with privileged mode disabled, subject to actual proof. Maximum live instances: shared PG, shared Rabbit, one extra dedicated service, one Ryuk. Service memory/CPU/PID/log limits and the 2 GiB Docker allowance stay within the same physical ceiling.
+
+Testcontainers PostgreSQL defaults disable durability; reset its command defaults and explicitly verify all three settings ON through the real client. Preserve module startup behavior before authenticated readiness. Cancellable starts/stops and owned joined disposal must retain original and cleanup failures; a timed-out await does not prove cleanup. Keep SDK reaper fallback and verify actual absence where claimed.
+
+The candidate module dependencies and reaper APIs were checked against [official PostgreSQL guidance](https://dotnet.testcontainers.org/modules/postgres/), [the module package](https://www.nuget.org/packages/Testcontainers.PostgreSql/4.17.0), [RabbitMQ package](https://www.nuget.org/packages/Testcontainers.RabbitMq/4.17.0), and [reaper guidance](https://dotnet.testcontainers.org/api/resource_reaper/). Compatibility is not assumed to mean a package has a native net10 asset; actual locked restore selects the graph. Existing Npgsql/RabbitMQ.Client/SDK/runtime pins remain unchanged.
+
+No production runtime, schema/API, new DI/bus/security/retry system, generic orchestration harness, proxy framework, tutorial or release campaign. Keep the untracked CountryData launch settings byte-for-byte. The latest explicit user follow-up authorizes finishing Testcontainers, pushing its ready branch/workflow, observing the real service CI run and merging the qualified head, then completing RM-05 without routine work-approval pauses. Complete local implementation/validation before publishing; require actual nonempty CI success before merging. Do not mark an authored workflow as observed CI. Import and allocate RM-05 separately after the Testcontainers merge; its implementation is outside this current outcome.
+
+The focused native restart probes found that Docker Desktop 29.6.1 reassigns a
+random host port on both separate stop/start and atomic restart. The decisive
+atomic run retained the container but changed port 53195 to 50992 after actual
+TLS readiness; that failed combined proof remains retained. Under the user's
+delegated correction authority, two narrowly labeled cases preserve the useful
+behaviors: real RabbitMQ application restart with an unchanged live transport and
+original endpoint proves automatic redelivery and subsequent publication; full
+same-container/data restart proves persistence of unacknowledged work using fresh
+clients at the inspected endpoint. No runtime contract, live endpoint retarget,
+fixed host port, proxy or new service framework is introduced. Application restart
+does not prove Erlang VM/container restart. See the current verification for actual
+results; the unsupported old combined claim is not reported as passed.

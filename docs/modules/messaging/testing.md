@@ -31,12 +31,27 @@ The existing named integration fixtures establish different facts:
 | [Public packages](../../../implementations/csharp/tests/CIS.Core.IntegrationTests/Messaging/MessagingPackageConsumerTests.cs) | Fresh local-feed restore/build/run outside friend assemblies, exact deployed bytes, public helpers and optional dependency separation. |
 | [Footprint](../../../implementations/csharp/tests/CIS.Core.IntegrationTests/Messaging/MessagingFootprintTests.cs) | One fixed local workload, admitted encoded bytes, committed effects and cleanup; no throughput threshold. |
 
-Keep normal MSTest execution and explicit fixture prerequisites. The tests use
-new isolated resources selected by private connection-file environment variables;
-they do not silently choose a database, broker or credentials. Applications own
-installation, topology and data-source lifetime. See
-[verification and limits](../../changes/CIS-0019/verification.md) for actual
-versions, platforms, preserved failures and passing checkpoints. Source alone is
-not a passing result. Single-node restart is not quorum failover or deployment.
+Keep normal MSTest execution. Selected `RequiresDocker` cases lazily acquire
+fresh owned PostgreSQL/RabbitMQ services through the integration assembly's
+Testcontainers fixtures; developers do not provision services or connection
+files. Missing Docker, image, readiness or cleanup requirements fail the selected
+case. `PostgreSql` and `RabbitMq` categories describe actual dependencies; the
+two passive package methods and synthetic Metrics collection remain Docker-free.
+Use the [canonical native test commands](../../../implementations/csharp/tests/README.md)
+to select the fast or service lane and check nonempty, zero-skipped service results.
+
+The parent RPC fixture creates private per-child connection descriptors from its
+typed owned services and passes their paths explicitly. Children receive only the
+selected broker secret, required usernames and public CA, and never own Docker.
+The server key, setup/rogue passwords and process-global descriptor configuration
+are excluded. Data sources, providers, actual child exit/output and topology drain
+precede descriptor and container disposal. Interrupted services use dedicated
+owners, retain their storage and require authenticated readiness again.
+
+Applications still own production installation, topology and data-source lifetime.
+Historical [RM-04 verification](../../changes/CIS-0019/verification.md) and the
+[Testcontainers correction](../../changes/CIS-0021/verification.md) retain their
+different evidence and limits. Source alone is not a passing result. Single-node
+restart is not quorum failover or deployment.
 CountryData remains the database-free tutorial; these fixtures are distinct
 required process/provider/package boundaries, not another maintained application.

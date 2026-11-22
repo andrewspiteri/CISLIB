@@ -9,6 +9,8 @@ namespace CIS.Tests.IntegrationTests.Messaging;
 
 [TestClass]
 [DoNotParallelize]
+[TestCategory("RequiresDocker")]
+[TestCategory("PostgreSql")]
 public sealed class PostgresMessageReplyTests
 {
     [TestMethod]

@@ -5,7 +5,7 @@ using CIS.Messaging;
 using CIS.Messaging.RabbitMQ;
 using CIS.Security;
 using CIS.Security.Hosting;
-using CIS.TestSupport;
+using CIS.Tests.IntegrationTests.Infrastructure.Containers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RabbitMQ.Client;
@@ -13,10 +13,10 @@ using RabbitMQ.Client.Exceptions;
 
 namespace CIS.Tests.IntegrationTests.Messaging;
 
-// Uses only the explicitly provisioned newly owned broker/vhost; no localhost/default-credential fallback.
+// Only the integration run's typed owner can provide service endpoints and credentials.
 internal sealed class RabbitMqMessageFixture : IAsyncDisposable
 {
-    private readonly ConnectionFile information;
+    private readonly RabbitFixtureInformation information;
     private readonly string rootPem;
     private readonly ServiceProvider provider;
     private readonly SharedTopology ownership;
@@ -25,14 +25,14 @@ internal sealed class RabbitMqMessageFixture : IAsyncDisposable
     private readonly Action<SecurityOptions>? securitySetup;
     private int disposed;
 
-    private RabbitMqMessageFixture(ConnectionFile information, string rootPem, bool withSubscription, int maximumQueueMessages,
+    private RabbitMqMessageFixture(OwnedRabbitService service, bool withSubscription, int maximumQueueMessages,
         bool safeQuarantine, bool withRequests, bool wrongHost, string? topologyNamespace = null, bool allowNoSubscribers = false,
         SharedTopology? ownership = null, Func<MessagingSnapshot, MessagingSnapshot>? transformSnapshot = null,
-        Action<IServiceCollection>? configureServices = null, Action<SecurityOptions>? configureSecurity = null)
+        Action<IServiceCollection>? configureServices = null, Action<SecurityOptions>? configureSecurity = null,
+        bool ownsService = false)
     {
-        this.information = information;
-        this.rootPem = rootPem;
-        this.ownership = ownership ?? new();
+        information = service.CaptureInformation();
+        rootPem = service.RootPem;
         snapshotTransform = transformSnapshot;
         serviceSetup = configureServices;
         securitySetup = configureSecurity;
@@ -83,6 +83,7 @@ internal sealed class RabbitMqMessageFixture : IAsyncDisposable
         configureServices?.Invoke(services);
         provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true, ValidateOnBuild = true });
         Transport = provider.GetRequiredService<RabbitMqTransport>();
+        this.ownership = ownership ?? new(service, ownsService);
         if (ownership is not null)
         {
             Interlocked.Increment(ref ownership.Owners);
@@ -108,6 +109,9 @@ internal sealed class RabbitMqMessageFixture : IAsyncDisposable
     internal IServiceProvider Services => provider;
     internal string ServiceUser => information.Principals["service"].User;
     internal string OtherUser => information.Principals["other"].User;
+    internal RabbitFixtureInformation Information => information;
+    internal string RootPem => rootPem;
+    internal OwnedRabbitService Service => ownership.Service;
     internal string EventExchange => RabbitMqTopology.GetRouteExchange(Options.Capture(), "events");
     internal string Queue => RabbitMqTopology.GetSubscriptionQueue(Options.Capture(), Local.Application, Local.Environment, "A");
     internal string QuarantineQueue => Options.Namespace + ".quarantine.local.A";
@@ -147,69 +151,54 @@ internal sealed class RabbitMqMessageFixture : IAsyncDisposable
     internal RabbitMqMessageFixture CreateSibling(bool withRequests = true,
         Func<MessagingSnapshot, MessagingSnapshot>? transformSnapshot = null,
         Action<IServiceCollection>? configureServices = null, Action<SecurityOptions>? configureSecurity = null)
-        => new(information, rootPem, Snapshot.Subscriptions.Count != 0, Options.MaximumQueueMessages,
+        => new(ownership.Service, Snapshot.Subscriptions.Count != 0, Options.MaximumQueueMessages,
             Options.SafeDeadLetteringVerified, withRequests, false, Options.Namespace, Snapshot.GetRoute("events").AllowNoSubscribers,
             ownership, transformSnapshot ?? snapshotTransform, configureServices ?? serviceSetup, configureSecurity ?? securitySetup);
 
     internal static async Task<RabbitMqMessageFixture> CreateAsync(bool withSubscription = true, int maximumQueueMessages = 10_000,
         bool safeQuarantine = true, bool withRequests = false, bool wrongHost = false, bool installTopology = true,
         bool allowNoSubscribers = false, Func<MessagingSnapshot, MessagingSnapshot>? transformSnapshot = null,
-        Action<IServiceCollection>? configureServices = null, Action<SecurityOptions>? configureSecurity = null)
+        Action<IServiceCollection>? configureServices = null, Action<SecurityOptions>? configureSecurity = null,
+        bool dedicatedBroker = false)
     {
-        string? path = Environment.GetEnvironmentVariable("CIS_RM04_RABBITMQ_CONNECTION_FILE");
-        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
-        {
-            Assert.Inconclusive("Select the private CIS_RM04_RABBITMQ_CONNECTION_FILE for the explicitly owned isolated fixture.");
-        }
-        if (!Path.IsPathFullyQualified(path!))
-        {
-            throw new InvalidDataException("The explicitly selected broker connection-file path must be absolute.");
-        }
-        var file = new FileInfo(path!);
-        if (file.Length is < 1 or > 32_768)
-        {
-            throw new InvalidDataException("The private fixture descriptor exceeds its bound.");
-        }
-        ConnectionFile information = JsonSerializer.Deserialize<ConnectionFile>(await File.ReadAllBytesAsync(path!),
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? throw new InvalidDataException("Missing private fixture descriptor.");
-        string certificatePath = Path.GetFullPath(Path.Combine(file.DirectoryName!, information.RootCertificateFile));
-        string ownedDirectory = Path.GetFullPath(file.DirectoryName!) + Path.DirectorySeparatorChar;
-        if (!certificatePath.StartsWith(ownedDirectory, OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal)
-            || new FileInfo(certificatePath).Length is < 1 or > 16_384 || information.Namespace.Length > 55
-            || information.Port is < 1 or > 65535 || information.Host != "127.0.0.1"
-            || information.ServerName != "localhost" || information.VirtualHost == "/")
-        {
-            throw new InvalidDataException("The private descriptor does not select the bounded owned loopback fixture.");
-        }
-        foreach (string role in new[] { "service", "other", "rogue", "setup" })
-        {
-            if (!information.Principals.TryGetValue(role, out Principal? principal)
-                || string.IsNullOrWhiteSpace(principal.User) || string.IsNullOrWhiteSpace(principal.Password))
-            {
-                throw new InvalidDataException("A fresh fixture principal is missing.");
-            }
-        }
-        var fixture = new RabbitMqMessageFixture(information, await File.ReadAllTextAsync(certificatePath),
-            withSubscription, maximumQueueMessages, safeQuarantine, withRequests, wrongHost, allowNoSubscribers: allowNoSubscribers,
-            transformSnapshot: transformSnapshot, configureServices: configureServices, configureSecurity: configureSecurity);
+        OwnedRabbitService service = dedicatedBroker ? await OwnedRabbitService.CreateDedicatedAsync()
+            : await IntegrationServices.GetRabbitAsync();
+        RabbitMqMessageFixture? fixture = null;
         try
         {
+            fixture = new RabbitMqMessageFixture(service, withSubscription, maximumQueueMessages, safeQuarantine,
+                withRequests, wrongHost, allowNoSubscribers: allowNoSubscribers, transformSnapshot: transformSnapshot,
+                configureServices: configureServices, configureSecurity: configureSecurity, ownsService: dedicatedBroker);
             if (installTopology)
             {
                 await RabbitMqTopology.InstallAsync(fixture.SetupOptions, fixture.Snapshot);
             }
             return fixture;
         }
-        catch
+        catch (Exception original)
         {
-            await fixture.DisposeAsync();
+            try
+            {
+                if (fixture is not null)
+                {
+                    await fixture.DisposeAsync();
+                }
+                else if (dedicatedBroker)
+                {
+                    await service.DisposeAsync();
+                }
+            }
+            catch (Exception cleanup)
+            {
+                throw new AggregateException("Provider setup and its owned cleanup both failed.", original, cleanup);
+            }
             throw;
         }
     }
 
     private RabbitMqOptions CreateOptions(string role)
     {
-        Principal principal = information.Principals[role];
+        RabbitFixturePrincipal principal = information.Principals[role];
         return new()
         {
             HostName = information.Host,
@@ -227,7 +216,7 @@ internal sealed class RabbitMqMessageFixture : IAsyncDisposable
 
     internal async Task<IConnection> ConnectAsync(string role = "setup")
     {
-        Principal principal = information.Principals[role];
+        RabbitFixturePrincipal principal = information.Principals[role];
         var factory = new ConnectionFactory
         {
             HostName = information.Host,
@@ -284,72 +273,23 @@ internal sealed class RabbitMqMessageFixture : IAsyncDisposable
         }, body);
     }
 
-    internal async Task RestartOwnedBrokerAsync()
+    internal async Task RestartOwnedBrokerApplicationAsync()
     {
-        if (information.ContainerId.Length != 64 || information.ContainerId.Any(character => !Uri.IsHexDigit(character))
-            || string.IsNullOrWhiteSpace(information.Owner))
-        {
-            throw new InvalidDataException("An exact newly owned broker identity is required before restart.");
-        }
-        ProcessResult inspection = await DockerAsync(["inspect", "--format", "{{json .Config.Labels}}", information.ContainerId]);
-        Dictionary<string, string>? labels = JsonSerializer.Deserialize<Dictionary<string, string>>(inspection.StandardOutput);
-        if (labels is null || !labels.TryGetValue("cislib.change", out string? change) || change != "CIS-0019"
-            || !labels.TryGetValue("cislib.owner", out string? owner) || owner != information.Owner)
-        {
-            throw new InvalidDataException("The selected container is not the recorded fresh fixture owner.");
-        }
-        await DockerAsync(["restart", "--time", "5", information.ContainerId]);
-        await UntilAsync(async () =>
-        {
-            try
-            {
-                await using IConnection connection = await ConnectAsync();
-                return connection.IsOpen;
-            }
-            catch (BrokerUnreachableException)
-            {
-                return false;
-            }
-        }, TimeSpan.FromSeconds(60));
+        await ownership.Service.RestartApplicationAsync();
     }
 
     internal async Task<long> TotalQueuedAsync(string queue)
     {
-        ProcessResult report = await DockerAsync(["exec", information.ContainerId, "rabbitmqctl", "list_queues",
-            "-p", information.VirtualHost, "name", "messages", "--formatter", "json"]);
-        using JsonDocument document = JsonDocument.Parse(report.StandardOutput);
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        var report = await ownership.Service.Container.ExecAsync(["rabbitmqctl", "list_queues",
+            "-p", information.VirtualHost, "name", "messages", "--formatter", "json"], deadline.Token);
+        if (report.ExitCode != 0 || report.Stdout.Length > 65_536)
+        {
+            throw new InvalidOperationException("The bounded owned-broker queue observation failed.");
+        }
+        using JsonDocument document = JsonDocument.Parse(report.Stdout);
         return document.RootElement.EnumerateArray().Single(item => item.GetProperty("name").GetString() == queue)
             .GetProperty("messages").GetInt64();
-    }
-
-    private async Task<ProcessResult> DockerAsync(string[] arguments)
-    {
-        string executable = information.DockerExecutableWindowsPath;
-        if (!OperatingSystem.IsWindows() && executable.Length > 3 && executable[1] == ':')
-        {
-            executable = "/mnt/" + char.ToLowerInvariant(executable[0]) + executable[2..].Replace('\\', '/');
-        }
-        if (!Path.IsPathFullyQualified(executable) || !File.Exists(executable)
-            || string.IsNullOrWhiteSpace(information.DockerConfigWindowsPath))
-        {
-            throw new InvalidDataException("The explicitly verified isolated Docker client is unavailable.");
-        }
-        var environment = new Dictionary<string, string?>();
-        foreach (string name in new[] { "DOCKER_AUTH_CONFIG", "DOCKER_CONTEXT", "DOCKER_HOST", "DOCKER_CONFIG",
-            "DOCKER_TLS", "DOCKER_TLS_VERIFY", "DOCKER_CERT_PATH", "DOCKER_API_VERSION", "DOCKER_CUSTOM_HEADERS",
-            "DOCKER_CONTENT_TRUST", "DOCKER_CONTENT_TRUST_SERVER", "DOCKER_CONTENT_TRUST_ROOT_PASSPHRASE",
-            "DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE" })
-        {
-            environment.Add(name, null);
-        }
-        ProcessResult result = await ProcessRunner.RunAsync(executable,
-            ["--config", information.DockerConfigWindowsPath, "--host", "npipe:////./pipe/dockerDesktopLinuxEngine", .. arguments],
-            AppContext.BaseDirectory, TimeSpan.FromSeconds(90), environment, maximumCapturedBytesPerStream: 16_384);
-        if (result.ExitCode != 0)
-        {
-            throw new InvalidOperationException("The bounded owned-fixture Docker operation failed.");
-        }
-        return result;
     }
 
     internal static async Task UntilAsync(Func<Task<bool>> predicate, TimeSpan? timeout = null)
@@ -399,6 +339,11 @@ internal sealed class RabbitMqMessageFixture : IAsyncDisposable
                 if (!ownership.DrainFailed)
                 {
                     await DeleteNewOwnedTopologyAsync();
+                    ownership.ClientLease.Dispose();
+                    if (ownership.OwnsService)
+                    {
+                        await ownership.Service.DisposeAsync();
+                    }
                 }
             }
             catch (Exception error)
@@ -439,7 +384,9 @@ internal sealed class RabbitMqMessageFixture : IAsyncDisposable
         {
             queues.AddRange(ownership.ReplyQueues);
         }
-        await using IConnection cleanup = await ConnectAsync();
+        // An interrupted test may have observed a changed mapping. Administrative cleanup follows
+        // the current owned endpoint; the production transport keeps its originally captured one.
+        await using IConnection cleanup = await ownership.Service.CreateConnectionFactory(information.Principals["setup"]).CreateConnectionAsync();
         foreach (string queue in queues.Distinct(StringComparer.Ordinal))
         {
             await using IChannel channel = await cleanup.CreateChannelAsync();
@@ -473,8 +420,11 @@ internal sealed class RabbitMqMessageFixture : IAsyncDisposable
         }
     }
 
-    private sealed class SharedTopology
+    private sealed class SharedTopology(OwnedRabbitService service, bool ownsService)
     {
+        internal OwnedRabbitService Service { get; } = service;
+        internal bool OwnsService { get; } = ownsService;
+        internal IDisposable ClientLease { get; } = service.AcquireClientLease();
         internal int Owners = 1;
         internal bool DrainFailed;
         internal List<string> ReplyQueues { get; } = [];
@@ -497,33 +447,4 @@ internal sealed class RabbitMqMessageFixture : IAsyncDisposable
             => Task.CompletedTask;
     }
 
-    private sealed class ConnectionFile
-    {
-        public ConnectionFile()
-        {
-        }
-        public string Host { get; set; } = "";
-        public int Port
-        {
-            get; set;
-        }
-        public string ServerName { get; set; } = "";
-        public string VirtualHost { get; set; } = "";
-        public string RootCertificateFile { get; set; } = "";
-        public string Namespace { get; set; } = "";
-        public Dictionary<string, Principal> Principals { get; set; } = [];
-        public string ContainerId { get; set; } = "";
-        public string Owner { get; set; } = "";
-        public string DockerExecutableWindowsPath { get; set; } = "";
-        public string DockerConfigWindowsPath { get; set; } = "";
-    }
-
-    private sealed class Principal
-    {
-        public Principal()
-        {
-        }
-        public string User { get; set; } = "";
-        public string Password { get; set; } = "";
-    }
 }

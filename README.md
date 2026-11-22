@@ -15,10 +15,23 @@ cd implementations/csharp
 dotnet tool restore --configfile eng/Tools.NuGet.config
 dotnet restore CisLib.slnx --locked-mode
 dotnet build CisLib.slnx -c Release --no-restore
-dotnet test CisLib.slnx -c Release --no-build --no-restore --filter "TestCategory!=PerformanceObservation&TestCategory!=ExtendedStress"
+dotnet test CisLib.slnx -c Release --no-build --no-restore --filter "TestCategory!=RequiresDocker&TestCategory!=PerformanceObservation&TestCategory!=ExtendedStress"
 ```
 
-This ordinary regression selection excludes performance observations and extended stress tests. An unfiltered solution run or IDE Run All includes those categories; performance/stress and full release qualification remain separate open work.
+This fast selection needs no Docker and excludes service, performance and extended
+stress cases. Real PostgreSQL/RabbitMQ integration provisions its own isolated
+Testcontainers services when selected:
+
+```powershell
+dotnet test tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj -c Release --no-build --no-restore --settings tests/CIS.Core.IntegrationTests/service-tests.runsettings --filter "TestCategory=RequiresDocker&TestCategory!=PerformanceObservation&TestCategory!=ExtendedStress" --logger "trx;LogFileName=service-tests.trx"
+```
+
+Docker must be reachable for this service selection; missing Docker, image pulls
+or readiness failures fail the selected tests. No manual database/broker setup or
+connection files are required. See the [canonical testing guide](implementations/csharp/tests/README.md)
+for endpoint ownership, result validation, PostgreSQL-only selection and the Linux
+CI job. An unfiltered solution run or IDE Run All also includes performance and
+extended stress categories; full release qualification remains separate.
 
 Open the same solution in the IDE. To run a focused test selection:
 

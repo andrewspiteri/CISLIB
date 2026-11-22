@@ -8,6 +8,8 @@ namespace CIS.Tests.IntegrationTests.Transactions;
 
 [TestClass]
 [DoNotParallelize]
+[TestCategory("RequiresDocker")]
+[TestCategory("PostgreSql")]
 public sealed class PostgresTransactionTests
 {
     [TestMethod]

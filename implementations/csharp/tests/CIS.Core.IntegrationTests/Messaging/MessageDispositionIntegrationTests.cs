@@ -7,6 +7,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CIS.Tests.IntegrationTests.Messaging;
 
 [TestClass]
+[TestCategory("RequiresDocker")]
+[TestCategory("PostgreSql")]
+[TestCategory("RabbitMq")]
 [DoNotParallelize]
 public sealed class MessageDispositionIntegrationTests
 {
@@ -29,7 +32,12 @@ public sealed class MessageDispositionIntegrationTests
         Assert.AreEqual(MessageDispositionHandlingKind.ResponsibilityCommitted, (await coordinator.HandleAsync(failed)).Kind);
         Assert.AreEqual(1L, await database.CountAsync("outbox"), "A repeated failed callback cannot create a second retry chain.");
 
-        MessageProcessingAttempt retry = attempt with { DeliveryOrdinal = 2, Purpose = MessageRecordPurpose.Retry, HandoffRecordId = first.HandoffRecordId };
+        MessageProcessingAttempt retry = attempt with
+        {
+            DeliveryOrdinal = 2,
+            Purpose = MessageRecordPurpose.Retry,
+            HandoffRecordId = first.HandoffRecordId
+        };
         TransactionCompletion retryRollback = await RollbackAttemptAsync(database, retry);
         MessageProcessingRecord restored = await ReadAsync(database, retry.Key);
         Assert.AreEqual(MessageProcessingDisposition.RetryScheduled, restored.Disposition);
@@ -102,7 +110,10 @@ public sealed class MessageDispositionIntegrationTests
         Assert.AreEqual(1L, await database.CountAsync("rejections"));
         TransactionCompletion original = await RollbackAttemptAsync(database, attempt);
         Assert.AreEqual(MessageProcessingDisposition.Terminal,
-            (await coordinator.HandleAsync(Failure(snapshot, attempt, original) with { Kind = MessageDeliveryFailureKind.CanonicalTerminal })).Disposition);
+            (await coordinator.HandleAsync(Failure(snapshot, attempt, original) with
+            {
+                Kind = MessageDeliveryFailureKind.CanonicalTerminal
+            })).Disposition);
 
         await using var resources = new MessagingResourceBudget(snapshot.Settings);
         var authority = new DispositionIntegrationAuthority();
@@ -129,7 +140,12 @@ public sealed class MessageDispositionIntegrationTests
         var subscription = new MessageSubscriptionDefinition<int>("Countries", "Messaging", "CountryEvents", codec,
             _ => throw new InvalidOperationException("Failure bookkeeping must not run a handler."),
             (_, _, _, _) => throw new InvalidOperationException("No resource resolver belongs to bookkeeping."), ["country.read"],
-            new() { MaximumDeliveryOrdinals = 3, RetryDelays = [TimeSpan.FromMilliseconds(1), TimeSpan.FromMilliseconds(2)], RetryJitterRatio = 0 });
+            new()
+            {
+                MaximumDeliveryOrdinals = 3,
+                RetryDelays = [TimeSpan.FromMilliseconds(1), TimeSpan.FromMilliseconds(2)],
+                RetryJitterRatio = 0
+            });
         return new(new MessagingOptions
         {
             Retention = database.Policy,
@@ -183,7 +199,10 @@ internal sealed class DispositionIntegrationCodec : IMessageCodec<int>
 internal sealed class DispositionIntegrationAuthority : ICapabilityAuthorizer, ICallerContextAccessor, ISecurityAuditSink
 {
     internal SecurityOperationAudit? LastAudit;
-    public CallerContext Current { get; } = new("Native", "Native", new("fixture", "operator"), SecurityActorKind.User,
+    public CallerContext Current
+    {
+        get;
+    } = new("Native", "Native", new("fixture", "operator"), SecurityActorKind.User,
         null, null, new(DateTimeOffset.UnixEpoch), "fixture-v1");
     public ValueTask<AuthorizationDecision> AuthorizeAsync(IReadOnlyList<string> capabilities, CapabilityTarget target, CancellationToken cancellationToken = default)
         => ValueTask.FromResult(AuthorizationDecision.Allow);

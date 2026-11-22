@@ -3,6 +3,7 @@ using CIS.Messaging;
 using CIS.Operations.PostgreSql;
 using CIS.TestSupport;
 using CIS.Tests.MessagingCrashFixture;
+using CIS.Tests.IntegrationTests.Infrastructure.Containers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Npgsql;
 
@@ -39,9 +40,16 @@ internal sealed class MessageRpcProcessFixture : IAsyncDisposable
                 CrashContracts.Snapshot(CrashContracts.Options(minimum), CIS.Security.LocalApplicationIdentity.Capture(), true));
             return fixture;
         }
-        catch
+        catch (Exception original)
         {
-            await fixture.DisposeAsync();
+            try
+            {
+                await fixture.DisposeAsync();
+            }
+            catch (Exception cleanup)
+            {
+                throw new AggregateException("RPC fixture initialization and cleanup both failed.", original, cleanup);
+            }
             throw;
         }
     }
@@ -65,12 +73,12 @@ internal sealed class MessageRpcProcessFixture : IAsyncDisposable
             DenyExecute = deny
         };
 
-    internal IReadOnlyDictionary<string, string?> Environment() => new Dictionary<string, string?>
+    private IReadOnlyDictionary<string, string?> Environment(string postgres, string rabbit) => new Dictionary<string, string?>
     {
         ["CORE_SERVICE_NAME"] = Broker.Local.Application,
         ["CORE_ENVIRONMENT"] = Broker.Local.Environment,
-        ["CIS_RM04_POSTGRES_CONNECTION_FILE"] = System.Environment.GetEnvironmentVariable("CIS_RM04_POSTGRES_CONNECTION_FILE"),
-        ["CIS_RM04_RABBITMQ_CONNECTION_FILE"] = System.Environment.GetEnvironmentVariable("CIS_RM04_RABBITMQ_CONNECTION_FILE")
+        ["CIS_RM04_POSTGRES_CONNECTION_FILE"] = postgres,
+        ["CIS_RM04_RABBITMQ_CONNECTION_FILE"] = rabbit
     };
 
     internal async Task<string> WriteDescriptorAsync(CrashDescriptor descriptor)
@@ -86,10 +94,12 @@ internal sealed class MessageRpcProcessFixture : IAsyncDisposable
         {
             throw new InvalidOperationException("This case permits at most eight owned child entries.");
         }
-        var child = new RpcChild(descriptor);
+        string connection = descriptor.Mode.StartsWith("caller", StringComparison.Ordinal) ? Caller.ConnectionString : Server.ConnectionString;
+        (string postgres, string rabbit) = await OwnedRpcConnectionFiles.WriteAsync(Path, connection, Broker, descriptor.Principal);
         string input = await WriteDescriptorAsync(descriptor);
+        var child = new RpcChild(descriptor);
         child.Execution = ProcessRunner.RunAsync("dotnet", ["exec", "--fx-version", "10.0.12", "--roll-forward", "Disable", binary ?? Binary, input],
-            Path, TimeSpan.FromSeconds(120), Environment(), maximumCapturedBytesPerStream: 65_536, cancellationToken: child.Cancellation.Token);
+            Path, TimeSpan.FromSeconds(120), Environment(postgres, rabbit), maximumCapturedBytesPerStream: 65_536, cancellationToken: child.Cancellation.Token);
         children.Add(child);
         return child;
     }
@@ -176,13 +186,19 @@ internal sealed class MessageRpcProcessFixture : IAsyncDisposable
             {
                 await child.StopAsync();
             }
-            catch (ProcessTimeoutException failure) when (!failure.CleanupCompleted)
+            catch (ProcessTimeoutException failure)
             {
-                preserve = true;
+                preserve |= !failure.CleanupCompleted || !failure.Result.OutputDrained;
+                failures.Add(failure);
+            }
+            catch (ProcessOutputLimitException failure)
+            {
+                preserve |= !failure.Result.OutputDrained;
                 failures.Add(failure);
             }
             catch (Exception failure)
             {
+                preserve = true;
                 failures.Add(failure);
             }
         }
@@ -204,7 +220,10 @@ internal sealed class MessageRpcProcessFixture : IAsyncDisposable
             {
                 await CaptureAsync(() => server.DisposeAsync().AsTask(), failures);
             }
-            directory.Dispose();
+            if (failures.Count == 0)
+            {
+                directory.Dispose();
+            }
         }
         if (failures.Count != 0)
         {

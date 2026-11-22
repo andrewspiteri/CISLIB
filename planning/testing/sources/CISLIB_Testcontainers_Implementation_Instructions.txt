@@ -1,0 +1,364 @@
+CISLIB: TESTCONTAINERS INTEGRATION TEST INSTRUCTIONS
+Prepared 22 November 2026
+
+PURPOSE
+
+Make CISLIB's existing real-service integration tests self-provisioning and reproducible through Testcontainers for .NET. Start with PostgreSQL and RabbitMQ, preserve the existing behavioral assertions, and establish the same practical rule for future external services.
+
+This document contains a source audit followed by instructions for the implementation agent. The audit did not execute tests or change the repository. The implementation described below has not yet been applied.
+
+1. VERIFIED STARTING POINT
+
+Repository: https://github.com/andrewspiteri/CISLIB
+
+Inspected revisions:
+- main: 669d286711340e7f63398256cee27575932f58f4
+- codex/messaging-reliable-delivery: 0a77508e8a8327760a6cff77b1f5fa0f2f0c454b
+
+The messaging implementation is on the second revision; it is absent from the inspected main revision. Recheck the target branch before applying these instructions.
+
+Findings:
+- The inspected central package pins, integration project, lock files and fixtures do not use Testcontainers. The current test framework is MSTest/VSTest with ordinary dotnet test and IDE execution. [R1, R2]
+- RM-02 and RM-03 already test real PostgreSQL. Their fixtures consume CIS_RM02_POSTGRES_CONNECTION_FILE and CIS_RM03_POSTGRES_CONNECTION_FILE. Missing prerequisites call Assert.Inconclusive. They create a fresh schema per case. [R3, R4]
+- RM-04 similarly consumes CIS_RM04_POSTGRES_CONNECTION_FILE and CIS_RM04_RABBITMQ_CONNECTION_FILE. Its PostgreSQL fixture installs actual product SQL and checks PostgreSQL 18 with fsync, full_page_writes and synchronous_commit enabled. [R5]
+- RabbitMQ testing already includes TLS, hostname validation, separate principals and permissions, real confirms, mandatory returns, quorum queues, redelivery, broker restart, and combined PostgreSQL/messaging behavior. Retain those guarantees. [R6, R7]
+- RabbitMqMessageFixture invokes the Docker CLI through a fixed Windows Docker Desktop named pipe and recorded Windows executable/configuration paths. This is a specific portability problem to remove. [R6]
+- RPC and package-consumer fixtures pass the connection-file variables into real child processes. Those handoffs must remain functional after automatic provisioning. [R8]
+- Shared MSTest setup normally uses four method-level workers; current PostgreSQL and RabbitMQ provider classes use DoNotParallelize. [R2, R7]
+- No checked-in CI workflow was found in either complete inspected tree. The suite profile itself says its "pr" classification is not evidence of an installed or executed CI gate. This finding does not rule out an external CI system. [R9]
+- Existing tests already cover meaningful atomicity, concurrency, replay, retention and messaging failures. Some acknowledgement-loss cases use a deliberate test seam after real commit or broker acceptance; those cases do not establish actual network-fault behavior. [R10, R11]
+
+The change is primarily provisioning, lifecycle ownership, portability and reliable selection of the existing tests.
+
+2. IMPLEMENTATION SCOPE AND DEPENDENCIES
+
+Implement this as a focused test-infrastructure change.
+
+Retain:
+- net10.0 and the repository's selected SDK/runtime, MSTest/VSTest and dotnet test.
+- Existing runtime architecture and public API contracts.
+- Existing SQL migrations/installers, RabbitMQ topology and provider assertions.
+- Existing per-test isolation, bounded waits and meaningful process/package tests.
+
+Add Testcontainers.PostgreSql and Testcontainers.RabbitMq to the non-packable integration-test project. Use PrivateAssets="all". Add a direct Testcontainers base-package reference only if the resolved API/dependency arrangement needs one.
+
+Keep this infrastructure under implementations/csharp/tests. A small Infrastructure/Containers folder in CIS.Core.IntegrationTests is sufficient initially. Extract a non-packable helper project only when another test assembly actually needs it. Do not introduce a general orchestration framework.
+
+CIS.Core, CIS.CommonTesting, optional shipping adapters and consumer applications must not acquire Testcontainers or Docker dependencies. CIS.CommonTesting remains useful for ordinary scripted consumer tests without Docker. PrivateAssets is supplementary; verify project dependency direction and shipping package closure as well. [R12, T5]
+
+Use Directory.Packages.props for exact package versions. Inspect the actual compatible dependency graph, add precise NuGet source mappings, regenerate affected package locks and verify locked restore. Retain existing unrelated pins and source restrictions. Do not use an unrestricted wildcard source mapping or upgrade the SDK, Npgsql, RabbitMQ.Client or unrelated packages as a side effect.
+
+The earlier RM-02/RM-03 records excluded Testcontainers for those historical scopes. Record the new test-only dependency decision in current guidance; preserve historical approval and verification records. Use the normal current project workflow without reopening completed work or creating a replacement campaign.
+
+On a target that does not yet contain RM-04, implement the PostgreSQL/common foundation there and apply the RabbitMQ changes to the branch containing RM-04. Do not recreate messaging or silently merge an unrelated branch.
+
+3. SMALL, OWNED CONTAINER FIXTURES
+
+Use typed PostgreSQL and RabbitMQ fixtures plus a small owner for their lifecycle.
+
+- Start each service lazily, only when a selected test requires it.
+- Do not start services in the shared tests/TestAssembly.cs initializer used by unrelated test projects.
+- Share a service instance within one integration-test process/run where useful. Keep each test's database schema and broker namespace independent.
+- Make lazy startup safe when multiple tests request it concurrently. One failed initialization must dispose all resources already created.
+- Keep the current DoNotParallelize restrictions during initial migration. Parallel execution is not a goal of this change.
+- Give a test that stops, kills or restarts a service a dedicated container, or an exclusive lifecycle scope that cannot overlap with another user. Preserve the same data directory/volume across the interruption.
+- Use a small, documented bound on simultaneous service instances. Use reasonable CPU, memory, connection and log limits that allow the existing workload to operate correctly.
+- Explicitly dispose owned containers, networks and volumes. Leave the Testcontainers Resource Reaper enabled as fallback cleanup. Do not use global Docker prune commands. [T2]
+- Keep cross-run container reuse disabled for CI and acceptance. Sharing a container within a run is sufficient; experimental persistent reuse changes cleanup behavior. [T3]
+
+Pin the selected official service images to explicit versions and immutable digests. Start from the existing supported image families: PostgreSQL 18 and the RabbitMQ version selected by the messaging implementation. Its historical verification record reports PostgreSQL 18.7 and RabbitMQ 4.4.1; inspect the current image selections and registry manifests rather than assuming a tag or digest from this document. Pin or retain the selected library's pinned Resource Reaper image as well.
+
+Do not use latest or silently substitute a different major version. Reusing cached image layers is fine; reusing previous tests' mutable databases or queues is not.
+
+4. ENDPOINTS, READINESS AND CLEANUP
+
+Let Docker allocate host ports and resource names. Obtain connection endpoints from the owned container's connection helper or Hostname plus GetMappedPublicPort. Remove fixed host-port assumptions and hard-coded Docker executable/engine paths. Use the configured supported Docker environment. [T1]
+
+Refactor current loopback-only descriptor validation deliberately: an internally generated endpoint must be traceable to this run's owned container. Do not replace it with arbitrary ambient connection strings or autodiscovery of an existing developer database. Keep local exposure restricted where supported; do not disable TLS or credential checks to accommodate another Docker host.
+
+Use resource mappings/copies for configuration and certificates where practical, avoiding dependencies on the Docker host sharing the test process's filesystem. [T1]
+
+Retain the module's startup/readiness behavior, then verify readiness through the actual client and credentials:
+- PostgreSQL: connect, execute a query, verify version/settings and install the required schema.
+- RabbitMQ: complete the expected TLS/authentication handshake, open the appropriate channel and provision/verify the actual topology.
+
+A running container or open TCP port alone is insufficient. Custom builder configuration must not accidentally replace a module's required startup behavior. [T4]
+
+Use bounded startup and cleanup deadlines. Pass cancellation into supported operations. An outer timeout must not leave a database command, broker connection, child process or container-start operation running without an owner. Use events, barriers or condition-based polling with a deadline for eventual outcomes; do not establish correctness through fixed sleeps.
+
+On startup/test failure, capture bounded, redacted diagnostics before disposal. Retain the original failure if cleanup also fails, while reporting cleanup failure separately or in an aggregate.
+
+5. POSTGRESQL: PRESERVE THE ACTUAL GUARANTEES
+
+Adapt these existing fixtures:
+- Transactions/PostgresTransactionFixture.cs
+- Operations/PostgresOperationFixture.cs
+- Messaging/PostgresMessageFixture.cs, when present
+
+Supply connection information directly from the owned container to the in-process fixture. Preserve bounded pools, explicit database/user/password, command/cancellation limits, and disabled ambient transaction enlistment. Do not loosen unrelated settings simply because the connection is generated.
+
+CRITICAL: Testcontainers for .NET's PostgreSQL module currently adds fsync=off, full_page_writes=off and synchronous_commit=off by default. These settings must be overridden for CISLIB. Use the pinned version's supported command-composition API to remove those defaults and explicitly keep all three enabled. The official documentation demonstrates resetting module arguments with:
+    WithCommand(new OverwriteEnumerable<string>(Array.Empty<string>()))
+Confirm the selected API against the pinned package; do not rely on an unverified copied snippet. [T6]
+
+After startup, assert:
+    SHOW fsync;               -- on
+    SHOW full_page_writes;    -- on
+    SHOW synchronous_commit; -- on
+Also verify the selected PostgreSQL major version and ordinary logged tables.
+
+Retain real production schema installers/migrations. Preserve current unique schemas and fully qualified table names. When a scenario needs two independent instances, construct independent service scopes/data sources/connections as required by the contract; two tasks on one connection do not prove cross-instance arbitration.
+
+Check outcomes from an independent session after transaction settlement. Preserve the existing distinctions among Committed, NotCommitted and Unknown. Do not add automatic business-work/commit retries unless the existing module contract explicitly permits them.
+
+For restart tests:
+- Keep the same owned database storage across the restart.
+- Reconnect using fresh application/service instances.
+- Verify committed business/result/outbox rows and recovery of the original result.
+- Verify unfinished transactions did not leave committed effects.
+- Label clean restart, abrupt database-process termination, application-process death and simulated lost acknowledgement accurately. They establish different facts. A container restart is not a power-loss or storage-hardware test.
+
+6. RABBITMQ: KEEP TLS, PERMISSIONS AND TOPOLOGY
+
+Adapt RabbitMqMessageFixture using the owned RabbitMqContainer.
+
+Preserve the existing:
+- Fresh test credentials and separate service, other, rogue and setup principals.
+- Non-default vhost and per-test topology namespaces.
+- Test CA, trusted-root validation and expected TLS server identity.
+- Negative hostname, forged user-id and insufficient-permission cases.
+- Quorum queue settings, durable/persistent behavior, mandatory returns, publisher confirms, manual acknowledgements and safe dead-letter/quarantine behavior.
+
+Generate ephemeral certificates and broker configuration as part of setup. Keep certificate-name validation consistent with the configured server identity and the actual endpoint. Do not install the test root into a machine trust store or allow every certificate.
+
+Use the existing setup/production topology code. Grant only the permissions required by each principal; keep the negative-test principal restricted. A generic default-credential/plaintext example is insufficient for this suite.
+
+Replace DockerAsync, DockerExecutableWindowsPath, DockerConfigWindowsPath and the fixed named-pipe endpoint with the owned Testcontainers API. Use its container execution capability for necessary rabbitmqctl observations. Restart the same dedicated owned container with its data intact, then wait for authenticated readiness.
+
+Preserve the existing real broker restart/redelivery scenario. Publisher confirmation and consumer acknowledgement are separate guarantees. A successful confirm does not prove consumer processing; mandatory unroutable returns must remain distinct. [T7]
+
+Keep initial connection failure separate from failure after connection establishment. RabbitMQ .NET automatic recovery does not cover every initial connection, publishing or channel-error case. Validate the behavior that CISLIB's current policy promises. [T8]
+
+7. CHILD PROCESSES AND PUBLIC PACKAGE CONSUMERS
+
+Preserve MessageRpcProcessFixture and its genuine process-death/recovery coverage.
+
+The parent test process owns containers. Child processes receive only the endpoint, credentials, certificate and scenario data needed to use those instances; they do not independently create or delete the parent's services.
+
+Where existing children require connection files:
+- Generate short-lived descriptors from the Testcontainers instances.
+- Preserve the required file format or update all readers together.
+- Pass descriptor paths explicitly in each child's environment.
+- Keep parent-process fixture configuration in typed owned state; avoid process-global environment changes that can race with another test.
+- Restrict descriptor/key-file access, keep secrets out of command lines and reports, and delete them after all children and clients settle.
+- Keep child-process startup, shutdown and output capture bounded.
+
+These files become an internal handoff. A developer no longer has to provision services and write connection files before running the suite.
+
+Do not introduce a second general external-service configuration mode unless an existing concrete requirement still needs it. Default test execution must create and own its disposable services.
+
+8. TEST SELECTION AND MISSING INFRASTRUCTURE
+
+Add MSTest categories based on actual dependencies:
+- RequiresDocker for every test that directly or indirectly needs containers.
+- PostgreSql for PostgreSQL users.
+- RabbitMq for RabbitMQ users.
+- Combined tests carry both service categories.
+
+Classify process, package, hosting and instrumentation cases by what they actually use, not by folder name.
+
+When a selected RequiresDocker test cannot reach Docker, pull its pinned image, provision its service or finish readiness, the run must fail clearly. Remove Assert.Inconclusive for missing setup on the automatic-container path. An intentionally excluded service test is different from a selected test that never ran.
+
+Keep fast tests usable without Docker. After categories and fixtures are implemented, document these ordinary commands from implementations/csharp:
+
+    dotnet restore CisLib.slnx --locked-mode
+    dotnet build CisLib.slnx -c Release --no-restore
+
+Fast regression, explicitly excluding service, performance and extended stress cases:
+    dotnet test CisLib.slnx -c Release --no-build --no-restore --filter "TestCategory!=RequiresDocker&TestCategory!=PerformanceObservation&TestCategory!=ExtendedStress"
+
+Real-service integration:
+    dotnet test tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj -c Release --no-build --no-restore --filter "TestCategory=RequiresDocker&TestCategory!=PerformanceObservation&TestCategory!=ExtendedStress" --logger "trx;LogFileName=service-tests.trx"
+
+Focused PostgreSQL-only work, excluding cases that also need RabbitMQ:
+    dotnet test tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj -c Release --no-build --no-restore --filter "TestCategory=RequiresDocker&TestCategory=PostgreSql&TestCategory!=RabbitMq&TestCategory!=PerformanceObservation&TestCategory!=ExtendedStress"
+
+The categories and new behavior above are proposed changes, not features of the audited revisions. Adjust the project command if a necessary separate test assembly is introduced.
+
+A required service lane must reject zero matched tests and skipped/inconclusive selected service cases. Use existing native report capabilities; add only a small result check if needed. Keep full integration distinct from the fast selection in documentation and reported results.
+
+9. BEHAVIORAL COVERAGE: MIGRATE BEFORE EXPANDING
+
+Retain existing tests for:
+
+A. Transactions and durable operations
+- Business changes, operation result and outgoing record commit together.
+- Rollback, failed SQL and uncommitted disposal leave no partial committed effects.
+- Independent connections arbitrate concurrent duplicate operations.
+- Replay returns the original committed success/rejection without repeating the effect.
+- Isolation, blocked cancellation, timeouts, schema compatibility and retention behavior remain correct.
+
+B. RabbitMQ transport
+- TLS identity and broker-principal permissions.
+- Real confirmed publication, routing and mandatory unroutable handling.
+- Persistent/unacknowledged work, requeue and owned broker restart.
+- Queue bounds, safe dead-letter behavior and topology mismatch.
+
+C. PostgreSQL plus RabbitMQ
+- Outbox publication follows committed visibility; rolled-back work is not published.
+- A retained publication is retried with the same MessageId and exact stored encoded bytes.
+- Duplicate or redelivered messages do not repeat a committed business effect.
+- Consumer transaction settlement controls when acknowledgement becomes safe.
+- Existing RPC timeouts, caller/responder process death and original-result recovery continue to work.
+
+These are existing useful behaviors, not a request to duplicate every test.
+
+Fill only concrete remaining gaps:
+1. A focused PostgreSQL interruption/restart scenario preserving storage and verifying committed-result recovery plus absence of unfinished effects. Use fresh application state.
+2. A focused initial broker-unavailability/recovery case if the existing suite lacks it and the adapter promises that behavior.
+3. Meaningful fixture validation: successful cleanup, cleanup after failed startup, and isolation of independent runs. Use a small smoke case or the existing behavior tests where they already prove this.
+
+Keep deterministic acknowledgement-loss seams and identify them as simulated. Add real network-fault injection only for a specifically required property not already covered; do not introduce a proxy framework for this migration.
+
+10. CI AND REPRODUCIBILITY
+
+Implement an actual Docker-capable service-test job. Prefer the project's existing CI if present in the working checkout; otherwise add a small GitHub Actions workflow under .github/workflows.
+
+Use a Linux runner with:
+- The repository's pinned SDK and selected .NET/ASP.NET runtimes.
+- A reachable Linux Docker engine.
+- Access to the pinned PostgreSQL, RabbitMQ and Resource Reaper images.
+- The same locked restore/build/test commands used locally.
+
+Testcontainers owns the services. Do not provision duplicate PostgreSQL/RabbitMQ instances through a second CI services definition. Use generated test credentials; production credentials are unnecessary.
+
+Run the service lane for relevant pull requests, including runtime, provider, test-infrastructure, dependency/pin and schema changes. Keep a stable job/check identity and ensure an omitted/empty service selection cannot count as an integration pass. Use the repository's existing merge/check policy; describe any external enforcement that is outside the implementation.
+
+Windows development may use Docker Desktop in Linux-container mode. Remove the current dependency on Windows paths so Linux CI works natively. A Linux pass does not establish Windows execution; report actual platforms and preserve existing platform obligations. [T9]
+
+Use bounded job/startup timeouts, allowing for cold image pulls. Record image identities, service versions, selected tests, counts and duration in a concise result. Keep one native result report and capped failure logs with ordinary short artifact retention. Do not collect database dumps, full container filesystems or unbounded evidence histories.
+
+11. FUTURE SERVICES AND AGENT GUIDANCE
+
+For each future external service:
+- Add its supported Testcontainers module or a small generic container fixture when the module does not exist.
+- Pin the image, implement authenticated/protocol readiness, isolate test state, bound resources and register the relevant test category.
+- Exercise the production adapter and actual service semantics.
+- Reuse the lifecycle conventions above without inventing a new service-management framework.
+
+The semantic test requirements are portable across future language implementations. This change is .NET test infrastructure; future SDKs may use their language's suitable container-testing library while preserving the same acceptance behaviors.
+
+Update AGENTS.md with a short rule such as:
+
+"External-service integration tests use automatically provisioned, isolated Testcontainers instances. Keep container dependencies in non-packable test infrastructure. Preserve real-provider behavior and production durability/security settings. Selected service tests fail if required infrastructure is unavailable; fast checks explicitly exclude them. Use pinned images, generated endpoints, bounded readiness, per-test isolation and owned cleanup. Follow implementations/csharp/tests/README.md for commands and add the same coverage whenever a new external-service adapter is introduced."
+
+Update one canonical testing guide and link it from relevant module guides. Refresh README commands, current dependency policy, affected source mappings/locks and docs/references/test-suite-profile.md. Describe generated child descriptors so future agents do not restore manual provisioning requirements.
+
+Keep documentation proportional. A concise current decision, implementation changes and verification summary are sufficient; retain any records genuinely required by the active project workflow.
+
+12. COMPLETION AND REPORTING
+
+Completion requires:
+1. A fresh supported checkout with Docker and the selected toolchain runs the selected PostgreSQL/RabbitMQ tests without manually creating services or connection files.
+2. Existing migrated behavior passes; no selected service case is hidden as inconclusive, skipped or unselected.
+3. Fast selection runs without starting or contacting Docker.
+4. PostgreSQL durability checks and RabbitMQ TLS/permission/topology checks remain enforced.
+5. RPC child-process and relevant public-package consumer coverage still runs against the owned instances.
+6. Normal completion, failed startup and test failure attempt owned cleanup; no unrelated resources are removed.
+7. The service CI job exists and executes a nonempty selection. Distinguish authored workflow from an observed passing CI run.
+8. Shipping package dependency closures remain unchanged by Testcontainers.
+9. Documentation clearly separates fast tests, service tests and broader release qualification.
+
+Verify affected code and the migrated service lane. Avoid optional mutation/performance campaigns and repeated full-suite launches that do not resolve a concrete risk.
+
+Report:
+- Actual target commit and changed areas.
+- Testcontainers versions and service image digests.
+- Exact commands and runner platform.
+- Passed, failed, skipped/inconclusive counts and elapsed time.
+- Cleanup/isolation observations.
+- Any genuinely unexecuted platform, network-fault or deployment claims.
+
+Single-node container tests do not establish multi-node broker failover, production deployment or complete release qualification.
+
+SOURCE REFERENCES
+
+Repository links are pinned to the reviewed revisions.
+
+[R1] Central packages and integration project:
+https://github.com/andrewspiteri/CISLIB/blob/669d286711340e7f63398256cee27575932f58f4/implementations/csharp/Directory.Packages.props
+https://github.com/andrewspiteri/CISLIB/blob/0a77508e8a8327760a6cff77b1f5fa0f2f0c454b/implementations/csharp/Directory.Packages.props
+https://github.com/andrewspiteri/CISLIB/blob/0a77508e8a8327760a6cff77b1f5fa0f2f0c454b/implementations/csharp/tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj
+
+[R2] Native execution and parallelism:
+https://github.com/andrewspiteri/CISLIB/blob/669d286711340e7f63398256cee27575932f58f4/README.md
+https://github.com/andrewspiteri/CISLIB/blob/0a77508e8a8327760a6cff77b1f5fa0f2f0c454b/implementations/csharp/tests/TestAssembly.cs
+
+[R3] RM-02 PostgreSQL fixture:
+https://github.com/andrewspiteri/CISLIB/blob/669d286711340e7f63398256cee27575932f58f4/implementations/csharp/tests/CIS.Core.IntegrationTests/Transactions/PostgresTransactionFixture.cs
+
+[R4] RM-03 PostgreSQL fixture:
+https://github.com/andrewspiteri/CISLIB/blob/669d286711340e7f63398256cee27575932f58f4/implementations/csharp/tests/CIS.Core.IntegrationTests/Operations/PostgresOperationFixture.cs
+
+[R5] RM-04 PostgreSQL fixture:
+https://github.com/andrewspiteri/CISLIB/blob/0a77508e8a8327760a6cff77b1f5fa0f2f0c454b/implementations/csharp/tests/CIS.Core.IntegrationTests/Messaging/PostgresMessageFixture.cs
+
+[R6] RabbitMQ fixture and platform-specific Docker commands:
+https://github.com/andrewspiteri/CISLIB/blob/0a77508e8a8327760a6cff77b1f5fa0f2f0c454b/implementations/csharp/tests/CIS.Core.IntegrationTests/Messaging/RabbitMqMessageFixture.cs
+
+[R7] Existing RabbitMQ integration coverage:
+https://github.com/andrewspiteri/CISLIB/blob/0a77508e8a8327760a6cff77b1f5fa0f2f0c454b/implementations/csharp/tests/CIS.Core.IntegrationTests/Messaging/RabbitMqTransportTests.cs
+https://github.com/andrewspiteri/CISLIB/blob/0a77508e8a8327760a6cff77b1f5fa0f2f0c454b/docs/modules/messaging/testing.md
+
+[R8] RPC child handoff and actual process-death coverage:
+https://github.com/andrewspiteri/CISLIB/blob/0a77508e8a8327760a6cff77b1f5fa0f2f0c454b/implementations/csharp/tests/CIS.Core.IntegrationTests/Messaging/MessageRpcProcessFixture.cs
+https://github.com/andrewspiteri/CISLIB/blob/0a77508e8a8327760a6cff77b1f5fa0f2f0c454b/implementations/csharp/tests/CIS.Core.IntegrationTests/Messaging/MessageRequestIntegrationTests.cs
+
+[R9] Suite classification and CI limitation:
+https://github.com/andrewspiteri/CISLIB/blob/669d286711340e7f63398256cee27575932f58f4/docs/references/test-suite-profile.md
+
+[R10] Native commit acknowledgement-loss seam:
+https://github.com/andrewspiteri/CISLIB/blob/669d286711340e7f63398256cee27575932f58f4/implementations/csharp/tests/CIS.Core.IntegrationTests/Operations/NativeCommitBoundarySource.cs
+
+[R11] Combined publication/dispatch and historical observations:
+https://github.com/andrewspiteri/CISLIB/blob/0a77508e8a8327760a6cff77b1f5fa0f2f0c454b/implementations/csharp/tests/CIS.Core.IntegrationTests/Messaging/MessagePublicationIntegrationTests.cs
+https://github.com/andrewspiteri/CISLIB/blob/0a77508e8a8327760a6cff77b1f5fa0f2f0c454b/implementations/csharp/tests/CIS.Core.IntegrationTests/Messaging/MessageDispatchIntegrationTests.cs
+https://github.com/andrewspiteri/CISLIB/blob/0a77508e8a8327760a6cff77b1f5fa0f2f0c454b/docs/changes/CIS-0019/verification.md
+
+[R12] Current dependency boundaries:
+https://github.com/andrewspiteri/CISLIB/blob/0a77508e8a8327760a6cff77b1f5fa0f2f0c454b/docs/architecture/csharp-dependency-policy.md
+https://github.com/andrewspiteri/CISLIB/blob/669d286711340e7f63398256cee27575932f58f4/AGENTS.md
+
+Official technical references, checked 22 November 2026:
+
+[T1] Testcontainers best practices:
+https://dotnet.testcontainers.org/api/best_practices/
+
+[T2] Resource Reaper:
+https://dotnet.testcontainers.org/api/resource_reaper/
+
+[T3] Resource reuse:
+https://dotnet.testcontainers.org/api/resource_reuse/
+
+[T4] Readiness and builder composition:
+https://dotnet.testcontainers.org/api/wait_strategies/
+https://dotnet.testcontainers.org/api/builder_configurations/
+
+[T5] PostgreSQL/RabbitMQ modules and NuGet private assets:
+https://dotnet.testcontainers.org/modules/postgres/
+https://dotnet.testcontainers.org/modules/rabbitmq/
+https://learn.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files
+
+[T6] PostgreSQL module defaults and resetting command arguments:
+https://dotnet.testcontainers.org/modules/postgres/#default-configuration
+https://dotnet.testcontainers.org/api/create_docker_container/#composing-command-arguments
+
+[T7] RabbitMQ acknowledgement/confirmation semantics:
+https://www.rabbitmq.com/docs/confirms
+
+[T8] RabbitMQ .NET connection and recovery behavior:
+https://www.rabbitmq.com/client-libraries/dotnet-api-guide
+
+[T9] Testcontainers CI requirements:
+https://dotnet.testcontainers.org/cicd/
+
