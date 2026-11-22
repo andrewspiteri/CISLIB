@@ -31,6 +31,8 @@
     <InternalsVisibleTo Include="CIS.Metrics.OpenTelemetry" />
     <InternalsVisibleTo Include="CIS.RestClient.Resilience" />
     <InternalsVisibleTo Include="CIS.Messaging.RabbitMQ" />
+    <InternalsVisibleTo Include="CIS.Security.Certificates" />
+    <InternalsVisibleTo Include="CIS.Security.Entra" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     <ProjectReference Include="../../eng/CIS.TypeManager.Build/CIS.TypeManager.Build.csproj" ReferenceOutputAssembly="false" Private="false" PrivateAssets="all" GlobalPropertiesToRemove="RuntimeIdentifier;SelfContained;PublishSingleFile;PublishTrimmed;PublishAot;OutputPath;OutDir;_CommandLineDefinedOutputPath;CisTypeManagerEnabled" />
     <None Include="../../../../README.md" Pack="true" PackagePath="README.md" />
@@ -38,6 +40,8 @@
     <None Update="Operations/PostgreSql/install-v1.sql" Pack="true" PackagePath="contentFiles/any/any/CIS.Operations/PostgreSql/install-v1.sql" />
     <EmbeddedResource Include="Messaging/PostgreSql/install-v2.sql" LogicalName="CIS.Messaging.PostgreSql.install-v2.sql" />
     <None Update="Messaging/PostgreSql/install-v2.sql" Pack="true" PackagePath="contentFiles/any/any/CIS.Messaging/PostgreSql/install-v2.sql" />
+    <EmbeddedResource Include="Coordination/PostgreSql/install-v1.sql" LogicalName="CIS.Coordination.PostgreSql.install-v1.sql" />
+    <None Update="Coordination/PostgreSql/install-v1.sql" Pack="true" PackagePath="contentFiles/any/any/CIS.Coordination/PostgreSql/install-v1.sql" />
   </ItemGroup>
   <Import Project="../../build/type-manager/package/CIS.TypeManager.Pack.targets" />
 </Project>

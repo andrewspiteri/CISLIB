@@ -157,6 +157,24 @@ and before root disposal, including a timed-out bounded logging stop. An instanc
 registration remains borrowed and must be stopped/drained by its external owner.
 A failed stop wait does not authorize independent root disposal.
 
+Selecting `AddCisCoordination` or `AddCisJobs` in the normal services callback adds
+an earlier drain stage. Coordination validates its selected authority at the end
+of sequential startup; jobs then connect their one complete Configuration binding
+and start only explicitly configured continuous targets. Register the passive
+catalog, trusted scope factory and application-owned provider first. See the
+[coordination hosting guide](../coordination/hosting.md) for the exact APIs.
+
+Stopping immediately closes new duty admission and marks readiness as stopping.
+Admitted callbacks and their owned scopes retain REST, Messaging, Configuration,
+credentials, Heartbeat and collector access until actual settlement. A drain
+deadline ends local ownership and requests cancellation; it cannot prove that an
+uncooperative callback or its scope cleanup has returned. Stop and disposal keep
+joining that work. This stage also applies when native Build fails after creating
+the provider, and to already-running borrowed runtimes registered before Build.
+The facade captures passive lifetime metadata before Build and never resolves new
+services during failed-provider cleanup. The Startup coordinator remains
+independent of Coordination and Heartbeat.
+
 DisposeAsync errors propagate independently and cannot retroactively change a
 returned RunAsync value. Read the current
 [verification record](../../changes/CIS-0011/verification.md) for actual native

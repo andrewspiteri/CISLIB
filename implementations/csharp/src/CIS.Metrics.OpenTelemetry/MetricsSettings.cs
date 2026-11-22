@@ -131,6 +131,14 @@ internal sealed class MetricsSettings
     {
         get;
     }
+    internal bool CollectCoordination
+    {
+        get;
+    }
+    internal bool CollectJobs
+    {
+        get;
+    }
     internal int SecurityProfileCapacity
     {
         get;
@@ -207,11 +215,13 @@ internal sealed class MetricsSettings
     // Configured options stay immutable and comparable independently of registration order.
     // Only the final context derives composition before any provider/producer is activated.
     internal MetricsSettings ForComposition(bool hasRestClient, bool hasWorkflows = false, bool hasStateMachines = false,
-        int securityProfileCapacity = 0, bool hasTransactions = false, bool hasOperations = false, bool hasMessaging = false)
-        => new(this, hasRestClient, hasWorkflows, hasStateMachines, securityProfileCapacity, hasTransactions, hasOperations, hasMessaging);
+        int securityProfileCapacity = 0, bool hasTransactions = false, bool hasOperations = false, bool hasMessaging = false,
+        bool hasCoordination = false, bool hasJobs = false)
+        => new(this, hasRestClient, hasWorkflows, hasStateMachines, securityProfileCapacity, hasTransactions, hasOperations, hasMessaging,
+            hasCoordination, hasJobs);
 
     private MetricsSettings(MetricsSettings configured, bool hasRestClient, bool hasWorkflows, bool hasStateMachines,
-        int securityProfileCapacity, bool hasTransactions, bool hasOperations, bool hasMessaging)
+        int securityProfileCapacity, bool hasTransactions, bool hasOperations, bool hasMessaging, bool hasCoordination, bool hasJobs)
     {
         Enabled = configured.Enabled;
         CollectCoreModules = configured.CollectCoreModules;
@@ -227,6 +237,8 @@ internal sealed class MetricsSettings
         CollectTransactions = hasTransactions && CollectCoreModules;
         CollectOperations = hasOperations && CollectCoreModules;
         CollectMessaging = hasMessaging && CollectCoreModules;
+        CollectCoordination = hasCoordination && CollectCoreModules;
+        CollectJobs = hasJobs && CollectCoreModules;
         MaxDefinitions = configured.MaxDefinitions;
         MaxStreams = configured.MaxStreams;
         CardinalityLimit = configured.CardinalityLimit;

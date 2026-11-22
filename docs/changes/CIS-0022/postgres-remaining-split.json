@@ -1,0 +1,18 @@
+{
+  "tasks": [
+    {
+      "title": "Complete PostgreSQL authority schema packaging and native proof",
+      "category": "implementation",
+      "complexity": "medium",
+      "scopeIds": [
+        "postgres"
+      ],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "assignee": "Codex",
+      "acceptanceCriteria": "AC01/02/03/06/07/08: explicit immutable AuthorityId/version installer, logged CACHE1 NO CYCLE sequence, first/recreation perkey upsert locking+separate currenttime, committed grants/exact observation/conditional renew-release-prune. Original RM02 alias/ReadCommitted guard locks current row, checks time afterwait and poisons rejection without hidden commit/reentrancy. Preserve common RM03/Messaging lockorder and exact outcome/cleanup facts.",
+      "validation": "Use existing typed ownedPG, independent application sources/sessions, real contention/unrelatedkeys, stalegrant rejection, pooledgeneration/release/prune/restart, sequenceproperties/authoritymismatch, real guard-lockwait expiry and transaction/takeover serialization. Focus Windows/actualLinux, zero selectedskips, exactcleanup; provider/lockorder/migration docs and independentreview."
+    }
+  ]
+}

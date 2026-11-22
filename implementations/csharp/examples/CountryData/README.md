@@ -209,3 +209,113 @@ for local-package build/publish and exporter output; and the
 [public consumer](../../tests/CIS.Core.IntegrationTests/CountryData/CountryDataPublicConsumerTests.cs)
 for substitution and helper usage outside friend assemblies. This testing order
 keeps application unit examples useful without substituting them for integration proof.
+
+## Shared coordination recipes
+
+The compiling [Coordination recipes](Coordination/CountryMaintenanceJobs.cs) are
+explicit opt-in application code in this same example. The normal CountryData
+service and caller select no database, coordination provider, jobs or scheduling
+source. Installing the module or inspecting the catalog starts no work.
+
+`AddCountryMaintenanceJobs` registers exactly these independent responsibilities
+and freezes their passive catalog:
+
+| Registered target | Handler | Category and mode |
+| --- | --- | --- |
+| `wallet-service / wallet.compaction` | [WalletCompactionJob](Coordination/WalletCompactionJob.cs) | `maintenance`, Continuous finite batches |
+| `customer-service / customer.dormancy` | [CustomerDormancyJob](Coordination/CustomerDormancyJob.cs) | `lifecycle`, Scheduled external occurrences |
+
+`CountryMaintenanceJobs.Settings()` disables the host and both jobs. The customer
+settings describe Daily 02:00 in `Europe/Malta`, missed runs `Skip`, nonexistent
+local times `Skip`, repeated times `OnceAtEarlierInstant`, and
+`ExternalOccurrences` activation. This descriptor performs no recurrence
+calculation. A compatible trusted source must already have admitted each run;
+automatic recurrence additionally needs a later compatible evaluator.
+
+An application selecting these recipes supplies its host-lived BCL data source
+and existing `ILocalTransactionFactory`, installs the selected authority schema
+explicitly, and registers the guard, trusted target resolver, application work
+ports and Operations definitions. The `Maintenance` alias must select the same
+authority database used by the original-context guard. Register a durable
+`customer.dormancy` definition for `CustomerDormancyInput` /
+`CustomerDormancyResult`, with explicit canonical input/result codecs, stable
+scope-to-resource mapping and existing execute/lookup capabilities. The scheduled
+Messaging payload codec in this example is a separate transport contract.
+
+[SecurityJobScopeFactory](Coordination/SecurityJobScopeFactory.cs) wraps the actual
+`SecurityHostContextScope`. Its trusted hosting supplier performs native workload
+authentication for the selected receiving profile; serialized callers or ambient
+HTTP principals cannot establish this authority. The ordinary scoped authorizer
+still checks the complete resolved resource and job capabilities. The application
+can register both definitions only when its current established authority permits
+both targets. Sharing category text supplies no permission.
+
+After supplying those explicit dependencies, the existing services callback can
+select the known hosting integration:
+
+```csharp
+services.AddCountryMaintenanceJobs();
+services.AddSingleton<IJobExecutionScopeFactory>(root =>
+    new SecurityJobScopeFactory(root, "maintenance-native", AuthenticateMaintenanceWorkloadAsync));
+services.AddCisCoordination(coordinationOptions);
+services.AddCisJobs(CountryMaintenanceJobs.Settings(1,
+    enabled: true, walletEnabled: true, customerEnabled: true), new JobHostingOptions
+{
+    ContinuousTargets =
+    [
+        new("wallet-service", "wallet.compaction", "partition-1", JobExecutionMode.Continuous)
+    ]
+});
+```
+
+The imports for that composition are `CIS.Examples.CountryData.Coordination`,
+`CIS.Jobs`, `CIS.Jobs.Hosting` and `CIS.Coordination.Hosting`. The authentication
+function and provider/business registrations belong to the application. Keep the
+usual DI validation and [sequential hosting order](../../../../docs/modules/coordination/hosting.md).
+A direct Generic Host consumer arranges the known bridges explicitly; the facade
+arranges its cooperating descriptors.
+
+The wallet handler begins one owner, validates the exact grant on that original
+context, invokes one finite `IWalletCompactionWork` batch, then inspects actual
+commit completion. The work implementation must atomically read/advance its
+stable durable checkpoint with the batch writes. Committed maps to MoreWork or
+Idle; Unknown remains Indeterminate, and no automatic business replay is added.
+Checkpoint and operation identities must survive generation changes.
+This wallet recipe uses direct checkpointed writes in the original context.
+If the application instead adds RM-03 to wallet compaction, claim its journal
+entry before taking the grant guard, following the customer recipe's lock order.
+Do not invoke Operations from `IWalletCompactionWork` after the guard is held.
+
+The customer handler retains the admitted original `MessageOperationReference`,
+including its independently resolved scope and opaque key. Its actual Operations
+handler validates the grant after the journal claim and before calling
+`ICustomerDormancyWork`, following the common journal → grant → business/outgoing
+lock order. That application port must write its protected changes and stage any
+`IMessageOutbox` intent in the same supplied context, using stable outgoing IDs
+bound to the original input/operation. It must not send directly or acknowledge
+the scheduler occurrence. Prepared is committed by the owner before Completed;
+Unknown returns Indeterminate. Explicit `RecoverAsync` performs a fresh authorized
+original-result lookup; a missing result alone cannot establish rollback. Replayed
+returns PreviouslyCompleted without running the business handler. The new read
+owner is rolled back, and that read cleanup is never presented as the original
+business commit. Committed outgoing intent remains valid after ownership ends.
+
+Start testing these application boundaries with
+[MaintenanceRecipeExamples](../CountryData.UnitTests/Coordination/MaintenanceRecipeExamples.cs)
+in the existing solution `examples / CountryData.UnitTests` project. They reuse
+public `ManualCoordinationLease`, `ScriptedLocalTransactionFactory`,
+`ScriptedDurableOperationService`, `ScriptedCoordinationService` and
+`ScriptedJobRunSource` helpers. Assertions cover correct handler selection,
+original-context guard order, finite batch results, refused/unknown commits,
+unchanged original identity, explicit recovery and controlled external dispatch.
+Scripts perform no SQL, authentication, automatic renewal, durable journal claim
+or outgoing delivery. The one clearly named application handler stub invokes the
+callback only to test that recipe's guarded context interval; it supplies no journal
+semantics. Manual generations in one test process are not independent application
+instances or a database contention proof.
+
+The separate [native consumer proof](../../../../docs/modules/coordination/consumers.md)
+uses the existing isolated PostgreSQL, broker and public-package process fixtures
+for actual original-context atomicity, increasing generations, committed outgoing
+intent, and genuinely separate process-instance crash takeover. Keep those actual
+results and platform limits distinct from these application unit examples.

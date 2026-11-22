@@ -147,3 +147,14 @@ catalog with these helpers and `DisabledMetrics.Instance`, without a native host
 HTTP server, service provider or collector. The
 [application testing guide](../../examples/CountryData/README.md#testing-examples)
 lists expected results, the test command and the integration boundaries.
+
+For shared duties, use `ScriptedCoordinationService`, `ManualCoordinationLease`
+and `ScriptedJobRunSource` through the public Coordination/Jobs ports. Scripts and
+recordings are explicitly bounded; no authority, SQL guard, renewal loop, native
+authorization or recurring scheduler executes. Tests supply logical results and
+must still join their actual callback/scope work. The scheduled helper retains
+metadata and a frame digest/length rather than input frames. Read the
+[Coordination testing guide](../../../../docs/modules/coordination/testing.md),
+[scheduled guide](../../../../docs/modules/coordination/scheduled-testing.md) and
+[CountryData recipe examples](../../examples/CountryData.UnitTests/Coordination)
+before treating scripts as evidence for another boundary.

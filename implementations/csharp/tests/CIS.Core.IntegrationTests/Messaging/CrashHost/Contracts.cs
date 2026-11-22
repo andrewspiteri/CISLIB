@@ -18,6 +18,11 @@ public sealed class CrashDescriptor
     public string MessagingSchema { get; set; } = "";
     public string OperationSchema { get; set; } = "";
     public string CounterSchema { get; set; } = "";
+    public string CoordinationSchema { get; set; } = "";
+    public Guid CoordinationAuthority
+    {
+        get; set;
+    }
     public string MarkerPath { get; set; } = "";
     public string ResultPath { get; set; } = "";
     public string CancelPath { get; set; } = "";
@@ -91,6 +96,36 @@ public sealed class CrashReport
     }
     public string CoreHash { get; set; } = "";
     public string PreCommitExchange { get; set; } = "";
+    public string InstanceId { get; set; } = "";
+    public string CoordinationOutcome { get; set; } = "";
+    public string ObservedOwnerInstanceId { get; set; } = "";
+    public string Generation { get; set; } = "";
+    public Guid OutgoingRecordId
+    {
+        get; set;
+    }
+    public string OutgoingDigest { get; set; } = "";
+}
+
+// Controlled application-policy substitution for SQL/process tests. It authenticates no workload or broker.
+public sealed class CoordinationConsumerAuthorization(LocalApplicationIdentity local) : ICapabilityAuthorizer
+{
+    public int Checks
+    {
+        get; private set;
+    }
+
+    public ValueTask<AuthorizationDecision> AuthorizeAsync(IReadOnlyList<string> capabilities, CapabilityTarget target,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        Checks++;
+        bool allowed = target.Application == local.Application && target.Environment == local.Environment
+            && target.ResourceType == "ledger" && target.ResourceIdentifier == "account"
+            && capabilities.Count > 0 && capabilities.All(capability => capability is "dispatch.execute" or "dispatch.lookup");
+        return ValueTask.FromResult(allowed ? AuthorizationDecision.Allow
+            : AuthorizationDecision.Deny(new(SecurityFailureKind.CapabilityDenied, "The controlled consumer policy refused the target.")));
+    }
 }
 
 public static class CrashContracts
@@ -159,6 +194,25 @@ public static class CrashContracts
             ExecuteCapabilities = ["dispatch.execute"],
             LookupCapabilities = ["dispatch.lookup"]
         });
+
+    // One extra scenario in the existing public process fixture; no calendar or workload host is embedded here.
+    public static MessagingSnapshot CoordinationSnapshot(MessagingOptions options, LocalApplicationIdentity local, bool consume)
+    {
+        var codec = new NumberCodec();
+        MessageSubscriptionDefinition[] subscriptions = consume
+            ? [new MessageSubscriptionDefinition<int>("Coordination", "Messaging", "coordination", codec,
+                _ => new CoordinationCaptureHandler(),
+                (_, _, _, _) => ValueTask.FromResult(new CapabilityTarget(local.Application, local.Environment)), ["fixture.handle"])]
+            : [];
+        return new(options, [new MessageRouteDefinition<int>("coordination", MessageKind.Event, codec)],
+            [new("Messaging", "Messaging")], subscriptions);
+    }
+
+    private sealed class CoordinationCaptureHandler : IMessageHandler<int>
+    {
+        public Task HandleAsync(MessageHandlerContext context, int value, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
+    }
 
     private sealed class NumberCodec : IMessageCodec<int>
     {

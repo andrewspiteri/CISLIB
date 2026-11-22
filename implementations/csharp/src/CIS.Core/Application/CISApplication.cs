@@ -353,6 +353,11 @@ public sealed class CISApplication : IAsyncDisposable
                 }
             }
 
+            if (composition.Coordination is { } coordination)
+            {
+                await CaptureAsync(coordination.StopAsync, errors).ConfigureAwait(false);
+            }
+
             CloseModuleAdmission(errors);
             if (composition.Messaging is { } messaging)
             {
@@ -473,6 +478,11 @@ public sealed class CISApplication : IAsyncDisposable
                 }, errors).ConfigureAwait(false);
             }
 
+            if (composition.Coordination is { } coordination)
+            {
+                await CaptureAsync(() => coordination.DisposeAsync().AsTask(), errors).ConfigureAwait(false);
+            }
+
             // Preparation precedes DI ownership; Build may fail before its factory is resolved.
             if (composition.Configuration is { } configuration)
             {
@@ -543,6 +553,22 @@ public sealed class CISApplication : IAsyncDisposable
 
     private void CloseModuleAdmission(List<Exception> errors)
     {
+        if (composition.Coordination is { IsDrained: false } coordination)
+        {
+            try
+            {
+                coordination.BeginStopping();
+            }
+            catch (Exception exception)
+            {
+                errors.Add(exception);
+            }
+
+            // Admitted jobs can still need credentials, REST, configuration and
+            // collectors. The lifetime flags stopping health without closing them.
+            return;
+        }
+
         Close(() => composition.Messaging?.BeginStopping());
         Close(() => composition.BoundHealth?.BeginStopping());
         Close(() => composition.Rest?.BeginStopping());

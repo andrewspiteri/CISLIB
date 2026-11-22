@@ -1,4 +1,5 @@
 using CIS.Configuration;
+using CIS.Coordination.Hosting;
 using CIS.Healthcheck;
 using CIS.Heartbeat;
 using CIS.Heartbeat.Hosting;
@@ -29,6 +30,10 @@ internal sealed class CISApplicationComposition
     private PipelineHostingRegistration? workflows;
 
     internal PipelineHostingRegistration? Workflows => workflows;
+    internal CoordinationHostLifetime? Coordination
+    {
+        get; private set;
+    }
     internal MessagingRuntime? Messaging
     {
         get; private set;
@@ -115,6 +120,7 @@ internal sealed class CISApplicationComposition
 
     internal void Seal()
     {
+        CaptureCoordination();
         workflows = setup.Services.LastOrDefault(item => !item.IsKeyedService
             && item.ServiceType == typeof(PipelineHostingRegistration))?.ImplementationInstance as PipelineHostingRegistration;
         ArgumentNullException.ThrowIfNull(setup.TypeManager);
@@ -175,6 +181,7 @@ internal sealed class CISApplicationComposition
         {
             integration.ConfigureServices(setup.Services);
         }
+        CaptureCoordination();
         setup.Services.TryAddSingleton<IMetrics>(DisabledMetrics.Instance);
         if (setup.MessagingEnabled)
         {
@@ -186,6 +193,14 @@ internal sealed class CISApplicationComposition
             setup.Services.AddCisHeartbeatCore(setup.Heartbeat, registerOwnerFactory: false);
         }
         setup.Services.AddCisStartup();
+        ServiceDescriptor? coordinationStartup = setup.Services.SingleOrDefault(item => !item.IsKeyedService
+            && item.ServiceType == typeof(CIS.Startup.IStartable) && item.ImplementationType == typeof(CoordinationStartable));
+        if (coordinationStartup is not null)
+        {
+            setup.Services.Remove(coordinationStartup);
+            setup.Services.Add(coordinationStartup);
+        }
+
         if (setup.HealthcheckEnabled)
         {
             setup.Services.AddSingleton<IHostedService>(CreateHealthPipe);
@@ -195,6 +210,7 @@ internal sealed class CISApplicationComposition
         MoveTail(typeof(MessagingHostedService));
         MoveTail(typeof(PipelineHostedService));
         MoveTail(typeof(RestHostedService));
+        MoveTail(typeof(CoordinationHostedService));
         if (setup.HeartbeatEnabled)
         {
             MoveTail(typeof(HeartbeatHostedService));
@@ -222,6 +238,15 @@ internal sealed class CISApplicationComposition
         Metrics = root.GetService<IMetrics>() as MetricsRuntime;
         Rest = root.GetService<IRestClientRuntime>();
         Messaging = root.GetService<MessagingRuntime>();
+    }
+
+    private void CaptureCoordination()
+    {
+        // Registration metadata exists before Build can construct any owners or fail.
+        // Resolve no provider here: failed-Build cleanup must join the same lifetime.
+        Coordination = (setup.Services.LastOrDefault(item => !item.IsKeyedService
+            && item.ServiceType == typeof(CoordinationComposition))?.ImplementationInstance
+                as CoordinationComposition)?.Lifetime;
     }
 
     private IHostedService CreateHealthPipe(IServiceProvider root)

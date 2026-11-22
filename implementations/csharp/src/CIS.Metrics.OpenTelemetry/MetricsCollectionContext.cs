@@ -13,6 +13,10 @@ using CIS.Operations;
 using CIS.Operations.Hosting;
 using CIS.Messaging;
 using CIS.Messaging.Hosting;
+using CIS.Coordination;
+using CIS.Coordination.Hosting;
+using CIS.Jobs;
+using CIS.Jobs.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -33,6 +37,8 @@ internal sealed class MetricsCollectionContext : IAsyncDisposable
     private readonly TransactionsComposition? transactionsComposition;
     private readonly OperationsComposition? operationsComposition;
     private readonly MessagingComposition? messagingComposition;
+    private readonly CoordinationComposition? coordinationComposition;
+    private readonly JobsComposition? jobsComposition;
     private ILogger<MetricsCollectionContext>? logger;
     private int active, stopping;
 
@@ -40,7 +46,8 @@ internal sealed class MetricsCollectionContext : IAsyncDisposable
         RestClientComposition? restComposition = null, WorkflowsComposition? workflowsComposition = null,
         StateMachineComposition? stateMachineComposition = null, SecurityComposition? securityComposition = null,
         TransactionsComposition? transactionsComposition = null, OperationsComposition? operationsComposition = null,
-        MessagingComposition? messagingComposition = null)
+        MessagingComposition? messagingComposition = null, CoordinationComposition? coordinationComposition = null,
+        JobsComposition? jobsComposition = null)
     {
         this.root = root;
         this.guard = guard;
@@ -48,9 +55,12 @@ internal sealed class MetricsCollectionContext : IAsyncDisposable
         this.transactionsComposition = transactionsComposition;
         this.operationsComposition = operationsComposition;
         this.messagingComposition = messagingComposition;
+        this.coordinationComposition = coordinationComposition;
+        this.jobsComposition = jobsComposition;
         settings = settings.ForComposition(restComposition is not null, workflowsComposition is not null,
             stateMachineComposition is not null, securityComposition?.ProfileCapacity ?? 0, transactionsComposition is not null,
-            operationsComposition is not null, messagingComposition is not null);
+            operationsComposition is not null, messagingComposition is not null, coordinationComposition is not null,
+            jobsComposition is not null);
         Settings = settings;
         IMeterFactory factory = root.GetRequiredService<IMeterFactory>();
         CisMeter = factory.Create("CIS.Metrics", "1.0.0");
@@ -202,6 +212,26 @@ internal sealed class MetricsCollectionContext : IAsyncDisposable
             {
                 throw new InvalidOperationException("The configured REST composition must belong to its exact registered runtime.");
             }
+            owner.AttachMetrics(Runtime);
+        }
+        if (Settings.CollectCoordination)
+        {
+            CoordinationInstrumentation owner = root.GetRequiredService<CoordinationInstrumentation>();
+            if (!ReferenceEquals(owner.RegistrationIdentity, coordinationComposition!.RegistrationIdentity))
+            {
+                throw new InvalidOperationException("Coordination composition must belong to its exact instrumentation owner.");
+            }
+
+            owner.AttachMetrics(Runtime);
+        }
+        if (Settings.CollectJobs)
+        {
+            JobInstrumentation owner = root.GetRequiredService<JobInstrumentation>();
+            if (!ReferenceEquals(owner.RegistrationIdentity, jobsComposition!.RegistrationIdentity))
+            {
+                throw new InvalidOperationException("Jobs composition must belong to its exact instrumentation owner.");
+            }
+
             owner.AttachMetrics(Runtime);
         }
 

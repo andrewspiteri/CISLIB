@@ -111,6 +111,19 @@ internal sealed class MetricsStreamCatalog
                 SecurityModule("cis.security.certificate.remaining", MetricKind.ObservableGauge, MetricUnit.Seconds,
                     ["profile"], profileCategories);
             }
+            if (settings.CollectCoordination)
+            {
+                CoordinationModule("cis.coordination.operation.duration", MetricKind.Timer, MetricUnit.Seconds, ["operation", "outcome"], 32);
+                CoordinationModule("cis.coordination.active.leases", MetricKind.ObservableGauge, MetricUnit.Count, [], 1);
+                CoordinationModule("cis.coordination.ownership.losses", MetricKind.Counter, MetricUnit.Count, ["reason"], 6);
+                CoordinationModule("cis.coordination.guard.rejections", MetricKind.Counter, MetricUnit.Count, ["reason"], 8);
+            }
+            if (settings.CollectJobs)
+            {
+                CoordinationModule("cis.jobs.invocation.duration", MetricKind.Timer, MetricUnit.Seconds, ["mode", "outcome"], 10);
+                CoordinationModule("cis.jobs.active.invocations", MetricKind.ObservableGauge, MetricUnit.Count, ["mode"], 2);
+                CoordinationModule("cis.jobs.pending.dispatches", MetricKind.ObservableGauge, MetricUnit.Count, [], 1);
+            }
             if (modules.Count > settings.MaxDefinitions)
             {
                 throw new ArgumentException("The known CIS module definitions exceed the configured definition capacity.");
@@ -260,6 +273,16 @@ internal sealed class MetricsStreamCatalog
         if (settings.Streams.GetValueOrDefault(name)?.CardinalityLimit is { } configured && configured < minimumCapacity)
         {
             throw new ArgumentException("The transaction stream override cannot cover its admitted finite database aliases.");
+        }
+
+        Module(name, kind, unit, keys, minimumCapacity);
+    }
+
+    private void CoordinationModule(string name, MetricKind kind, MetricUnit unit, IReadOnlyList<string> keys, int minimumCapacity)
+    {
+        if (settings.Streams.GetValueOrDefault(name)?.CardinalityLimit is { } configured && configured < minimumCapacity)
+        {
+            throw new ArgumentException("The coordination/jobs stream override cannot cover its finite operation, outcome, reason or mode profile.");
         }
 
         Module(name, kind, unit, keys, minimumCapacity);

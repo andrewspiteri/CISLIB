@@ -113,6 +113,19 @@ prove remote rollback. Reuse the named native and public-package fixtures and
 bounded CommonTesting helpers, with their distinct evidence limits.
 
 <!-- cis:repository-guidance:start -->
+## Shared coordination and jobs
+
+For `CIS.Coordination`, `CIS.Jobs` or guarded maintenance consumers, read the
+[Coordination skill](.github/skills/cislib-coordination/SKILL.md), its
+[consumer guide](docs/modules/coordination/README.md) and compiling CountryData
+recipes. Preserve exact duty/resource eligibility, scoped native authority,
+conservative terminal leases and original-transaction guards. Keep operation IDs,
+committed outgoing intent and actual callback/scope settlement across takeover.
+Categories, local capacity and schedule descriptors do not replace shared
+ownership or create recurrence. Reuse bounded native instrumentation and existing
+provider/package/process fixtures; keep startup sequential and dependency teardown
+behind actual job drain.
+
 ## CIS integration
 
 For CIS commands and artifacts, read `.github/instructions/cis-import.instructions.md`. Existing project directives remain authoritative; unresolved overlaps are recorded in `.cis/local/import/report.json`.

@@ -98,3 +98,20 @@ broker durability. See [Messaging testing](messaging/testing.md) for compiling
 unit/package consumers and the separate native evidence boundaries.
 Use [typed requests and recovery](messaging/requests.md) for actual runtime
 submission, provisional-ticket ownership and fresh authorized recovery.
+
+## Coordination and admitted jobs
+
+Use `ScriptedCoordinationService` for explicit logical acquisition results and
+`ManualCoordinationLease` for an exact test grant, manual drain, release and loss.
+The service's script and recording capacities default to16; exhaustion refuses
+before consuming another script. The lease has no automatic expiry or renewal.
+Tests still own and join their real callback work before cleanup.
+
+`ScriptedJobRunSource` validates explicitly enqueued expected admitted runs. Its
+default16 scripts/16 recordings retain detached metadata and frame length/digest,
+without a payload/frame history. It generates no due occurrence, recurrence,
+authorization or durable acknowledgment. See [managed substitutes](coordination/testing.md)
+and [scheduled testing](coordination/scheduled-testing.md) for the exact ports and
+expected refusals, and the dedicated CountryData unit examples for finite handlers.
+Real SQL fencing, native identity and committed-outbox recovery keep their
+separate [consumer proof](coordination/consumers.md).
