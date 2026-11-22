@@ -65,6 +65,20 @@ not proof of Core scheduling, health-policy evaluation, HTTP or hosted shutdown.
   references until consumed; capacities bound entry count, not arbitrary scripted
   payload size. Use a fresh helper when recordings fill. See the
   [operation testing guide](../../../../docs/modules/operations/testing.md).
+- ScriptedMessagingClient substitutes public IMessagingClient through one ordered
+  typed Publish/Send/Request/WaitForReply script queue. Pending scripts and retained
+  metadata default to16 each. Kind/type mismatch, recording exhaustion and a
+  precanceled call consume no script or recording; records never evict. Enqueue
+  methods supply exact logical results, and their Failure variants preserve the
+  original fault, including a faulted scripted cancellation. Calls retain only
+  kind, bounded alias, types, optional attempt identity and the exact caller token;
+  no input/result payload, owner or ticket is recorded. Queued results remain
+  test-owned references, so capacity bounds entries rather than arbitrary payload
+  size. Public ScriptedMessageRequestTicket<T> provides explicit idempotent
+  disposal. Wait also accepts a caller-derived ticket and never disposes it.
+  The helper does no broker, codec, handler, authorization, transaction completion,
+  timer or durable-recovery work. Scripted submission/exchange/business facts stay
+  separate and do not prove persistence or a native request/reply exchange.
 
 A short logical-result test uses only public APIs:
 
