@@ -44,7 +44,7 @@ public sealed partial class JobRuntime
         }
     }
 
-    internal JobAdmission TryReserveContinuous(JobScopeRequest target)
+    internal JobAdmission TryReserveContinuous(JobScopeRequest target, long? expectedActivationRevision = null)
     {
         ArgumentNullException.ThrowIfNull(target);
         lock (gate)
@@ -56,19 +56,27 @@ public sealed partial class JobRuntime
                 return new(JobAdmissionOutcome.Unsupported);
             }
 
-            if (duties.ContainsKey(Key(target)))
+            long activationRevision = activationRevisions[(target.ExecutionScope, target.JobId)];
+            if (expectedActivationRevision is { } expected && expected != activationRevision)
             {
-                return new(JobAdmissionOutcome.Busy);
+                return new(JobAdmissionOutcome.Deferred);
             }
 
-            if (!started || closing || !EnabledUnderGate(target)
+            if (duties.TryGetValue(Key(target), out JobDutyReservation? existing))
+            {
+                bool sameActivation = expectedActivationRevision is null
+                    || existing.Target.Mode == JobExecutionMode.Continuous && existing.ActivationRevision == activationRevision;
+                return new(sameActivation ? JobAdmissionOutcome.Busy : JobAdmissionOutcome.Deferred);
+            }
+
+            if (!started || closing || !EnabledUnderGate(target) || !CanTrackResourceUnderGate(target)
                 || duties.Values.Count(duty => duty.Target.Mode == JobExecutionMode.Continuous) >= configuration.Limits.MaximumContinuousDuties)
             {
                 return new(JobAdmissionOutcome.Deferred);
             }
 
             JobExecutionSettings settings = configuration.Jobs[(target.ExecutionScope, target.JobId)].Execution;
-            var duty = new JobDutyReservation(this, target, binding, settings.MaximumDrain);
+            var duty = new JobDutyReservation(this, target, binding, settings.MaximumDrain, activationRevision: activationRevision);
             duties.Add(Key(target), duty);
             PulseUnderGate();
             return new(JobAdmissionOutcome.Accepted, duty);
@@ -98,7 +106,8 @@ public sealed partial class JobRuntime
                 return new(JobAdmissionOutcome.Busy);
             }
 
-            if (!started || closing || !EnabledUnderGate(target) || !HasInvocationCapacityUnderGate(target))
+            if (!started || closing || !EnabledUnderGate(target) || !HasInvocationCapacityUnderGate(target)
+                || !CanTrackResourceUnderGate(target))
             {
                 return new(JobAdmissionOutcome.Deferred);
             }
@@ -253,6 +262,11 @@ public sealed partial class JobRuntime
                 bool transition = duty.LocalState != state || duty.LastOutcome != code;
                 duty.LocalState = state;
                 duty.LastOutcome = code;
+                if (state == JobLocalState.Faulted)
+                {
+                    RetainFailureUnderGate(duty);
+                }
+
                 if (transition)
                 {
                     observation = SnapshotUnderGate(duty);
@@ -338,7 +352,7 @@ public sealed partial class JobRuntime
         }
     }
 
-    internal void ReleaseInvocation(JobInvocationReservation reservation, string outcome)
+    internal void ReleaseInvocation(JobInvocationReservation reservation, string outcome, bool scopeCleanupSucceeded = true)
     {
         if (outcome is not ("success" or "failed" or "cancelled" or "ownership_lost" or "indeterminate"))
         {
@@ -359,6 +373,12 @@ public sealed partial class JobRuntime
             entered = reservation.Started;
             observed = reservation.Observation;
             invocations.Remove(reservation);
+            if (entered && outcome == "success" && scopeCleanupSucceeded
+                && reservation.Duty.LocalState is not (JobLocalState.Faulted or JobLocalState.Lost))
+            {
+                RecoverResourceUnderGate(reservation.Duty);
+            }
+
             PulseUnderGate();
             CompleteStopUnderGate();
         }
@@ -406,6 +426,10 @@ public sealed partial class JobRuntime
                     }
 
                     latest[(duty.Target.ExecutionScope, duty.Target.JobId)] = SnapshotUnderGate(duty);
+                    if (duty.LocalState == JobLocalState.Faulted)
+                    {
+                        RetainFailureUnderGate(duty);
+                    }
 
                     duty.Finished.TrySetResult();
                     PulseUnderGate();

@@ -106,3 +106,46 @@ in the same local accounting record.
 | Task ID | Check | Command or artifact | Result | Notes |
 | --- | --- | --- | --- | --- |
 | WORK-007 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2215; failed=301; possibleTokenSavings=591; ledgerDigest=sha256:80568e73787c6ea06dc166fb8788b3dfa7ace2acee37ecd1d62f162a55df7657 |
+
+## Managed jobs review correction — WORK-012
+
+The preceding implementation rows retain the evidence for the original
+`b1eddad71bd0f75531d6c09d8c6d0b556a1dba97` source. The user subsequently
+requested the two jobs corrections and guide-link repair in the
+[bounded follow-up](review-follow-up.md). Completed tasks and their costs remain
+closed; WORK-012 uses a supported transfer inside the original shared limits.
+
+| Check | Current result | Evidence |
+| --- | --- | --- |
+| Pinned scoped formatting and affected builds | Passed, zero warnings/errors | WORK-012/review-jobs-final-format + format-verify; review-original-completion-format + format-verify; current unit/integration builds. SDK 10.0.401, runtime 10.0.12; no dependency/pin/lock changes. |
+| Windows affected unit tests | 542 passed, zero failed/skipped | WORK-012/review-jobs-current-unit-tests/results/review-jobs-current-unit.trx; includes nine new regression rows and unchanged original scheduled completion assertions. |
+| Windows existing host/application/HTTP-metrics integration | 215 passed, zero failed/skipped | WORK-012/review-jobs-integration-tests/results/review-jobs-integration.trx. |
+| Actual Linux affected units | 181 passed, zero failed/skipped | WORK-012/review-jobs-linux-units/results/linux-native.trx; existing Ubuntu 24.04 ELF runtime 10.0.12 and managed SDK 10.0.401 VSTest. |
+| Exact qualified Core bytes | Matched in Core, unit and integration outputs | SHA256 320721d5648a95897cfb9773d538912cb91e07d908105d9db1252beb7ee97a59; TRX hashes and counters in .cis/local/coordination-intake/review-native-proof.json. |
+| Regression behavior | Passed | Coalesced host/category/job disable-enable; stale revision before a later target's admission; initial/later activation cleanup fault without replay; two-resource health, actual recovery cleanup, failed cleanup/Busy preservation and fixed per-job pressure with unrelated-job admission. |
+| Independent review and guide links | Passed | Cross-review caught and closed the stale-admission race; final cleanup/recovery review passed. All 46 local Coordination-guide links resolve, including PostgreSQL → hosting. |
+| First development unit run | Retained: 539 passed, three failed, zero skipped | Existing original-result tests caught a scheduled diagnostic rewrite. Corrected runtime recovery eligibility without weakening those assertions; the complete current selection passes. Same logical attempt and all costs retained. |
+| GitHub service workflow | Not dispatched | These corrections remain local and unmerged. A passing existing service workflow on the corrected remote commit remains a pre-merge recommendation; no Actions result is inferred from local tests. |
+
+At the evidence checkpoint, aggregate conservative source use is **28.533 hours**
+and measured native/metadata use is **2.016 hours**, with **13 logical attempts**
+used. WORK-012 accounts for 7,740 source seconds and 527.763 measured seconds
+inside its 9,000-second distribution; subsequent native completion/Git costs
+remain in the same journals. Counted storage is **5.337 GiB / 6 GiB**, including
+the existing Docker allowance and protected reserve. User launch settings retain
+SHA256 ea7e7219222183193f0361ae674998f1edc43a3789f118748c59f166a4d29784.
+
+This follow-up runs no new PostgreSQL, broker, package-consumer or deployment
+campaign. Their earlier results remain retained evidence for unchanged provider
+source, rather than a fresh pass against these new Core bytes. The preceding
+qualification limits still apply.
+## Correction closeout
+
+Supported plan validation returned valid; WORK-012 is Complete. The closing
+checkpoint accounts for 30.629 aggregate active hours inside the unchanged
+40-hour allowance, with all reserves and prior costs preserved. Local Git
+delivery costs remain charged to this same owner.
+
+| Task ID | Check | Command or artifact | Result | Notes |
+| --- | --- | --- | --- | --- |
+| WORK-012 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2225; failed=304; possibleTokenSavings=591; ledgerDigest=sha256:396b4596a78284f15a8a7e07af909b6237a9d6b864270a3eb8a4ea4fbed7a02f |

@@ -47,6 +47,11 @@ public sealed partial class JobRuntime : IStartable, IAsyncDisposable
         this.configuration = configuration ?? new(0, limits: catalog.Limits);
         catalog.ValidateConfiguration(this.configuration);
         registered = new Dictionary<(string Scope, string Id), JobHandlerBinding>(catalog.Bindings);
+        foreach ((string Scope, string Id) key in registered.Keys)
+        {
+            activationRevisions.Add(key, this.configuration.Revision);
+        }
+
         source = runSource;
         evaluator = scheduleEvaluator;
         clock = timeProvider ?? TimeProvider.System;
@@ -187,6 +192,7 @@ public sealed partial class JobRuntime : IStartable, IAsyncDisposable
                     retry = !activation && starting is not null;
                     if (!retry)
                     {
+                        RecordActivationTransitionsUnderGate(candidate);
                         configuration = candidate;
                         foreach (JobDutyReservation duty in duties.Values)
                         {
@@ -308,8 +314,20 @@ public sealed partial class JobRuntime : IStartable, IAsyncDisposable
                 throw new ArgumentOutOfRangeException(nameof(pageSize));
             }
 
-            return Array.AsReadOnly(duties.Values.Select(SnapshotUnderGate).Concat(latest.Values
-                    .OrderBy(item => item.Target.ExecutionScope, StringComparer.Ordinal).ThenBy(item => item.Target.JobId, StringComparer.Ordinal))
+            JobRuntimeSnapshot[] failures = CaptureRetainedFailuresUnderGate().ToArray();
+            var retainedKeys = duties.Keys.ToHashSet();
+            foreach (JobRuntimeSnapshot failure in failures)
+            {
+                retainedKeys.Add(Key(failure.Target));
+            }
+
+            // Keep a prior fault visible while its exact resource is recovering; latest is only a fallback.
+            return Array.AsReadOnly(duties.Values.Select(SnapshotUnderGate).Concat(failures.Where(item =>
+                    !duties.TryGetValue(Key(item.Target), out JobDutyReservation? duty) || duty.LocalState != JobLocalState.Faulted))
+                .Concat(latest.Values.Where(item => !retainedKeys.Contains(Key(item.Target))))
+                .OrderBy(item => item.Target.ExecutionScope, StringComparer.Ordinal)
+                .ThenBy(item => item.Target.JobId, StringComparer.Ordinal)
+                .ThenBy(item => item.Target.ResourceId, StringComparer.Ordinal)
                 .Skip(offset).Take(size).ToArray());
         }
     }

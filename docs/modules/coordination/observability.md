@@ -51,6 +51,12 @@ known successful contact publishes availability, established failure invalidates
 it, and unknown cancellation does not fabricate success. Jobs use a condition
 over cached enabled faults, rejected-versus-accepted configuration revision and
 unfinished callbacks whose lease ended. Standby, Idle and Waiting remain healthy.
+An active or successfully completed partition cannot mask another partition's
+unresolved failure. Recovery requires successful work and actual scope cleanup for
+the same stable resource. The runtime reserves bounded per-job resource diagnostic
+slots before admission; new resources defer under that pressure while retained
+failed resources remain eligible for an explicit retry. See the
+[runtime bounds](runtime.md) for the fixed limit and detached snapshot behavior.
 Configured criticality determines the existing health policy's aggregate effect.
 
 One coalesced refresh task per instrumentation owner updates those cached policies

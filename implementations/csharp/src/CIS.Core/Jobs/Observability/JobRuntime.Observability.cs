@@ -8,10 +8,7 @@ public sealed partial class JobRuntime
     {
         lock (gate)
         {
-            bool faulted = duties.Values.Any(duty => EnabledUnderGate(duty.Target) && duty.LocalState == JobLocalState.Faulted)
-                || latest.Values.Any(item => item.State == JobLocalState.Faulted && EnabledUnderGate(item.Target)
-                    && !duties.Values.Any(duty => duty.Target.ExecutionScope == item.Target.ExecutionScope
-                        && duty.Target.JobId == item.Target.JobId));
+            bool faulted = CaptureRetainedFailuresUnderGate().Any(item => EnabledUnderGate(item.Target));
             bool stuck = invocations.Any(invocation => invocation.Started && invocation.Duty.LeaseEndedWhileRunning);
             return new(faulted || stuck);
         }

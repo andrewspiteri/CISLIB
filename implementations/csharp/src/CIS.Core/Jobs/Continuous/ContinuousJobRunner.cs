@@ -20,19 +20,28 @@ public sealed class ContinuousJobRunner : IContinuousJobRunner
     /// <inheritdoc />
     public async Task<ContinuousJobStartOutcome> StartAsync(string executionScope, string jobId, string resourceId,
         CancellationToken cancellationToken = default)
+        => (await StartCoreAsync(executionScope, jobId, resourceId, null, cancellationToken).ConfigureAwait(false)).Outcome;
+
+    internal Task<ContinuousJobActivationResult> StartAsync(JobScopeRequest target, long expectedActivationRevision,
+        CancellationToken cancellationToken)
+        => StartCoreAsync(target.ExecutionScope, target.JobId, target.ResourceId, expectedActivationRevision, cancellationToken);
+
+    private async Task<ContinuousJobActivationResult> StartCoreAsync(string executionScope, string jobId, string resourceId,
+        long? expectedActivationRevision, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         await runtime.StartAsync(cancellationToken).ConfigureAwait(false);
         var target = new JobScopeRequest(executionScope, jobId, resourceId, JobExecutionMode.Continuous);
-        JobAdmission admission = runtime.TryReserveContinuous(target);
+        JobAdmission admission = runtime.TryReserveContinuous(target, expectedActivationRevision);
         if (admission.Duty is not { } duty)
         {
-            return admission.Outcome switch
+            ContinuousJobStartOutcome outcome = admission.Outcome switch
             {
                 JobAdmissionOutcome.Busy => ContinuousJobStartOutcome.AlreadyRunning,
                 JobAdmissionOutcome.Unsupported => ContinuousJobStartOutcome.Unsupported,
                 _ => ContinuousJobStartOutcome.Deferred
             };
+            return new(outcome, admission.Outcome is JobAdmissionOutcome.Busy or JobAdmissionOutcome.Unsupported);
         }
 
         bool launched = false;
@@ -42,12 +51,13 @@ public sealed class ContinuousJobRunner : IContinuousJobRunner
             JobAuthorizedScopeResult authorization = await runtime.OpenAuthorizedScopeAsync(duty, starting.Token).ConfigureAwait(false);
             if (authorization.Scope is not { } scope)
             {
-                return authorization.Outcome switch
+                ContinuousJobStartOutcome outcome = authorization.Outcome switch
                 {
                     JobAdmissionOutcome.Unauthorized => ContinuousJobStartOutcome.Unauthorized,
                     JobAdmissionOutcome.Unsupported => ContinuousJobStartOutcome.Unsupported,
                     _ => ContinuousJobStartOutcome.Deferred
                 };
+                return new(outcome, Consumed: true);
             }
 
             await scope.DisposeAsync().ConfigureAwait(false);
@@ -55,17 +65,17 @@ public sealed class ContinuousJobRunner : IContinuousJobRunner
             if (scope.CleanupFailed)
             {
                 duty.SetState(JobLocalState.Faulted, "jobs.start_scope_cleanup_failed");
-                return ContinuousJobStartOutcome.Deferred;
+                return new(ContinuousJobStartOutcome.Deferred, Consumed: true, Failed: true);
             }
 
             launched = true;
             _ = RunDutyAsync(duty);
-            return ContinuousJobStartOutcome.Started;
+            return new(ContinuousJobStartOutcome.Started, Consumed: true);
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested
             && (duty.StopRequested.IsCancellationRequested || runtime.AdmissionStopping.IsCancellationRequested))
         {
-            return ContinuousJobStartOutcome.Deferred;
+            return new(ContinuousJobStartOutcome.Deferred, Consumed: true);
         }
         finally
         {
@@ -290,3 +300,5 @@ public sealed class ContinuousJobRunner : IContinuousJobRunner
     private static bool IsOrdinary(Exception error) => error is not OutOfMemoryException
         and not StackOverflowException and not AccessViolationException;
 }
+
+internal readonly record struct ContinuousJobActivationResult(ContinuousJobStartOutcome Outcome, bool Consumed, bool Failed = false);

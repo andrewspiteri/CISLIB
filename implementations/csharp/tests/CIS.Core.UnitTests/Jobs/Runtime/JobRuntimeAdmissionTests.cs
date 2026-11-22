@@ -176,6 +176,50 @@ public sealed class JobRuntimeAdmissionTests
         Assert.AreEqual(0, fixture.Runtime.CaptureStatus().DutyReservations);
     }
 
+    [TestMethod]
+    public async Task ResourceFailureBoundDefersOnlyNewResourcesOfThatJobAndPreservesSameResourceRecovery()
+    {
+        await using var fixture = new JobRuntimeTestSupport(["failed", "unrelated"],
+            new(maximumContinuousDuties: 1, maximumInvocations: 1));
+        await fixture.Runtime.StartAsync();
+        foreach (string resource in new[] { "partition-A", "partition-B" })
+        {
+            await using JobDutyReservation duty = fixture.Runtime.TryReserveContinuous(
+                new("wallet-service", "failed", resource, JobExecutionMode.Continuous)).Duty!;
+            duty.SetState(JobLocalState.Faulted, "jobs.controlled_fault");
+        }
+
+        Assert.IsTrue(fixture.Runtime.TryApplyConfiguration(fixture.Configuration(1,
+            limits: new(maximumContinuousDuties: 8, maximumInvocations: 8))));
+        Assert.AreEqual(JobAdmissionOutcome.Deferred, fixture.Runtime.TryReserveContinuous(
+            new("wallet-service", "failed", "partition-C", JobExecutionMode.Continuous)).Outcome,
+            "Revision changes do not expand or evict the catalog's fixed resource diagnostic bound.");
+        await using (JobDutyReservation unrelated = fixture.Runtime.TryReserveContinuous(
+            new("wallet-service", "unrelated", "partition-C", JobExecutionMode.Continuous)).Duty!)
+        {
+            Assert.IsNotNull(unrelated);
+        }
+
+        await using (JobDutyReservation recovered = fixture.Runtime.TryReserveContinuous(
+            new("wallet-service", "failed", "partition-A", JobExecutionMode.Continuous)).Duty!)
+        {
+            Assert.IsNotNull(recovered);
+            Assert.IsTrue(fixture.Runtime.CaptureHealth().Unhealthy);
+            await using ManualCoordinationLease lease = fixture.Grant("failed", "partition-A");
+            Assert.IsTrue(fixture.Runtime.AttachLease(recovered, lease));
+            using JobInvocationReservation invocation = fixture.Runtime.TryReserveIteration(recovered)!;
+            Assert.IsTrue(fixture.Runtime.TryEnterInvocation(invocation));
+            invocation.Complete("success");
+        }
+
+        await using JobDutyReservation next = fixture.Runtime.TryReserveContinuous(
+            new("wallet-service", "failed", "partition-C", JobExecutionMode.Continuous)).Duty!;
+        Assert.IsNotNull(next);
+        Assert.IsTrue(fixture.Runtime.CaptureHealth().Unhealthy, "Partition-B remains unresolved after partition-A recovers.");
+        Assert.HasCount(1, fixture.Runtime.CaptureSnapshot().Where(snapshot => snapshot.Target.JobId == "failed"
+            && snapshot.State == JobLocalState.Faulted).ToArray());
+    }
+
     private sealed class ThrowingUtcClock : TimeProvider
     {
         public override DateTimeOffset GetUtcNow() => throw new InvalidOperationException("Controlled diagnostic clock failure.");

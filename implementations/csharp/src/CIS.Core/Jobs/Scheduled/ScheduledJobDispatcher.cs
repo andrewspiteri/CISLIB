@@ -195,7 +195,7 @@ public sealed class ScheduledJobDispatcher : IScheduledJobDispatcher
                     }
                 }
 
-                invocation.Complete(ObservationOutcome(result));
+                invocation.Complete(ObservationOutcome(result), scopeCleanupSucceeded: workScope?.CleanupFailed != true);
                 await runtime.ReleaseLeaseAsync(duty).ConfigureAwait(false);
             }
         }

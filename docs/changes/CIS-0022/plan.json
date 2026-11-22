@@ -552,6 +552,61 @@
         }
       ],
       "contractErrors": []
+    },
+    {
+      "id": "WORK-012",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-012.md",
+      "title": "Correct managed jobs activation transitions and partition health",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [],
+      "acceptanceCriteria": "Accepted disable/re-enable or mode/binding transitions remain visible to the supervisor when intermediate revisions coalesce; exactly one replacement starts after the original callback and scope settle. Ordinary completion/failure/capacity notifications do not replay the same activation.\nUnresolved failed resource duties remain unhealthy while other resources run or complete successfully. Only corresponding-resource recovery supersedes the failure; retention stays bounded without a resource-history cache.\nCorrect PostgreSQL guide composition link; document activation/failure retention and record focused native verification and service-workflow status truthfully.",
+      "validation": "Deterministic regressions for coalesced revisions, exactly one replacement after scope settlement, no failure replay, and two-resource health retention/recovery/bounds. Affected Jobs/Coordination unit and hosting integration tests, scoped format verification and independent review.\nPreserve public API/dependencies/pins and prior completed tasks/costs. No provider/tool/harness, merge or release. Workflow evidence requires actual corrected remote commit and receipt.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:6f1791b1ba094a78936d5c10866f4390",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "continuous",
+        "hosting-observations",
+        "scheduled"
+      ],
+      "authorizationScopeBasis": "sha256:8726b80be8aca83ae3eb4fb29791a3a27c97acbc6925a7ec9145e9c52bad1e4d",
+      "workPaths": [
+        "implementations/csharp/src/CIS.Core/Jobs",
+        "implementations/csharp/tests/CIS.Core.UnitTests/Jobs",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Coordination",
+        "docs/modules/coordination",
+        "docs/changes/CIS-0022"
+      ],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "Accepted disable/re-enable or mode/binding transitions remain visible to the supervisor when intermediate revisions coalesce; exactly one replacement starts after the original callback and scope settle. Ordinary completion/failure/capacity notifications do not replay the same activation.\nUnresolved failed resource duties remain unhealthy while other resources run or complete successfully. Only corresponding-resource recovery supersedes the failure; retention stays bounded without a resource-history cache.\nCorrect PostgreSQL guide composition link; document activation/failure retention and record focused native verification and service-workflow status truthfully."
+          ],
+          "description": "Deterministic regressions for coalesced revisions, exactly one replacement after scope settlement, no failure replay, and two-resource health retention/recovery/bounds. Affected Jobs/Coordination unit and hosting integration tests, scoped format verification and independent review.\nPreserve public API/dependencies/pins and prior completed tasks/costs. No provider/tool/harness, merge or release. Workflow evidence requires actual corrected remote commit and receipt.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Deterministic regressions for coalesced revisions, exactly one replacement after scope settlement, no failure replay, and two-resource health retention/recovery/bounds. Affected Jobs/Coordination unit and hosting integration tests, scoped format verification and independent review.\nPreserve public API/dependencies/pins and prior completed tasks/costs. No provider/tool/harness, merge or release. Workflow evidence requires actual corrected remote commit and receipt."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
     }
   ],
   "source": null

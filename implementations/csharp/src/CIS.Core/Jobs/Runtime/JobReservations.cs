@@ -11,7 +11,8 @@ internal sealed class JobPendingDispatch(JobRuntime runtime) : IDisposable
 }
 
 internal sealed class JobDutyReservation(JobRuntime runtime, JobScopeRequest target, JobHandlerBinding binding,
-    TimeSpan drainBudget, JobScheduledActivation activation = JobScheduledActivation.ExternalOccurrences) : IAsyncDisposable
+    TimeSpan drainBudget, JobScheduledActivation activation = JobScheduledActivation.ExternalOccurrences,
+    long activationRevision = 0) : IAsyncDisposable
 {
     internal readonly CancellationTokenSource Stop = new();
     internal readonly TaskCompletionSource Finished = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -30,6 +31,7 @@ internal sealed class JobDutyReservation(JobRuntime runtime, JobScopeRequest tar
     internal JobHandlerBinding Binding => binding;
     internal TimeSpan DrainBudget => runtime.GetDrainBudget(this);
     internal JobScheduledActivation Activation => activation;
+    internal long ActivationRevision => activationRevision;
     internal CancellationToken StopRequested => Stop.Token;
     internal bool IsDraining => runtime.IsDraining(this);
     internal ICoordinationLease? Lease => runtime.GetLease(this);
@@ -59,6 +61,7 @@ internal sealed class JobInvocationReservation(JobRuntime runtime, JobDutyReserv
     internal long ConfigurationRevision => revision;
     internal JobPendingDispatch? Pending => pending;
     internal bool Entered => Started;
-    internal void Complete(string outcome) => runtime.ReleaseInvocation(this, outcome);
+    internal void Complete(string outcome, bool scopeCleanupSucceeded = true)
+        => runtime.ReleaseInvocation(this, outcome, scopeCleanupSucceeded);
     public void Dispose() => Complete("failed");
 }

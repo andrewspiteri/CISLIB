@@ -142,6 +142,215 @@ public sealed class CoordinationHostingTests
     }
 
     [TestMethod]
+    [DataRow("Host")]
+    [DataRow("Category")]
+    [DataRow("Job")]
+    public async Task CoalescedDisableEnableTransitionsRestartExactlyOnceAfterActualSettlement(string disabledGate)
+    {
+        await using var core = new JobRuntimeTestSupport(jobs: ["wallet.compaction", "wallet.other"]);
+        var secondTargetEntered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var secondTargetRelease = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var otherWorkRelease = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        int blockedScopes = 0;
+        int walletCallbacks = 0;
+        core.Control.HoldCleanup = true;
+        core.Control.BeforeScope = async (request, _) =>
+        {
+            if (request.JobId == "wallet.other" && Interlocked.CompareExchange(ref blockedScopes, 1, 0) == 0)
+            {
+                secondTargetEntered.TrySetResult();
+                // Deliberately hold physical scope creation even if an intermediate configuration requests drain.
+                await secondTargetRelease.Task;
+            }
+        };
+        core.Control.Callback = async (context, _) =>
+        {
+            if (context.Definition.JobId == "wallet.other")
+            {
+                await otherWorkRelease.Task;
+                return new(ContinuousIterationOutcome.Idle);
+            }
+
+            if (Interlocked.Increment(ref walletCallbacks) == 1)
+            {
+                await core.Control.WorkRelease.Task;
+                return new(ContinuousIterationOutcome.Idle);
+            }
+
+            return new(ContinuousIterationOutcome.Failed);
+        };
+        ManualCoordinationLease first = core.EnqueueGrant();
+        core.EnqueueGrant("wallet.other");
+        ManualCoordinationLease replacement = core.EnqueueGrant();
+        await core.Runtime.StartAsync();
+        await using var supervisor = new JobHostingSupervisor(core.Runtime, new()
+        {
+            ContinuousTargets =
+            [
+                new("wallet-service", "wallet.compaction", "partition", JobExecutionMode.Continuous),
+                new("wallet-service", "wallet.other", "partition", JobExecutionMode.Continuous)
+            ]
+        });
+
+        try
+        {
+            Task startup = supervisor.StartAsync(CancellationToken.None);
+            await secondTargetEntered.Task.WaitAsync(TimeSpan.FromSeconds(10));
+            Assert.AreEqual(1, Volatile.Read(ref walletCallbacks));
+            Assert.IsTrue(core.Runtime.TryApplyConfiguration(Settings(1, enabled: false)));
+            Assert.IsTrue(core.Runtime.TryApplyConfiguration(Settings(2, enabled: true)));
+            Assert.AreEqual(-1L, supervisor.ReconciledRevision,
+                "Both accepted transitions must precede the next reconciliation of the first target.");
+
+            secondTargetRelease.TrySetResult();
+            await startup.WaitAsync(TimeSpan.FromSeconds(10));
+            await JobRuntimeTestSupport.UntilAsync(() => supervisor.ReconciledRevision >= 2);
+            core.Control.WorkRelease.TrySetResult();
+            await core.Control.ScopeCleanupEntered.Task.WaitAsync(TimeSpan.FromSeconds(10));
+            Assert.AreEqual(1, core.Coordination.Calls.Count(call => call.DutyId == "wallet.compaction"),
+                "A replacement must wait for the old callback and its actual scope cleanup.");
+
+            core.Control.ScopeCleanupRelease.TrySetResult();
+            await JobRuntimeTestSupport.UntilAsync(() => replacement.State == CoordinationLeaseState.Released);
+            Assert.AreEqual(CoordinationLeaseState.Released, first.State);
+            Assert.AreEqual(2, Volatile.Read(ref walletCallbacks));
+            Assert.AreEqual(2, core.Coordination.Calls.Count(call => call.DutyId == "wallet.compaction"));
+
+            Assert.IsTrue(core.Runtime.TryApplyConfiguration(Settings(long.MaxValue, enabled: true)));
+            await JobRuntimeTestSupport.UntilAsync(() => supervisor.ReconciledRevision == long.MaxValue);
+            Assert.AreEqual(2, Volatile.Read(ref walletCallbacks),
+                "A later settings revision and capacity notifications must not replay the replacement's failure.");
+            Assert.AreEqual(2, core.Coordination.Calls.Count(call => call.DutyId == "wallet.compaction"));
+        }
+        finally
+        {
+            secondTargetRelease.TrySetResult();
+            core.Control.WorkRelease.TrySetResult();
+            core.Control.ScopeCleanupRelease.TrySetResult();
+            otherWorkRelease.TrySetResult();
+        }
+
+        JobConfigurationSnapshot Settings(long revision, bool enabled)
+        {
+            return disabledGate switch
+            {
+                "Host" => core.Configuration(revision, enabled: enabled),
+                "Category" => core.Configuration(revision, categories: [new("wallet-service", "maintenance", enabled: enabled)]),
+                _ => core.Configuration(revision, settings: id => new("wallet-service", id,
+                    new(JobExecutionMode.Continuous), enabled: id != "wallet.compaction" || enabled))
+            };
+        }
+    }
+
+    [TestMethod]
+    public async Task AStaleReconciliationCannotActivateANewEpochAndReplayItsSynchronouslyFailedCallback()
+    {
+        await using var core = new JobRuntimeTestSupport(jobs: ["wallet.compaction", "wallet.other"]);
+        var firstScopeEntered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var firstScopeRelease = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        int blockedScopes = 0;
+        int otherCallbacks = 0;
+        core.Control.BeforeScope = async (request, _) =>
+        {
+            if (request.JobId == "wallet.compaction" && Interlocked.CompareExchange(ref blockedScopes, 1, 0) == 0)
+            {
+                firstScopeEntered.TrySetResult();
+                await firstScopeRelease.Task;
+            }
+        };
+        core.Control.Callback = async (context, _) =>
+        {
+            if (context.Definition.JobId == "wallet.other")
+            {
+                Interlocked.Increment(ref otherCallbacks);
+                return new(ContinuousIterationOutcome.Failed);
+            }
+
+            await core.Control.WorkRelease.Task;
+            return new(ContinuousIterationOutcome.Idle);
+        };
+        core.EnqueueGrant();
+        core.EnqueueGrant("wallet.other");
+        await using ManualCoordinationLease unexpectedReplay = core.EnqueueGrant("wallet.other");
+        await core.Runtime.StartAsync();
+        await using var supervisor = new JobHostingSupervisor(core.Runtime, new()
+        {
+            ContinuousTargets =
+            [
+                new("wallet-service", "wallet.compaction", "partition", JobExecutionMode.Continuous),
+                new("wallet-service", "wallet.other", "partition", JobExecutionMode.Continuous)
+            ]
+        });
+
+        try
+        {
+            Task startup = supervisor.StartAsync(CancellationToken.None);
+            await firstScopeEntered.Task.WaitAsync(TimeSpan.FromSeconds(10));
+            Assert.IsTrue(core.Runtime.TryApplyConfiguration(Settings(1, otherEnabled: false)));
+            Assert.IsTrue(core.Runtime.TryApplyConfiguration(Settings(2, otherEnabled: true)));
+            Assert.AreEqual(1, core.Runtime.CaptureStatus().DutyReservations,
+                "The second target's configuration changes precede its first admission.");
+            firstScopeRelease.TrySetResult();
+            await startup.WaitAsync(TimeSpan.FromSeconds(10));
+            await JobRuntimeTestSupport.UntilAsync(() => supervisor.ReconciledRevision >= 2
+                && core.Runtime.CaptureStatus().DutyReservations == 1 && Volatile.Read(ref otherCallbacks) >= 1);
+            Assert.IsTrue(core.Runtime.TryApplyConfiguration(Settings(3, otherEnabled: true)));
+            await JobRuntimeTestSupport.UntilAsync(() => supervisor.ReconciledRevision >= 3);
+            Assert.AreEqual(1, Volatile.Read(ref otherCallbacks));
+            Assert.AreEqual(1, core.Coordination.Calls.Count(call => call.DutyId == "wallet.other"));
+            Assert.AreEqual(1, core.Coordination.PendingScripts,
+                "The failed activation consumes its exact admitted epoch, even if it finishes before Start returns.");
+        }
+        finally
+        {
+            firstScopeRelease.TrySetResult();
+            core.Control.WorkRelease.TrySetResult();
+        }
+
+        JobConfigurationSnapshot Settings(long revision, bool otherEnabled)
+            => core.Configuration(revision, settings: id => new("wallet-service", id,
+                new(JobExecutionMode.Continuous), enabled: id != "wallet.other" || otherEnabled));
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task FailedActivationScopeCleanupIsReportedAndDoesNotReplayWithinItsEpoch(bool initial)
+    {
+        await using var core = new JobRuntimeTestSupport();
+        core.Control.ThrowStartCleanup = true;
+        if (!initial)
+        {
+            Assert.IsTrue(core.Runtime.TryApplyConfiguration(core.Configuration(1, enabled: false)));
+        }
+
+        await core.Runtime.StartAsync();
+        await using var supervisor = new JobHostingSupervisor(core.Runtime, new()
+        {
+            ContinuousTargets = [new("wallet-service", "wallet.compaction", "partition", JobExecutionMode.Continuous)]
+        });
+        if (initial)
+        {
+            await Assert.ThrowsAsync<InvalidOperationException>(() => supervisor.StartAsync(CancellationToken.None));
+        }
+        else
+        {
+            await supervisor.StartAsync(CancellationToken.None);
+            Assert.IsTrue(core.Runtime.TryApplyConfiguration(core.Configuration(2)));
+            await JobRuntimeTestSupport.UntilAsync(() => supervisor.ReconciledRevision >= 2);
+            Assert.IsTrue(core.Runtime.TryApplyConfiguration(core.Configuration(3)));
+            await JobRuntimeTestSupport.UntilAsync(() => supervisor.ReconciledRevision >= 3);
+        }
+
+        Assert.AreEqual("jobs.host_activation_failed", supervisor.LastFailure);
+        Assert.AreEqual(1, core.Control.CreatedScopes);
+        Assert.AreEqual(1, core.Control.DisposedScopes);
+        Assert.AreEqual(0, core.Coordination.Calls.Count);
+        Assert.AreEqual(0, core.Control.Invocations.Count);
+        Assert.IsTrue(core.Runtime.CaptureHealth().Unhealthy);
+    }
+
+    [TestMethod]
     public async Task RequiredAuthorityFailurePreventsJobActivationAndStillDrainsTheFailedNativeHost()
     {
         await using var fixture = new HostedFixture();

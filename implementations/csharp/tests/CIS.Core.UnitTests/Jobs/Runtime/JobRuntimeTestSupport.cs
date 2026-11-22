@@ -77,12 +77,17 @@ internal sealed class JobRuntimeTestSupport : IAsyncDisposable
 
     private sealed class ScopeFactory(ServiceProvider provider, JobTestControl control) : IJobExecutionScopeFactory
     {
-        public ValueTask<IJobExecutionScope> CreateAsync(JobScopeRequest request, CancellationToken cancellationToken = default)
+        public async ValueTask<IJobExecutionScope> CreateAsync(JobScopeRequest request, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            if (control.BeforeScope is { } beforeScope)
+            {
+                await beforeScope(request, cancellationToken);
+            }
+
             Interlocked.Increment(ref control.CreatedScopes);
             AsyncServiceScope scope = provider.CreateAsyncScope();
-            return ValueTask.FromResult<IJobExecutionScope>(new OwnedScope(scope, control));
+            return new OwnedScope(scope, control);
         }
     }
 
@@ -100,7 +105,7 @@ internal sealed class JobRuntimeTestSupport : IAsyncDisposable
 
             await scope.DisposeAsync();
             Interlocked.Increment(ref control.DisposedScopes);
-            if (used && control.ThrowCleanup)
+            if (used && control.ThrowCleanup || !used && control.ThrowStartCleanup)
             {
                 throw new InvalidOperationException("Controlled scope cleanup fault.");
             }
@@ -110,6 +115,7 @@ internal sealed class JobRuntimeTestSupport : IAsyncDisposable
 
 internal sealed class JobTestControl
 {
+    internal Func<JobScopeRequest, CancellationToken, Task>? BeforeScope;
     internal Func<JobExecutionContext, CancellationToken, Task<ContinuousIterationResult>> Callback =
         static (_, _) => Task.FromResult(new ContinuousIterationResult(ContinuousIterationOutcome.Idle));
     internal readonly ConcurrentQueue<string> Invocations = new();
@@ -121,6 +127,7 @@ internal sealed class JobTestControl
     internal bool Authorized = true;
     internal bool HoldCleanup;
     internal bool ThrowCleanup;
+    internal bool ThrowStartCleanup;
     internal int CreatedScopes;
     internal int DisposedScopes;
 }

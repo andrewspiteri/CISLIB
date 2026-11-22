@@ -81,7 +81,17 @@ does not activate it or retain every possible resource ID.
 One bounded supervisor watches accepted configuration/admission notifications. It
 latches an activation epoch before invoking Start, including when a handler faults
 synchronously. Enablement or mode/binding transitions can request a new activation;
-the old actual key/callback/scope must drain first. Deferred capacity or an old
+the runtime retains the last transition revision per registered definition when
+accepting configuration. A rapid disable/re-enable therefore requests replacement
+even if the supervisor observes only the final enabled settings. Unrelated settings
+updates do not create a new activation epoch. This storage is bounded by the frozen
+catalog, rather than the number of configuration revisions or resource IDs.
+The supervisor binds each admission atomically to that captured transition revision;
+a stale reconciliation cannot start work from a newer epoch and then replay it.
+An admitted activation attempt consumes its epoch even when its initial scope
+cleanup fails. Such failure is reported, fails initial startup, and is not retried
+on ordinary notifications. After a transition, the old actual key/callback/scope
+must drain first. Deferred capacity or an old
 still-running lifetime can keep that explicit transition pending. Ordinary
 capacity notifications never restart a Faulted, Indeterminate or Lost callback
 from the same epoch. Unexpected business outcomes have no automatic replay policy.

@@ -53,7 +53,7 @@ services.AddSingleton<ICoordinationGuard>(provider =>
 
 Use `CIS.Transactions.Hosting`, `CIS.Coordination`,
 `CIS.Coordination.PostgreSql` and the ordinary Microsoft DI extensions. Register
-the managed coordination/job composition using the [consumer contract](core.md).
+the managed coordination/job composition using the [hosting guide](hosting.md).
 Do not register a second transaction factory or service provider. Construction
 copies options and performs no source resolution, installation or database I/O.
 Startup calls the provider's `ValidateAsync` without acquiring a duty.

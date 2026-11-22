@@ -122,11 +122,22 @@ does not inherit the first caller's token as its later business lifetime.
 
 `CaptureStatus` distinguishes reservations, actual entered invocations by mode,
 pending dispatches and the latest cleanup diagnostic. `CaptureSnapshot` returns
-bounded pages of live targets plus at most one latest completed observation per
-registered definition. It retains faults across a large catalog without an event
-history or an unbounded resource-ID cache. Observed owner/expiry data authorizes
-nothing. Neither method queries a provider, executes business work or computes
-calendar next-run times.
+bounded pages of live targets, unresolved resource failures and at most one latest
+completed observation per registered definition. A failure remains unhealthy while
+that exact resource is enabled, including during a replacement activation. Only
+that resource's successful callback and actual scope cleanup recover it; another
+partition's activity or completion cannot hide it.
+
+Each registered job reserves diagnostic capacity for its active and unresolved
+resource identities. The fixed per-job bound is the catalog's original
+`MaximumContinuousDuties + MaximumInvocations` (40 with defaults). New resources
+return `Deferred` when that job's bound is full; an explicit retry of a retained
+failed resource can reuse its slot. Other jobs retain their independent admission.
+Successful settlement frees that resource's retained slot after its duty also
+ends. Configuration revisions neither enlarge this fixed bound nor evict failures.
+This retains inspectable failure facts without a resource history or unbounded
+resource-ID cache. Observed owner/expiry data authorizes nothing. Neither method
+queries a provider, executes business work or computes calendar next-run times.
 
 Known business completion remains separate from lifecycle/cleanup diagnostics.
 Committed iteration/occurrence results survive later cancellation, lease loss or

@@ -6,6 +6,7 @@ internal sealed class JobHostingSupervisor : IAsyncDisposable
     private readonly object gate = new();
     private readonly JobRuntime runtime;
     private readonly ContinuousJobRunner runner;
+    private readonly JobScopeRequest[] requests;
     private readonly Target[] targets;
     private readonly CancellationTokenSource stopping = new();
     private Task? startup;
@@ -18,7 +19,8 @@ internal sealed class JobHostingSupervisor : IAsyncDisposable
     {
         this.runtime = runtime;
         runner = new(runtime);
-        targets = options.ContinuousTargets.Select(target => new Target(target)).ToArray();
+        requests = options.ContinuousTargets.ToArray();
+        targets = requests.Select(target => new Target(target)).ToArray();
     }
 
     internal string? LastFailure
@@ -97,38 +99,37 @@ internal sealed class JobHostingSupervisor : IAsyncDisposable
 
     private async Task ReconcileAsync(bool initial, CancellationToken cancellationToken)
     {
-        JobConfigurationSnapshot configuration = runtime.Configuration;
-        foreach (Target target in targets)
+        JobActivationSnapshot activation = runtime.CaptureActivationSnapshot(requests);
+        for (int index = 0; index < targets.Length; index++)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            JobSettings? settings = configuration.Jobs.GetValueOrDefault((target.Request.ExecutionScope, target.Request.JobId));
-            bool enabled = settings?.Execution.Mode == JobExecutionMode.Continuous && runtime.IsEnabled(target.Request);
-            var epoch = new Epoch(enabled, settings?.Execution.Mode, settings?.Execution.ScheduledActivation);
-            bool changed = target.Epoch != epoch;
-            if (changed)
+            Target target = targets[index];
+            JobActivationState state = activation.Targets[index];
+            if (target.TransitionRevision != state.TransitionRevision)
             {
-                target.Epoch = epoch;
-                target.Pending = enabled;
-                target.WaitForPrior = !initial;
+                target.TransitionRevision = state.TransitionRevision;
+                target.Pending = state.Enabled;
             }
 
             if (!target.Pending)
             {
                 continue;
             }
-            ContinuousJobStartOutcome outcome = await runner.StartAsync(target.Request.ExecutionScope, target.Request.JobId,
-                target.Request.ResourceId, cancellationToken).ConfigureAwait(false);
-            if (outcome == ContinuousJobStartOutcome.Started
-                || outcome == ContinuousJobStartOutcome.AlreadyRunning && !target.WaitForPrior)
+            ContinuousJobActivationResult result = await runner.StartAsync(target.Request, state.TransitionRevision,
+                cancellationToken).ConfigureAwait(false);
+            if (result.Consumed)
             {
                 target.Pending = false;
             }
-            else if (outcome is ContinuousJobStartOutcome.Unsupported or ContinuousJobStartOutcome.Unauthorized)
+
+            if (result.Outcome is ContinuousJobStartOutcome.Unsupported or ContinuousJobStartOutcome.Unauthorized
+                || result.Failed)
             {
                 target.Pending = false;
                 lock (gate)
                 {
-                    lastFailure = "jobs.host_target_refused";
+                    lastFailure = result.Outcome == ContinuousJobStartOutcome.Deferred
+                        ? "jobs.host_activation_failed" : "jobs.host_target_refused";
                 }
                 if (initial)
                 {
@@ -137,7 +138,7 @@ internal sealed class JobHostingSupervisor : IAsyncDisposable
             }
         }
 
-        Interlocked.Exchange(ref reconciledRevision, configuration.Revision);
+        Interlocked.Exchange(ref reconciledRevision, activation.ConfigurationRevision);
     }
 
     internal void BeginStopping()
@@ -192,12 +193,10 @@ internal sealed class JobHostingSupervisor : IAsyncDisposable
         finally { stopping.Dispose(); }
     }
 
-    private sealed record Epoch(bool Enabled, JobExecutionMode? Mode, JobScheduledActivation? Activation);
     private sealed class Target(JobScopeRequest request)
     {
         internal JobScopeRequest Request => request;
-        internal Epoch? Epoch;
+        internal long? TransitionRevision;
         internal bool Pending;
-        internal bool WaitForPrior;
     }
 }
