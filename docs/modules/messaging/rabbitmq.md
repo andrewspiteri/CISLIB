@@ -164,6 +164,31 @@ distinguish real TLS/principal/permission/confirmation/restart observations from
 scripted behavior. Transactional effects, request correlation and durable-result
 recovery still require integrated Core acceptance.
 
+Those cases now acquire the integration run's typed Testcontainers owner, with
+fresh generated principals, a non-default vhost, copied TLS/configuration and
+private definitions containing native salted password hashes. Authenticated
+AMQP and explicit product topology checks follow the module's startup wait.
+Docker assigns the TLS host port; the selected local profile restricts its
+exposure to loopback. The fixtures use the configured supported engine through
+the SDK and contain no fixed Docker CLI path or named pipe.
+
+Restart cases use a dedicated owned container and its existing data volume.
+A real RabbitMQ application stop/start keeps the Erlang VM and Docker network
+alive, verifies the original assigned endpoint, and exercises unchanged live-client
+native recovery, redelivery and a subsequent publication. A separate full container
+stop/start retains persistent unacknowledged work for a fresh transport using the
+current inspected endpoint. Docker Desktop 29.6.1 reassigns random ports on both
+separate and atomic container restarts, so full-container recovery of an unchanged
+live client at the old endpoint is unsupported in that profile. The fixture does
+not retarget a live production transport or introduce a proxy. Application restart
+does not establish Erlang VM restart; full container restart does not establish
+power-loss or multi-node failover behavior.
+Initial connection failure is tested separately: startup fails, the owned service
+returns, and a fresh transport performs a confirmed publication and delivery.
+See [native testing](../../../implementations/csharp/tests/README.md) for service
+selection, ownership, prerequisites and the boundary between authored and observed
+CI results. Testcontainers remains test-only and adds no shipping dependency.
+
 The first native provider cohort exposed RabbitMQ 4.4.1's unsupported quorum
 `queue.delete` conditional flags during fixture restoration. The corrected fixture
 joins every known owner and native connection, verifies zero consumers with a

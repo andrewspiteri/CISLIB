@@ -13,6 +13,8 @@ using RabbitMQ.Client.Exceptions;
 namespace CIS.Tests.IntegrationTests.Messaging;
 
 [TestClass]
+[TestCategory("RequiresDocker")]
+[TestCategory("RabbitMq")]
 [DoNotParallelize]
 public sealed class RabbitMqTransportTests
 {
@@ -69,7 +71,7 @@ public sealed class RabbitMqTransportTests
                 security.Profiles[0] = new(original.Alias, original.Kind, original.Roles, original.AuthenticationScheme,
                     [original.IdentityMappings[0], new(original.IdentityMappings[1].Subject, "external-producer", "external-environment")]);
             }
-            : null);
+        : null);
         string expectedApplication = crossApplication ? "external-producer" : fixture.Local.Application;
         string expectedEnvironment = crossApplication ? "external-environment" : fixture.Local.Environment;
         var observed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -156,6 +158,38 @@ public sealed class RabbitMqTransportTests
         await Assert.ThrowsExactlyAsync<BrokerUnreachableException>(
             () => fixture.Transport.StartAsync((_, _) => Task.CompletedTask));
         Assert.IsFalse(fixture.Transport.IsReady);
+    }
+
+    [TestMethod]
+    public async Task InitialBrokerUnavailabilityFailsStartupAndAFreshTransportWorksAfterTheOwnedServiceReturns()
+    {
+        await using RabbitMqMessageFixture original = await RabbitMqMessageFixture.CreateAsync(dedicatedBroker: true);
+        string container = original.Service.Container.Id;
+        using (var stop = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
+        {
+            await original.Service.Container.StopAsync(stop.Token);
+        }
+        await Assert.ThrowsExactlyAsync<BrokerUnreachableException>(
+            () => original.Transport.StartAsync((_, _) => Task.CompletedTask));
+        Assert.IsFalse(original.Transport.IsReady);
+        Assert.AreEqual("messaging.broker.start-failed", original.Transport.FailureCode);
+
+        await original.Service.StartForFreshClientAsync();
+        Assert.AreEqual(container, original.Service.Container.Id);
+        await using RabbitMqMessageFixture fresh = original.CreateSibling(withRequests: false);
+        var handled = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        EncodedMessage message = fresh.Message(42);
+        await fresh.Transport.StartAsync(async (delivery, token) =>
+        {
+            CollectionAssert.AreEqual(message.CopyBytes(), delivery.Body.ToArray());
+            await delivery.AcknowledgeAsync(token);
+            handled.TrySetResult();
+        });
+        Assert.AreEqual(MessagePublicationDisposition.Confirmed,
+            (await fresh.Transport.PublishAsync(fresh.Publication(message))).Disposition);
+        await handled.Task.WaitAsync(TimeSpan.FromSeconds(20));
+        Assert.IsTrue(fresh.Transport.IsReady);
+        Assert.IsFalse(original.Transport.IsReady, "A failed initial instance must not acquire an invented reconnect policy.");
     }
 
     [TestMethod]
@@ -275,6 +309,8 @@ public sealed class RabbitMqTransportTests
         var recovered = new HashSet<string>(StringComparer.Ordinal);
         try
         {
+            // RabbitMQ 4.4.1 retries unconfirmed dead letters every 180 seconds. With a
+            // capacity-one target, two confirmed source records can need two rounds.
             await RabbitMqMessageFixture.UntilAsync(async () =>
             {
                 BasicGetResult? message = await channel.BasicGetAsync(fixture.QuarantineQueue, false);
@@ -287,7 +323,7 @@ public sealed class RabbitMqTransportTests
                 }
                 return recovered.Count == expected.Length && await fixture.TotalQueuedAsync(fixture.Queue) == 0
                     && await channel.MessageCountAsync(fixture.QuarantineQueue) == 0;
-            }, TimeSpan.FromSeconds(210));
+            }, TimeSpan.FromSeconds(390));
         }
         catch (AssertFailedException)
         {
@@ -383,9 +419,9 @@ public sealed class RabbitMqTransportTests
     }
 
     [TestMethod]
-    public async Task ARealOwnedBrokerRestartRedeliversPersistentUnacknowledgedWorkThroughNativeRecovery()
+    public async Task ARealOwnedBrokerApplicationRestartRedeliversPersistentUnacknowledgedWorkThroughNativeRecovery()
     {
-        await using RabbitMqMessageFixture fixture = await RabbitMqMessageFixture.CreateAsync();
+        await using RabbitMqMessageFixture fixture = await RabbitMqMessageFixture.CreateAsync(dedicatedBroker: true);
         var first = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var repeated = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -420,7 +456,7 @@ public sealed class RabbitMqTransportTests
         try
         {
             await first.Task.WaitAsync(TimeSpan.FromSeconds(20));
-            await fixture.RestartOwnedBrokerAsync();
+            await fixture.RestartOwnedBrokerApplicationAsync();
         }
         finally
         {
@@ -439,6 +475,34 @@ public sealed class RabbitMqTransportTests
         Assert.AreEqual(MessagePublicationDisposition.Confirmed,
             (await fixture.Transport.PublishAsync(fixture.Publication(afterRecovery))).Disposition);
         await healthy.Task.WaitAsync(TimeSpan.FromSeconds(20));
+    }
+
+    [TestMethod]
+    public async Task FullOwnedContainerRestartRetainsPersistentUnacknowledgedWorkForAFreshTransport()
+    {
+        await using RabbitMqMessageFixture original = await RabbitMqMessageFixture.CreateAsync(dedicatedBroker: true);
+        EncodedMessage message = original.Message();
+        await original.PublishRawAsync(message.CopyBytes(), role: "service");
+        await using IConnection before = await original.ConnectAsync("service");
+        await using IChannel channel = await before.CreateChannelAsync();
+        BasicGetResult? unacknowledged = await channel.BasicGetAsync(original.Queue, false);
+        Assert.IsNotNull(unacknowledged);
+        Assert.IsTrue(unacknowledged.BasicProperties.Persistent);
+        CollectionAssert.AreEqual(message.CopyBytes(), unacknowledged.Body.ToArray());
+
+        // The native delivery stays unacknowledged while the full container stops and starts.
+        // Fresh application state uses the current inspected endpoint; no live transport is retargeted.
+        await original.Service.RestartContainerForFreshClientsAsync();
+        await using RabbitMqMessageFixture fresh = original.CreateSibling(withRequests: false);
+        var handled = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        await fresh.Transport.StartAsync(async (delivery, token) =>
+        {
+            CollectionAssert.AreEqual(message.CopyBytes(), delivery.Body.ToArray());
+            await delivery.AcknowledgeAsync(token);
+            handled.TrySetResult();
+        });
+        await handled.Task.WaitAsync(TimeSpan.FromSeconds(20));
+        Assert.IsTrue(fresh.Transport.IsReady);
     }
 
     [TestMethod]

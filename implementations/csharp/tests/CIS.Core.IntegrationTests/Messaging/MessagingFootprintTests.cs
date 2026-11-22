@@ -12,6 +12,9 @@ using RabbitMQ.Client;
 namespace CIS.Tests.IntegrationTests.Messaging;
 
 [TestClass]
+[TestCategory("RequiresDocker")]
+[TestCategory("PostgreSql")]
+[TestCategory("RabbitMq")]
 [DoNotParallelize]
 public sealed class MessagingFootprintTests
 {

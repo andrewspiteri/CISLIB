@@ -56,6 +56,8 @@ internal static class Program
             Schema(descriptor.CounterSchema);
             string postgresPath = Absolute(Environment.GetEnvironmentVariable("CIS_RM04_POSTGRES_CONNECTION_FILE")!);
             string brokerPath = Absolute(Environment.GetEnvironmentVariable("CIS_RM04_RABBITMQ_CONNECTION_FILE")!);
+            OwnedPath(directory, postgresPath);
+            OwnedPath(directory, brokerPath);
             var postgres = new NpgsqlConnectionStringBuilder(System.Text.Encoding.UTF8.GetString(await ReadBoundedAsync(postgresPath)).Trim());
             if (postgres.Host is not ("localhost" or "127.0.0.1" or "::1") || !postgres.Pooling || postgres.MaxPoolSize is < 1 or > 6
                 || postgres.Enlist || string.IsNullOrWhiteSpace(postgres.Database) || string.IsNullOrWhiteSpace(postgres.Username))
@@ -63,16 +65,40 @@ internal static class Program
                 throw new InvalidDataException("Use only the explicitly owned isolated database fixture.");
             }
             BrokerFile broker = JsonSerializer.Deserialize<BrokerFile>(await ReadBoundedAsync(brokerPath), Json)!;
+            if (broker.Host is not ("localhost" or "127.0.0.1" or "::1") || broker.Port is < 1 or > 65535
+                || broker.ServerName != "localhost" || !broker.VirtualHost.StartsWith("/cis.tc.", StringComparison.Ordinal)
+                || broker.ContainerId.Length != 64 || broker.ContainerId.Any(character => !Uri.IsHexDigit(character))
+                || broker.Owner.Length != 32 || broker.Owner.Any(character => !Uri.IsHexDigit(character))
+                || broker.Namespace != "cis.tc." + broker.Owner
+                || !descriptor.Namespace.StartsWith(broker.Namespace + ".", StringComparison.Ordinal)
+                || descriptor.Namespace.Length != broker.Namespace.Length + 9
+                || descriptor.Namespace[(broker.Namespace.Length + 1)..].Any(character => !Uri.IsHexDigit(character)))
+            {
+                throw new InvalidDataException("Use only the parent-owned bounded local broker handoff.");
+            }
             string certificate = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(brokerPath)!, broker.RootCertificateFile));
             OwnedPath(Path.GetDirectoryName(brokerPath)!, certificate);
             Principal selected = broker.Principals[descriptor.Principal];
+            if (string.IsNullOrWhiteSpace(selected.User) || string.IsNullOrWhiteSpace(selected.Password)
+                || broker.Principals.Count != 2 || broker.Principals[descriptor.Principal == "service" ? "other" : "service"].Password.Length != 0
+                || broker.ForeignUser != "cis_setup_" + broker.Owner[..8])
+            {
+                throw new InvalidDataException("The child descriptor must carry only its selected broker secret.");
+            }
             LocalApplicationIdentity local = LocalApplicationIdentity.Capture();
             var rabbit = new RabbitMqOptions
             {
-                HostName = broker.Host, Port = broker.Port, ServerName = broker.ServerName, VirtualHost = broker.VirtualHost,
-                UserName = selected.User, Password = selected.Password, Namespace = descriptor.Namespace,
-                SubjectIssuer = "rm04-fixture", TrustedRootCertificatePem = System.Text.Encoding.UTF8.GetString(await ReadBoundedAsync(certificate)),
-                SafeDeadLetteringVerified = true, EndpointNamespaces = [new(local.Application, local.Environment, "local")]
+                HostName = broker.Host,
+                Port = broker.Port,
+                ServerName = broker.ServerName,
+                VirtualHost = broker.VirtualHost,
+                UserName = selected.User,
+                Password = selected.Password,
+                Namespace = descriptor.Namespace,
+                SubjectIssuer = "rm04-fixture",
+                TrustedRootCertificatePem = System.Text.Encoding.UTF8.GetString(await ReadBoundedAsync(certificate)),
+                SafeDeadLetteringVerified = true,
+                EndpointNamespaces = [new(local.Application, local.Environment, "local")]
             };
             RabbitMqSettings settings = rabbit.Capture();
             var security = Security(local, settings, broker, descriptor.DenyExecute);
@@ -81,9 +107,18 @@ internal static class Program
             var builder = Host.CreateApplicationBuilder();
             builder.Logging.ClearProviders();
             builder.Services.AddCisAdoNetDatabase("Messaging", _ => source,
-                new() { SupportedIsolationLevels = [TransactionIsolation.ReadCommitted] });
-            builder.Services.AddSingleton<IMessagingStore>(new PostgreSqlMessagingStore(new() { Schema = descriptor.MessagingSchema }));
-            builder.Services.AddSingleton<IOperationJournal>(new PostgreSqlOperationJournal(new() { Schema = descriptor.OperationSchema }));
+                new()
+                {
+                    SupportedIsolationLevels = [TransactionIsolation.ReadCommitted]
+                });
+            builder.Services.AddSingleton<IMessagingStore>(new PostgreSqlMessagingStore(new()
+            {
+                Schema = descriptor.MessagingSchema
+            }));
+            builder.Services.AddSingleton<IOperationJournal>(new PostgreSqlOperationJournal(new()
+            {
+                Schema = descriptor.OperationSchema
+            }));
             builder.Services.AddCisOperations();
             builder.Services.AddCisOperation(CrashContracts.Operation());
             MessagingOptions options = CrashContracts.Options(descriptor.MinimumBudget);
@@ -123,7 +158,11 @@ internal static class Program
                 using var lifetime = new CancellationTokenSource(TimeSpan.FromSeconds(90));
                 await host.StartAsync(lifetime.Token);
                 MessageReplyRoute endpoint = host.Services.GetRequiredService<IMessageTransport>().ReplyEndpoint!;
-                await MarkerAsync(descriptor.MarkerPath, new { Phase = "ready", EndpointId = endpoint.EndpointId });
+                await MarkerAsync(descriptor.MarkerPath, new
+                {
+                    Phase = "ready",
+                    EndpointId = endpoint.EndpointId
+                });
                 if (descriptor.Mode is "responder" or "responder-hold")
                 {
                     await Task.Delay(Timeout.InfiniteTimeSpan, lifetime.Token);
@@ -149,9 +188,14 @@ internal static class Program
                     {
                         throw new InvalidOperationException("The caller request did not commit.");
                     }
-                    await MarkerAsync(descriptor.MarkerPath, new { Phase = "caller-committed", EndpointId = endpoint.EndpointId,
-                        ticket.Reference.MessageId, ticket.Reference.RequestAttemptId,
-                        Digest = Convert.ToHexString(ticket.Reference.Receipt.Digest.CopyBytes()).ToLowerInvariant() });
+                    await MarkerAsync(descriptor.MarkerPath, new
+                    {
+                        Phase = "caller-committed",
+                        EndpointId = endpoint.EndpointId,
+                        ticket.Reference.MessageId,
+                        ticket.Reference.RequestAttemptId,
+                        Digest = Convert.ToHexString(ticket.Reference.Receipt.Digest.CopyBytes()).ToLowerInvariant()
+                    });
                     using var cancelWait = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
                     using var stopSignal = new CancellationTokenSource();
                     Task signal = WatchCancellationAsync(descriptor.CancelPath, cancelWait, stopSignal.Token);
@@ -165,11 +209,21 @@ internal static class Program
                         await stopSignal.CancelAsync();
                         await signal;
                     }
-                    await MarkerAsync(descriptor.ResultPath, new CrashReport { Application = local.Application, Environment = local.Environment,
-                        Submission = ended.Submission.Outcome.ToString(), Completion = committed.Outcome.ToString(), Exchange = ended.Outcome.ToString(),
-                        Protocol = ended.Response?.Disposition.ToString() ?? "", Business = ended.Response?.Decision?.Decision.ToString() ?? "",
-                        Value = ended.Response?.Decision?.Value, PreCommitExchange = beforeCommit,
-                        MessageId = ticket.Reference.MessageId, AttemptId = ticket.Reference.RequestAttemptId, EndpointId = endpoint.EndpointId });
+                    await MarkerAsync(descriptor.ResultPath, new CrashReport
+                    {
+                        Application = local.Application,
+                        Environment = local.Environment,
+                        Submission = ended.Submission.Outcome.ToString(),
+                        Completion = committed.Outcome.ToString(),
+                        Exchange = ended.Outcome.ToString(),
+                        Protocol = ended.Response?.Disposition.ToString() ?? "",
+                        Business = ended.Response?.Decision?.Decision.ToString() ?? "",
+                        Value = ended.Response?.Decision?.Value,
+                        PreCommitExchange = beforeCommit,
+                        MessageId = ticket.Reference.MessageId,
+                        AttemptId = ticket.Reference.RequestAttemptId,
+                        EndpointId = endpoint.EndpointId
+                    });
                     await Task.Delay(Timeout.InfiniteTimeSpan, lifetime.Token);
                 }
                 else
@@ -186,14 +240,22 @@ internal static class Program
                     }
                     var report = new CrashReport
                     {
-                        Application = local.Application, Environment = local.Environment,
-                        Submission = first.Submission.Outcome.ToString(), Completion = first.Submission.Completion?.Outcome.ToString() ?? "",
-                        Exchange = first.Outcome.ToString(), Protocol = first.Response!.Disposition.ToString(),
-                        Business = first.Response.Decision?.Decision.ToString() ?? "", Value = first.Response.Decision?.Value,
-                        ReplayedValue = second.Response!.Decision?.Value, QueryValue = query.Response!.Decision?.Value,
-                        MessageId = first.Reference!.MessageId, AttemptId = first.Reference.RequestAttemptId,
-                        SecondMessageId = second.Reference!.MessageId, SecondAttemptId = second.Reference.RequestAttemptId,
-                        EndpointId = endpoint.EndpointId, EffectCount = await ScalarAsync(source, $"SELECT total::bigint FROM \"{descriptor.CounterSchema}\".rpc_effect_counter"),
+                        Application = local.Application,
+                        Environment = local.Environment,
+                        Submission = first.Submission.Outcome.ToString(),
+                        Completion = first.Submission.Completion?.Outcome.ToString() ?? "",
+                        Exchange = first.Outcome.ToString(),
+                        Protocol = first.Response!.Disposition.ToString(),
+                        Business = first.Response.Decision?.Decision.ToString() ?? "",
+                        Value = first.Response.Decision?.Value,
+                        ReplayedValue = second.Response!.Decision?.Value,
+                        QueryValue = query.Response!.Decision?.Value,
+                        MessageId = first.Reference!.MessageId,
+                        AttemptId = first.Reference.RequestAttemptId,
+                        SecondMessageId = second.Reference!.MessageId,
+                        SecondAttemptId = second.Reference.RequestAttemptId,
+                        EndpointId = endpoint.EndpointId,
+                        EffectCount = await ScalarAsync(source, $"SELECT total::bigint FROM \"{descriptor.CounterSchema}\".rpc_effect_counter"),
                         JournalCount = await ScalarAsync(source, $"SELECT count(*) FROM \"{descriptor.OperationSchema}\".operation_journal"),
                         CoreHash = Convert.ToHexString(SHA256.HashData(await File.ReadAllBytesAsync(typeof(IMessagingClient).Assembly.Location))).ToLowerInvariant()
                     };
@@ -230,7 +292,7 @@ internal static class Program
         options.Profiles.Add(new(settings.SecurityProfile, SecurityProfileKind.Native, SecurityProfileRoles.Inbound,
             authenticationScheme: "cis-rabbitmq", identityMappings: [new(new(settings.SubjectIssuer, broker.Principals["service"].User), local.Application, local.Environment),
                 new(new(settings.SubjectIssuer, broker.Principals["other"].User), local.Application, local.Environment),
-                new(new(settings.SubjectIssuer, broker.Principals["setup"].User), "rpc-foreign", local.Environment)]));
+                new(new(settings.SubjectIssuer, broker.ForeignUser), "rpc-foreign", local.Environment)]));
         foreach (string capability in new[] { "fixture.handle", "dispatch.execute", "dispatch.lookup", "messaging.reply", "messaging.retry" })
         {
             options.Capabilities.Add(capability);
@@ -324,9 +386,15 @@ internal static class Program
             {
                 if (Interlocked.CompareExchange(ref held, 1, 0) == 0)
                 {
-                    await MarkerAsync(marker, new { Phase = "reply-held", publication.OutboxRecordId,
-                        MessageId = publication.Message.Envelope.InReplyToMessageId, publication.Message.Envelope.RequestAttemptId,
-                        EndpointId = inner.ReplyEndpoint!.EndpointId, RecipientEndpointId = publication.Destination.ReplyRoute!.EndpointId });
+                    await MarkerAsync(marker, new
+                    {
+                        Phase = "reply-held",
+                        publication.OutboxRecordId,
+                        MessageId = publication.Message.Envelope.InReplyToMessageId,
+                        publication.Message.Envelope.RequestAttemptId,
+                        EndpointId = inner.ReplyEndpoint!.EndpointId,
+                        RecipientEndpointId = publication.Destination.ReplyRoute!.EndpointId
+                    });
                 }
                 while (!File.Exists(marker + ".release"))
                 {
@@ -345,17 +413,28 @@ internal static class Program
     }
     private sealed class BrokerFile
     {
-        public BrokerFile() { }
+        public BrokerFile()
+        {
+        }
         public string Host { get; set; } = "";
-        public int Port { get; set; }
+        public int Port
+        {
+            get; set;
+        }
         public string ServerName { get; set; } = "";
         public string VirtualHost { get; set; } = "";
         public string RootCertificateFile { get; set; } = "";
+        public string Namespace { get; set; } = "";
+        public string ContainerId { get; set; } = "";
+        public string Owner { get; set; } = "";
+        public string ForeignUser { get; set; } = "";
         public Dictionary<string, Principal> Principals { get; set; } = [];
     }
     private sealed class Principal
     {
-        public Principal() { }
+        public Principal()
+        {
+        }
         public string User { get; set; } = "";
         public string Password { get; set; } = "";
     }

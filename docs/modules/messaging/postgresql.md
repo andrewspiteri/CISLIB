@@ -189,6 +189,18 @@ then failure seam. A simulated acknowledgement loss is not a real network fault.
 Store proof is distinct from subsequent actual broker/host/RPC acceptance; see
 [CIS-0019 verification](../../changes/CIS-0019/verification.md) for actual results.
 
+Current integration tests obtain a typed, automatically owned Testcontainers
+PostgreSQL service and keep a separate schema, data source and client lease per
+case. The pinned image uses normal durability, checked through authenticated SQL;
+module defaults that disable durability are explicitly replaced. No manual
+connection file or ambient database selection is required. Selected Docker/image/
+readiness failures fail the native test. Client and child ownership must settle
+before schemas, data sources and the run's containers/volumes are released. The
+parent exports short-lived private connection descriptors only for its owned RPC
+children. See the [canonical testing guide](../../../implementations/csharp/tests/README.md)
+and [current verification](../../changes/CIS-0021/verification.md). Historical
+results retain their original provisioning and platform boundaries.
+
 ## Atomic reply references
 
 A Reply outgoing row has exactly one canonical processing or separate rejection

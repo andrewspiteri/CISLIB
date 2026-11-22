@@ -4,6 +4,7 @@ using CIS.Messaging;
 using CIS.Messaging.PostgreSql;
 using CIS.Security;
 using CIS.Tests.IntegrationTests.Operations;
+using CIS.Tests.IntegrationTests.Infrastructure.Containers;
 using CIS.Transactions;
 using CIS.Transactions.AdoNet;
 using CIS.Transactions.Hosting;
@@ -13,20 +14,28 @@ using Npgsql;
 
 namespace CIS.Tests.IntegrationTests.Messaging;
 
-// One schema per case on the explicitly provisioned isolated RM-04 fixture, never a default database.
+// One schema and client owner per case on the run's automatically provisioned PostgreSQL service.
 internal sealed class PostgresMessageFixture : IAsyncDisposable
 {
     private readonly ServiceProvider provider;
     private bool ownsSchema;
+    private IDisposable? serviceLease;
 
-    private PostgresMessageFixture(string connectionString, MessageRetentionPolicy? retention, long? capacity)
+    private PostgresMessageFixture(string connectionString, string schema, NpgsqlDataSource source, IDisposable serviceLease,
+        MessageRetentionPolicy? retention, long? capacity)
     {
-        Schema = "cis_rm04_" + Guid.NewGuid().ToString("N");
-        var connection = new NpgsqlConnectionStringBuilder(connectionString) { ApplicationName = Schema };
-        Source = NpgsqlDataSource.Create(connection.ConnectionString);
+        this.serviceLease = serviceLease;
+        Schema = schema;
+        ConnectionString = connectionString;
+        Source = source;
         Boundary = new(Source);
         Policy = retention ?? new();
-        Store = new(new() { Schema = Schema, Retention = Policy, MaximumRetainedEnvelopeBytes = capacity });
+        Store = new(new()
+        {
+            Schema = Schema,
+            Retention = Policy,
+            MaximumRetainedEnvelopeBytes = capacity
+        });
         var services = new ServiceCollection();
         services.AddCisAdoNetDatabase("Messaging", _ => Boundary, new()
         {
@@ -35,43 +44,47 @@ internal sealed class PostgresMessageFixture : IAsyncDisposable
         provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateOnBuild = true, ValidateScopes = true });
     }
 
-    internal string Schema { get; }
-    internal NpgsqlDataSource Source { get; }
-    internal NativeCommitBoundarySource Boundary { get; }
-    internal PostgreSqlMessagingStore Store { get; }
-    internal MessageRetentionPolicy Policy { get; }
+    internal string Schema
+    {
+        get;
+    }
+    // Parent-only generated state for an explicit private child handoff, never an ambient configuration mode.
+    internal string ConnectionString
+    {
+        get;
+    }
+    internal NpgsqlDataSource Source
+    {
+        get;
+    }
+    internal NativeCommitBoundarySource Boundary
+    {
+        get;
+    }
+    internal PostgreSqlMessagingStore Store
+    {
+        get;
+    }
+    internal MessageRetentionPolicy Policy
+    {
+        get;
+    }
     internal ILocalTransactionFactory Factory => provider.GetRequiredService<ILocalTransactionFactory>();
     internal const string Application = "rm04-service";
     internal const string EnvironmentName = "test";
 
     internal static async Task<PostgresMessageFixture> CreateAsync(MessageRetentionPolicy? retention = null, long? capacity = null)
     {
-        string? path = System.Environment.GetEnvironmentVariable("CIS_RM04_POSTGRES_CONNECTION_FILE");
-        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
-        {
-            Assert.Inconclusive("Set CIS_RM04_POSTGRES_CONNECTION_FILE to the private absolute file for the newly owned isolated RM-04 PostgreSQL fixture.");
-        }
-        if (!Path.IsPathFullyQualified(path!))
-        {
-            throw new InvalidOperationException("The explicit RM-04 connection file must be absolute.");
-        }
-        var file = new FileInfo(path!);
-        if (file.Length is <= 0 or > 16384)
-        {
-            throw new InvalidOperationException("The explicit private connection file must contain at most 16 KiB.");
-        }
-        var builder = new NpgsqlConnectionStringBuilder((await File.ReadAllTextAsync(path!)).Trim());
-        if (builder.Host is not ("localhost" or "127.0.0.1" or "::1") || string.IsNullOrWhiteSpace(builder.Database)
-            || string.IsNullOrWhiteSpace(builder.Username) || string.IsNullOrEmpty(builder.Password) || !string.IsNullOrEmpty(builder.Passfile)
-            || !builder.Pooling || builder.MinPoolSize != 0 || builder.MaxPoolSize is < 1 or > 6 || builder.Enlist || builder.NoResetOnClose
-            || builder.Timeout != 15 || builder.CommandTimeout != 30 || builder.CancellationTimeout != 2000
-            || builder.SslMode != SslMode.Disable || !string.Equals(builder["GSS Encryption Mode"]?.ToString(), "Disable", StringComparison.OrdinalIgnoreCase))
-        {
-            throw new InvalidOperationException("Use only explicit isolated loopback credentials, pool0..6, timeouts15/30/2000 and disabled SSL/GSS/ambient enlistment.");
-        }
-        var fixture = new PostgresMessageFixture(builder.ConnectionString, retention, capacity);
+        OwnedPostgresService service = await IntegrationServices.GetPostgresAsync();
+        IDisposable lease = service.AcquireClientLease();
+        NpgsqlDataSource? source = null;
+        PostgresMessageFixture? fixture = null;
         try
         {
+            string schema = "cis_rm04_" + Guid.NewGuid().ToString("N");
+            var connectionOptions = new NpgsqlConnectionStringBuilder(service.CreateConnectionString(6)) { ApplicationName = schema };
+            source = NpgsqlDataSource.Create(connectionOptions.ConnectionString);
+            fixture = new(connectionOptions.ConnectionString, schema, source, lease, retention, capacity);
             fixture.ownsSchema = true;
             await using ILocalTransaction install = await fixture.Factory.BeginAsync("Messaging");
             await PostgreSqlMessagingSchema.InstallAsync(install.Context, fixture.Schema);
@@ -94,9 +107,27 @@ internal sealed class PostgresMessageFixture : IAsyncDisposable
             Assert.AreEqual("on", reader.GetString(3));
             return fixture;
         }
-        catch
+        catch (Exception original)
         {
-            await fixture.DisposeAsync();
+            try
+            {
+                if (fixture is not null)
+                {
+                    await fixture.DisposeAsync();
+                }
+                else
+                {
+                    if (source is not null)
+                    {
+                        await source.DisposeAsync();
+                    }
+                    lease.Dispose();
+                }
+            }
+            catch (Exception cleanup)
+            {
+                throw new AggregateException("Messaging PostgreSQL initialization and owned cleanup both failed.", original, cleanup);
+            }
             throw;
         }
     }
@@ -231,5 +262,6 @@ internal sealed class PostgresMessageFixture : IAsyncDisposable
         {
             throw new AggregateException("Owned messaging PostgreSQL fixture cleanup failed.", failures);
         }
+        Interlocked.Exchange(ref serviceLease, null)?.Dispose();
     }
 }

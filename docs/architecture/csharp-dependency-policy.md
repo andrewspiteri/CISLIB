@@ -69,6 +69,30 @@ SDK/runtime pins remain 10.0.401/10.0.12. Core/None consumers do not acquire Pol
 
 The existing native test framework is MSTest. SDK and package versions are pinned locally in the C# implementation. Native restore/build/test/pack are the operating route in [README](../../README.md). The retired project census, checker protocols and generated inspection receipts are not package/API contracts; useful runtime/package behavior remains covered by native tests.
 
+## Owned external-service tests
+
+[CIS-0021](../changes/CIS-0021/implementation-plan.md) selects
+`Testcontainers.PostgreSql` and `Testcontainers.RabbitMq` **4.17.0** for the
+nonpackable `CIS.Core.IntegrationTests` project, with `PrivateAssets="all"`.
+The base Testcontainers package is transitive unless its actual API arrangement
+requires a direct reference. Central versions, exact source mappings and the
+IntegrationTests lock retain the resolved test graph; unrelated pins stay intact.
+The existing test Npgsql **10.0.4** and optional adapter RabbitMQ.Client **7.2.2**
+remain selected.
+
+Container dependencies belong only to test infrastructure. Core, CommonTesting,
+optional shipping adapters and applications must not acquire Testcontainers or
+Docker dependencies. IntegrationTests references the shipping projects; shipping
+projects never reference IntegrationTests. `PrivateAssets` supplements this
+direction and actual shipping-package/compiled-dependency checks; it does not
+replace them.
+
+Earlier RM-02/RM-03 scopes explicitly excluded Testcontainers. Those historical
+decisions and observations remain unchanged; this current test-only decision
+replaces their manual service prerequisite for normal test execution. See the
+[canonical testing guide](../../implementations/csharp/tests/README.md) for lazy
+owned services, dependency categories, cleanup and native commands.
+
 `CIS.CommonTesting` is the optional consumer-test package approved in
 [CIS-0012](../changes/CIS-0012/implementation-plan.md). Its sole package dependency
 is the matching Core version, alongside the approved `Microsoft.AspNetCore.App`

@@ -8,8 +8,8 @@ cis:
 
 # PostgreSQL local transactions
 
-The reference integration uses Npgsql **10.0.4** against the explicitly provisioned
-PostgreSQL **18** fixture. Npgsql is a private test/reference dependency, outside
+The reference integration uses Npgsql **10.0.4** against an automatically owned
+Testcontainers PostgreSQL **18** service. Npgsql is a private test/reference dependency, outside
 Core's shipping closure. Its selected logging abstraction is the repository's
 existing **10.0.12** pin. See the [dependency profile](../../changes/CIS-0017/dependency-profile.md)
 and [portable transaction contract](../../../contracts/transactions/README.md).
@@ -60,19 +60,17 @@ owned native transaction and connection lease; it does not dispose the source or
 clear its pool. Npgsql normally returns disposed connection leases to that
 source's pool. [Npgsql data sources and pooling](https://www.npgsql.org/doc/basic-usage.html)
 
-## Explicit isolated qualification
+## Automatically owned native tests
 
-Provision only the approved fresh local fixture described by the
-[implementation plan](../../changes/CIS-0017/implementation-plan.md). Its Docker
-image is pinned by digest; the provisioning receipt records the actual server
-version, image and resource limits. The test itself neither provisions Docker
-nor chooses a default database.
+The integration assembly lazily starts its pinned PostgreSQL 18.7 image through
+Testcontainers for .NET. Docker chooses the host port, and a typed owner supplies
+the generated credentials and actual mapped endpoint. A selected native test
+fails when Docker, its image or authenticated readiness is unavailable. It never
+selects an existing developer database or requires a manually written connection file.
 
-Write the generated connection string into a private file outside tracked
-source. Set `CIS_RM02_POSTGRES_CONNECTION_FILE` to that file's absolute path. Do
-not put the password in command arguments, committed settings or test output.
-The file must specify a loopback host and the fresh fixture's database, user and
-password, with these bounded settings:
+Normal cases share one service within the integration run and retain independent
+schemas, data sources and transaction owners. The generated connection keeps
+these bounds; credentials never belong in command arguments, tracked settings or output:
 
 ```text
 Pooling=true;Minimum Pool Size=0;Maximum Pool Size=4;
@@ -81,8 +79,9 @@ Enlist=false;No Reset On Close=false;
 SSL Mode=Disable;GSS Encryption Mode=Disable
 ```
 
-The disabled native encryption modes apply only to this isolated loopback
-qualification target. The fixture does not select a passfile, certificate or
+The disabled native encryption modes apply only to this owned loopback profile.
+Non-loopback PostgreSQL Docker endpoints fail clearly and require a separately
+qualified transport-security profile. The fixture does not select a passfile, certificate or
 operator Kerberos credential. Npgsql defines command/open timeouts in seconds
 and cancellation timeout in milliseconds; these are native cooperative limits,
 not a claim that RM-02 can forcibly terminate an uncooperative provider.
@@ -92,15 +91,19 @@ From `implementations/csharp`, run the ordinary test project with the repository
 pinned SDK/runtime and restored lock files:
 
 ```text
-dotnet test tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj --configuration Release --no-restore --filter FullyQualifiedName~PostgresTransactionTests
+dotnet test tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj --configuration Release --no-build --no-restore --filter FullyQualifiedName~PostgresTransactionTests
 ```
 
 The class is not parallelized. Each case owns one fresh GUID schema, exactly
 three ordinary logged tables, at most two small rows per table and payloads
 bounded to 1 KiB. Finally cleanup drops only that created schema and then disposes
-the owned source. Missing explicit fixture configuration produces a clear
-inconclusive check, never an in-memory substitute or a connection to a default
-database.
+the owned source. Its lease keeps the service alive until client cleanup settles.
+Integration-only assembly cleanup disposes started services and their owned
+volumes, with the enabled Resource Reaper as fallback. Fast checks exclude
+`RequiresDocker` and do not start or contact Docker. See the
+[canonical testing commands](../../../implementations/csharp/tests/README.md).
+The service verifies `fsync`, `full_page_writes` and `synchronous_commit` are all
+enabled; the Testcontainers module's nondurable defaults are explicitly replaced.
 
 The eleven cases cover identical native handles across the three participants,
 independent-session visibility before/after commit, complete rollback after a
@@ -114,7 +117,8 @@ native callback. The blocker and every pending task are released/joined in
 [PostgreSQL blocking-session information](https://www.postgresql.org/docs/18/functions-info.html)
 
 Actual executed lanes and exact candidates belong in the
-[verification record](../../changes/CIS-0017/verification.md). Authored source is
+[current verification record](../../changes/CIS-0021/verification.md); the
+[original RM-02 record](../../changes/CIS-0017/verification.md) remains historical. Authored source is
 not passing evidence. Scripted uncertain-commit tests elsewhere do not qualify a
 real lost-acknowledgement/network failure. An actual `Unknown` must remain unknown;
 later rollback or disposal does not establish whether the original commit

@@ -129,10 +129,12 @@ automatically replayed. See [PostgreSQL error codes](https://www.postgresql.org/
 ## Focused native consumer
 
 [PostgresOperationTests](../../../implementations/csharp/tests/CIS.Core.IntegrationTests/Operations/PostgresOperationTests.cs)
-uses one fresh GUID schema per case on the explicitly provisioned isolated
-PostgreSQL18 fixture. `CIS_RM03_POSTGRES_CONNECTION_FILE` must name its private
-absolute connection-file path. Missing setup is inconclusive; no default database,
-operator credential, in-memory engine or existing database is selected.
+uses one fresh GUID schema and client owner per case on the integration run's
+automatically provisioned Testcontainers PostgreSQL18 service. A typed owner
+supplies its generated endpoint and credentials directly; no manual connection
+file, ambient DSN or existing database is selected. Missing Docker, image or
+authenticated readiness fails a selected native case. See the
+[canonical testing commands](../../../implementations/csharp/tests/README.md).
 
 The source validates private loopback, explicit database/user/password, no
 passfile, pool0..6, native timeouts15/30/2000, Enlist=false and reset-on-close.
@@ -155,9 +157,16 @@ test output with actual row/payload sizes, committed row shape, concurrency,
 elapsed observation, server/OS and executed Core hash. It is a focused workload
 observation, separate from installer/component checks and no benchmark campaign.
 Actual executed lanes and results belong in the
-[verification record](../../changes/CIS-0018/verification.md). Authored source
+[current verification record](../../changes/CIS-0021/verification.md); the
+[original RM-03 record](../../changes/CIS-0018/verification.md) remains historical. Authored source
 alone proves no atomicity, contention, recovery, package or release result.
 
 Explicit privileged maintenance and uncertain-commit recovery have their own
 WORK-004 acceptance. This journal work does not select a scheduler, background
 worker, retry queue, public Pending lifecycle or outgoing-delivery module.
+
+The dedicated clean restart case preserves the same owned container and volume,
+then reconstructs a data source, provider and journal over the retained schema.
+It independently recovers and replays the original committed result without a
+second business effect and verifies unfinished work left no committed rows. It
+is clean restart evidence, not power-loss or storage-hardware qualification.

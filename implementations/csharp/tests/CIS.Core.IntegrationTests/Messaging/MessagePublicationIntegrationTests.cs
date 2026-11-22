@@ -9,6 +9,9 @@ using RabbitMQ.Client;
 namespace CIS.Tests.IntegrationTests.Messaging;
 
 [TestClass]
+[TestCategory("RequiresDocker")]
+[TestCategory("PostgreSql")]
+[TestCategory("RabbitMq")]
 [DoNotParallelize]
 public sealed class MessagePublicationIntegrationTests
 {
@@ -178,7 +181,10 @@ public sealed class MessagePublicationIntegrationTests
     // A narrow test seam after an actual native confirmation, not a network-fault or broker-failover proof.
     private sealed class LoseFirstConfirmation(IMessagePublisher actual) : IMessagePublisher
     {
-        internal int ActualConfirmations { get; private set; }
+        internal int ActualConfirmations
+        {
+            get; private set;
+        }
         public async Task<MessagePublicationResult> PublishAsync(MessagePublication publication, CancellationToken cancellationToken = default)
         {
             MessagePublicationResult result = await actual.PublishAsync(publication, cancellationToken);
