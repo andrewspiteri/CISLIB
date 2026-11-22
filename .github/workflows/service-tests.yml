@@ -21,8 +21,6 @@ jobs:
         shell: bash
         working-directory: implementations/csharp
     env:
-      DOTNET_INSTALL_DIR: ${{ runner.temp }}/cislib-dotnet
-      DOTNET_CLI_HOME: ${{ runner.temp }}/cislib-cli
       DOTNET_CLI_TELEMETRY_OPTOUT: "1"
       DOTNET_NOLOGO: "1"
       DOTNET_CLI_USE_MSBUILD_SERVER: "0"
@@ -34,6 +32,11 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+
+      - name: Select owned tool paths
+        run: |
+          printf 'DOTNET_INSTALL_DIR=%s/cislib-dotnet\n' "$RUNNER_TEMP" >> "$GITHUB_ENV"
+          printf 'DOTNET_CLI_HOME=%s/cislib-cli\n' "$RUNNER_TEMP" >> "$GITHUB_ENV"
 
       - name: Install pinned SDK
         uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0

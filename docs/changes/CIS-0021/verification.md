@@ -87,3 +87,14 @@ fresh production transport at the current inspected endpoint. No live transport 
 retargeted, no fixed host port or proxy is introduced, and production code is
 unchanged. Application restart does not establish Erlang VM/container restart;
 single-node container restart does not establish power loss or multi-node failover.
+
+The first published head `36d58a540dbcbb838df1f740293d302efb70a1c3`
+created [run 45026413257](https://github.com/andrewspiteri/CISLIB/actions/runs/45026413257),
+which GitHub rejected before creating any jobs. The workflow used `runner.temp`
+at job-level `env`, where that context is unavailable. A narrow workflow-only
+correction selects owned tool paths from `RUNNER_TEMP` through `GITHUB_ENV` in a
+normal step before SDK setup. The original frozen local receipt retains its old
+workflow hash; the ignored CI-definition delta records the corrected workflow
+hash and subsequent qualified head. Executable test/product sources and native
+binary/report snapshots remain unchanged. No Linux service pass is inferred from
+this definition correction.
