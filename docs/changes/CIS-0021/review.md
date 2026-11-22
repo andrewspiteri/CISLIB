@@ -35,3 +35,11 @@ The final source-import condition also passed independent review: the exact
 anchored path retains the dual-RID lock only in source checkouts. The actual
 offline package consumer passes after the retained 2,556/1 fast result, and the
 source solution still restores/builds cleanly with its selected Windows RID.
+
+Independent clean-child/DLX delta review passed: all six source inputs, five
+current/snapshot binary pairs and the 12-result native report match. The actual
+child dependency manifest remains free of Testcontainers/Docker. Independent
+Linux report review then confirmed all 145 actual results Passed, native counters
+145/145/0/0 and Completed, on the recorded ce9b1e8d head/run. Final metadata-head
+qualification remains a separate merge gate under the already-authorized bounded
+publication continuation.

@@ -2,7 +2,7 @@
 title: "WORK-002 Migrate secure RabbitMQ ownership and RPC child handoffs"
 type: agent-task
 status: Draft
-task_status: InProgress
+task_status: Complete
 task_id: WORK-002
 parent_id: none
 category: implementation
@@ -29,13 +29,15 @@ Migrate secure RabbitMQ ownership and RPC child handoffs
 
 ## Acceptance criteria
 
-- [ ] Use the frozen common owned-service ports; finalnative acceptance requires qualifiedPGfoundation. Self-provisionedTLSRabbit preserves actualsecurity/topology/confirms/returns/quorum/ack/redelivery/restart tests viaownedTestcontainers APIs withoutfixedhostpaths/ports. Bound/excludeoverlapforrestart andresolve actualdynamic-port semantics withoutweakeningrecovery. Parent-owned minimalprivatechilddescriptors preserve genuineRPCprocessdeath/currentresult recovery and publicpackage consumers, withselected-only secrets. Initialfailure/freshstartup behavior and failurecleanup are accuratelylabelled; no setupfiles/manualserviceprerequisite.
+- [x] Use the frozen common owned-service ports; finalnative acceptance requires qualifiedPGfoundation. Self-provisionedTLSRabbit preserves actualsecurity/topology/confirms/returns/quorum/ack/redelivery/restart tests viaownedTestcontainers APIs withoutfixedhostpaths/ports. Bound/excludeoverlapforrestart andresolve actualdynamic-port semantics withoutweakeningrecovery. Parent-owned minimalprivatechilddescriptors preserve genuineRPCprocessdeath/currentresult recovery and publicpackage consumers, withselected-only secrets. Initialfailure/freshstartup behavior and failurecleanup are accuratelylabelled; no setupfiles/manualserviceprerequisite.
 
 ## Targeted validation
 
-- [ ] Existing realRabbit21 pluscombinedMessaging/RPC/hosting/package cases on actualWindows/Ubuntu, same realassertions and zero selectedskips; meaningfulinitialconnection-failure/fresh-success case onlyifgap. Scopedformat/build; actualTLSnegativeidentity/permissions, storage/recovery and descriptor/drain/cleanup review; noTestcontainers incompiledlinkedchild/shippingclosures. Categories accompanymigration, updatecurrentMessagingguides, independentreview; same12h16attempt6GiB.
+- [x] Existing realRabbit21 pluscombinedMessaging/RPC/hosting/package cases on actualWindows/Ubuntu, same realassertions and zero selectedskips; meaningfulinitialconnection-failure/fresh-success case onlyifgap. Scopedformat/build; actualTLSnegativeidentity/permissions, storage/recovery and descriptor/drain/cleanup review; noTestcontainers incompiledlinkedchild/shippingclosures. Categories accompanymigration, updatecurrentMessagingguides, independentreview; same12h16attempt6GiB.
 
 ## Completion evidence
 
 | Check | Result | Evidence |
 | --- | --- | --- |
+| Secure RabbitMQ/RPC ownership and explicit restart boundaries | Passed | Windows3restart+12RPC/DLXfocused; actualUbuntu145/145 run45034280172; exactbytes/permissions/childclosure retained; ownedcleanup verified. |
+| CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2141; failed=291; possibleTokenSavings=591; ledgerDigest=sha256:902ab14b3a9565d64b1caf02801f748cc0d71881bd809d7e57557d8ee8c20c9c |

@@ -7,6 +7,16 @@ change_id: CIS-0021
 
 # Verification
 
+The implemented source head `ce9b1e8d842851563258df672c3d339417babf2b`
+passed [actual Linux CI 45034280172](https://github.com/andrewspiteri/CISLIB/actions/runs/45034280172):
+fresh locked restore, a zero-warning/error solution build and all 145 selected
+services passed, with zero failures/skips. Native TRX elapsed is 518.8271011
+seconds. Its BCL result gate passed; the downloaded report SHA256 is
+`2ca0b7bfbaa28d90021068770969ae5eff77de345b83d1b024cffe82c5af07ef`.
+The final CIS closeout commit must pass the same check on its own exact head
+before merge. Earlier pending checkpoints and failed runs below remain historical
+evidence; they do not override this observed result.
+
 | Task ID | Check | Command or artifact | Result | Notes |
 | --- | --- | --- | --- | --- |
 | WORK-001 | Pinned locked restore and full solution build | `solution-locked-restore`, `solution-build-null-fixed` | Passed | SDK 10.0.401, NET/ASP 10.0.12; zero build warnings/errors. Later narrow RabbitMQ corrections also build cleanly. |
@@ -18,7 +28,7 @@ change_id: CIS-0021
 | WORK-003 | Actual BCL result checker | `guard-current-service-report-fixed`, `guard-negative-controls-fixed` | Passed | Accepts the real 145-case TRX; rejects zero, skipped, failed-summary, cleanup-error and nonzero native-exit controls with controlled exit 1. |
 | WORK-001 / WORK-003 | Shipping closure and dependency direction | Fast Architecture cohort; ignored `shipping-direction-assets.json` | Passed | 361 Architecture cases include the current Core package closure. Seven shipping asset graphs and actual package/project edges have no Testcontainers/Docker dependency. |
 | WORK-001 / WORK-002 | Exact local restoration | Ignored `local-restoration.json` | Passed | Zero retained owned children, containers or volumes; three newly pulled unshared image references removed. Removed 39 owned scratch directories / 63,253,292 bytes after drain, retaining hashes/reports/capped logs. |
-| WORK-003 | Linux service CI | Authored `.github/workflows/service-tests.yml` | Pending | An observed nonempty successful PR run is required before merge. Authored workflow and passing Windows work are not a Linux CI pass. |
+| WORK-003 | Linux service CI | [Run 45034280172](https://github.com/andrewspiteri/CISLIB/actions/runs/45034280172) | Passed | Exact implemented source head ce9b1e8d: 145/145, zero failures/skips; native gate passed on Ubuntu 24.04 / Linux amd64. Final metadata head must also qualify before merge. |
 | All | Independent final local receipt review | [Review](review.md), frozen receipt | Passed | All 51 source, six context and ten report hashes match; ten binary/configuration snapshots match both their original and snapshot paths. Actual result counts/counters agree; closure, restoration and protected user file independently checked. |
 | WORK-004 | Portable consumer locked restore/build and affected Windows consumers | `portable-solution-locked-restore`, `portable-solution-build`, `portable-countrydata-unit-consumer`, `portable-source-configuration-consumer` | Passed | Zero build warnings/errors; CountryData 29/29 and the current source-fixture 1/1, zero failures/skips. Both RIDs locked; existing groups/package IDs/versions unchanged. |
 
@@ -182,3 +192,31 @@ assertions. Scoped formatting/verification and the affected build pass. The four
 current source, Unit, Integration and actual child Core copies match SHA256
 `838154abc0f9cad16162bf49ff6c884c5aab19129a69bf42c166a65d3e55e466`;
 earlier immutable binary snapshots retain their historical hashes.
+
+All four implementation tasks are Complete through the supported legacy CIS
+lifecycle. The final publication continuation was admitted while WORK-003 was
+active: only closeout metadata, its automatic unchanged-workflow qualification,
+bounded report inspection and qualified merge/main synchronization remain.
+Delegated redistribution moved 15 unused ordinary minutes from WORK-001 to
+WORK-003 without changing the shared 12 hours/16 attempts, existing restoration
+floors or storage limits. The pre-final-head checkpoint records 526 estimated
+active source minutes, 85.51585 separately measured native/CIS/CI minutes and ten
+external logical attempts. Automatic CIS counters remain separate. Counted local
+storage is 5,697,018,479 / 6,442,450,944 bytes, including the conservative Docker
+allowance, cache charges and protected 64 MiB. Final CI/publication costs remain
+charged to the same allocation.
+
+After the last affected native checks, exact postflight found zero owned children,
+containers, volumes or images. Three freshly pulled unshared images and five
+phase scratch directories / 3,545 bytes were removed, preserving reports and
+binary snapshots. Twelve unrelated Docker volumes created before this task were
+left untouched. The protected user launch settings retain their original hash.
+
+## CIS tool-use snapshots
+
+| Task ID | Check | Artifact | Result | Notes |
+| --- | --- | --- | --- | --- |
+| WORK-004 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2139; failed=291; possibleTokenSavings=591; ledgerDigest=sha256:95a69fabeaad7170b4f628de6daad8970dcaffc0c5b106ff70c79d4185aaa82e |
+| WORK-001 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2140; failed=291; possibleTokenSavings=591; ledgerDigest=sha256:b84bffcedabc83c4719f6c0375982a8b96911e1b3e423fcc7475322267172dda |
+| WORK-002 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2141; failed=291; possibleTokenSavings=591; ledgerDigest=sha256:902ab14b3a9565d64b1caf02801f748cc0d71881bd809d7e57557d8ee8c20c9c |
+| WORK-003 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2142; failed=291; possibleTokenSavings=591; ledgerDigest=sha256:ae3bef1948a7f9c152dad8910d81211d3c119be50927a27e8c54683aa706e03b |

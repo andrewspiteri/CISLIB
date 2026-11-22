@@ -2,7 +2,7 @@
 title: "WORK-003 Deliver Docker-free selection and reviewable service CI"
 type: agent-task
 status: Draft
-task_status: InProgress
+task_status: Complete
 task_id: WORK-003
 parent_id: none
 category: implementation
@@ -29,13 +29,15 @@ Deliver Docker-free selection and reviewable service CI
 
 ## Acceptance criteria
 
-- [ ] Audit categories byactualindirectdependency, preserveglobalTestAssembly Docker-free andmixedpackage/syntheticMetrics cases. Canonicalcommands lockedrestore/build, Docker-freefastfilter and nonemptyzero-skippedservicefilter are truthful and locallyexercised. Authorone stableLinuxCIservicejob with exactSDK/runtimes, ownedTestcontainers and boundedlogs/timeouts, plus smallnativeTRXcheck. Currentguidance/decision/dependencyprofile updated, shippingclosures unchanged. FinalrequiresqualifiedPG/Rabbit tasks. ObservedremoteCI acceptance staysopenuntil userauthorizespublishingthe exactpreparedbranch/workflow and a real nonemptyjobpasses.
+- [x] Audit categories byactualindirectdependency, preserveglobalTestAssembly Docker-free andmixedpackage/syntheticMetrics cases. Canonicalcommands lockedrestore/build, Docker-freefastfilter and nonemptyzero-skippedservicefilter are truthful and locallyexercised. Authorone stableLinuxCIservicejob with exactSDK/runtimes, ownedTestcontainers and boundedlogs/timeouts, plus smallnativeTRXcheck. Currentguidance/decision/dependencyprofile updated, shippingclosures unchanged. FinalrequiresqualifiedPG/Rabbit tasks. ObservedremoteCI acceptance staysopenuntil userauthorizespublishingthe exactpreparedbranch/workflow and a real nonemptyjobpasses.
 
 ## Targeted validation
 
-- [ ] Source/category inventory plus appropriateDockerfree execution with unreachableDocker/no startedcontainers; lockedrestore/affectedbuild/current fullservice selection, Windows/actualUbuntu evidence accuratelyscoped. Verify resultgate rejects zero/skipped/inconclusive selectedcases withoutnewharness, shippingpackageclosure and publicprocessconsumer. Independentreview no responsibility/toolingexpansion. Record authoredCI vsobservedrun separately; complete all localwork before any final publicationrequest, preserve priorhistory and shared12h16attempt6GiB.
+- [x] Source/category inventory plus appropriateDockerfree execution with unreachableDocker/no startedcontainers; lockedrestore/affectedbuild/current fullservice selection, Windows/actualUbuntu evidence accuratelyscoped. Verify resultgate rejects zero/skipped/inconclusive selectedcases withoutnewharness, shippingpackageclosure and publicprocessconsumer. Independentreview no responsibility/toolingexpansion. Record authoredCI vsobservedrun separately; complete all localwork before any final publicationrequest, preserve priorhistory and shared12h16attempt6GiB.
 
 ## Completion evidence
 
 | Check | Result | Evidence |
 | --- | --- | --- |
+| Fast selection, native result gate and actual Linux CI | Passed | Windows9956fast, clearedidentity2556plusrepairedpackagecase, ordinary0match and23+1brokercontrols; fiveguardnegativecontrols; Ubuntu145/145 run45034280172; independenthash/cleanupreview. FinalmetadataheadCI remainsmergegate. |
+| CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2142; failed=291; possibleTokenSavings=591; ledgerDigest=sha256:ae3bef1948a7f9c152dad8910d81211d3c119be50927a27e8c54683aa706e03b |

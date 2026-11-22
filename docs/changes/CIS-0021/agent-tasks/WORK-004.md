@@ -2,7 +2,7 @@
 title: "WORK-004 Make the selected consumer restore portable on fresh Linux CI"
 type: agent-task
 status: Draft
-task_status: InProgress
+task_status: Complete
 task_id: WORK-004
 parent_id: none
 category: implementation
@@ -29,13 +29,15 @@ Make the selected consumer restore portable on fresh Linux CI
 
 ## Acceptance criteria
 
-- [ ] Add only three exact mappings for already-retained Microsoft packages and declare both supported CountryData runtime identifiers in its lock profile. Keep selected RuntimeIdentifier/UseCurrentRuntimeIdentifier/inventory/output behavior, package versions, production behavior and protected launchsettings unchanged. Fresh pinned locked restore/build and actual nonempty Linux service CI pass; include focused Windows consumer/closure checks and documentation.
+- [x] Add only three exact mappings for already-retained Microsoft packages and declare both supported CountryData runtime identifiers in its lock profile. Keep selected RuntimeIdentifier/UseCurrentRuntimeIdentifier/inventory/output behavior, package versions, production behavior and protected launchsettings unchanged. Fresh pinned locked restore/build and actual nonempty Linux service CI pass; include focused Windows consumer/closure checks and documentation.
 
 ## Targeted validation
 
-- [ ] Inspect actual failed cold Linux restore, prior locks and TypeManager selected-RID targets. Re-evaluate only CountryData lock, verify both win-x64/linux-x64 groups and no version drift/new package IDs; full locked restore/build, meaningful affected source-host/consumer/closure tests, then145-case actual Linux CI. Record the source/binary delta from frozen local proof and retained failures; independent review; all work/restoration within unchanged shared12h16attempt6GiB.
+- [x] Inspect actual failed cold Linux restore, prior locks and TypeManager selected-RID targets. Re-evaluate only CountryData lock, verify both win-x64/linux-x64 groups and no version drift/new package IDs; full locked restore/build, meaningful affected source-host/consumer/closure tests, then145-case actual Linux CI. Record the source/binary delta from frozen local proof and retained failures; independent review; all work/restoration within unchanged shared12h16attempt6GiB.
 
 ## Completion evidence
 
 | Check | Result | Evidence |
 | --- | --- | --- |
+| Fresh Windows/Linux source and packaged consumer portability | Passed | Exact3retainedmappings/dualRIDlock/source-onlyproperty; lockedrestore/build0W/E; CountryData29+sourcefixture1+actualofflinepackage1; actualUbuntu145/145 run45034280172; independentreview and protecteduserhash. |
+| CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2139; failed=291; possibleTokenSavings=591; ledgerDigest=sha256:95a69fabeaad7170b4f628de6daad8970dcaffc0c5b106ff70c79d4185aaa82e |

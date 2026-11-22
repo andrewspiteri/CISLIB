@@ -13,7 +13,7 @@ Derived under `cislib:CIS-0021:outcome:504b54f7091445f489d20413d8d56bd2` by Code
 
 | Task | Work | Status | Depends on |
 | --- | --- | --- | --- |
-| WORK-001 | [Own lazy test services and migrate durable PostgreSQL integration](agent-tasks/WORK-001.md) | InProgress |  |
-| WORK-002 | [Migrate secure RabbitMQ ownership and RPC child handoffs](agent-tasks/WORK-002.md) | InProgress |  |
-| WORK-003 | [Deliver Docker-free selection and reviewable service CI](agent-tasks/WORK-003.md) | InProgress |  |
-| WORK-004 | [Make the selected consumer restore portable on fresh Linux CI](agent-tasks/WORK-004.md) | InProgress |  |
+| WORK-001 | [Own lazy test services and migrate durable PostgreSQL integration](agent-tasks/WORK-001.md) | Complete |  |
+| WORK-002 | [Migrate secure RabbitMQ ownership and RPC child handoffs](agent-tasks/WORK-002.md) | Complete |  |
+| WORK-003 | [Deliver Docker-free selection and reviewable service CI](agent-tasks/WORK-003.md) | Complete |  |
+| WORK-004 | [Make the selected consumer restore portable on fresh Linux CI](agent-tasks/WORK-004.md) | Complete |  |

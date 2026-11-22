@@ -2,7 +2,7 @@
 title: "WORK-001 Own lazy test services and migrate durable PostgreSQL integration"
 type: agent-task
 status: Draft
-task_status: InProgress
+task_status: Complete
 task_id: WORK-001
 parent_id: none
 category: implementation
@@ -29,13 +29,15 @@ Own lazy test services and migrate durable PostgreSQL integration
 
 ## Acceptance criteria
 
-- [ ] Integration-only lazy concurrency-safe typed ownership with enabled nonprivileged pinnedreaper, bounded shared/dedicated services, normal/failure cleanup and no Dockercontactfromfastmetadata. Exact test-only4.17.0 dependencies/actualgraph/mappings/locks; original PGschemas/factories/pools/timeouts/securityconstraints and real SQLassertions preserved across3fixtures with durabilityON. Dedicated same-storage clean restart recoverscommittedresult/effect/outgoing once, excludesunfinished effects viafresh app/independent sessions. No ambientDSN prerequisite/Inconclusive or shipping dependency drift.
+- [x] Integration-only lazy concurrency-safe typed ownership with enabled nonprivileged pinnedreaper, bounded shared/dedicated services, normal/failure cleanup and no Dockercontactfromfastmetadata. Exact test-only4.17.0 dependencies/actualgraph/mappings/locks; original PGschemas/factories/pools/timeouts/securityconstraints and real SQLassertions preserved across3fixtures with durabilityON. Dedicated same-storage clean restart recoverscommittedresult/effect/outgoing once, excludesunfinished effects viafresh app/independent sessions. No ambientDSN prerequisite/Inconclusive or shipping dependency drift.
 
 ## Targeted validation
 
-- [ ] Freeze minimal sharedtyped API forRabbit peer beforeindependent source use. Verify actualpinnedSDK/library/image APIs andboundedport/reaper behavior beforebroadening. Scopedformat/build/lockedrestore; existingPGbehaviorcases+newrestart/lifecycle/isolation cases onactualsupportedWindows/Ubuntu with nonempty/zero-skips reports; failfast missingDocker. Verify cleanupabsence and separate original/cleanup faults. Include categories, PGguides, independentreview and currentevidence within shared12h16attempt6GiB.
+- [x] Freeze minimal sharedtyped API forRabbit peer beforeindependent source use. Verify actualpinnedSDK/library/image APIs andboundedport/reaper behavior beforebroadening. Scopedformat/build/lockedrestore; existingPGbehaviorcases+newrestart/lifecycle/isolation cases onactualsupportedWindows/Ubuntu with nonempty/zero-skips reports; failfast missingDocker. Verify cleanupabsence and separate original/cleanup faults. Include categories, PGguides, independentreview and currentevidence within shared12h16attempt6GiB.
 
 ## Completion evidence
 
 | Check | Result | Evidence |
 | --- | --- | --- |
+| Owned PostgreSQL/common lifecycle, durability and cleanup | Passed | Windows5focused+145services; actualUbuntu145/145 run45034280172; cleanReleasechildbuild0W/E; shippinggraphs and independentreview. |
+| CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2140; failed=291; possibleTokenSavings=591; ledgerDigest=sha256:b84bffcedabc83c4719f6c0375982a8b96911e1b3e423fcc7475322267172dda |
