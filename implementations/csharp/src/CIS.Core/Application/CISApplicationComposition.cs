@@ -5,6 +5,8 @@ using CIS.Heartbeat.Hosting;
 using CIS.Logging;
 using CIS.Logging.MicrosoftLogger;
 using CIS.Metrics;
+using CIS.Messaging;
+using CIS.Messaging.Hosting;
 using CIS.RestClient;
 using CIS.RestClient.Hosting;
 using CIS.Startup.Hosting;
@@ -27,6 +29,10 @@ internal sealed class CISApplicationComposition
     private PipelineHostingRegistration? workflows;
 
     internal PipelineHostingRegistration? Workflows => workflows;
+    internal MessagingRuntime? Messaging
+    {
+        get; private set;
+    }
 
     internal CoreLogRuntime? Log
     {
@@ -170,6 +176,10 @@ internal sealed class CISApplicationComposition
             integration.ConfigureServices(setup.Services);
         }
         setup.Services.TryAddSingleton<IMetrics>(DisabledMetrics.Instance);
+        if (setup.MessagingEnabled)
+        {
+            setup.Services.AddCisMessaging();
+        }
         if (setup.HeartbeatEnabled)
         {
             // Its business alias was already offered before the user's callback.
@@ -182,6 +192,7 @@ internal sealed class CISApplicationComposition
         }
 
         // Move only the exact cooperating bridges, preserving application registration order.
+        MoveTail(typeof(MessagingHostedService));
         MoveTail(typeof(PipelineHostedService));
         MoveTail(typeof(RestHostedService));
         if (setup.HeartbeatEnabled)
@@ -210,6 +221,7 @@ internal sealed class CISApplicationComposition
         BoundHeartbeat = root.GetService<HeartbeatRuntime>();
         Metrics = root.GetService<IMetrics>() as MetricsRuntime;
         Rest = root.GetService<IRestClientRuntime>();
+        Messaging = root.GetService<MessagingRuntime>();
     }
 
     private IHostedService CreateHealthPipe(IServiceProvider root)

@@ -3,6 +3,7 @@ using CIS.Configuration;
 using CIS.Heartbeat;
 using CIS.Heartbeat.Hosting;
 using CIS.Metrics;
+using CIS.Messaging;
 using CIS.RestClient;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -41,6 +42,7 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
     private readonly ConfigurationRuntime? configuration;
     private readonly MetricsRuntime? metrics;
     private readonly MetricsRuntime? moduleMetrics;
+    private readonly MessagingRuntime? messaging;
     private readonly IRestClientRuntime? rest;
     private readonly StartupHostingOrder order;
     private readonly IHostApplicationLifetime lifetime;
@@ -62,6 +64,7 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
         metrics = root.GetService<IMetrics>() as MetricsRuntime;
         moduleMetrics = root.GetService<MetricsRuntime>();
         rest = root.GetService<IRestClientRuntime>();
+        messaging = root.GetService<MessagingRuntime>();
         coordinator = new StartupCoordinator(root, order.Descriptors,
             root.GetService<HealthcheckService>(), root.GetService<ILogger<StartupCoordinator>>(),
             ConfirmStartupCompletion);
@@ -79,7 +82,7 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
         {
             stopping = lifetime.ApplicationStopping.UnsafeRegister(static value => ((StartupHostedService)value!).BeginStopping(), this);
             // Close admission even while an initializer ignores startup cancellation.
-            startupStopping = heartbeat is null && configuration is null && metrics is null && rest is null ? default : cancellationToken.UnsafeRegister(
+            startupStopping = heartbeat is null && configuration is null && metrics is null && rest is null && messaging is null ? default : cancellationToken.UnsafeRegister(
                 static value => ((StartupHostedService)value!).CloseModuleAdmission(), this);
         }
         return Task.CompletedTask;
@@ -92,7 +95,10 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
         // Metrics' Starting phase has already activated the existing provider.
         // The optional alias enables automatic modules; ordinary callbacks use
         // the separate facade binding even when that collection is disabled.
-        if (moduleMetrics is not null) { coordinator.AttachMetrics(moduleMetrics); }
+        if (moduleMetrics is not null)
+        {
+            coordinator.AttachMetrics(moduleMetrics);
+        }
         Task operation = coordinator.StartAsync(cancellationToken, lifetime.ApplicationStopping);
         operationReference.Bind(operation);
         return operation;
@@ -105,7 +111,10 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
 
     private bool ConfirmStartupCompletion(CancellationToken cancellationToken)
     {
-        if (heartbeat is null && configuration is null && metrics is null && rest is null) { return true; }
+        if (heartbeat is null && configuration is null && metrics is null && rest is null && messaging is null)
+        {
+            return true;
+        }
         // This callback closes dispatch independently of the coordinator gate if
         // the first host startup token is canceled during actual activation.
         completionStopping = cancellationToken.UnsafeRegister(
@@ -122,6 +131,7 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
 
     private void CloseModuleAdmission()
     {
+        messaging?.BeginStopping();
         // A callback may be awaiting REST while holding another module's drain.
         rest?.BeginStopping();
         // Configuration owns cancellation for provider work inside HB callbacks.
@@ -129,25 +139,43 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
         configuration?.BeginStopping();
         // Close dispatch before waiting for the final startup publication gate.
         heartbeat?.BeginStopping();
-        metrics?.BeginStopping();
+        if (messaging is null)
+        {
+            metrics?.BeginStopping();
+        }
     }
 
     private async Task StopCoreAsync()
     {
         BeginStopping();
+        Task messagingDrain = messaging?.StopAsync() ?? Task.CompletedTask;
+        try
+        {
+            await messagingDrain.ConfigureAwait(false);
+        }
+        catch (Exception)
+        {
+            // Preserve this settled fault in the joint task below while still draining every dependency owner.
+        }
         Task configurationDrain = configuration?.StopAsync() ?? Task.CompletedTask;
         Task heartbeatDrain = heartbeat?.StopAsync() ?? Task.CompletedTask;
         Task metricsDrain = metrics?.StopAsync() ?? Task.CompletedTask;
         Task restDrain = rest?.StopAsync() ?? Task.CompletedTask;
-        await Task.WhenAll(coordinator.StopAsync(), configurationDrain, heartbeatDrain, metricsDrain, restDrain).ConfigureAwait(false);
+        await Task.WhenAll(messagingDrain, coordinator.StopAsync(), configurationDrain, heartbeatDrain, metricsDrain, restDrain).ConfigureAwait(false);
     }
 
     public async ValueTask DisposeAsync()
     {
-        try { await StopCoreAsync().ConfigureAwait(false); }
+        try
+        {
+            await StopCoreAsync().ConfigureAwait(false);
+        }
         finally
         {
-            try { await coordinator.DisposeAsync().ConfigureAwait(false); }
+            try
+            {
+                await coordinator.DisposeAsync().ConfigureAwait(false);
+            }
             finally
             {
                 completionStopping.Dispose();
@@ -185,12 +213,21 @@ internal sealed class StartupHostingOrder(IServiceCollection services)
     private static bool IsValid(ServiceDescriptor[] hosted, bool requireHeartbeat)
     {
         int startup = Array.FindIndex(hosted, item => item.ImplementationType == typeof(StartupHostedService));
-        if (startup < 0 || hosted.Count(item => item.ImplementationType == typeof(StartupHostedService)) != 1) { return false; }
+        if (startup < 0 || hosted.Count(item => item.ImplementationType == typeof(StartupHostedService)) != 1)
+        {
+            return false;
+        }
         bool validTail = startup == hosted.Length - 1
             || startup == hosted.Length - 2 && WebHost is not null && hosted[^1].ImplementationType == WebHost;
-        if (!validTail) { return false; }
+        if (!validTail)
+        {
+            return false;
+        }
         int heartbeat = Array.FindIndex(hosted, item => item.ImplementationType == typeof(HeartbeatHostedService));
-        if (heartbeat < 0) { return !requireHeartbeat; }
+        if (heartbeat < 0)
+        {
+            return !requireHeartbeat;
+        }
         return heartbeat == startup - 1
             && hosted.Count(item => item.ImplementationType == typeof(HeartbeatHostedService)) == 1;
     }

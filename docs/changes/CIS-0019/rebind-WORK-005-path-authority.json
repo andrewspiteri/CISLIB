@@ -1,0 +1,19 @@
+{
+  "tasks": [
+    {
+      "title": "Implement authorized transactional dispatch and durable operation binding",
+      "category": "implementation",
+      "complexity": "medium",
+      "scopeIds": [
+        "dispatch"
+      ],
+      "dependsOn": [
+        "WORK-002"
+      ],
+      "assignee": "Codex",
+      "acceptanceCriteria": "P10/P11/P19 and A04-A06/A12: independent established native SecurityHostContextScope/DI scope, capability checks and originalcontext inboxclaim beforeeffects. Handleroutsidecallback, exactlyoneRM03attempt, atomicbusiness/operation/inbox/outgoing/reply and knowncommitbeforeack. Duplicate/replay/newattempt distinctions and Deniedrollback preserve legitimate canonicalidentity. Source may proceed against the frozen provider ports after completed WORK002. Final native acceptance still requires completed WORK003. Add only a narrow exact-original-context expected-binding guard in existing Operations admission and coordinator before effects; public Operations contracts remain unchanged. Capture optional trusted-provenance retry validator and reserve one Core reply subscription alias, with passive collision validation.",
+      "validation": "Real independentinstances/subscribers/restart/concurrentduplicateeffect proof; inputdigestvsoperationconflict, denial/audithook/cancellation, prepared/replayed/completion/Unknown, exactsecuredreplyduplicate and actualscope/nativecleanup. Current source/native review, docs/style/build. Include actual resolver-drift-before-effects regression; existing affected Operations tests. Complete only after WORK003 and integrated provider proof. No second security/DI/operation framework.",
+      "paths": []
+    }
+  ]
+}

@@ -88,3 +88,13 @@ authorizer or SQL and never completes a transaction owner.
 See the [operation testing guide](operations/testing.md) and existing outside-friend
 package consumer for Prepared, Unknown and Found as separate facts. Real journal
 atomicity and recovery use the [PostgreSQL consumer](operations/example.md).
+
+## Messaging substitution
+
+Use `ScriptedMessagingClient`, `ScriptedMessagePublisher` and
+`ScriptedMessageDelivery` for bounded public application tests. Their explicit
+facts and owned-work barriers do not establish SQL atomicity, authentication or
+broker durability. See [Messaging testing](messaging/testing.md) for compiling
+unit/package consumers and the separate native evidence boundaries.
+Use [typed requests and recovery](messaging/requests.md) for actual runtime
+submission, provisional-ticket ownership and fresh authorized recovery.

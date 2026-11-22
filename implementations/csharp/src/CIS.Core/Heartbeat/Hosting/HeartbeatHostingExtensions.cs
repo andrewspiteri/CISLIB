@@ -4,6 +4,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using CIS.Startup.Hosting;
 using CIS.Metrics;
+using CIS.Messaging;
 using CIS.RestClient;
 
 namespace CIS.Heartbeat.Hosting;
@@ -51,6 +52,7 @@ internal sealed class HeartbeatHostedService(HeartbeatRuntime runtime, IHostAppl
     private CancellationTokenRegistration stopping;
     private readonly MetricsRuntime? metrics = root.GetService<IMetrics>() as MetricsRuntime;
     private readonly IRestClientRuntime? rest = root.GetService<IRestClientRuntime>();
+    private readonly MessagingRuntime? messaging = root.GetService<MessagingRuntime>();
 
     public Task StartingAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
@@ -75,15 +77,28 @@ internal sealed class HeartbeatHostedService(HeartbeatRuntime runtime, IHostAppl
 
     private void BeginStopping()
     {
+        messaging?.BeginStopping();
         rest?.BeginStopping();
         runtime.BeginStopping();
-        metrics?.BeginStopping();
+        if (messaging is null)
+        {
+            metrics?.BeginStopping();
+        }
     }
 
-    private Task StopCoreAsync()
+    private async Task StopCoreAsync()
     {
         BeginStopping();
-        return Task.WhenAll(rest?.StopAsync() ?? Task.CompletedTask, runtime.StopAsync(), metrics?.StopAsync() ?? Task.CompletedTask);
+        Task messagingDrain = messaging?.StopAsync() ?? Task.CompletedTask;
+        try
+        {
+            await messagingDrain.ConfigureAwait(false);
+        }
+        catch (Exception)
+        {
+            // Rejoin the original fault only after all other module owners have begun actual drain.
+        }
+        await Task.WhenAll(messagingDrain, rest?.StopAsync() ?? Task.CompletedTask, runtime.StopAsync(), metrics?.StopAsync() ?? Task.CompletedTask).ConfigureAwait(false);
     }
 
     public async ValueTask DisposeAsync()

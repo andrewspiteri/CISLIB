@@ -50,3 +50,7 @@ reads on a subsequent statement snapshot. Public CommonTesting scripts execute
 no SQL, authorization or handlers and prove no native atomicity. Keep actual
 provider/package evidence and unverified infrastructure lanes distinct. Preserve
 CountryData as the one maintained tutorial and its database-free default.
+For transactional outgoing delivery and a fresh authorized request attempt that
+returns an original result, use [Messaging](../cislib-messaging/SKILL.md) and its
+[request recovery guide](../../../docs/modules/messaging/requests.md). Operations
+retains business identity, journal and result ownership.

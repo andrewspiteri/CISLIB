@@ -1,0 +1,32 @@
+{
+  "tasks": [
+    {
+      "title": "Qualify exact Operations binding in transactional message delivery",
+      "category": "implementation",
+      "complexity": "medium",
+      "scopeIds": [
+        "dispatch"
+      ],
+      "dependsOn": [
+        "WORK-002"
+      ],
+      "assignee": "Codex",
+      "acceptanceCriteria": "Finish the existing WORK005 P11/P19 Operations boundary: original context one-shot Execute, exact pre-resolved versus actual trusted identity/resource before authorization/journal/effects, current service authority, Prepared/Replayed distinction and atomic new inbox completion. Preserve public Operations API and original accounting/history. No new operation framework.",
+      "validation": "Run existing affected Operations regressions plus three exact-binding guard cases and the actual SQL/broker durable Prepared/new-message replay/conflict case; preserve current source/byte identity and independent guard review. Final acceptance requires completed WORK003 and original shared limits."
+    },
+    {
+      "title": "Qualify authorized transactional dispatch, bounded admission and drain",
+      "category": "implementation",
+      "complexity": "medium",
+      "scopeIds": [
+        "dispatch"
+      ],
+      "dependsOn": [
+        "WORK-002"
+      ],
+      "assignee": "Codex",
+      "acceptanceCriteria": "Finish existing WORK005 P10/P11/P15/P19 dispatch on independent native Security/DI scopes: authorize actual targets before claim/effect; original-context inbox arbitration and committed-only ack; safe duplicate/old retry handling; bounded async work/byte admission; actual handler/transaction/scope/native drain; no ack-loss reclassification. Include bounded wire encoding and reserved reply alias. Final completion requires the exact Operations-binding continuation and completed WORK003; no added feature or capacity.",
+      "validation": "Actual native two-root concurrent duplicates use non-idempotent SQL counters, independent subscriptions/reconstructed runtime, unknown commit then fresh arbitration, denial and conflicting-content canonical isolation. Focused dispatcher/budget/bounded-encoding units, existing wire vectors, scoped formatting/build, dispatch guide and independent owning-boundary review. Preserve both platform evidence limits and original WORK005 costs."
+    }
+  ]
+}

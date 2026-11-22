@@ -15,6 +15,10 @@ namespace CIS.Hosting;
 /// <remarks>Complete setup in the application callback. This object never builds a provider or starts services.</remarks>
 public sealed class CISApplicationBuilder
 {
+    internal bool MessagingEnabled
+    {
+        get; set;
+    }
     internal CISApplicationBuilder(IHostApplicationBuilder host, IWebHostBuilder? webHost)
     {
         Host = host;
@@ -24,21 +28,39 @@ public sealed class CISApplicationBuilder
     }
 
     /// <summary>Gets the actual native builder for configuration, logging, environment and container setup.</summary>
-    public IHostApplicationBuilder Host { get; }
+    public IHostApplicationBuilder Host
+    {
+        get;
+    }
     /// <summary>Gets the ordinary registration collection used by the one final provider.</summary>
     public IServiceCollection Services => Host.Services;
     /// <summary>Gets native web-host setup in web mode, otherwise null.</summary>
-    public IWebHostBuilder? WebHost { get; }
+    public IWebHostBuilder? WebHost
+    {
+        get;
+    }
     /// <summary>Gets or sets preparation options; its host assembly also determines Configuration scope.</summary>
-    public TypeManagerOptions TypeManager { get; set; }
+    public TypeManagerOptions TypeManager
+    {
+        get; set;
+    }
     /// <summary>Gets or sets an explicit bootstrap store/profile; null selects initialized defaults without external updates.</summary>
-    public ConfigurationOptions? Configuration { get; set; }
+    public ConfigurationOptions? Configuration
+    {
+        get; set;
+    }
     /// <summary>Gets or sets existing Healthcheck options, with the module's environment precedence.</summary>
     public HealthcheckOptions Healthcheck { get; set; } = new();
     /// <summary>Gets or sets the native predicate for detailed health reports; omitted access is denied.</summary>
-    public Func<HttpContext, ValueTask<bool>>? AuthorizeHealthDetails { get; set; }
+    public Func<HttpContext, ValueTask<bool>>? AuthorizeHealthDetails
+    {
+        get; set;
+    }
     /// <summary>Gets or sets Heartbeat setup; null retains EnvironmentOptions.Heartbeat.</summary>
-    public HeartbeatOptions? Heartbeat { get; set; }
+    public HeartbeatOptions? Heartbeat
+    {
+        get; set;
+    }
     /// <summary>Gets or sets whether automatic CIS logging is installed. Explicit provider replacements remain ordinary DI.</summary>
     public bool LoggingEnabled { get; set; } = true;
     /// <summary>Gets or sets whether the standard health service and reserved reports are installed.</summary>

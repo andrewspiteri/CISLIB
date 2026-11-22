@@ -6,6 +6,9 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Npgsql" PrivateAssets="all" />
+    <Compile Remove="Messaging/CrashHost/**/*.cs" />
+    <Compile Include="Messaging/CrashHost/Contracts.cs" Link="Messaging/CrashContracts.cs" />
+    <ProjectReference Include="Messaging/CrashHost/CrashHost.csproj" ReferenceOutputAssembly="false" Private="false" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="../CIS.Core.UnitTests/RestClient/RestHttpTestSupport.cs" Link="RestClient/RestHttpTestSupport.cs" />
@@ -40,6 +43,7 @@
     <ProjectReference Include="../../src/CIS.RestClient.Resilience/CIS.RestClient.Resilience.csproj" />
     <ProjectReference Include="../../src/CIS.Security.Certificates/CIS.Security.Certificates.csproj" />
     <ProjectReference Include="../../src/CIS.Security.Entra/CIS.Security.Entra.csproj" />
+    <ProjectReference Include="../../src/CIS.Messaging.RabbitMQ/CIS.Messaging.RabbitMQ.csproj" />
     <Compile Include="../fixtures/DiscoveryHost/ConfigurationReadExpectations.cs" Link="ConfigurationReadExpectations.cs" />
     <ProjectReference Include="../CIS.Core.TestSupport/CIS.Core.TestSupport.csproj" />
     <ProjectReference Include="../fixtures/DiscoveryHost/CIS.Core.DiscoveryFixture.csproj" />
@@ -95,6 +99,12 @@
       <DiscoveryFixtureFiles Include="../fixtures/DiscoveryHost/bin/$(Configuration)/$(TargetFramework)/*" />
     </ItemGroup>
     <Copy SourceFiles="@(DiscoveryFixtureFiles)" DestinationFolder="$(TargetDir)discovery-fixture" />
+  </Target>
+  <Target Name="CopyMessagingCrashFixture" AfterTargets="Build">
+    <ItemGroup>
+      <MessagingCrashFiles Include="Messaging/CrashHost/bin/$(Configuration)/$(TargetFramework)/*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(MessagingCrashFiles)" DestinationFolder="$(TargetDir)messaging-crash-host" />
   </Target>
   <Target Name="CopyHealthcheckFixtures" AfterTargets="Build">
     <ItemGroup>

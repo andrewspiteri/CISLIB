@@ -1,0 +1,19 @@
+{
+  "tasks": [
+    {
+      "title": "Deliver typed request/reply and current-attempt durable recovery",
+      "category": "implementation",
+      "complexity": "medium",
+      "scopeIds": [
+        "rpc",
+        "rabbit-provider"
+      ],
+      "dependsOn": [
+        "WORK-013"
+      ],
+      "assignee": "Codex",
+      "acceptanceCriteria": "P17-P19 and B01-B06: Query/DurableCommand bindings on same store/dispatcher. Reservewaiter/registerbeforestage; originaltransaction disposableticket retains earlyresponse andmonotonicdeadline; knowncommittedreceiptbeforewait. Exacttrustedreplymatch/oncecompletion/currentattempt resultrecovery, endpointretirement and no remoterollbackorTasks claims. Implement narrow retained reply links: terminal canonical replies and safe authorized rejection-linked Denied replies attach in the same original fresh transaction with native-owner fencing; never poison canonical state. Redrive clears old-generation reply; retention protects unresolved anchors. Reserve one reply work lane and 4xMaxEnvelope encoded headroom INSIDE existing process totals for RPC profiles; reserve bounded response working bytes before claim/effects; coherent active-root profile, no nested capacity deadlock. Runtime closes local request admission/cancels waits before dispatch drain and joins owned cleanup. Real B05 crash uses one minimal public-only nested Messaging/CrashHost process entry and existing ProcessRunner, not graceful/in-process reconstruction. No new package/harness/framework.",
+      "validation": "Realfastquery/durabledecision/rejection, timeout/cancelaftercommit/late/duplicate/maliciousreply, concurrentcallers/restart/response loss thennewattempt recoverywithoutsecondcommittedeffect; conflict/denied/expired/incompatible result; active/unknownsubmission/overload/capacitycleanup. Guide/style/build and independentrecoveryreview; metrics/package facts refreshedatPartB. Add actual SQL anchor/fence/redrive/cleanup regressions, trusted denied-vs-conflicting reply distinctions, saturated concurrent RPC and genuine crash after committed effect/result/reply followed by caller restart and original-result recovery. Nested fixture/project linkage stays within existing rpc+rabbit-provider scopes and uses only retained test Npgsql10.0.4. Refresh actual exporter and public-package facts after PartB. All work shares revised7.5h owner008 allocation, existing64h containing total and original restoration reserves."
+    }
+  ]
+}
