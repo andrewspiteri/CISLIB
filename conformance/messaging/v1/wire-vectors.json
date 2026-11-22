@@ -1,0 +1,159 @@
+{
+  "contract": "CIS.Messaging envelope v1",
+  "encoding": "Strict UTF-8 JSON without BOM; hashes cover exact immutable wire bytes, including payload precision/whitespace and all envelope metadata.",
+  "timestampProfile": "RFC3339 UTC Z; encoding emits seven fractional digits. Readers accept whole seconds and one through seven fractional digits.",
+  "valid": [
+    {
+      "id": "event-precision",
+      "payloadUtf8": "{\"country\":\"MT\",\"amount\":\"12345678901234567890.0100\",\"sequence\":9007199254740993}",
+      "wireUtf8": "{\"envelopeVersion\":1,\"messageId\":\"11111111-1111-4111-8111-111111111111\",\"kind\":\"event\",\"messageType\":\"country.updated\",\"schemaVersion\":1,\"producerApplication\":\"country-service\",\"producerEnvironment\":\"test\",\"createdAtUtc\":\"2026-11-22T12:34:56.1234567Z\",\"payload\":{\"country\":\"MT\",\"amount\":\"12345678901234567890.0100\",\"sequence\":9007199254740993},\"headers\":{\"a-first\":\"two\",\"z-last\":\"one\"}}",
+      "sha256": "0a9625a1cdf397530a1fe6479e01ba3d43664972844e2d38601e7aa030f84076",
+      "wireHex": "7b22656e76656c6f706556657273696f6e223a312c226d6573736167654964223a2231313131313131312d313131312d343131312d383131312d313131313131313131313131222c226b696e64223a226576656e74222c226d65737361676554797065223a22636f756e7472792e75706461746564222c22736368656d6156657273696f6e223a312c2270726f64756365724170706c69636174696f6e223a22636f756e7472792d73657276696365222c2270726f6475636572456e7669726f6e6d656e74223a2274657374222c22637265617465644174557463223a22323032362d31312d32325431323a33343a35362e313233343536375a222c227061796c6f6164223a7b22636f756e747279223a224d54222c22616d6f756e74223a2231323334353637383930313233343536373839302e30313030222c2273657175656e6365223a393030373139393235343734303939337d2c2268656164657273223a7b22612d6669727374223a2274776f222c227a2d6c617374223a226f6e65227d7d"
+    },
+    {
+      "id": "command",
+      "payloadUtf8": "{\"country\":\"MT\"}",
+      "wireUtf8": "{\"envelopeVersion\":1,\"messageId\":\"11111111-1111-4111-8111-111111111111\",\"kind\":\"command\",\"messageType\":\"country.refresh\",\"schemaVersion\":1,\"producerApplication\":\"country-caller\",\"producerEnvironment\":\"test\",\"createdAtUtc\":\"2026-11-22T12:34:56.1234567Z\",\"payload\":{\"country\":\"MT\"}}",
+      "sha256": "e44466d3f7c904d81153276a6913eeb6fb64e924c25f73462c687ad4431edf68"
+    },
+    {
+      "id": "durable-request",
+      "payloadUtf8": "{\"country\":\"MT\",\"name\":\"Malta\"}",
+      "wireUtf8": "{\"envelopeVersion\":1,\"messageId\":\"22222222-2222-4222-8222-222222222222\",\"kind\":\"request\",\"messageType\":\"country.update\",\"schemaVersion\":1,\"producerApplication\":\"country-caller\",\"producerEnvironment\":\"test\",\"createdAtUtc\":\"2026-11-22T12:34:56.1234567Z\",\"payload\":{\"country\":\"MT\",\"name\":\"Malta\"},\"requestAttemptId\":\"33333333-3333-4333-8333-333333333333\",\"replyRoute\":{\"application\":\"country-caller\",\"environment\":\"test\",\"endpointId\":\"44444444-4444-4444-8444-444444444444\"},\"operation\":{\"operationName\":\"country.update\",\"requestedScope\":\"country:MT\",\"key\":\"opaque-01\"}}",
+      "sha256": "330172495a2ed486c7751caafdb61cf461d8be24f91f5c91e5e311736df29be0"
+    },
+    {
+      "id": "reply",
+      "payloadUtf8": "{\"decision\":\"rejected\",\"code\":\"not-found\"}",
+      "wireUtf8": "{\"envelopeVersion\":1,\"messageId\":\"55555555-5555-4555-8555-555555555555\",\"kind\":\"reply\",\"messageType\":\"country.lookup.reply\",\"schemaVersion\":1,\"producerApplication\":\"country-service\",\"producerEnvironment\":\"test\",\"createdAtUtc\":\"2026-11-22T12:34:56.1234567Z\",\"payload\":{\"decision\":\"rejected\",\"code\":\"not-found\"},\"requestAttemptId\":\"33333333-3333-4333-8333-333333333333\",\"inReplyToMessageId\":\"22222222-2222-4222-8222-222222222222\"}",
+      "sha256": "0af02ebf10e447033e1309e361b7c5d5dc41083d131a8057214e442c8ccf7366"
+    }
+  ],
+  "rejected": [
+    {
+      "id": "duplicate-envelope-key",
+      "wireUtf8": "{\"envelopeVersion\":1,\"messageId\":\"11111111-1111-4111-8111-111111111111\",\"kind\":\"event\",\"messageType\":\"country.updated\",\"schemaVersion\":1,\"producerApplication\":\"country-service\",\"producerEnvironment\":\"test\",\"createdAtUtc\":\"2026-11-22T12:34:56.1234567Z\",\"payload\":null,\"messageId\":\"11111111-1111-4111-8111-111111111111\"}",
+      "failure": "Invalid"
+    },
+    {
+      "id": "duplicate-payload-key",
+      "wireUtf8": "{\"envelopeVersion\":1,\"messageId\":\"11111111-1111-4111-8111-111111111111\",\"kind\":\"event\",\"messageType\":\"country.updated\",\"schemaVersion\":1,\"producerApplication\":\"country-service\",\"producerEnvironment\":\"test\",\"createdAtUtc\":\"2026-11-22T12:34:56.1234567Z\",\"payload\":{\"value\":1,\"value\":2}}",
+      "failure": "Invalid"
+    },
+    {
+      "id": "duplicate-escaped-payload-key",
+      "wireUtf8": "{\"envelopeVersion\":1,\"messageId\":\"11111111-1111-4111-8111-111111111111\",\"kind\":\"event\",\"messageType\":\"country.updated\",\"schemaVersion\":1,\"producerApplication\":\"country-service\",\"producerEnvironment\":\"test\",\"createdAtUtc\":\"2026-11-22T12:34:56.1234567Z\",\"payload\":{\"value\":1,\"v\\u0061lue\":2}}",
+      "failure": "Invalid"
+    },
+    {
+      "id": "duplicate-nested-object-key",
+      "wireUtf8": "{\"envelopeVersion\":1,\"messageId\":\"11111111-1111-4111-8111-111111111111\",\"kind\":\"event\",\"messageType\":\"country.updated\",\"schemaVersion\":1,\"producerApplication\":\"country-service\",\"producerEnvironment\":\"test\",\"createdAtUtc\":\"2026-11-22T12:34:56.1234567Z\",\"payload\":{\"items\":[{\"code\":1,\"code\":2}]}}",
+      "failure": "Invalid"
+    },
+    {
+      "id": "unknown-envelope-version",
+      "wireUtf8": "{\"envelopeVersion\":2,\"messageId\":\"11111111-1111-4111-8111-111111111111\",\"kind\":\"event\",\"messageType\":\"country.updated\",\"schemaVersion\":1,\"producerApplication\":\"country-service\",\"producerEnvironment\":\"test\",\"createdAtUtc\":\"2026-11-22T12:34:56.1234567Z\",\"payload\":null}",
+      "failure": "UnsupportedVersion"
+    },
+    {
+      "id": "unknown-envelope-field",
+      "wireUtf8": "{\"envelopeVersion\":1,\"messageId\":\"11111111-1111-4111-8111-111111111111\",\"kind\":\"event\",\"messageType\":\"country.updated\",\"schemaVersion\":1,\"producerApplication\":\"country-service\",\"producerEnvironment\":\"test\",\"createdAtUtc\":\"2026-11-22T12:34:56.1234567Z\",\"payload\":null,\"requiredFeature\":true}",
+      "failure": "Invalid"
+    },
+    {
+      "id": "missing-contract",
+      "wireUtf8": "{\"envelopeVersion\":1,\"messageId\":\"11111111-1111-4111-8111-111111111111\",\"kind\":\"event\",\"schemaVersion\":1,\"producerApplication\":\"country-service\",\"producerEnvironment\":\"test\",\"createdAtUtc\":\"2026-11-22T12:34:56.1234567Z\",\"payload\":null}",
+      "failure": "Invalid"
+    },
+    {
+      "id": "null-contract",
+      "wireUtf8": "{\"envelopeVersion\":1,\"messageId\":\"11111111-1111-4111-8111-111111111111\",\"kind\":\"event\",\"messageType\":null,\"schemaVersion\":1,\"producerApplication\":\"country-service\",\"producerEnvironment\":\"test\",\"createdAtUtc\":\"2026-11-22T12:34:56.1234567Z\",\"payload\":null}",
+      "failure": "Invalid"
+    },
+    {
+      "id": "null-producer",
+      "wireUtf8": "{\"envelopeVersion\":1,\"messageId\":\"11111111-1111-4111-8111-111111111111\",\"kind\":\"event\",\"messageType\":\"country.updated\",\"schemaVersion\":1,\"producerApplication\":null,\"producerEnvironment\":\"test\",\"createdAtUtc\":\"2026-11-22T12:34:56.1234567Z\",\"payload\":null}",
+      "failure": "Invalid"
+    },
+    {
+      "id": "null-created-at",
+      "wireUtf8": "{\"envelopeVersion\":1,\"messageId\":\"11111111-1111-4111-8111-111111111111\",\"kind\":\"event\",\"messageType\":\"country.updated\",\"schemaVersion\":1,\"producerApplication\":\"country-service\",\"producerEnvironment\":\"test\",\"createdAtUtc\":null,\"payload\":null}",
+      "failure": "Invalid"
+    },
+    {
+      "id": "date-only-created-at",
+      "wireUtf8": "{\"envelopeVersion\":1,\"messageId\":\"11111111-1111-4111-8111-111111111111\",\"kind\":\"event\",\"messageType\":\"country.updated\",\"schemaVersion\":1,\"producerApplication\":\"country-service\",\"producerEnvironment\":\"test\",\"createdAtUtc\":\"2026-11-22Z\",\"payload\":null}",
+      "failure": "Invalid"
+    },
+    {
+      "id": "space-created-at",
+      "wireUtf8": "{\"envelopeVersion\":1,\"messageId\":\"11111111-1111-4111-8111-111111111111\",\"kind\":\"event\",\"messageType\":\"country.updated\",\"schemaVersion\":1,\"producerApplication\":\"country-service\",\"producerEnvironment\":\"test\",\"createdAtUtc\":\"2026-11-22 12:34:56Z\",\"payload\":null}",
+      "failure": "Invalid"
+    },
+    {
+      "id": "no-offset-created-at",
+      "wireUtf8": "{\"envelopeVersion\":1,\"messageId\":\"11111111-1111-4111-8111-111111111111\",\"kind\":\"event\",\"messageType\":\"country.updated\",\"schemaVersion\":1,\"producerApplication\":\"country-service\",\"producerEnvironment\":\"test\",\"createdAtUtc\":\"2026-11-22T12:34:56\",\"payload\":null}",
+      "failure": "Invalid"
+    },
+    {
+      "id": "empty-message-id",
+      "wireUtf8": "{\"envelopeVersion\":1,\"messageId\":\"00000000-0000-0000-0000-000000000000\",\"kind\":\"event\",\"messageType\":\"country.updated\",\"schemaVersion\":1,\"producerApplication\":\"country-service\",\"producerEnvironment\":\"test\",\"createdAtUtc\":\"2026-11-22T12:34:56.1234567Z\",\"payload\":null}",
+      "failure": "Invalid"
+    },
+    {
+      "id": "fractional-schema-version",
+      "wireUtf8": "{\"envelopeVersion\":1,\"messageId\":\"11111111-1111-4111-8111-111111111111\",\"kind\":\"event\",\"messageType\":\"country.updated\",\"schemaVersion\":1.0,\"producerApplication\":\"country-service\",\"producerEnvironment\":\"test\",\"createdAtUtc\":\"2026-11-22T12:34:56.1234567Z\",\"payload\":null}",
+      "failure": "Invalid"
+    },
+    {
+      "id": "request-without-attempt",
+      "wireUtf8": "{\"envelopeVersion\":1,\"messageId\":\"22222222-2222-4222-8222-222222222222\",\"kind\":\"request\",\"messageType\":\"country.update\",\"schemaVersion\":1,\"producerApplication\":\"country-caller\",\"producerEnvironment\":\"test\",\"createdAtUtc\":\"2026-11-22T12:34:56.1234567Z\",\"payload\":{\"country\":\"MT\",\"name\":\"Malta\"},\"replyRoute\":{\"application\":\"country-caller\",\"environment\":\"test\",\"endpointId\":\"44444444-4444-4444-8444-444444444444\"},\"operation\":{\"operationName\":\"country.update\",\"requestedScope\":\"country:MT\",\"key\":\"opaque-01\"}}",
+      "failure": "Invalid"
+    },
+    {
+      "id": "event-with-request-fields",
+      "wireUtf8": "{\"envelopeVersion\":1,\"messageId\":\"11111111-1111-4111-8111-111111111111\",\"kind\":\"event\",\"messageType\":\"country.updated\",\"schemaVersion\":1,\"producerApplication\":\"country-service\",\"producerEnvironment\":\"test\",\"createdAtUtc\":\"2026-11-22T12:34:56.1234567Z\",\"payload\":null,\"requestAttemptId\":\"33333333-3333-4333-8333-333333333333\"}",
+      "failure": "Invalid"
+    },
+    {
+      "id": "reply-without-original",
+      "wireUtf8": "{\"envelopeVersion\":1,\"messageId\":\"55555555-5555-4555-8555-555555555555\",\"kind\":\"reply\",\"messageType\":\"country.lookup.reply\",\"schemaVersion\":1,\"producerApplication\":\"country-service\",\"producerEnvironment\":\"test\",\"createdAtUtc\":\"2026-11-22T12:34:56.1234567Z\",\"payload\":{\"decision\":\"rejected\",\"code\":\"not-found\"},\"requestAttemptId\":\"33333333-3333-4333-8333-333333333333\"}",
+      "failure": "Invalid"
+    },
+    {
+      "id": "request-arbitrary-reply-queue",
+      "wireUtf8": "{\"envelopeVersion\":1,\"messageId\":\"22222222-2222-4222-8222-222222222222\",\"kind\":\"request\",\"messageType\":\"country.update\",\"schemaVersion\":1,\"producerApplication\":\"country-caller\",\"producerEnvironment\":\"test\",\"createdAtUtc\":\"2026-11-22T12:34:56.1234567Z\",\"payload\":{\"country\":\"MT\",\"name\":\"Malta\"},\"requestAttemptId\":\"33333333-3333-4333-8333-333333333333\",\"replyRoute\":{\"application\":\"country-caller\",\"environment\":\"test\",\"queue\":\"unchecked.remote.queue\"},\"operation\":{\"operationName\":\"country.update\",\"requestedScope\":\"country:MT\",\"key\":\"opaque-01\"}}",
+      "failure": "Invalid"
+    },
+    {
+      "id": "json-comment",
+      "wireUtf8": "/*comment*/{\"envelopeVersion\":1,\"messageId\":\"11111111-1111-4111-8111-111111111111\",\"kind\":\"event\",\"messageType\":\"country.updated\",\"schemaVersion\":1,\"producerApplication\":\"country-service\",\"producerEnvironment\":\"test\",\"createdAtUtc\":\"2026-11-22T12:34:56.1234567Z\",\"payload\":null}",
+      "failure": "Invalid"
+    },
+    {
+      "id": "trailing-json",
+      "wireUtf8": "{\"envelopeVersion\":1,\"messageId\":\"11111111-1111-4111-8111-111111111111\",\"kind\":\"event\",\"messageType\":\"country.updated\",\"schemaVersion\":1,\"producerApplication\":\"country-service\",\"producerEnvironment\":\"test\",\"createdAtUtc\":\"2026-11-22T12:34:56.1234567Z\",\"payload\":null} true",
+      "failure": "Invalid"
+    },
+    {
+      "id": "null-environment",
+      "wireUtf8": "{\"envelopeVersion\":1,\"messageId\":\"11111111-1111-4111-8111-111111111111\",\"kind\":\"event\",\"messageType\":\"country.updated\",\"schemaVersion\":1,\"producerApplication\":\"country-service\",\"producerEnvironment\":null,\"createdAtUtc\":\"2026-11-22T12:34:56.1234567Z\",\"payload\":null}",
+      "failure": "Invalid"
+    },
+    {
+      "id": "malformed-utf8",
+      "wireHex": "7b22656e76656c6f706556657273696f6e223a312c226d6573736167654964223a2231313131313131312d313131312d343131312d383131312d313131313131313131313131222c226b696e64223a226576656e74222c226d65737361676554797065223a22636f756e7472792e75706461746564222c22736368656d6156657273696f6e223a312c2270726f64756365724170706c69636174696f6e223a22636f756e7472792d73657276696365222c2270726f6475636572456e7669726f6e6d656e74223a2274657374222c22637265617465644174557463223a22323032362d31312d32325431323a33343a35362e313233343536375a222c227061796c6f6164223a22c328227d",
+      "failure": "Invalid"
+    },
+    {
+      "id": "empty-fraction-created-at",
+      "wireUtf8": "{\"envelopeVersion\":1,\"messageId\":\"11111111-1111-4111-8111-111111111111\",\"kind\":\"event\",\"messageType\":\"country.updated\",\"schemaVersion\":1,\"producerApplication\":\"country-service\",\"producerEnvironment\":\"test\",\"createdAtUtc\":\"2026-11-22T12:34:56.Z\",\"payload\":null}",
+      "failure": "Invalid"
+    },
+    {
+      "id": "whitespace-only-wire",
+      "wireUtf8": " \t\r\n",
+      "failure": "Invalid"
+    }
+  ]
+}

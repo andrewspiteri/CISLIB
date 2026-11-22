@@ -2,7 +2,7 @@
 title: "WORK-003 Deliver optional RabbitMQ transport, native authority bridge and topology"
 type: agent-task
 status: Draft
-task_status: Draft
+task_status: InProgress
 task_id: WORK-003
 parent_id: none
 category: implementation

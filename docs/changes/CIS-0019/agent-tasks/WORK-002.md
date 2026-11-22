@@ -2,7 +2,7 @@
 title: "WORK-002 Deliver production PostgreSQL messaging storage and atomic arbitration"
 type: agent-task
 status: Draft
-task_status: Draft
+task_status: InProgress
 task_id: WORK-002
 parent_id: none
 category: implementation

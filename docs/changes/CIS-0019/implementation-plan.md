@@ -15,10 +15,10 @@ this generated plan or its exact numbers is claimed.
 
 | Task | Outcome, tests and documentation | Dependencies | Shared allocation |
 | --- | --- | --- | --- |
-| WORK-001 | Freeze owned envelope/codecs, definitions, validated bounds, outcomes and narrow store/provider ports; strict wire/unit vectors, passive registration and portable contract. | None | 7h / 8 attempts / 600s restoration |
+| WORK-001 | Freeze owned envelope/codecs, definitions, validated bounds, outcomes and narrow store/provider ports; strict wire/unit vectors, passive registration and portable contract. | None | 10h / 8 attempts / 600s restoration |
 | WORK-002 | Production PostgreSQL schema, atomic staging/inbox arbitration, fencing and bounded administrative storage; real SQL atomicity/rollback/concurrency and provider guide. | 001 | 10h / 10 / 1800s |
-| WORK-003 | Optional RabbitMQ adapter, private trusted projector, explicit topology/TLS/principals and native confirms/manual ack; real provider trust/route/restart and setup guide. | 001 | 9h / 10 / 1800s |
-| WORK-004 | Committed-only publisher, byte admission, fenced reserve/publish/settle, transient/blocked handling and convenience submission; stale-owner/confirmation/settlement tests and ownership guide. | 002,003 | 6h / 6 / 300s |
+| WORK-003 | Optional RabbitMQ adapter, private trusted projector, explicit topology/TLS/principals and native confirms/manual ack; real provider trust/route/restart and setup guide. | 001 | 8h / 10 / 1800s |
+| WORK-004 | Committed-only publisher, byte admission, fenced reserve/publish/settle, transient/blocked handling and convenience submission; stale-owner/confirmation/settlement tests and ownership guide. | 002,003 | 4h / 6 / 300s |
 | WORK-005 | Scoped authorized transactional dispatch and RM-03 binding, duplicate and current-reply responsibility; concurrent effects/replay/Unknown tests and handler guide. | 002,003 | 8h / 8 / 600s |
 | WORK-006 | Retry/terminal/rejection handoffs, current retry authority, explicit admin redrive/retention; race/crash/ordinal/quarantine/horizon tests and failure guide. | 004,005 | 8h / 8 / 900s |
 | WORK-007 | Existing hosting/facade shutdown order, shared bounds/readiness, seven Metrics streams and Part A acceptance; actual exporter, provider/package checks and Part A checkpoint. | 004,005,006 | 6h / 6 / 300s |
@@ -43,6 +43,12 @@ substantive checkpoints before broadening and retain failures and corrections.
 The initial distribution moved one hour from 003 to 001 to include the already
 performed shared interface research/intake and independent review; all totals,
 attempts and protected restoration reserves remain unchanged.
+Two further hours move from the simpler publication task 004 to the shared wire
+foundation for concrete source/research costs and independent wire tests. The
+controller preserves all spent estimates, total limits and protected reserves.
+One further hour moves from 003 to 001 before final foundation tests/docs/review,
+retaining all cumulative conservative parallel-source costs inside the same
+64-hour total. The current canonical allocation is authoritative.
 
 Each leaf is a bounded module outcome of medium delivery size: shared contracts,
 one store, one provider, one publication loop, one dispatch path, one disposition
