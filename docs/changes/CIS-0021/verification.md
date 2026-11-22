@@ -20,6 +20,7 @@ change_id: CIS-0021
 | WORK-001 / WORK-002 | Exact local restoration | Ignored `local-restoration.json` | Passed | Zero retained owned children, containers or volumes; three newly pulled unshared image references removed. Removed 39 owned scratch directories / 63,253,292 bytes after drain, retaining hashes/reports/capped logs. |
 | WORK-003 | Linux service CI | Authored `.github/workflows/service-tests.yml` | Pending | An observed nonempty successful PR run is required before merge. Authored workflow and passing Windows work are not a Linux CI pass. |
 | All | Independent final local receipt review | [Review](review.md), frozen receipt | Passed | All 51 source, six context and ten report hashes match; ten binary/configuration snapshots match both their original and snapshot paths. Actual result counts/counters agree; closure, restoration and protected user file independently checked. |
+| WORK-004 | Portable consumer locked restore/build and affected Windows consumers | `portable-solution-locked-restore`, `portable-solution-build`, `portable-countrydata-unit-consumer`, `portable-source-configuration-consumer` | Passed | Zero build warnings/errors; CountryData 29/29 and the current source-fixture 1/1, zero failures/skips. Both RIDs locked; existing groups/package IDs/versions unchanged. |
 
 Native phase receipts and reports are retained under ignored
 `.artifacts/testcontainers/CIS-0021/`; accounting and exact resource observations
@@ -98,3 +99,27 @@ workflow hash; the ignored CI-definition delta records the corrected workflow
 hash and subsequent qualified head. Executable test/product sources and native
 binary/report snapshots remain unchanged. No Linux service pass is inferred from
 this definition correction.
+
+The corrected workflow's [first actual Linux job](https://github.com/andrewspiteri/CISLIB/actions/runs/45026847247)
+verified Ubuntu 24.04.5, SDK 10.0.401, both 10.0.12 frameworks and Linux amd64
+Docker, then failed locked restore before build or tests. CountryData's selected
+RID changed to Linux while its lock contained only Windows. The cold cache also
+exposed missing exact source mappings for retained `Microsoft.Extensions.Configuration`,
+`Microsoft.Extensions.Configuration.Binder` and
+`Microsoft.Extensions.Options.ConfigurationExtensions` packages. WORK-004 adds only
+those mappings and declares `win-x64;linux-x64` as supported lock RIDs, leaving
+the actual selected RID, inventory/output behavior, existing lock groups and
+package identities unchanged. Its one new seven-line Linux group repeats the
+existing ProtectedData 4.5.0 identity. Independent three-file review passed.
+
+The resulting Windows locked restore and full build pass. The maintained
+CountryData unit example passes 29/29; the current
+`ActualBuiltSourceFixtureDiscoversPassiveConfigurationAndStartsWithTheSameDefaultRoots`
+case passes 1/1 using the existing Type Manager host, exact Core bytes and joined
+native stop. Historical Console/Web rows were not resurrected. Rebuilding after
+publication changes Git metadata in the binaries: the new Core SHA256 is
+`00e02daeee14d66ae606798292689bcf5d2a96babac64c6b6f58919b5e808b74`.
+The original frozen local snapshots/reports remain intact as earlier local-ready
+proof; a separate portable-consumer receipt records the new source/binary delta.
+No executable product/test C# changed for this portability correction. Actual
+Linux selected-service qualification remains required on the corrected head.
