@@ -1,6 +1,8 @@
 using CIS.Audit;
 using CIS.Management;
 using CIS.Management.Service.Metadata;
+using CIS.Management.Service;
+using CIS.Management.Service.Backends;
 using CIS.Messaging;
 using CIS.Messaging.PostgreSql;
 using CIS.Operations;
@@ -73,12 +75,17 @@ public sealed class ManagementMetadataCompletionTests
                 services.AddSingleton<ICapabilityAuthorizer>(new ExactProviderFaultAuthorizer(local, original.ApplicationId));
                 services.AddSingleton<ILocalTransactionFactory>(database.Factory);
                 services.AddSingleton(database.Store);
+                var authority = new PostgreSqlManagementAuthority(database.Factory,
+                    new ManagementServiceOptions(database.Source.ConnectionString, new byte[32], database.Options,
+                        operationsSchema: operationsSchema, messagingSchema: messagingSchema));
+                services.AddSingleton(authority);
                 services.AddSingleton<IAuditCapture>(new AuditCapture(engine, caller));
                 services.AddSingleton<IAuditWriter>(writer);
-                services.AddSingleton<IOperationJournal>(new PostgreSqlOperationJournal(new()
-                {
-                    Schema = operationsSchema
-                }));
+                services.AddSingleton<IOperationJournal>(new PostgreSqlManagementJournal(
+                    new PostgreSqlOperationJournal(new()
+                    {
+                        Schema = operationsSchema
+                    }), authority));
                 services.AddCisOperation(ManagementMetadataDefinition.Create());
                 services.AddCisOperations();
                 services.AddScoped<ManagementMetadataTarget>();

@@ -3,7 +3,7 @@
   "version": 1,
   "provenance": "Independently authored exact JSON text vectors. The json string is the wire input; do not normalize, round or reserialize it before a runtime/client check.",
   "validationBoundary": "schemaValid records only acceptance by the repository's existing limited schema evaluator and JSON parser. It does not prove duplicate-name rejection, exact signed-Int64 range, calendar validity, Jobs UTF-8 byte bounds, native catalog uniqueness/references or HTTP authorization/durability. The valid flag is the full wire expectation for actual C# and TypeScript consumer tests.",
-  "caseCount": 64,
+  "caseCount": 85,
   "cases": [
     {
       "id": "registration-current-major",
@@ -608,6 +608,181 @@
       "direction": "response",
       "schemaValid": true,
       "id": "metadata-native-rejection-preserves-native-message-control"
+    },
+    {
+      "id": "control-ready-exact-opaque-revision",
+      "schema": "ControlConfirmation",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"authorityId\":\"33333333-3333-4333-8333-333333333333\",\"registrationId\":\"22222222-2222-4222-8222-222222222222\",\"controlRevision\":\"opaque/Cafe\\u0301/9007199254740993\",\"admissionAllowed\":true,\"validForMs\":15000,\"attemptId\":\"44444444-4444-4444-8444-444444444444\"}",
+      "expected": {
+        "controlRevision": "opaque/Café/9007199254740993",
+        "validForMs": 15000
+      }
+    },
+    {
+      "id": "control-refused-is-still-current-control-data",
+      "schema": "ControlConfirmation",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"authorityId\":\"33333333-3333-4333-8333-333333333333\",\"registrationId\":\"22222222-2222-4222-8222-222222222222\",\"controlRevision\":\"opaque-v1\",\"admissionAllowed\":false,\"validForMs\":1,\"attemptId\":\"44444444-4444-4444-8444-444444444444\"}"
+    },
+    {
+      "id": "control-response-additions-remain-compatible",
+      "schema": "ControlConfirmation",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"authorityId\":\"33333333-3333-4333-8333-333333333333\",\"registrationId\":\"22222222-2222-4222-8222-222222222222\",\"controlRevision\":\"v1\",\"admissionAllowed\":true,\"validForMs\":5000,\"attemptId\":\"44444444-4444-4444-8444-444444444444\",\"future\":{\"reason\":\"unknown\"}}"
+    },
+    {
+      "id": "control-missing-attempt-is-invalid",
+      "schema": "ControlConfirmation",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"authorityId\":\"33333333-3333-4333-8333-333333333333\",\"registrationId\":\"22222222-2222-4222-8222-222222222222\",\"controlRevision\":\"v1\",\"admissionAllowed\":true,\"validForMs\":5000}"
+    },
+    {
+      "id": "control-null-authority-is-invalid",
+      "schema": "ControlConfirmation",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"authorityId\":null,\"registrationId\":\"22222222-2222-4222-8222-222222222222\",\"controlRevision\":\"v1\",\"admissionAllowed\":true,\"validForMs\":5000,\"attemptId\":\"44444444-4444-4444-8444-444444444444\"}"
+    },
+    {
+      "id": "control-empty-authority-is-runtime-rule",
+      "schema": "ControlConfirmation",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"authorityId\":\"00000000-0000-0000-0000-000000000000\",\"registrationId\":\"22222222-2222-4222-8222-222222222222\",\"controlRevision\":\"v1\",\"admissionAllowed\":true,\"validForMs\":5000,\"attemptId\":\"44444444-4444-4444-8444-444444444444\"}"
+    },
+    {
+      "id": "control-invalid-attempt-identifier-is-rejected",
+      "schema": "ControlConfirmation",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"authorityId\":\"33333333-3333-4333-8333-333333333333\",\"registrationId\":\"22222222-2222-4222-8222-222222222222\",\"controlRevision\":\"v1\",\"admissionAllowed\":true,\"validForMs\":5000,\"attemptId\":\"not-an-attempt-uuid\"}"
+    },
+    {
+      "id": "control-zero-lifetime-is-rejected",
+      "schema": "ControlConfirmation",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"authorityId\":\"33333333-3333-4333-8333-333333333333\",\"registrationId\":\"22222222-2222-4222-8222-222222222222\",\"controlRevision\":\"v1\",\"admissionAllowed\":true,\"validForMs\":0,\"attemptId\":\"44444444-4444-4444-8444-444444444444\"}"
+    },
+    {
+      "id": "control-excessive-lifetime-is-rejected",
+      "schema": "ControlConfirmation",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"authorityId\":\"33333333-3333-4333-8333-333333333333\",\"registrationId\":\"22222222-2222-4222-8222-222222222222\",\"controlRevision\":\"v1\",\"admissionAllowed\":true,\"validForMs\":15001,\"attemptId\":\"44444444-4444-4444-8444-444444444444\"}"
+    },
+    {
+      "id": "control-string-lifetime-is-rejected",
+      "schema": "ControlConfirmation",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"authorityId\":\"33333333-3333-4333-8333-333333333333\",\"registrationId\":\"22222222-2222-4222-8222-222222222222\",\"controlRevision\":\"v1\",\"admissionAllowed\":true,\"validForMs\":\"5000\",\"attemptId\":\"44444444-4444-4444-8444-444444444444\"}"
+    },
+    {
+      "id": "control-fractional-integer-lexeme-is-runtime-rule",
+      "schema": "ControlConfirmation",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"authorityId\":\"33333333-3333-4333-8333-333333333333\",\"registrationId\":\"22222222-2222-4222-8222-222222222222\",\"controlRevision\":\"v1\",\"admissionAllowed\":true,\"validForMs\":5000.0,\"attemptId\":\"44444444-4444-4444-8444-444444444444\"}"
+    },
+    {
+      "id": "control-exponent-integer-lexeme-is-runtime-rule",
+      "schema": "ControlConfirmation",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"authorityId\":\"33333333-3333-4333-8333-333333333333\",\"registrationId\":\"22222222-2222-4222-8222-222222222222\",\"controlRevision\":\"v1\",\"admissionAllowed\":true,\"validForMs\":5e3,\"attemptId\":\"44444444-4444-4444-8444-444444444444\"}"
+    },
+    {
+      "id": "control-whitespace-revision-is-runtime-rule",
+      "schema": "ControlConfirmation",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"authorityId\":\"33333333-3333-4333-8333-333333333333\",\"registrationId\":\"22222222-2222-4222-8222-222222222222\",\"controlRevision\":\"   \",\"admissionAllowed\":true,\"validForMs\":5000,\"attemptId\":\"44444444-4444-4444-8444-444444444444\"}"
+    },
+    {
+      "id": "control-boolean-admission-is-required",
+      "schema": "ControlConfirmation",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"authorityId\":\"33333333-3333-4333-8333-333333333333\",\"registrationId\":\"22222222-2222-4222-8222-222222222222\",\"controlRevision\":\"v1\",\"admissionAllowed\":\"true\",\"validForMs\":5000,\"attemptId\":\"44444444-4444-4444-8444-444444444444\"}"
+    },
+    {
+      "id": "control-duplicate-admission-is-runtime-rule",
+      "schema": "ControlConfirmation",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"authorityId\":\"33333333-3333-4333-8333-333333333333\",\"registrationId\":\"22222222-2222-4222-8222-222222222222\",\"controlRevision\":\"v1\",\"admissionAllowed\":false,\"admissionAllowed\":true,\"validForMs\":5000,\"attemptId\":\"44444444-4444-4444-8444-444444444444\"}"
+    },
+    {
+      "id": "service-info-legacy-v1-remains-readable",
+      "schema": "ServiceInfo",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"serviceVersion\":\"1\",\"protocolMajors\":[1],\"features\":[]}"
+    },
+    {
+      "id": "service-info-effective-inventory-bound",
+      "schema": "ServiceInfo",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"serviceVersion\":\"1\",\"protocolMajors\":[1],\"features\":[],\"maximumInventoryRequestBytes\":4194304}",
+      "expected": {
+        "maximumInventoryRequestBytes": 4194304
+      }
+    },
+    {
+      "id": "service-info-effective-bound-null-is-invalid",
+      "schema": "ServiceInfo",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"serviceVersion\":\"1\",\"protocolMajors\":[1],\"features\":[],\"maximumInventoryRequestBytes\":null}"
+    },
+    {
+      "id": "service-info-effective-bound-over-ceiling-is-invalid",
+      "schema": "ServiceInfo",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"serviceVersion\":\"1\",\"protocolMajors\":[1],\"features\":[],\"maximumInventoryRequestBytes\":16777217}"
+    },
+    {
+      "id": "service-info-effective-bound-zero-is-invalid",
+      "schema": "ServiceInfo",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"serviceVersion\":\"1\",\"protocolMajors\":[1],\"features\":[],\"maximumInventoryRequestBytes\":0}"
+    },
+    {
+      "id": "service-info-effective-bound-integer-lexeme-is-runtime-rule",
+      "schema": "ServiceInfo",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"serviceVersion\":\"1\",\"protocolMajors\":[1],\"features\":[],\"maximumInventoryRequestBytes\":4194304.0}"
     }
   ]
 }

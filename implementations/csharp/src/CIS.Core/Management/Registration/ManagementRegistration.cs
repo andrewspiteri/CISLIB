@@ -12,7 +12,7 @@ namespace CIS.Management;
 /// <summary>Owns an explicitly selected process registration and one coalesced existing Heartbeat subscription.</summary>
 /// <remarks>Construction is passive. Startup performs the direct initial attempt; shutdown signals cancellation before
 /// joining actual accepted work. The host must close REST admission before waiting for this owner's drain.</remarks>
-public sealed class ManagementRegistration : IStartable, IHeartbeatSubscriber, IAsyncDisposable
+public sealed partial class ManagementRegistration : IStartable, IHeartbeatSubscriber, IAsyncDisposable
 {
     private const string FingerprintTime = "2000-01-01T00:00:00.0000000Z";
     private readonly object gate = new();
@@ -24,6 +24,8 @@ public sealed class ManagementRegistration : IStartable, IHeartbeatSubscriber, I
     private readonly IHealthMonitorFactory? health;
     private readonly ILogger<ManagementRegistration>? logger;
     private readonly TimeProvider clock;
+    private readonly ManagedWorkAdmission admission;
+    private readonly IManagedStateReconciler[] reconcilers;
     private readonly CancellationTokenSource stopping = new();
     private readonly CancellationToken stoppingToken;
     private Task? startup;
@@ -60,10 +62,27 @@ public sealed class ManagementRegistration : IStartable, IHeartbeatSubscriber, I
     private bool inventoryUploaded;
     private bool inventoryRefused;
     private bool inventoryUnconfirmed;
+    private bool controlHealthy;
+    private bool controlAvailable;
+    private bool presenceAttempted;
+    private long lastPresenceAttempt;
+    private bool controlAttempted;
+    private long lastControlAttempt;
+    private readonly List<Exception> cutoffFailures = [];
 
     /// <summary>Captures application-owned ports and options without starting work or creating a provider.</summary>
     public ManagementRegistration(IManagementClient client, IHeartbeatOwnerFactory heartbeat,
         IManagementObservationSource observations, IManagementInventorySource inventory, ManagementRegistrationOptions options,
+        TimeProvider? timeProvider = null, IHealthMonitorFactory? health = null, ILogger<ManagementRegistration>? logger = null)
+        : this(new ManagedWorkAdmission(timeProvider), client, heartbeat, observations, inventory, options, null,
+            timeProvider, health, logger)
+    {
+    }
+
+    /// <summary>Captures the selected actual gate and finite reconciliation ports without invoking them or starting work.</summary>
+    public ManagementRegistration(ManagedWorkAdmission admission, IManagementClient client, IHeartbeatOwnerFactory heartbeat,
+        IManagementObservationSource observations, IManagementInventorySource inventory, ManagementRegistrationOptions options,
+        IEnumerable<IManagedStateReconciler>? reconcilers = null,
         TimeProvider? timeProvider = null, IHealthMonitorFactory? health = null, ILogger<ManagementRegistration>? logger = null)
     {
         ArgumentNullException.ThrowIfNull(client);
@@ -71,6 +90,7 @@ public sealed class ManagementRegistration : IStartable, IHeartbeatSubscriber, I
         ArgumentNullException.ThrowIfNull(observations);
         ArgumentNullException.ThrowIfNull(inventory);
         ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(admission);
         this.client = client;
         this.heartbeat = heartbeat;
         this.observations = observations;
@@ -78,6 +98,13 @@ public sealed class ManagementRegistration : IStartable, IHeartbeatSubscriber, I
         this.options = options.Copy();
         this.health = health;
         this.logger = logger;
+        this.admission = admission;
+        this.reconcilers = (reconcilers ?? []).Take(33).ToArray();
+        if (this.reconcilers.Length > 32 || this.reconcilers.Any(item => item is null))
+        {
+            throw new ArgumentException("Select at most thirty-two actual module reconcilers.", nameof(reconcilers));
+        }
+        admission.BindPrerequisites(PrerequisitesReady);
         clock = timeProvider ?? TimeProvider.System;
         stoppingToken = stopping.Token;
     }
@@ -85,12 +112,20 @@ public sealed class ManagementRegistration : IStartable, IHeartbeatSubscriber, I
     /// <summary>Copies bounded current local facts, without a request, payload or attempt history.</summary>
     public ManagementRegistrationStatus CaptureStatus()
     {
+        ManagementRegistrationStatus status;
         lock (gate)
         {
-            return new(registrationId, applicationId, registered, connected, closing, suspended,
+            status = new(registrationId, applicationId, registered, connected, closing, suspended,
                 pendingInventory is not null, inventoryValid, inventoryError ?? lastError, failures, suppressedDiagnostics);
         }
+        return status with
+        {
+            Admission = admission.CaptureSnapshot()
+        };
     }
+
+    /// <summary>Gets the actual local admission port; using a captured status never grants a later admission.</summary>
+    public IManagedWorkAdmission Admission => admission;
 
     /// <summary>Validates local selection, attempts initial registration directly, then installs one recurring subscription.</summary>
     public Task StartAsync(CancellationToken cancellationToken = default)
@@ -133,10 +168,11 @@ public sealed class ManagementRegistration : IStartable, IHeartbeatSubscriber, I
                         ?? throw new ArgumentException("Select an actual process start when the native fact is unavailable.")),
                     options.ApplicationVersion ?? EnvironmentOptions.ServiceVersion);
                 _ = ManagementWire.EncodeRequest(request, options.WireLimits);
+                admission.BindRegistration(registrationId);
                 PrepareLatest(initial: true, token);
                 monitor = health?.CreateCondition(new ConditionMonitorOptions
                 {
-                    IsCritical = options.IsHealthCritical,
+                    IsCritical = false,
                     InitiallyFlagged = false,
                     Name = "Management connectivity"
                 });
@@ -163,23 +199,24 @@ public sealed class ManagementRegistration : IStartable, IHeartbeatSubscriber, I
                     }
                 }
                 token.ThrowIfCancellationRequested();
-                if (!initialRegistered && options.RequireInitialRegistration)
+                if (!initialRegistered)
                 {
                     throw new InvalidOperationException("Required initial management registration did not return a valid receipt.");
                 }
-                if (initialRegistered)
+                if (!await ConfirmControlAsync(token).ConfigureAwait(false))
                 {
-                    await ReportPreparedAsync(token).ConfigureAwait(false);
+                    throw new InvalidOperationException("Required live management bootstrap or module reconciliation did not complete.");
                 }
+                await ReportCurrentAsync(token).ConfigureAwait(false);
                 token.ThrowIfCancellationRequested();
                 SetNextAttempt();
+                TimeSpan heartbeatInterval = Minimum(options.ReportingInterval,
+                    Minimum(options.InitialReconnectDelay, options.ControlCheckInterval));
                 owner.Service.Register(this, new HeartbeatRegistrationOptions
                 {
                     Name = "Management registration",
-                    Interval = options.InitialReconnectDelay < options.ReportingInterval
-                        ? options.InitialReconnectDelay : options.ReportingInterval,
-                    InitialDelay = options.InitialReconnectDelay < options.ReportingInterval
-                        ? options.InitialReconnectDelay : options.ReportingInterval
+                    Interval = heartbeatInterval,
+                    InitialDelay = heartbeatInterval
                 }, IsDueAsync);
             }
             completion.TrySetResult();
@@ -190,7 +227,7 @@ public sealed class ManagementRegistration : IStartable, IHeartbeatSubscriber, I
         }
         catch (Exception error)
         {
-            completion.TrySetException(error);
+            completion.TrySetException(CloseAdmissionAfterFault(error));
         }
     }
 
@@ -205,6 +242,12 @@ public sealed class ManagementRegistration : IStartable, IHeartbeatSubscriber, I
         ValidateDuration(options.ReportingInterval, TimeSpan.FromMilliseconds(10), nameof(options.ReportingInterval));
         ValidateDuration(options.InitialReconnectDelay, TimeSpan.FromMilliseconds(10), nameof(options.InitialReconnectDelay));
         ValidateDuration(options.MaximumReconnectDelay, TimeSpan.FromMilliseconds(10), nameof(options.MaximumReconnectDelay));
+        ValidateDuration(options.ControlCheckInterval, TimeSpan.FromMilliseconds(10), nameof(options.ControlCheckInterval));
+        ValidateDuration(options.ControlTimeout, TimeSpan.FromMilliseconds(1), nameof(options.ControlTimeout));
+        if (options.ControlCheckInterval > TimeSpan.FromSeconds(15) || options.ControlTimeout > TimeSpan.FromSeconds(15))
+        {
+            throw new ArgumentOutOfRangeException(nameof(options), "Control checks and attempt budgets cannot exceed fifteen seconds.");
+        }
         if (options.InitialReconnectDelay > options.MaximumReconnectDelay)
         {
             throw new ArgumentException("The first reconnect delay cannot exceed its finite cap.");
@@ -271,9 +314,21 @@ public sealed class ManagementRegistration : IStartable, IHeartbeatSubscriber, I
             CancellationToken token = linked.Token;
             selected = token;
             token.ThrowIfCancellationRequested();
-            PrepareLatest(initial: false, token);
-            bool admitted = registered || await RegisterAsync(token).ConfigureAwait(false);
-            succeeded = admitted && await ReportPreparedAsync(token).ConfigureAwait(false);
+            bool reportsDue = !presenceAttempted || clock.GetElapsedTime(lastPresenceAttempt) >= options.ReportingInterval;
+            if (reportsDue || !registered)
+            {
+                PrepareLatest(initial: false, token);
+            }
+            bool retained = registered || await RegisterAsync(token).ConfigureAwait(false);
+            bool controlDue = !controlHealthy || !controlAttempted
+                || clock.GetElapsedTime(lastControlAttempt) >= options.ControlCheckInterval;
+            bool controlled = retained && (!controlDue || await ConfirmControlAsync(token).ConfigureAwait(false));
+            bool reported = true;
+            if (retained && reportsDue && controlAvailable)
+            {
+                reported = await ReportCurrentAsync(token).ConfigureAwait(false);
+            }
+            succeeded = controlled && reported;
         }
         catch (OperationCanceledException error) when (selected.IsCancellationRequested && error.CancellationToken == selected)
         {
@@ -281,7 +336,7 @@ public sealed class ManagementRegistration : IStartable, IHeartbeatSubscriber, I
         }
         catch (Exception error)
         {
-            failure = error;
+            failure = CloseAdmissionAfterFault(error);
         }
         finally
         {
@@ -387,6 +442,7 @@ public sealed class ManagementRegistration : IStartable, IHeartbeatSubscriber, I
                 inventoryError = error.Code;
                 connected = false;
             }
+            admission.Invalidate();
             Flag(error.Code);
             Diagnose(error.Code);
             if (initial)
@@ -418,6 +474,19 @@ public sealed class ManagementRegistration : IStartable, IHeartbeatSubscriber, I
             applicationId = receipt.ApplicationId;
         }
         return true;
+    }
+
+    private async Task<bool> ReportCurrentAsync(CancellationToken token)
+    {
+        try
+        {
+            return await ReportPreparedAsync(token).ConfigureAwait(false);
+        }
+        finally
+        {
+            lastPresenceAttempt = clock.GetTimestamp();
+            presenceAttempted = true;
+        }
     }
 
     private async Task<bool> ReportPreparedAsync(CancellationToken token)
@@ -473,7 +542,10 @@ public sealed class ManagementRegistration : IStartable, IHeartbeatSubscriber, I
             if (connected)
             {
                 lastError = null;
-                reconnectFailures = 0;
+                if (controlHealthy)
+                {
+                    reconnectFailures = 0;
+                }
             }
         }
         if (connected)
@@ -506,6 +578,7 @@ public sealed class ManagementRegistration : IStartable, IHeartbeatSubscriber, I
 
     private void Refused<T>(ManagementCallResult<T> result)
     {
+        string? replacement = null;
         string? code = result.Problem?.Code;
         if (registered && result.Exchange.Context.HttpStatusCode == 404
             && code is "management.registration.not_found" or "management.not_found")
@@ -513,6 +586,7 @@ public sealed class ManagementRegistration : IStartable, IHeartbeatSubscriber, I
             lock (gate)
             {
                 registrationId = Guid.NewGuid().ToString("D");
+                replacement = registrationId;
                 applicationId = null;
                 registered = false;
                 observationSequence = 0;
@@ -524,7 +598,12 @@ public sealed class ManagementRegistration : IStartable, IHeartbeatSubscriber, I
                 inventoryUploaded = false;
                 inventoryRefused = false;
                 inventoryUnconfirmed = false;
+                presenceAttempted = false;
             }
+        }
+        if (replacement is not null)
+        {
+            admission.BindRegistration(replacement);
         }
         if (code is "management.registration.closed" or "management.registration.conflict"
             or "management.sequence.conflict" or "management.sequence.obsolete")
@@ -540,7 +619,7 @@ public sealed class ManagementRegistration : IStartable, IHeartbeatSubscriber, I
             : "management.registration.disconnected");
     }
 
-    private void MarkFailure(string code)
+    private void MarkFailure(string code, bool closeAdmission = true)
     {
         lock (gate)
         {
@@ -548,6 +627,11 @@ public sealed class ManagementRegistration : IStartable, IHeartbeatSubscriber, I
             lastError = code;
             failures = failures == long.MaxValue ? failures : failures + 1;
             reconnectFailures = Math.Min(reconnectFailures + 1, 30);
+            controlHealthy = false;
+        }
+        if (closeAdmission)
+        {
+            admission.Invalidate();
         }
         Flag(code);
         Diagnose(code);
@@ -563,9 +647,26 @@ public sealed class ManagementRegistration : IStartable, IHeartbeatSubscriber, I
             double multiplier = Math.Pow(2, Math.Min(Math.Max(reconnectFailures - 1, 0), 20));
             double reconnect = Math.Min(options.MaximumReconnectDelay.TotalMilliseconds,
                 options.InitialReconnectDelay.TotalMilliseconds * multiplier * (1 + Random.Shared.NextDouble() * 0.2));
-            nextDelay = connected ? options.ReportingInterval : TimeSpan.FromMilliseconds(reconnect);
+            if (controlHealthy)
+            {
+                TimeSpan untilControl = controlAttempted
+                    ? options.ControlCheckInterval - clock.GetElapsedTime(lastControlAttempt, lastAttempt) : TimeSpan.Zero;
+                TimeSpan untilReport = presenceAttempted
+                    ? options.ReportingInterval - clock.GetElapsedTime(lastPresenceAttempt, lastAttempt) : TimeSpan.Zero;
+                nextDelay = Minimum(untilControl, untilReport);
+                if (nextDelay < TimeSpan.Zero)
+                {
+                    nextDelay = TimeSpan.Zero;
+                }
+            }
+            else
+            {
+                nextDelay = TimeSpan.FromMilliseconds(reconnect);
+            }
         }
     }
+
+    private static TimeSpan Minimum(TimeSpan left, TimeSpan right) => left < right ? left : right;
 
     private void Diagnose(string code)
     {
@@ -613,6 +714,20 @@ public sealed class ManagementRegistration : IStartable, IHeartbeatSubscriber, I
     /// <summary>Closes reporting admission and signals owned cancellation without waiting for callbacks or REST.</summary>
     public void BeginStopping()
     {
+        try
+        {
+            admission.BeginStopping();
+        }
+        catch (Exception error)
+        {
+            lock (gate)
+            {
+                if (cutoffFailures.Count < 8)
+                {
+                    cutoffFailures.Add(error);
+                }
+            }
+        }
         TaskCompletionSource? completion = null;
         lock (gate)
         {
@@ -699,6 +814,10 @@ public sealed class ManagementRegistration : IStartable, IHeartbeatSubscriber, I
             if (monitor is not null)
             {
                 await Capture(monitor.DisposeAsync().AsTask()).ConfigureAwait(false);
+            }
+            lock (gate)
+            {
+                failures.AddRange(cutoffFailures);
             }
             if (failures.Count != 0)
             {

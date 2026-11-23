@@ -17,6 +17,9 @@ public static partial class ManagementWire
     /// <summary>Gets the dedicated finite management problem-body capture bound: 64 KiB.</summary>
     public const int MaximumErrorBodyBytes = 64 * 1024;
 
+    /// <summary>The greatest portable control-confirmation lifetime, measured from local request entry.</summary>
+    public const int MaximumControlValidForMs = 15_000;
+
     /// <summary>Encodes one of the four closed typed requests and rejects an invalid complete replacement.</summary>
     /// <remarks>Input collections must remain unchanged until encoding finishes. Returned bytes are detached.</remarks>
     public static byte[] EncodeRequest<T>(T value, ManagementWireLimits? limits = null) where T : class
@@ -205,6 +208,7 @@ public static partial class ManagementWire
             || type == typeof(ManagementInventorySnapshot) || type == typeof(ManagementMetadataCommand);
         bool supportedResponse = type == typeof(ManagementApplication) || type == typeof(ManagementServiceInfo)
             || type == typeof(ManagementCapabilities) || type == typeof(ManagementRegistrationReceipt)
+            || type == typeof(ManagementControlConfirmation)
             || type == typeof(ManagementReportReceipt) || type == typeof(ManagementCloseReceipt)
             || type == typeof(ManagementInstance) || type == typeof(ManagementMetadataResult)
             || type == typeof(ManagementMetadataDecision) || type == typeof(ManagementOperationRejection) || type == typeof(ManagementProblem)

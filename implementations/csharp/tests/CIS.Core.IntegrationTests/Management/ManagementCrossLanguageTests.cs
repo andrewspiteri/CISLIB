@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using CIS.Management;
+using CIS.Management.Wire;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -22,11 +23,22 @@ public sealed class ManagementCrossLanguageTests
         HostApplicationBuilder builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { Args = [], DisableDefaults = true });
         builder.Logging.ClearProviders();
         ManagementClientOptions management = fixture.RegisterBoundClient(builder.Services, "operator-a", "actual-management");
+        ManagementClientOptions workload = fixture.RegisterBoundClient(builder.Services, "workload-a", "actual-management-control");
         IHost clientHost = builder.Build();
         try
         {
             await clientHost.StartAsync();
             IManagementClient client = clientHost.Services.GetRequiredKeyedService<IManagementClient>(management.RestClientName);
+            IManagementClient workloadClient = clientHost.Services.GetRequiredKeyedService<IManagementClient>(workload.RestClientName);
+            string controlAttempt = Guid.NewGuid().ToString("D");
+            ManagementCallResult<ManagementControlConfirmation> control = await workloadClient.GetControlAsync(fixture.RegistrationA, controlAttempt);
+            Assert.IsTrue(control.Exchange.Success, control.Problem?.Code);
+            Assert.AreEqual(200, control.Exchange.Context.HttpStatusCode);
+            Assert.AreEqual(fixture.RegistrationA, control.Exchange.Value!.RegistrationId);
+            Assert.AreEqual(controlAttempt, control.Exchange.Value.AttemptId);
+            Assert.IsTrue(ManagementWire.IsUuid(control.Exchange.Value.AuthorityId));
+            Assert.IsTrue(control.Exchange.Value.AdmissionAllowed);
+            Assert.IsTrue(control.Exchange.Value.ValidForMs is >= 1 and <= ManagementWire.MaximumControlValidForMs);
             ManagementCallResult<ManagementApplication> read = await client.GetApplicationAsync(fixture.ApplicationA);
             Assert.IsTrue(read.Exchange.Success, read.Problem?.Code);
             Assert.AreEqual(200, read.Exchange.Context.HttpStatusCode);
@@ -39,15 +51,19 @@ public sealed class ManagementCrossLanguageTests
             Assert.AreEqual("2", applied.Exchange.Value.Result!.MetadataRevision);
 
             string bearer = await fixture.WriteConsumerBearerAsync("operator-a");
-            await RunNodeAsync(fixture, bearer);
+            string workloadBearer = await fixture.WriteConsumerBearerAsync("workload-a");
+            await RunNodeAsync(fixture, bearer, workloadBearer);
             using JsonDocument report = JsonDocument.Parse(await File.ReadAllBytesAsync(fixture.ConsumerReportFile));
-            foreach (string fact in new[] { "authenticatedRead", "metadataApplied", "originalResultFound", "replayRetainedOriginal" })
+            foreach (string fact in new[] { "authenticatedRead", "metadataApplied", "originalResultFound", "replayRetainedOriginal", "authoritativeControl" })
             {
                 Assert.IsTrue(report.RootElement.GetProperty(fact).GetBoolean(), fact);
             }
             Assert.AreEqual("node-original", report.RootElement.GetProperty("operationKey").GetString());
             Assert.AreEqual(fixture.ApplicationA, report.RootElement.GetProperty("applicationId").GetString());
             Assert.AreEqual("3", report.RootElement.GetProperty("revision").GetString());
+            Assert.AreEqual(fixture.RegistrationA, report.RootElement.GetProperty("registrationId").GetString());
+            Assert.AreEqual(control.Exchange.Value.AuthorityId, report.RootElement.GetProperty("authorityId").GetString(),
+                "Both actual authenticated SDKs must observe the same persisted authority across service replicas.");
             Assert.IsFalse(report.RootElement.TryGetProperty("token", out _));
 
             ManagementCallResult<ManagementMetadataResult> original = await client.GetMetadataOperationAsync(fixture.ApplicationA, csharpKey);
@@ -72,7 +88,7 @@ public sealed class ManagementCrossLanguageTests
         }
     }
 
-    private static async Task RunNodeAsync(ManagementHostFixture fixture, string bearer)
+    private static async Task RunNodeAsync(ManagementHostFixture fixture, string bearer, string workloadBearer)
     {
         DirectoryInfo? repository = new(AppContext.BaseDirectory);
         while (repository is not null && !File.Exists(Path.Combine(repository.FullName, "implementations", "csharp", "CisLib.slnx")))
@@ -94,6 +110,7 @@ public sealed class ManagementCrossLanguageTests
             Path.Combine(repository.FullName, "implementations", "typescript", "tests", "real-service-consumer.mjs"),
             "--base-url", fixture.Origins[1] + "/platform", "--ca-file", fixture.ServerAuthorityFile,
             "--bearer-file", bearer, "--application-id", fixture.ApplicationA, "--operation-key", "node-original",
+            "--control-bearer-file", workloadBearer, "--registration-id", fixture.RegistrationA,
             "--report-file", fixture.ConsumerReportFile
         })
         {

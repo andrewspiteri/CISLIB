@@ -188,7 +188,7 @@ public sealed class CISApplication : IAsyncDisposable
                 {
                     if (!lifetime.ApplicationStarted.IsCancellationRequested
                         || lifetime.ApplicationStopping.IsCancellationRequested
-                        || healthSource is not null && !healthSource.CaptureSnapshot().Ready)
+                        || healthSource is not null && !healthSource.CaptureSnapshot().RequestsAllowed)
                     {
                         context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
                         return;

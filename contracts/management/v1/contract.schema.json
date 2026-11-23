@@ -911,6 +911,13 @@
           },
           "maxItems": 128,
           "minItems": 0
+        },
+        "maximumInventoryRequestBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16777216,
+          "x-cis-canonical-integer-token": true,
+          "description": "Effective complete-inventory request bytes accepted by this server and selected provider; absent on older v1 servers."
         }
       },
       "required": [
@@ -1731,6 +1738,58 @@
       ],
       "additionalProperties": true,
       "description": "The unchanged native RM03 OperationError. It contains no original metadata, revision or decision timestamp."
+    },
+    "ControlConfirmation": {
+      "type": "object",
+      "properties": {
+        "authorityId": {
+          "type": "string",
+          "minLength": 36,
+          "maxLength": 36,
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true
+        },
+        "registrationId": {
+          "type": "string",
+          "minLength": 36,
+          "maxLength": 36,
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true
+        },
+        "controlRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "x-cis-control-free-nonblank-unicode": true
+        },
+        "admissionAllowed": {
+          "type": "boolean"
+        },
+        "validForMs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 15000,
+          "x-cis-canonical-integer-token": true
+        },
+        "attemptId": {
+          "type": "string",
+          "minLength": 36,
+          "maxLength": 36,
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true
+        }
+      },
+      "required": [
+        "authorityId",
+        "registrationId",
+        "controlRevision",
+        "admissionAllowed",
+        "validForMs",
+        "attemptId"
+      ],
+      "additionalProperties": true,
+      "x-cis-freshness-origin": "Local monotonic request start, including actual response cleanup; never response arrival.",
+      "x-cis-authority": "A current backend confirmation, not business permission, presence or RM-05 ownership."
     }
   },
   "description": "Canonical DTO schemas. Requests are closed; response readers tolerate optional additions and preserve unknown raw values. x-cis annotations document runtime lexical/semantic/byte requirements not all expressible in JSON Schema or the existing evaluator.",

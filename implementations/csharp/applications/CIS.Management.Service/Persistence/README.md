@@ -6,11 +6,22 @@ data-source dependency. Production composition lends one host-lived Npgsql sourc
 to the existing RM-02 `management` alias; the store uses only original
 `ReadCommitted` participant callbacks and awaits actual owner completion/cleanup.
 
-`ManagementSchema.InstallAsync` is an explicit deployment operation. Its caller
-commits once, alongside the existing Operations and Messaging schema installation.
-Ordinary Startup calls `ValidateAsync`, a version read which performs no DDL.
-An existing unsupported schema is rejected rather than rewritten. No constructor
-or passive DI registration accesses the database.
+`ManagementSchema.InstallAsync` is an explicit deployment operation. Version two
+adds a persisted namespace authority, opaque control revision, recovery epoch and
+hold. The explicit version-one upgrade retains every application, registration,
+metadata revision, operation journal entry and outgoing audit record. Existing
+supported Operations/Messaging schemas are checked rather than reinstalled. The
+owner commits once. Unsupported versions, a missing version-two authority or a
+mismatched expected namespace/epoch are rejected, not silently repaired.
+Ordinary Startup validates schema and the real primary authority without DDL.
+No constructor or passive DI registration accesses the database.
+
+The complete product boundary is `IManagementBackend`; PostgreSQL is its only
+delivered adapter. Standalone and Shared use the same qualified primary and
+original RM-02 participants. The public low-level store also remains usable in
+focused participant tests; constructing it without an authority participant is
+not selecting or qualifying a complete backend. See [backend profiles and
+recovery](../Backends/README.md).
 
 The server creates `ManagementRegistrationOwner` only after selected native
 authentication, complete capability authorization and the trusted self-mapping
@@ -51,7 +62,8 @@ Reads are ordered by canonical UUID and return detached bounded batches. The HTT
 layer authorizes actual resources before including them or constructing a cursor.
 Inventory reads lock candidate registration rows `FOR SHARE` while examining
 encoded lengths and fetching only admitted whole snapshots. They never wait for
-the capacity counter, preserving the writer lock order. A finite wrapper/cursor
+the capacity counter, preserving the writer lock order. Namespace/recovery state
+is locked first in the original transaction. A finite wrapper/cursor
 and provenance allowance precedes materialization; `HasMore` records a byte/count
 boundary even when fewer complete items than requested fit. An item which cannot
 fit produces an explicit refusal, not an empty nonadvancing page. Final Wire
@@ -63,7 +75,9 @@ freshness. Neither stale presence nor a successful connection changes job leases
 Telemetry retention is seven days from the latest accepted registration,
 observation/inventory or later terminal close. Existing Heartbeat maintenance
 deletes batches of at most 100 using database locks and `SKIP LOCKED`. Multiple API
-replicas may safely perform this idempotent cleanup. It removes registration
+replicas may safely perform this idempotent cleanup. One existing Heartbeat
+subscription checks actual authority every five seconds and rate-limits cleanup
+to once per minute. It removes registration
 telemetry and releases its capacity; stable application metadata and Operations
 duplicate/result protection remain. No leader, permanent presence tombstone or
 Audit destination store is introduced.

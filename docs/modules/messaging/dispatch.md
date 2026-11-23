@@ -1,5 +1,12 @@
 # Authorized transactional delivery
 
+When managed execution is selected, the existing dispatcher also checks
+[managed admission](../management/admission.md) before new inbox/application work
+and at the actual callback boundary. Unadmitted application messages requeue after
+original owner cleanup; admitted work, native replies and committed outbox
+settlement retain their existing lifetimes. This gate does not replace native
+authentication, capability checks, inbox arbitration or transaction completion.
+
 Register an event or command subscription with an explicit codec, scoped handler factory, capability list and trusted target resolver. The logical receiving identity is `(Application, Environment, Subscription, MessageId)`. Replicas compete on that same identity. Separate event subscriptions retain separate inbox protection and each receive the event; a command route has one logical subscription.
 
 The dispatcher borrows native bytes while waiting for process-wide work and encoded-byte admission. Ordinary saturation waits cooperatively before copying or decoding. A finite shared waiter bound of at least 128 covers the supported 16 subscriptions with eight native callbacks each. Exhausting that hard bound is an explicit overload failure that visibly stops the affected consumer. Shutdown cancels admission waits, awaits the independent native requeue and joins accepted work. It never releases an in-use buffer or DI scope merely because cancellation was requested.

@@ -36,7 +36,7 @@ public static partial class ManagementWire
         }
         else if (type == typeof(ManagementServiceInfo))
         {
-            Shape(value, false, ["serviceVersion", "protocolMajors", "features"]);
+            Shape(value, false, ["serviceVersion", "protocolMajors", "features"], "maximumInventoryRequestBytes");
             Scalar(value, "serviceVersion", 512);
             JsonElement majors = Items(value, "protocolMajors", 16, 1);
             var unique = new HashSet<int>();
@@ -46,6 +46,11 @@ public static partial class ManagementWire
                     && number > 0 && unique.Add(number));
             }
             Features(Items(value, "features", 64));
+            if (value.TryGetProperty("maximumInventoryRequestBytes", out JsonElement maximumInventory))
+            {
+                Require(maximumInventory.ValueKind == JsonValueKind.Number && maximumInventory.TryGetInt32(out int bytes)
+                    && bytes is >= 1 and <= 16 * 1024 * 1024);
+            }
         }
         else if (type == typeof(ManagementCapabilities))
         {
@@ -66,6 +71,18 @@ public static partial class ManagementWire
             Id(value, "registrationId");
             Id(value, "applicationId");
             Time(value, "registeredAtUtc");
+        }
+        else if (type == typeof(ManagementControlConfirmation))
+        {
+            Shape(value, false, ["authorityId", "registrationId", "controlRevision", "admissionAllowed", "validForMs", "attemptId"]);
+            Id(value, "authorityId");
+            Id(value, "registrationId");
+            Id(value, "attemptId");
+            Scalar(value, "controlRevision", 256);
+            Boolean(value, "admissionAllowed");
+            JsonElement validFor = value.GetProperty("validForMs");
+            Require(validFor.ValueKind == JsonValueKind.Number && validFor.TryGetInt32(out int milliseconds)
+                && milliseconds is >= 1 and <= MaximumControlValidForMs);
         }
         else if (type == typeof(ManagementReportReceipt))
         {

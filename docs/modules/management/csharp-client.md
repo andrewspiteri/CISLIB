@@ -6,7 +6,7 @@ status: Draft
 
 # C# management client
 
-`CIS.Management` supplies the twelve typed v1 APIs in the existing Core package.
+`CIS.Management` supplies the typed v1 APIs in the existing Core package.
 It borrows the application's selected keyed REST client. Reading applications
 does not register this process or start Heartbeat. The optional reporting
 integration is a separate selection.
@@ -46,6 +46,28 @@ same alias and preserves the first deliberately registered default alias. It
 installs no hosted service or startup participant and constructs no provider.
 Options are captured before activation. Explicit `BaseUrl` precedes
 `CIS_MANAGEMENT_URL`; missing or invalid selected configuration is an error.
+
+`GetControlAsync(registrationId, attemptId, cancellationToken)` adds the v1.1
+authoritative control read. Both inputs use canonical nonempty UUIDs. A per-call
+response mapper validates exact echoed IDs inside the native entry deadline;
+a mismatch becomes the native Business rejection
+`management.control.invalid_confirmation` while actual response cleanup remains
+owned. Malformed wire content still uses the native InvalidResponse outcome.
+Control always selects None retry, so the first refused exchange cannot be hidden
+by a generic read policy. The public interface's default implementation throws
+NotSupported for existing custom clients that implement only the earlier APIs;
+unsupported control never grants admission. `ScriptedManagementClient` supplies
+an explicit Control step and retains only safe registration/attempt metadata.
+
+`ManagementControlConfirmation` preserves an opaque control revision and a
+maximum fifteen-second validity. The managed host measures freshness from local
+monotonic request entry and rechecks after the whole call settles; successful
+HTTP or late cleanup cannot create a fresh window by itself. The read-only client
+creates no gate. `IManagedWorkAdmission`, its immutable local snapshots/events,
+and `IManagedStateReconciler` are the narrow opt-in host boundaries. Snapshot
+events do not revoke admitted work or authorize later admissions. The bounded
+`ManualManagedWorkAdmission` CommonTesting control evaluates no native freshness
+or authority policy.
 
 The endpoint must be absolute HTTPS with no user information, query or fragment.
 API paths retain the configured prefix: the example addresses

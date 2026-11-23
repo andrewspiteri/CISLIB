@@ -116,7 +116,7 @@ internal sealed class CISApplicationComposition
                 ServiceVersion = EnvironmentOptions.ServiceVersion,
                 HostName = EnvironmentOptions.HostName,
                 OsDescription = EnvironmentOptions.OperatingSystemDescription
-            }, root.GetService<TimeProvider>());
+            }, root.GetService<TimeProvider>(), root.GetServices<IHealthReadinessSource>());
         }));
         Add(services, healthDefaults, ServiceDescriptor.Singleton<IHealthMonitorFactory>(root =>
             root.GetRequiredService<HealthcheckService>()));

@@ -22,7 +22,7 @@ public sealed class ManagementClientTests
     private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(10);
 
     [TestMethod]
-    public async Task AllTwelveTypedMethodsPreserveTheConfiguredPrefixAndOriginalKeys()
+    public async Task AllThirteenTypedMethodsPreserveTheConfiguredPrefixAndOriginalKeys()
     {
         var seen = new List<string>();
         var options = Options();
@@ -36,6 +36,7 @@ public sealed class ManagementClientTests
             {
                 "service-info" => ManagementWire.EncodeResponse(new ManagementServiceInfo("1", [1], [])),
                 "registration" => ManagementWire.EncodeResponse(new ManagementRegistrationReceipt(Registration, Id, Time)),
+                "control" => ManagementWire.EncodeResponse(new ManagementControlConfirmation(Id, Registration, "opaque/9007199254740993", true, 15000, Id)),
                 "observation" => ManagementWire.EncodeResponse(new ManagementReportReceipt(Registration, "observation", "1", "1", "accepted", Time)),
                 "inventory-report" => ManagementWire.EncodeResponse(new ManagementReportReceipt(Registration, "inventory", "1", "1", "accepted", Time)),
                 "registration-close" => ManagementWire.EncodeResponse(new ManagementCloseReceipt(Registration, Time)),
@@ -64,6 +65,7 @@ public sealed class ManagementClientTests
 
         Assert.IsTrue((await client.GetServiceInfoAsync()).Exchange.Success);
         Assert.IsTrue((await client.RegisterAsync(Registration, new(1, "reported", Time, "1"))).Exchange.Success);
+        Assert.IsTrue((await client.GetControlAsync(Registration, Id)).Exchange.Success);
         Assert.IsTrue((await client.ReportObservationAsync(Registration, new("1", Time, "ready", "healthy"))).Exchange.Success);
         Assert.IsTrue((await client.ReportInventoryAsync(Registration, new("1", Time, [], [], []))).Exchange.Success);
         Assert.IsTrue((await client.CloseRegistrationAsync(Registration)).Exchange.Success);
@@ -74,7 +76,7 @@ public sealed class ManagementClientTests
         Assert.IsTrue((await client.GetCapabilitiesAsync(Id)).Exchange.Success);
         Assert.IsTrue((await client.ReplaceMetadataAsync(Id, "original-key", "\"m1-1\"", new(1, "Orders"))).Exchange.Success);
         Assert.IsTrue((await client.GetMetadataOperationAsync(Id, "original-key")).Exchange.Success);
-        Assert.HasCount(12, seen.Distinct().ToArray());
+        Assert.HasCount(13, seen.Distinct().ToArray());
     }
 
     [TestMethod]

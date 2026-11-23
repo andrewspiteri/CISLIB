@@ -10,9 +10,23 @@ public sealed partial class HealthcheckService : IHealthMonitorFactory, IHealthS
 
     /// <summary>Validates and copies settings and identity without reading module environment overrides.</summary>
     public HealthcheckService(HealthcheckOptions options, HealthApplicationIdentity? application = null, TimeProvider? timeProvider = null)
+        : this(options, application, timeProvider, [])
+    {
+    }
+
+    /// <summary>Captures at most thirty-two local readiness prerequisites without affecting liveness.</summary>
+    /// <remarks>The service borrows these sources; their owning modules retain lifetime and cleanup ownership.</remarks>
+    public HealthcheckService(HealthcheckOptions options, HealthApplicationIdentity? application, TimeProvider? timeProvider,
+        IEnumerable<IHealthReadinessSource> readinessSources)
     {
         ArgumentNullException.ThrowIfNull(options);
-        state = new HealthStateCoordinator(options.ValidatedCopy(), application, timeProvider ?? TimeProvider.System);
+        ArgumentNullException.ThrowIfNull(readinessSources);
+        IHealthReadinessSource[] captured = readinessSources.Take(33).ToArray();
+        if (captured.Length > 32 || captured.Any(source => source is null))
+        {
+            throw new ArgumentException("Select at most thirty-two nonnull local readiness sources.", nameof(readinessSources));
+        }
+        state = new HealthStateCoordinator(options.ValidatedCopy(), application, timeProvider ?? TimeProvider.System, captured);
     }
 
     /// <summary>Registers an explicit condition with its owner-selected initial flag.</summary>

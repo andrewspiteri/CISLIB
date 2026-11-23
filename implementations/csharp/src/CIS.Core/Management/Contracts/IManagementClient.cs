@@ -7,7 +7,7 @@ namespace CIS.Management;
 /// <param name="ReadRetryPolicy">Optional explicit native read policy; mutation and report methods do not inherit read replay.</param>
 public sealed record ManagementCallOptions(TimeSpan? Timeout = null, RestRetryPolicy? ReadRetryPolicy = null);
 
-/// <summary>The twelve typed v1 HTTP APIs. Merely using this port never registers a process or starts periodic work.</summary>
+/// <summary>The typed v1 HTTP APIs. Merely using this port never selects managed execution or starts periodic work.</summary>
 public interface IManagementClient
 {
     /// <summary>Reads authenticated supported protocols and actually installed APIs.</summary>
@@ -16,6 +16,13 @@ public interface IManagementClient
     /// <summary>Creates or recovers the same retained process registration under current trusted credentials.</summary>
     Task<ManagementCallResult<ManagementRegistrationReceipt>> RegisterAsync(string registrationId, ManagementRegistrationRequest request,
         ManagementCallOptions? options = null, CancellationToken cancellationToken = default);
+
+    /// <summary>Reads fresh authoritative control with an exact per-attempt echo and no automatic transport retry.</summary>
+    /// <remarks>Existing custom implementations remain usable for their original APIs. Unsupported control never supplies admission.</remarks>
+    Task<ManagementCallResult<ManagementControlConfirmation>> GetControlAsync(string registrationId, string attemptId,
+        CancellationToken cancellationToken = default)
+        => Task.FromException<ManagementCallResult<ManagementControlConfirmation>>(
+            new NotSupportedException("The selected management client does not implement authoritative control."));
 
     /// <summary>Reports one complete observation using its original stream sequence and content.</summary>
     Task<ManagementCallResult<ManagementReportReceipt>> ReportObservationAsync(string registrationId, ManagementObservation observation,

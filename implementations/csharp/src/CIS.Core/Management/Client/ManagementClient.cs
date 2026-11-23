@@ -48,6 +48,12 @@ public sealed class ManagementClient : IManagementClient
             request, null, null, options, cancellationToken);
 
     /// <inheritdoc />
+    public Task<ManagementCallResult<ManagementControlConfirmation>> GetControlAsync(string registrationId, string attemptId,
+        CancellationToken cancellationToken = default)
+        => CallAsync<ManagementControlConfirmation>("GET", "control", "registrations", registrationId, "control",
+            null, null, null, null, cancellationToken, attemptId);
+
+    /// <inheritdoc />
     public Task<ManagementCallResult<ManagementReportReceipt>> ReportObservationAsync(string registrationId, ManagementObservation observation,
         ManagementCallOptions? options = null, CancellationToken cancellationToken = default)
         => CallAsync<ManagementReportReceipt>("PUT", "observation", "registrations", registrationId, "observation",
@@ -109,7 +115,7 @@ public sealed class ManagementClient : IManagementClient
 
     private async Task<ManagementCallResult<T>> CallAsync<T>(string method, string operation, string collection,
         string? id, string? suffix, object? body, ManagementPageRequest? page, CommandHeaders? command,
-        ManagementCallOptions? options, CancellationToken cancellationToken) where T : class
+        ManagementCallOptions? options, CancellationToken cancellationToken, string? controlAttemptId = null) where T : class
     {
         long entered = clock.GetTimestamp();
         cancellationToken.ThrowIfCancellationRequested();
@@ -117,6 +123,10 @@ public sealed class ManagementClient : IManagementClient
         if (requiresId && id is null || id is not null && !ManagementWire.IsUuid(id))
         {
             throw new ArgumentException("Supply a canonical application or registration UUID.", nameof(id));
+        }
+        if (operation == "control" && !ManagementWire.IsUuid(controlAttemptId))
+        {
+            throw new ArgumentException("Supply one canonical per-attempt control UUID.", nameof(controlAttemptId));
         }
         if (page is not null && !ManagementWire.IsPageRequest(page))
         {
@@ -146,14 +156,15 @@ public sealed class ManagementClient : IManagementClient
         {
             path += "/" + Uri.EscapeDataString(command!.Key);
         }
-        var mapper = new ProblemMapper(settings.WireLimits);
+        var mapper = new ProblemMapper(settings.WireLimits, operation == "control" ? id : null, controlAttemptId);
         var request = new RestRequestOptions
         {
             OperationName = operation,
             ResponseFormat = RestResponseFormat.Json,
             RequireValue = true,
             DisableConfigureRequest = true,
-            RetryPolicy = method == "GET" ? SelectReadPolicy(options?.ReadRetryPolicy ?? settings.ReadRetryPolicy) : RestRetrySelection.None,
+            RetryPolicy = method == "GET" && operation != "control"
+                ? SelectReadPolicy(options?.ReadRetryPolicy ?? settings.ReadRetryPolicy) : RestRetrySelection.None,
             ResponseMapper = mapper,
             Limits = new RestLimits
             {
@@ -173,6 +184,11 @@ public sealed class ManagementClient : IManagementClient
             }
         };
         request.Headers.Set("Accept", "application/json, application/problem+json");
+        if (controlAttemptId is not null)
+        {
+            request.Query.Set("attemptId", controlAttemptId);
+            request.Headers.Set("Cache-Control", "no-store");
+        }
         if (page is not null)
         {
             request.Query.Set("pageSize", page.PageSize.ToString(CultureInfo.InvariantCulture));
@@ -218,7 +234,7 @@ public sealed class ManagementClient : IManagementClient
 
     private sealed record CommandHeaders(string Key, string? IfMatch);
 
-    private sealed class ProblemMapper(ManagementWireLimits limits) : IRestResponseMapper
+    private sealed class ProblemMapper(ManagementWireLimits limits, string? registrationId, string? attemptId) : IRestResponseMapper
     {
         internal ManagementProblem? Problem
         {
@@ -234,6 +250,14 @@ public sealed class ManagementClient : IManagementClient
             Problem = null;
             Body = null;
             cancellationToken.ThrowIfCancellationRequested();
+            if (response.HttpStatusCode is >= 200 and <= 299 && registrationId is not null
+                && response.Decoded.Value is ManagementControlConfirmation control
+                && (control.RegistrationId != registrationId || control.AttemptId != attemptId))
+            {
+                return ValueTask.FromResult(RestResponseDecision.RejectBusiness(
+                    "The control confirmation does not echo this registration and attempt.",
+                    "management.control.invalid_confirmation"));
+            }
             RestErrorBody? body = response.ErrorBody;
             if (response.HttpStatusCode is >= 200 and <= 299 || body is null || body.Bytes.Count > ManagementWire.MaximumErrorBodyBytes
                 || !MediaTypeHeaderValue.TryParse(body.MediaType, out MediaTypeHeaderValue? media)

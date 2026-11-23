@@ -33,7 +33,7 @@ public sealed partial class JobRuntime
     {
         lock (gate)
         {
-            if (!started || closing || pending.Count >= configuration.Limits.MaximumPendingDispatches)
+            if (!started || closing || !CanAdmitManagedWork() || pending.Count >= configuration.Limits.MaximumPendingDispatches)
             {
                 return null;
             }
@@ -69,7 +69,7 @@ public sealed partial class JobRuntime
                 return new(sameActivation ? JobAdmissionOutcome.Busy : JobAdmissionOutcome.Deferred);
             }
 
-            if (!started || closing || !EnabledUnderGate(target) || !CanTrackResourceUnderGate(target)
+            if (!started || closing || !CanAdmitManagedWork() || !EnabledUnderGate(target) || !CanTrackResourceUnderGate(target)
                 || duties.Values.Count(duty => duty.Target.Mode == JobExecutionMode.Continuous) >= configuration.Limits.MaximumContinuousDuties)
             {
                 return new(JobAdmissionOutcome.Deferred);
@@ -106,7 +106,7 @@ public sealed partial class JobRuntime
                 return new(JobAdmissionOutcome.Busy);
             }
 
-            if (!started || closing || !EnabledUnderGate(target) || !HasInvocationCapacityUnderGate(target)
+            if (!started || closing || !CanAdmitManagedWork() || !EnabledUnderGate(target) || !HasInvocationCapacityUnderGate(target)
                 || !CanTrackResourceUnderGate(target))
             {
                 return new(JobAdmissionOutcome.Deferred);
@@ -128,7 +128,7 @@ public sealed partial class JobRuntime
         ArgumentNullException.ThrowIfNull(duty);
         lock (gate)
         {
-            if (!IsCurrentUnderGate(duty) || duty.Closing || closing || !EnabledUnderGate(duty.Target)
+            if (!IsCurrentUnderGate(duty) || duty.Closing || closing || !CanAdmitManagedWork() || !EnabledUnderGate(duty.Target)
                 || duty.Target.Mode != JobExecutionMode.Continuous
                 || invocations.Any(item => ReferenceEquals(item.Duty, duty)))
             {
@@ -166,7 +166,7 @@ public sealed partial class JobRuntime
         {
             if (!owned || !ReferenceEquals(lease, invocation.Duty.CurrentLease)
                 || !invocations.Contains(invocation) || invocation.Released || invocation.Started
-                || !IsCurrentUnderGate(invocation.Duty) || invocation.Duty.Closing || closing
+                || !IsCurrentUnderGate(invocation.Duty) || invocation.Duty.Closing || closing || !CanAdmitManagedWork()
                 || !EnabledUnderGate(invocation.Duty.Target) || BindingChangedUnderGate(invocation.Duty)
                 || !HasInvocationCapacityUnderGate(invocation.Duty.Target, invocation))
             {

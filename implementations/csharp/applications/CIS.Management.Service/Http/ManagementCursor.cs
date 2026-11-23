@@ -1,16 +1,20 @@
 using System.Security.Cryptography;
 using System.Text.Json;
+using System.Text;
 using CIS.Management.Wire;
+using CIS.Management.Service.Backends;
 
 namespace CIS.Management.Service.Http;
 
-internal sealed class ManagementCursor(ManagementServiceOptions options) : IDisposable
+internal sealed class ManagementCursor(ManagementServiceOptions options, Func<ManagementAuthoritySnapshot> currentAuthority) : IDisposable
 {
     private readonly byte[] key = options.CopyCursorSigningKey();
 
     internal string Encode(string endpoint, string actor, int size, string last)
     {
-        byte[] payload = JsonSerializer.SerializeToUtf8Bytes(new CursorPayload(1, endpoint, actor, size, "uuid-ordinal", last));
+        ManagementAuthoritySnapshot authority = currentAuthority();
+        byte[] payload = JsonSerializer.SerializeToUtf8Bytes(new CursorPayload(2, NamespaceStamp(authority.NamespaceName), authority.AuthorityId,
+            authority.RecoveryEpoch, endpoint, actor, size, "uuid-ordinal", last));
         return EncodeBase64(payload) + "." + EncodeBase64(HMACSHA256.HashData(key, payload));
     }
 
@@ -39,7 +43,10 @@ internal sealed class ManagementCursor(ManagementServiceOptions options) : IDisp
                 return false;
             }
             CursorPayload? cursor = JsonSerializer.Deserialize<CursorPayload>(payload);
-            if (cursor is null || cursor.Version != 1 || cursor.Endpoint != endpoint || cursor.Actor != actor
+            ManagementAuthoritySnapshot authority = currentAuthority();
+            if (cursor is null || cursor.Version != 2 || cursor.NamespaceName != NamespaceStamp(authority.NamespaceName)
+                || cursor.AuthorityId != authority.AuthorityId || cursor.RecoveryEpoch != authority.RecoveryEpoch
+                || cursor.Endpoint != endpoint || cursor.Actor != actor
                 || cursor.Size != size || cursor.Order != "uuid-ordinal" || !ManagementWire.IsUuid(cursor.Last))
             {
                 return false;
@@ -55,6 +62,8 @@ internal sealed class ManagementCursor(ManagementServiceOptions options) : IDisp
 
     public void Dispose() => CryptographicOperations.ZeroMemory(key);
 
+    private static string NamespaceStamp(string value) => Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
+
     private static string EncodeBase64(byte[] bytes) => Convert.ToBase64String(bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_');
 
     private static byte[] DecodeBase64(string text)
@@ -67,5 +76,6 @@ internal sealed class ManagementCursor(ManagementServiceOptions options) : IDisp
         return Convert.FromBase64String(padded.PadRight((padded.Length + 3) / 4 * 4, '='));
     }
 
-    private sealed record CursorPayload(int Version, string Endpoint, string Actor, int Size, string Order, string Last);
+    private sealed record CursorPayload(int Version, string NamespaceName, string AuthorityId, long RecoveryEpoch,
+        string Endpoint, string Actor, int Size, string Order, string Last);
 }

@@ -2,8 +2,8 @@
   "openapi": "3.1.1",
   "info": {
     "title": "CISLIB Central Management API",
-    "version": "1.0.0",
-    "description": "Independent authenticated service. API versions, client versions and authoritative application identities are distinct. This document describes twelve typed operations; no remote code execution, configuration distribution or Audit archive is exposed."
+    "version": "1.1.0",
+    "description": "Independent authenticated service. API versions, client versions and authoritative application identities are distinct. Thirteen typed operations include authoritative control; no remote execution, configuration distribution or Audit archive is exposed."
   },
   "servers": [
     {
@@ -3298,6 +3298,205 @@
         "x-cis-same-current-actor-scope": true,
         "x-cis-not-found-is-not-rollback": true
       }
+    },
+    "/registrations/{registrationId}/control": {
+      "get": {
+        "operationId": "getControl",
+        "summary": "Confirm current management prerequisites through the authoritative backend",
+        "description": "Requires trusted self mapping and exact retained registration ownership. A live backend check returns a persisted authority ID, opaque control revision and per-attempt echo. Missing/closed/foreign registrations or unavailable/untrusted backend never renew admission. No automatic read retries; each later exchange uses a fresh attempt UUID.",
+        "security": [
+          {
+            "workloadCertificate": []
+          },
+          {
+            "workloadBearer": []
+          },
+          {
+            "nativeCredential": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "registrationId",
+            "schema": {
+              "type": "string",
+              "minLength": 36,
+              "maxLength": 36,
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "x-cis-nonempty-uuid": true
+            },
+            "required": true
+          },
+          {
+            "in": "query",
+            "description": "Exactly one canonical UUID for this exchange, echoed unchanged. It is not an operation key or credential.",
+            "name": "attemptId",
+            "schema": {
+              "type": "string",
+              "minLength": 36,
+              "maxLength": 36,
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "x-cis-nonempty-uuid": true
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current authoritative confirmation, independent of presence and business permissions. Usable freshness starts at the local monotonic request entry; delayed cleanup cannot grant a new window.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                },
+                "description": "Required no-store directive for every control response."
+              }
+            },
+            "content": {
+              "application/json": {
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/ControlConfirmation"
+                  }
+                },
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/ControlConfirmation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Expected 400 Problem Details; code distinguishes the documented cause.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/Problem"
+                },
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/Problem400"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Expected 401 Problem Details; code distinguishes the documented cause.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/Problem"
+                },
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/Problem401"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Expected 403 Problem Details; code distinguishes the documented cause.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/Problem"
+                },
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/Problem403"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Expected 404 Problem Details; code distinguishes the documented cause.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/Problem"
+                },
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/Problem404"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Expected 409 Problem Details; code distinguishes the documented cause.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/Problem"
+                },
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/Problem409"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Expected 429 Problem Details; code distinguishes the documented cause.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/Problem"
+                },
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/Problem429"
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Expected 503 Problem Details; code distinguishes the documented cause.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/Problem"
+                },
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/Problem503"
+                  }
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Expected 504 Problem Details; code distinguishes the documented cause.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/Problem"
+                },
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/Problem504"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-cis-capabilities": [
+          "management.registrations.write"
+        ],
+        "x-cis-identity-binding": "TargetOnly permission plus trusted self mapping and the registration issuer/subject/application binding.",
+        "x-cis-retries-maximum": 0,
+        "x-cis-request-body-bytes": 0,
+        "x-cis-control-check-interval-ms": 5000,
+        "x-cis-control-valid-for-maximum-ms": 15000
+      }
     }
   },
   "components": {
@@ -3500,8 +3699,18 @@
               "requiredCapabilities": [
                 "management.applications.read"
               ]
+            },
+            {
+              "path": "/registrations/{registrationId}/control",
+              "operationId": "getControl",
+              "method": "GET",
+              "version": 1,
+              "requiredCapabilities": [
+                "management.registrations.write"
+              ]
             }
-          ]
+          ],
+          "maximumInventoryRequestBytes": 4194304
         }
       },
       "InstancePage": {
@@ -3788,6 +3997,17 @@
             "cleanupSucceeded": true
           }
         }
+      },
+      "ControlConfirmation": {
+        "value": {
+          "authorityId": "33333333-3333-4333-8333-333333333333",
+          "registrationId": "22222222-2222-4222-8222-222222222222",
+          "controlRevision": "control.v1/9007199254740993",
+          "admissionAllowed": true,
+          "validForMs": 15000,
+          "attemptId": "44444444-4444-4444-8444-444444444444"
+        },
+        "summary": "Fresh authoritative control; admission remains subject to local reconciliation and independent authority."
       }
     }
   },

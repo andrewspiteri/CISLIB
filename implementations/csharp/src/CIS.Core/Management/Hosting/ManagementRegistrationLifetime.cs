@@ -6,6 +6,7 @@ internal sealed class ManagementRegistrationLifetime
     private readonly object gate = new();
     private TaskCompletionSource construction = Completed();
     private ManagementRegistration? runtime;
+    private ManagedWorkAdmission? admission;
     private Task? stop;
     private int constructors;
     private bool closing;
@@ -44,15 +45,42 @@ internal sealed class ManagementRegistrationLifetime
         }
     }
 
+    internal void BindAdmission(ManagedWorkAdmission value)
+    {
+        bool close;
+        lock (gate)
+        {
+            if (admission is not null && !ReferenceEquals(admission, value))
+            {
+                throw new InvalidOperationException("Select one complete managed admission owner.");
+            }
+            admission = value;
+            close = closing;
+        }
+        if (close)
+        {
+            value.BeginStopping();
+        }
+    }
+
     internal void BeginStopping()
     {
         ManagementRegistration? current;
+        ManagedWorkAdmission? selected;
         lock (gate)
         {
             closing = true;
             current = runtime;
+            selected = admission;
         }
-        current?.BeginStopping();
+        try
+        {
+            selected?.BeginStopping();
+        }
+        finally
+        {
+            current?.BeginStopping();
+        }
     }
 
     // Call only after native REST cutoff; cancellation is a signal, never a settlement certificate.

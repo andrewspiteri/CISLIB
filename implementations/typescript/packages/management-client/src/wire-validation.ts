@@ -4,7 +4,7 @@ import type { ManagementWireLimits } from "./wire-limits.js";
 type ObjectValue = Record<string, unknown>;
 export type ManagementSchema = "RegistrationRequest" | "Observation" | "InventorySnapshot" | "MetadataCommand"
   | "Application" | "MetadataResult" | "Problem" | "RegistrationReceipt" | "ReportReceipt" | "CloseReceipt"
-  | "ServiceInfo" | "Capabilities" | "Instance" | "InventoryItem" | "ApplicationPage" | "InstancePage" | "InventoryPage";
+  | "ServiceInfo" | "ControlConfirmation" | "Capabilities" | "Instance" | "InventoryItem" | "ApplicationPage" | "InstancePage" | "InventoryPage";
 
 const encoder = new TextEncoder();
 const lifecycle = new Set(["starting", "ready", "stopping", "stopped", "unknown"]);
@@ -86,6 +86,11 @@ export function validateManagement(schema: ManagementSchema, value: unknown, req
       const object = shape(value, false, ["registrationId", "applicationId", "registeredAtUtc"]);
       id(object.registrationId); id(object.applicationId); time(object.registeredAtUtc); return;
     }
+    case "ControlConfirmation": {
+      const object = shape(value, false, ["authorityId", "registrationId", "controlRevision", "admissionAllowed", "validForMs", "attemptId"]);
+      id(object.authorityId); id(object.registrationId); id(object.attemptId); scalar(object.controlRevision, 256);
+      boolean(object.admissionAllowed); requireValue(positiveInt(object.validForMs) <= 15000); return;
+    }
     case "ReportReceipt": {
       const object = shape(value, false, ["registrationId", "stream", "submittedSequence", "acceptedSequence", "disposition", "receivedAtUtc"]);
       id(object.registrationId); scalar(object.stream, 64); integer(object.submittedSequence); integer(object.acceptedSequence);
@@ -96,9 +101,10 @@ export function validateManagement(schema: ManagementSchema, value: unknown, req
       id(object.registrationId); time(object.closedAtUtc); return;
     }
     case "ServiceInfo": {
-      const object = shape(value, false, ["serviceVersion", "protocolMajors", "features"]);
+      const object = shape(value, false, ["serviceVersion", "protocolMajors", "features"], ["maximumInventoryRequestBytes"]);
       scalar(object.serviceVersion, 512);
-      const majors = array(object.protocolMajors, 16, 1); unique(majors.map(positiveInt)); features(object.features); return;
+      const majors = array(object.protocolMajors, 16, 1); unique(majors.map(positiveInt)); features(object.features);
+      optional(object, "maximumInventoryRequestBytes", item => requireValue(positiveInt(item) <= 16 * 1024 * 1024)); return;
     }
     case "Capabilities": {
       const object = shape(value, false, ["applicationId", "implementedApis", "callerHints"]);

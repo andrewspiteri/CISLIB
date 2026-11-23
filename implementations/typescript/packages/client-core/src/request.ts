@@ -24,7 +24,8 @@ export function validateReadRetries(value: number): number {
 export async function executeRequest<T, TProblem>(options: ExecuteRequestOptions<T, TProblem>): Promise<ClientCallResult<T, TProblem>> {
   const started = performance.now();
   const timeout = validateTimeout(options.context?.timeoutMs ?? options.timeoutMs ?? 30000);
-  const retries = validateReadRetries(options.context?.readRetries ?? options.readRetries ?? 0);
+  const selectedRetries = validateReadRetries(options.context?.readRetries ?? options.readRetries ?? 0);
+  const retries = options.readRetriesAllowed === false ? 0 : selectedRetries;
   const controller = new AbortController();
   let abortKind: "canceled" | "timeout" | undefined;
   const caller = options.context?.signal;

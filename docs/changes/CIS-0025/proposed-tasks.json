@@ -1,0 +1,95 @@
+{
+  "tasks": [
+    {
+      "scopeIds": [
+        "contracts",
+        "records"
+      ],
+      "dependsOn": [],
+      "assignee": "Codex",
+      "acceptanceCriteria": "Control13thAPI exact fields/nonce/no-store semantics and explicit no-retry clients; additive compatible public ports, CommonTesting and independent CSharp/TS/wire cases.",
+      "complexity": "medium",
+      "category": "implementation",
+      "validation": "Focused unit/schema/TS checks including malformed,nonce,cleanup and no-retry cases; current docs.",
+      "title": "Freeze authoritative control and portable admission boundaries"
+    },
+    {
+      "scopeIds": [
+        "backend",
+        "records"
+      ],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "assignee": "Codex",
+      "acceptanceCriteria": "Typed actual domain backend, persisted namespace authority/control/recovery, explicit compatible migration, primary/durability validation, authority cursors/effective limits, Standalone/Shared. Preserve original RM02/RM03/RM06 atomicity/operation scope.",
+      "complexity": "medium",
+      "category": "implementation",
+      "validation": "Real isolated PostgreSQL authority/control/isolation/recovery/metadata tests and deployment docs, existing native fixture only.",
+      "title": "Implement authoritative PostgreSQL backend and qualified deployment modes"
+    },
+    {
+      "scopeIds": [
+        "managed",
+        "records"
+      ],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "assignee": "Codex",
+      "acceptanceCriteria": "Closed-from-construction gate, sequential mandatory bootstrap, same nonoverlapping Heartbeat controls/reporting, request-start freshness and first-failure closure, fenced reconciliation/recovery and joined stop. Passive client unaffected.",
+      "complexity": "medium",
+      "category": "implementation",
+      "validation": "Focused bounded CommonTesting lifecycle/gate/clock/late-response/cleanup tests plus actual-host integration and guide.",
+      "title": "Implement mandatory managed bootstrap freshness and reconciliation"
+    },
+    {
+      "scopeIds": [
+        "jobs",
+        "records"
+      ],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "assignee": "Codex",
+      "acceptanceCriteria": "New acquisition/occurrence/iteration gated at actual effect boundary; pending work deferred and existing waits awakened. Existing admitted callbacks and valid renewals/fencing settle.",
+      "complexity": "medium",
+      "category": "implementation",
+      "validation": "Focused continuous/scheduled/lease admission and wakeup regressions; existing owners/native tests and docs.",
+      "title": "Apply managed admission to existing Jobs finite work"
+    },
+    {
+      "scopeIds": [
+        "ingress",
+        "records"
+      ],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "assignee": "Codex",
+      "acceptanceCriteria": "New application inbox/handler admission requeues safely; native replies/outbox/original recovery stay open. Explicit effect HTTP gate and readiness-only local composition preserve liveness.",
+      "complexity": "medium",
+      "category": "implementation",
+      "validation": "Focused dispatcher/native-reply/HTTP/readiness regressions, no global transaction gate or second server; docs.",
+      "title": "Apply managed admission to Messaging HTTP and readiness"
+    },
+    {
+      "scopeIds": [
+        "delivery",
+        "records"
+      ],
+      "dependsOn": [
+        "WORK-002",
+        "WORK-003",
+        "WORK-004",
+        "WORK-005"
+      ],
+      "assignee": "Codex",
+      "acceptanceCriteria": "AC01-20 updated requirement mapping; focused actual-provider/host/client/package/portable checks, standalone/shared examples, current skill and explicit evidence limits. Fix only acceptance-demonstrated gaps.",
+      "complexity": "medium",
+      "category": "implementation",
+      "validation": "Native focused Windows+actualLinux eligible tests, CSharp/TS current clients, public API/compatibility affected checks, exact formatting, clean source/resource closeout; no broad campaign.",
+      "title": "Validate integrated outage recovery and provider handoffs"
+    }
+  ]
+}

@@ -5,25 +5,36 @@ using CIS.Operations.PostgreSql;
 using CIS.Startup;
 using CIS.Transactions;
 using CIS.Transactions.AdoNet;
+using CIS.Management.Service.Backends;
 
 namespace CIS.Management.Service;
 
-internal sealed class ManagementDatabase(ILocalTransactionFactory transactions, ManagementServiceOptions options,
-    PostgreSqlManagementStore store, IHeartbeatOwnerFactory heartbeat) : IStartable, IHeartbeatSubscriber, IAsyncDisposable
+internal sealed class ManagementDatabase(IServiceScopeFactory scopes, ManagementServiceOptions options,
+    PostgreSqlManagementAuthority authority, IHeartbeatOwnerFactory heartbeat, TimeProvider? timeProvider = null)
+    : IStartable, IHeartbeatSubscriber, IAsyncDisposable
 {
     private IHeartbeatOwner? owner;
+    private readonly TimeProvider clock = timeProvider ?? TimeProvider.System;
+    private long lastCleanup;
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        await ValidateAsync(transactions, options, cancellationToken);
+        await using (AsyncServiceScope scope = scopes.CreateAsyncScope())
+        {
+            await ValidateAsync(scope.ServiceProvider.GetRequiredService<ILocalTransactionFactory>(), options, cancellationToken);
+            IManagementBackend backend = scope.ServiceProvider.GetRequiredService<IManagementBackend>();
+            backend.Capabilities.Validate(options.Backend.Mode);
+            _ = await backend.ProbeAsync(cancellationToken);
+        }
+        lastCleanup = clock.GetTimestamp();
         IHeartbeatOwner candidate = heartbeat.CreateOwner();
         try
         {
             candidate.Service.Register(this, new()
             {
-                Name = "management-telemetry-retention",
-                Interval = TimeSpan.FromMinutes(1),
-                InitialDelay = TimeSpan.FromMinutes(1)
+                Name = "management-authority-and-retention",
+                Interval = TimeSpan.FromSeconds(5),
+                InitialDelay = TimeSpan.FromSeconds(5)
             });
             owner = candidate;
         }
@@ -42,13 +53,28 @@ internal sealed class ManagementDatabase(ILocalTransactionFactory transactions, 
     }
 
     public async Task<bool> OnElapsedAsync(CancellationToken cancellationToken)
-        => (await store.CleanupAsync(options.Persistence.CleanupBatchSize, cancellationToken)).IsKnownCommitted;
+    {
+        await using AsyncServiceScope scope = scopes.CreateAsyncScope();
+        IManagementBackend backend = scope.ServiceProvider.GetRequiredService<IManagementBackend>();
+        _ = await backend.ProbeAsync(cancellationToken);
+        if (clock.GetElapsedTime(lastCleanup) >= TimeSpan.FromMinutes(1))
+        {
+            lastCleanup = clock.GetTimestamp();
+            return (await backend.CleanupAsync(options.Persistence.CleanupBatchSize, cancellationToken)).IsKnownCommitted;
+        }
+        return true;
+    }
 
     // Heartbeat owns the bounded error observation; no repeated module-level error stream is added.
-    public Task OnErrorAsync(Exception exception) => Task.CompletedTask;
+    public Task OnErrorAsync(Exception exception)
+    {
+        authority.MarkUnavailable();
+        return Task.CompletedTask;
+    }
 
     public async ValueTask DisposeAsync()
     {
+        authority.StopObserving();
         if (owner is not null)
         {
             await owner.DisposeAsync();
@@ -59,22 +85,40 @@ internal sealed class ManagementDatabase(ILocalTransactionFactory transactions, 
         CancellationToken cancellationToken)
     {
         await using ILocalTransaction owner = await transactions.BeginAsync("management", cancellationToken);
-        await ManagementSchema.InstallAsync(owner.Context, options.Persistence.Schema, options.Persistence, cancellationToken);
-        await owner.Context.UseAdoNetAsync(async (connection, transaction, token) =>
-        {
-            await using var command = connection.CreateCommand();
-            command.Transaction = transaction;
-            command.CommandTimeout = 60;
-            command.CommandText = PostgreSqlOperationSchema.GetInstallationSql(options.OperationsSchema);
-            await command.ExecuteNonQueryAsync(token);
-        }, cancellationToken);
-        await PostgreSqlMessagingSchema.InstallAsync(owner.Context, options.MessagingSchema, cancellationToken);
+        await ManagementSchema.InstallAsync(owner.Context, options.Persistence.Schema, options.Persistence, cancellationToken, options.Backend);
+        await InstallDependencyAsync(owner.Context, options.OperationsSchema, PostgreSqlOperationSchema.Version,
+            PostgreSqlOperationSchema.GetInstallationSql(options.OperationsSchema), cancellationToken);
+        await InstallDependencyAsync(owner.Context, options.MessagingSchema, PostgreSqlMessagingSchema.Version,
+            PostgreSqlMessagingSchema.GetInstallationSql(options.MessagingSchema), cancellationToken);
+        _ = await new PostgreSqlManagementAuthority(transactions, options).ReadAsync(owner.Context, false, cancellationToken);
         TransactionCompletion completion = await owner.CommitAsync(cancellationToken);
         if (completion.Outcome != TransactionOutcome.Committed || completion.CleanupErrors.Count != 0)
         {
             throw new ManagementSchemaException("Explicit management migration did not establish clean committed completion.");
         }
     }
+
+    private static Task InstallDependencyAsync(ILocalTransactionContext context, string schema, int expectedVersion,
+        string installationSql, CancellationToken cancellationToken)
+        => context.UseAdoNetAsync(async (connection, transaction, token) =>
+        {
+            string relation = ManagementSql.Table(schema, "schema_version");
+            await using var exists = ManagementSql.Command(connection, transaction, "SELECT to_regclass(@relation) IS NOT NULL", ("relation", relation));
+            if (await exists.ExecuteScalarAsync(token) is true)
+            {
+                await using var version = ManagementSql.Command(connection, transaction, $"SELECT version FROM {relation} WHERE singleton");
+                if (await version.ExecuteScalarAsync(token) is not int actual || actual != expectedVersion)
+                {
+                    throw new ManagementSchemaException("The existing operation/delivery schema requires its own explicit supported migration.");
+                }
+            }
+            else
+            {
+                await using var install = ManagementSql.Command(connection, transaction, installationSql);
+                install.CommandTimeout = 60;
+                await install.ExecuteNonQueryAsync(token);
+            }
+        }, cancellationToken);
 
     internal static async Task ValidateAsync(ILocalTransactionFactory transactions, ManagementServiceOptions options,
         CancellationToken cancellationToken)

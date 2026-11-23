@@ -124,6 +124,10 @@ public sealed partial class JobRuntime
         {
             return new(CoordinationAcquireOutcome.InvalidRequest, reasonCode: "jobs.authorized_scope_mismatch");
         }
+        if (!CanAdmitManagedWork())
+        {
+            return new(CoordinationAcquireOutcome.Unavailable, reasonCode: ManagedAdmissionClosed);
+        }
 
         duty.SetState(JobLocalState.Acquiring);
         ManagedCoordinationResult result = await authorizedScope.Services.GetRequiredService<ICoordinationService>().AcquireAsync(

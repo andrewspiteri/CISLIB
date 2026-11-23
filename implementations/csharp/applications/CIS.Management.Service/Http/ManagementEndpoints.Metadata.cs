@@ -1,5 +1,6 @@
 using CIS.Management.Service.Metadata;
 using CIS.Management.Service.Persistence;
+using CIS.Management.Service.Backends;
 using CIS.Management.Wire;
 
 namespace CIS.Management.Service.Http;
@@ -21,7 +22,7 @@ internal static partial class ManagementEndpoints
     }
 
     private static async Task<IResult> ReplaceMetadata(HttpContext context, string applicationId,
-        PostgreSqlManagementStore store, ManagementMetadataService metadata)
+        IManagementBackend store)
     {
         ManagementApplication? application = await VisibleApplication(context, applicationId, store,
             "management.applications.metadata.write");
@@ -42,19 +43,19 @@ internal static partial class ManagementEndpoints
         {
             return ManagementHttp.Problem(context, 400, "management.invalid_request");
         }
-        ManagementMetadataCommand? command = await ManagementHttp.Read<ManagementMetadataCommand>(context, store.Options.WireLimits);
+        ManagementMetadataCommand? command = await ManagementHttp.Read<ManagementMetadataCommand>(context, store.WireLimits);
         if (command is null)
         {
             return ManagementHttp.Problem(context, 400, "management.invalid_request");
         }
-        ManagementMetadataResponse response = await metadata.ReplaceAsync(application,
+        ManagementMetadataResponse response = await store.ReplaceMetadataAsync(application,
             context.Request.Headers["Idempotency-Key"].ToString(), context.Request.Headers.IfMatch.ToString(),
             command, context.RequestAborted);
-        return MetadataResponse(context, response, store.Options.WireLimits);
+        return MetadataResponse(context, response, store.WireLimits);
     }
 
     private static async Task<IResult> MetadataOperation(HttpContext context, string applicationId, string operationKey,
-        PostgreSqlManagementStore store, ManagementMetadataService metadata)
+        IManagementBackend store)
     {
         ManagementApplication? application = await VisibleApplication(context, applicationId, store, "management.operations.read");
         if (application is null)
@@ -65,7 +66,7 @@ internal static partial class ManagementEndpoints
         {
             return ManagementHttp.Problem(context, 400, "management.invalid_request");
         }
-        return MetadataResponse(context, await metadata.LookupAsync(application, operationKey, context.RequestAborted), store.Options.WireLimits);
+        return MetadataResponse(context, await store.LookupMetadataAsync(application, operationKey, context.RequestAborted), store.WireLimits);
     }
 
     private static IResult MetadataResponse(HttpContext context, ManagementMetadataResponse response, ManagementWireLimits limits)

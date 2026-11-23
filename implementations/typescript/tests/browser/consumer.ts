@@ -1,5 +1,5 @@
 import { ManagementClient, knownOriginalCompletion } from "@cislib/management-client";
-import type { Application, MetadataResult } from "@cislib/management-client";
+import type { Application, ControlConfirmation, MetadataResult } from "@cislib/management-client";
 import { createFetchTransport } from "@cislib/client-core";
 import type { CredentialProvider } from "@cislib/client-core";
 
@@ -11,4 +11,10 @@ export function clientForBrowser(baseUrl: string, credential: CredentialProvider
 export function persistenceLabel(result: MetadataResult): string {
   const completion = knownOriginalCompletion(result);
   return completion.isKnown ? completion.value : "unrecognized persistence status";
+}
+
+export async function readControl(baseUrl: string, registrationId: string, attemptId: string,
+  credential: CredentialProvider, signal: AbortSignal): Promise<ControlConfirmation | undefined> {
+  const client = new ManagementClient({ baseUrl, transport: createFetchTransport(), readRetries: 2 });
+  return (await client.getControl(registrationId, attemptId, { signal, credentials: credential, readRetries: 2 })).value;
 }

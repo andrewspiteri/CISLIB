@@ -88,7 +88,7 @@ public sealed class ManagementRegistrationHostingTests
             await callback.WaitAsync(Deadline);
             await stop.WaitAsync(Deadline);
             Assert.HasCount(0, heartbeat.Registrations);
-            Assert.AreEqual(4, handler.Calls);
+            Assert.AreEqual(6, handler.Calls);
         }
         finally
         {
@@ -118,9 +118,11 @@ public sealed class ManagementRegistrationHostingTests
             }, clock);
         string id = reporter.CaptureStatus().RegistrationId;
         script.EnqueueResult(ScriptedManagementCallKind.Registration, Value(new ManagementRegistrationReceipt(id, ApplicationId, Time)));
+        script.EnqueueControl(call => Value(new ManagementControlConfirmation(ApplicationId, call.RegistrationId!, "opaque-v1", true, 15000, call.AttemptId!)));
         script.EnqueueResult(ScriptedManagementCallKind.Observation, Value(new ManagementReportReceipt(id, "observation", "1", "1", "accepted", Time)));
         script.EnqueueResult(ScriptedManagementCallKind.InventoryReport, Value(new ManagementReportReceipt(id, "inventory", "1", "1", "accepted", Time)));
         await reporter.StartAsync();
+        script.EnqueueControl(call => Value(new ManagementControlConfirmation(ApplicationId, call.RegistrationId!, "opaque-v1", true, 15000, call.AttemptId!)));
         PendingManagementCall pending = script.EnqueuePending(ScriptedManagementCallKind.Observation,
             Value(new ManagementReportReceipt(id, "observation", "2", "2", "accepted", Time)), observeCancellation: false);
         clock.Advance(TimeSpan.FromSeconds(31));
@@ -172,6 +174,31 @@ public sealed class ManagementRegistrationHostingTests
         Assert.ThrowsExactly<InvalidOperationException>(() => services.AddCisManagementRegistration(new("reporting")));
     }
 
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task ACompetingAdmissionPortCannotBypassTheActualManagedBootstrapGate(bool addedLater)
+    {
+        var services = new ServiceCollection();
+        var options = new ManagementClientOptions("reporting") { BaseUrl = "https://management.invalid/platform" };
+        services.AddCisRestClient(new RestClientOptions("reporting") { LogCalls = false }.ConfigureCisManagementRestClient(options));
+        services.AddCisManagementClient(options);
+        var alternate = new ManualManagedWorkAdmission();
+        alternate.Set(new(ManagedWorkAdmissionState.Ready, true, 1));
+        if (!addedLater)
+        {
+            services.AddSingleton<IManagedWorkAdmission>(alternate);
+            Assert.ThrowsExactly<InvalidOperationException>(() => services.AddCisManagementRegistration(new("reporting")));
+        }
+        else
+        {
+            services.AddCisManagementRegistration(new("reporting"));
+            services.AddSingleton<IManagedWorkAdmission>(alternate);
+            await using ServiceProvider provider = services.BuildServiceProvider();
+            Assert.ThrowsExactly<InvalidOperationException>(() => provider.GetRequiredService<ManagementRegistration>());
+        }
+    }
+
     private static ManagementCallResult<T> Value<T>(T value) => new(RestResult<T>.FromValue(value, new RestResultContext(200, hasValue: true)));
 
     private sealed class Sources : IManagementObservationSource, IManagementInventorySource
@@ -211,6 +238,11 @@ public sealed class ManagementRegistrationHostingTests
             if (request.Body?.Value is ManagementRegistrationRequest)
             {
                 encoded = ManagementWire.EncodeResponse(new ManagementRegistrationReceipt(id, ApplicationId, Time));
+            }
+            else if (request.Call.OperationName == "control")
+            {
+                string attemptId = request.Query.Snapshot().Single(item => item.Key == "attemptId").Value!;
+                encoded = ManagementWire.EncodeResponse(new ManagementControlConfirmation(ApplicationId, id, "opaque-v1", true, 15000, attemptId));
             }
             else if (request.Body?.Value is ManagementObservation observation)
             {

@@ -8,6 +8,8 @@ using CIS.Transactions;
 using CIS.Transactions.AdoNet;
 using CIS.Transactions.Hosting;
 using Npgsql;
+using CIS.Healthcheck;
+using CIS.Management.Service.Backends;
 
 namespace CIS.Management.Service;
 
@@ -31,7 +33,10 @@ public static partial class ManagementServiceApplication
             frozenSecurity = ManagementSecurityComposition.Configure(builder, security,
                 policy => ConfigureMetadataSecurity(policy, options));
             ConfigureMetadata(builder, options);
-            builder.Services.AddSingleton<ManagementCursor>();
+            builder.Services.AddScoped<IManagementBackend, PostgreSqlManagementBackend>();
+            builder.Services.AddSingleton<IHealthReadinessSource>(root => root.GetRequiredService<PostgreSqlManagementAuthority>());
+            builder.Services.AddSingleton(root => new ManagementCursor(options,
+                () => root.GetRequiredService<PostgreSqlManagementAuthority>().Current));
             builder.Services.AddSingleton<ManagementDatabase>();
             builder.Services.AddSingleton<IStartable>(root => root.GetRequiredService<ManagementDatabase>());
         }, web =>
@@ -77,7 +82,9 @@ public static partial class ManagementServiceApplication
             DefaultIsolation = TransactionIsolation.ReadCommitted,
             SupportedIsolationLevels = [TransactionIsolation.ReadCommitted]
         });
-        services.AddSingleton<PostgreSqlManagementStore>();
+        services.AddSingleton<PostgreSqlManagementAuthority>();
+        services.AddSingleton(root => new PostgreSqlManagementStore(root.GetRequiredService<ILocalTransactionFactory>(),
+            options.Persistence, root.GetRequiredService<PostgreSqlManagementAuthority>()));
     }
 
     static partial void ConfigureMetadata(CISApplicationBuilder builder, ManagementServiceOptions options);

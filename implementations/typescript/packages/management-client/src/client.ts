@@ -1,7 +1,7 @@
 import { ClientProtocolFailure, createFetchTransport, executeRequest, validateReadRetries, validateTimeout } from "@cislib/client-core";
 import type { ClientCallContext, ClientTransport, CredentialProvider, RequestObservation } from "@cislib/client-core";
 import type {
-  Application, Capabilities, CloseReceipt, Instance, InventoryItem, InventorySnapshot, ManagementCallResult,
+  Application, Capabilities, CloseReceipt, ControlConfirmation, Instance, InventoryItem, InventorySnapshot, ManagementCallResult,
   MetadataCommand, MetadataResult, Observation, Page, PageRequest, Problem, RegistrationReceipt, RegistrationRequest,
   ReportReceipt, ServiceInfo
 } from "./models.js";
@@ -44,6 +44,10 @@ export class ManagementClient {
   register(registrationId: string, request: RegistrationRequest, context?: ClientCallContext): Promise<ManagementCallResult<RegistrationReceipt>> {
     return this.call("PUT", "registration", () => "registrations/" + uuid(registrationId), "RegistrationReceipt", context, "RegistrationRequest", request);
   }
+  getControl(registrationId: string, attemptId: string, context?: ClientCallContext): Promise<ManagementCallResult<ControlConfirmation>> {
+    return this.call("GET", "control", () => "registrations/" + uuid(registrationId) + "/control?attemptId=" + uuid(attemptId),
+      "ControlConfirmation", context, undefined, undefined, undefined, undefined, { registrationId, attemptId });
+  }
   reportObservation(registrationId: string, observation: Observation, context?: ClientCallContext): Promise<ManagementCallResult<ReportReceipt>> {
     return this.call("PUT", "observation", () => "registrations/" + uuid(registrationId) + "/observation", "ReportReceipt", context, "Observation", observation);
   }
@@ -83,7 +87,8 @@ export class ManagementClient {
 
   private async call<T>(method: "GET" | "PUT" | "DELETE", operation: string, path: () => string, responseSchema: ManagementSchema,
     context?: ClientCallContext, requestSchema?: ManagementSchema, requestBody?: unknown,
-    commandHeaders?: Readonly<Record<string, string>>, operationKey?: string): Promise<ManagementCallResult<T>> {
+    commandHeaders?: Readonly<Record<string, string>>, operationKey?: string,
+    control?: { readonly registrationId: string; readonly attemptId: string }): Promise<ManagementCallResult<T>> {
     const result = await executeRequest<T, Problem>({
       operation,
       transport: this.transport,
@@ -93,13 +98,15 @@ export class ManagementClient {
       ...(operationKey === undefined ? {} : { operationKey }),
       timeoutMs: this.timeoutMs,
       readRetries: this.readRetries,
+      readRetriesAllowed: operation !== "control",
       prepare: () => {
         const suffix = path();
         const url = this.baseUrl + "management/v1/" + suffix;
         const body = requestSchema === undefined ? undefined : encodeManagement(requestSchema, requestBody, "request", this.wireLimits);
         return {
           url, method,
-          headers: Object.freeze({ Accept: "application/json, application/problem+json", ...(body === undefined ? {} : { "Content-Type": "application/json" }), ...commandHeaders }),
+          headers: Object.freeze({ Accept: "application/json, application/problem+json", ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+            ...(control === undefined ? {} : { "Cache-Control": "no-store" }), ...commandHeaders }),
           ...(body === undefined ? {} : { body }),
           maximumResponseBytes: bodyLimit(responseSchema, "response", this.wireLimits),
           maximumErrorBytes: 65536
@@ -111,6 +118,10 @@ export class ManagementClient {
           if (response.status >= 200 && response.status < 300) {
             if (contentType !== "application/json") { throw new ClientProtocolFailure("response.content_type"); }
             const value = decodeManagement<T>(responseSchema, bytes, "response", this.wireLimits);
+            if (control !== undefined && ((value as ControlConfirmation).registrationId !== control.registrationId
+              || (value as ControlConfirmation).attemptId !== control.attemptId)) {
+              throw new ClientProtocolFailure("response.control_echo_mismatch");
+            }
             if (responseSchema === "MetadataResult" && operationKey !== undefined && (value as MetadataResult).operation.key !== operationKey) {
               throw new ClientProtocolFailure("response.operation_key_mismatch");
             }

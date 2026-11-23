@@ -32,6 +32,11 @@ optional selected `IJobRunSource`/`IJobScheduleEvaluator`. It selects Coordinati
 hosting with default options when not already selected. Jobs and the host remain
 disabled by default, and no continuous resources are selected automatically.
 
+If the existing provider contains `IManagedWorkAdmission`, `AddCisJobs` selects it
+for [managed execution admission](managed-admission.md). Its passive changes wake
+the existing target supervisor and finite-work waiters. This gate does not grant
+execution capabilities, replace ownership or change the sequential Startup owner.
+
 `AddCisJobConfiguration<T>` connects one retained Configuration root through the
 existing coordinated reader. Its capture delegate only copies a complete snapshot
 under that root's value gate: no mutation, I/O, awaiting or nested configuration

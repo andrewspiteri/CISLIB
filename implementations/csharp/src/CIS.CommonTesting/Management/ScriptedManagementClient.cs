@@ -29,7 +29,9 @@ public enum ScriptedManagementCallKind
     /// <summary>Original-key metadata mutation.</summary>
     MetadataReplace,
     /// <summary>Original-key result lookup.</summary>
-    MetadataOperation
+    MetadataOperation,
+    /// <summary>Current authoritative control confirmation, without native authority or freshness evaluation.</summary>
+    Control
 }
 
 /// <summary>Detached safe call metadata, without credentials, payloads, ETags, options or caller contexts.</summary>
@@ -38,7 +40,14 @@ public enum ScriptedManagementCallKind
 /// <param name="RegistrationId">Optional canonical registration ID.</param>
 /// <param name="OperationKey">Optional bounded original key, which grants no authority.</param>
 public sealed record ScriptedManagementCall(ScriptedManagementCallKind Kind, string? ApplicationId = null,
-    string? RegistrationId = null, string? OperationKey = null);
+    string? RegistrationId = null, string? OperationKey = null)
+{
+    /// <summary>Gets an optional safe control attempt UUID, which is no authority or idempotency key.</summary>
+    public string? AttemptId
+    {
+        get; init;
+    }
+}
 
 /// <summary>Controls one deliberately held logical call without a timer, native transport or detached cleanup.</summary>
 public sealed class PendingManagementCall
@@ -108,6 +117,14 @@ public sealed class ScriptedManagementClient : IManagementClient
         Enqueue(new ResultStep<T>(kind, result));
     }
 
+    /// <summary>Queues one logical control reply derived from safe call metadata, such as the current attempt echo.</summary>
+    /// <remarks>The finite synchronous factory runs outside the script lock and proves no native authority or freshness.</remarks>
+    public void EnqueueControl(Func<ScriptedManagementCall, ManagementCallResult<ManagementControlConfirmation>> response)
+    {
+        ArgumentNullException.ThrowIfNull(response);
+        Enqueue(new ControlStep(response));
+    }
+
     /// <summary>Queues the original fault; an unrelated or matching OCE remains a faulted task.</summary>
     public void EnqueueException(ScriptedManagementCallKind kind, Exception exception)
     {
@@ -132,6 +149,14 @@ public sealed class ScriptedManagementClient : IManagementClient
     public Task<ManagementCallResult<ManagementRegistrationReceipt>> RegisterAsync(string registrationId, ManagementRegistrationRequest request,
         ManagementCallOptions? options = null, CancellationToken cancellationToken = default)
         => Dispatch<ManagementRegistrationReceipt>(new(ScriptedManagementCallKind.Registration, RegistrationId: registrationId), cancellationToken);
+
+    /// <inheritdoc />
+    public Task<ManagementCallResult<ManagementControlConfirmation>> GetControlAsync(string registrationId, string attemptId,
+        CancellationToken cancellationToken = default)
+        => Dispatch<ManagementControlConfirmation>(new(ScriptedManagementCallKind.Control, RegistrationId: registrationId)
+        {
+            AttemptId = attemptId
+        }, cancellationToken);
     /// <inheritdoc />
     public Task<ManagementCallResult<ManagementReportReceipt>> ReportObservationAsync(string registrationId, ManagementObservation observation,
         ManagementCallOptions? options = null, CancellationToken cancellationToken = default)
@@ -199,10 +224,11 @@ public sealed class ScriptedManagementClient : IManagementClient
             or ScriptedManagementCallKind.Inventory or ScriptedManagementCallKind.Capabilities
             or ScriptedManagementCallKind.MetadataReplace or ScriptedManagementCallKind.MetadataOperation;
         bool registrationRequired = call.Kind is ScriptedManagementCallKind.Registration or ScriptedManagementCallKind.Observation
-            or ScriptedManagementCallKind.InventoryReport or ScriptedManagementCallKind.RegistrationClose;
+            or ScriptedManagementCallKind.InventoryReport or ScriptedManagementCallKind.RegistrationClose or ScriptedManagementCallKind.Control;
         bool keyRequired = call.Kind is ScriptedManagementCallKind.MetadataReplace or ScriptedManagementCallKind.MetadataOperation;
         if (applicationRequired && !ManagementWire.IsUuid(call.ApplicationId)
             || registrationRequired && !ManagementWire.IsUuid(call.RegistrationId)
+            || call.Kind == ScriptedManagementCallKind.Control && !ManagementWire.IsUuid(call.AttemptId)
             || keyRequired && !ManagementWire.IsOperationKey(call.OperationKey))
         {
             return Task.FromException<ManagementCallResult<T>>(new ArgumentException("Supply bounded safe call identifiers."));
@@ -217,33 +243,33 @@ public sealed class ScriptedManagementClient : IManagementClient
             step = steps.Dequeue();
             calls.Add(call);
         }
-        return step.Kind == call.Kind ? step.ExecuteAsync<T>(token)
+        return step.Kind == call.Kind ? step.ExecuteAsync<T>(call, token)
             : Task.FromException<ManagementCallResult<T>>(new InvalidOperationException("The management script API kind does not match."));
     }
 
     private abstract class Step(ScriptedManagementCallKind kind)
     {
         internal ScriptedManagementCallKind Kind { get; } = kind;
-        internal abstract Task<ManagementCallResult<T>> ExecuteAsync<T>(CancellationToken token);
+        internal abstract Task<ManagementCallResult<T>> ExecuteAsync<T>(ScriptedManagementCall call, CancellationToken token);
     }
 
     private sealed class ResultStep<TValue>(ScriptedManagementCallKind kind, ManagementCallResult<TValue> value) : Step(kind)
     {
-        internal override Task<ManagementCallResult<T>> ExecuteAsync<T>(CancellationToken token)
+        internal override Task<ManagementCallResult<T>> ExecuteAsync<T>(ScriptedManagementCall call, CancellationToken token)
             => typeof(T) == typeof(TValue) ? Task.FromResult((ManagementCallResult<T>)(object)value)
                 : Task.FromException<ManagementCallResult<T>>(new InvalidOperationException("The management script response type does not match."));
     }
 
     private sealed class FaultStep(ScriptedManagementCallKind kind, Exception error) : Step(kind)
     {
-        internal override Task<ManagementCallResult<T>> ExecuteAsync<T>(CancellationToken token)
+        internal override Task<ManagementCallResult<T>> ExecuteAsync<T>(ScriptedManagementCall call, CancellationToken token)
             => Task.FromException<ManagementCallResult<T>>(error);
     }
 
     private sealed class PendingStep<TValue>(ScriptedManagementCallKind kind, ManagementCallResult<TValue> value,
         PendingManagementCall pending) : Step(kind)
     {
-        internal override Task<ManagementCallResult<T>> ExecuteAsync<T>(CancellationToken token)
+        internal override Task<ManagementCallResult<T>> ExecuteAsync<T>(ScriptedManagementCall call, CancellationToken token)
         {
             if (typeof(T) != typeof(TValue))
             {
@@ -256,6 +282,28 @@ public sealed class ScriptedManagementClient : IManagementClient
         {
             await pending.WaitAsync(token).ConfigureAwait(false);
             return (ManagementCallResult<T>)(object)value;
+        }
+    }
+
+    private sealed class ControlStep(Func<ScriptedManagementCall, ManagementCallResult<ManagementControlConfirmation>> response)
+        : Step(ScriptedManagementCallKind.Control)
+    {
+        internal override Task<ManagementCallResult<T>> ExecuteAsync<T>(ScriptedManagementCall call, CancellationToken token)
+        {
+            if (typeof(T) != typeof(ManagementControlConfirmation))
+            {
+                return Task.FromException<ManagementCallResult<T>>(new InvalidOperationException("The control script response type does not match."));
+            }
+            try
+            {
+                ManagementCallResult<ManagementControlConfirmation> value = response(call)
+                    ?? throw new InvalidOperationException("The selected control reply factory returned no result.");
+                return Task.FromResult((ManagementCallResult<T>)(object)value);
+            }
+            catch (Exception error)
+            {
+                return Task.FromException<ManagementCallResult<T>>(error);
+            }
         }
     }
 }

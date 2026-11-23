@@ -35,7 +35,13 @@ public sealed class HealthReportProtocolBoundaryMutationQualificationTests
                     JsonObject envelope = Compact(view);
                     JsonObject snapshot = envelope["snapshot"]!.AsObject();
                     snapshot["monitorCounts"] = new JsonObject
-                    { ["active"] = active, ["critical"] = critical, ["failing"] = failing, ["criticalFailing"] = criticalFailing, ["pending"] = pending };
+                    {
+                        ["active"] = active,
+                        ["critical"] = critical,
+                        ["failing"] = failing,
+                        ["criticalFailing"] = criticalFailing,
+                        ["pending"] = pending
+                    };
                     bool healthy = criticalFailing == 0;
                     bool ready = startup && !stopping && healthy;
                     snapshot["healthStatus"] = healthy ? "Healthy" : "Unhealthy";
@@ -48,7 +54,17 @@ public sealed class HealthReportProtocolBoundaryMutationQualificationTests
                     Assert.IsFalse(response.IsError);
                     Assert.AreEqual(view == HealthReportView.Health ? healthy : ready, response.SelectedHealthy);
                     snapshot["ready"] = !ready;
-                    Assert.ThrowsExactly<FormatException>(() => Parse(envelope, view));
+                    if (ready)
+                    {
+                        // An explicitly selected local prerequisite can close readiness alone.
+                        HealthParsedResponse prerequisiteClosed = Parse(envelope, view);
+                        Assert.IsFalse(prerequisiteClosed.IsError);
+                        Assert.AreEqual(view == HealthReportView.Health, prerequisiteClosed.SelectedHealthy);
+                    }
+                    else
+                    {
+                        Assert.ThrowsExactly<FormatException>(() => Parse(envelope, view));
+                    }
                 }
             }
         }
@@ -101,7 +117,10 @@ public sealed class HealthReportProtocolBoundaryMutationQualificationTests
                 Assert.AreEqual(code, response.ErrorCode);
                 Assert.IsFalse(response.SelectedHealthy);
             }
-            else { Assert.ThrowsExactly<FormatException>(() => Parse(envelope, view)); }
+            else
+            {
+                Assert.ThrowsExactly<FormatException>(() => Parse(envelope, view));
+            }
         }
     }
 
@@ -124,20 +143,41 @@ public sealed class HealthReportProtocolBoundaryMutationQualificationTests
     {
         JsonObject snapshot = JsonNode.Parse(HealthReportFormatterTests.ReadFixture("valid", "healthy-after-startup-details.json"))!.AsObject();
         snapshot["monitors"]![0]!["measurements"] = new JsonArray(new JsonObject
-        { ["key"] = "metric", ["valueKind"] = "String", ["value"] = "actual value", ["unit"] = "text", ["observedAtUtc"] = "2026-10-20T08:03:00Z", ["isDiagnostic"] = true });
+        {
+            ["key"] = "metric",
+            ["valueKind"] = "String",
+            ["value"] = "actual value",
+            ["unit"] = "text",
+            ["observedAtUtc"] = "2026-10-20T08:03:00Z",
+            ["isDiagnostic"] = true
+        });
         return Envelope(snapshot, HealthReportView.Details);
     }
 
     private static JsonObject Compact(HealthReportView view) => Envelope(JsonNode.Parse(HealthReportFormatterTests.ReadFixture("valid", "pending-readiness.json"))!.AsObject(), view);
     private static JsonObject Envelope(JsonObject snapshot, HealthReportView view) => new()
-    { ["protocolVersion"] = 1, ["schemaVersion"] = 1, ["view"] = ViewName(view), ["kind"] = "snapshot", ["snapshot"] = snapshot };
+    {
+        ["protocolVersion"] = 1,
+        ["schemaVersion"] = 1,
+        ["view"] = ViewName(view),
+        ["kind"] = "snapshot",
+        ["snapshot"] = snapshot
+    };
     private static string ViewName(HealthReportView view) => view switch
-    { HealthReportView.Health => "health", HealthReportView.Readiness => "readiness", HealthReportView.Details => "details", _ => throw new ArgumentOutOfRangeException(nameof(view)) };
+    {
+        HealthReportView.Health => "health",
+        HealthReportView.Readiness => "readiness",
+        HealthReportView.Details => "details",
+        _ => throw new ArgumentOutOfRangeException(nameof(view))
+    };
     private static HealthParsedResponse Parse(JsonObject envelope, HealthReportView view) => HealthReportProtocol.ParseResponse(Encoding.UTF8.GetBytes(envelope.ToJsonString()), view, 4_194_304);
     private static void Set(JsonNode value, string path, string text)
     {
         string[] parts = path.Split('/');
-        foreach (string part in parts[..^1]) { value = value is JsonArray array ? array[int.Parse(part, System.Globalization.CultureInfo.InvariantCulture)]! : value[part]!; }
+        foreach (string part in parts[..^1])
+        {
+            value = value is JsonArray array ? array[int.Parse(part, System.Globalization.CultureInfo.InvariantCulture)]! : value[part]!;
+        }
         value[parts[^1]] = text;
     }
 }

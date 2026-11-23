@@ -1,6 +1,7 @@
 // Run only against the actual CIS.Management.Service host owned by the existing native fixture.
 import assert from "node:assert/strict";
 import { readFile, writeFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
 import { ManagementClient } from "@cislib/management-client";
 import { createNodeHttpsTransport } from "@cislib/management-client/server";
 
@@ -8,6 +9,7 @@ const args = argumentsMap(process.argv.slice(2));
 const baseUrl = required("base-url");
 const applicationId = required("application-id");
 const operationKey = required("operation-key");
+const registrationId = required("registration-id");
 const reportFile = required("report-file");
 const ca = await readFile(required("ca-file"));
 let privateKey;
@@ -24,6 +26,16 @@ if (args.has("bearer-file")) {
 try {
   const client = new ManagementClient({ baseUrl, transport: createNodeHttpsTransport({ origin: new URL(baseUrl).origin, ca }) });
   const context = { credentials: async ({ signal }) => { signal.throwIfAborted(); return credential; } };
+  const workloadBearer = (await readFile(required("control-bearer-file"), "utf8")).trim();
+  const workloadContext = { credentials: async ({ signal }) => {
+    signal.throwIfAborted(); return { kind: "bearer", token: workloadBearer };
+  } };
+  const attemptId = randomUUID();
+  const control = value(await client.getControl(registrationId, attemptId, workloadContext));
+  assert.equal(control.registrationId, registrationId); assert.equal(control.attemptId, attemptId);
+  assert.match(control.authorityId, /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+  assert.equal(control.admissionAllowed, true);
+  assert.ok(Number.isInteger(control.validForMs) && control.validForMs >= 1 && control.validForMs <= 15000);
   const info = value(await client.getServiceInfo(context));
   assert.ok(info.protocolMajors.includes(1));
   const list = value(await client.listApplications({ pageSize: 100 }, context));
@@ -47,6 +59,7 @@ try {
   assert.equal(after.metadataRevision, applied.result.metadataRevision); assert.equal(after.metadataETag, applied.result.metadataETag);
   const report = { protocolMajor: 1, authenticatedRead: true, metadataApplied: true, originalResultFound: true,
     replayRetainedOriginal: true, applicationId, operationKey, revision: after.metadataRevision,
+    authoritativeControl: true, registrationId, authorityId: control.authorityId,
     originalCompletion: applied.originalCompletion, decidedAtUtc: applied.result.decidedAtUtc };
   await writeFile(reportFile, JSON.stringify(report, null, 2) + "\n", { flag: "wx" });
 } finally { privateKey?.fill(0); }

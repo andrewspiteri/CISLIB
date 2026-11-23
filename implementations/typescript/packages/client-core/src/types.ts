@@ -91,6 +91,8 @@ export interface DecodedBody<T, TProblem> {
 }
 
 export interface ExecuteRequestOptions<T, TProblem> {
+  /** A typed endpoint can disable retries even when a caller selects a generic read policy. */
+  readonly readRetriesAllowed?: boolean;
   readonly operation: string;
   readonly transport: ClientTransport;
   readonly prepare: (signal: AbortSignal) => PreparedRequest;

@@ -1,19 +1,22 @@
 using CIS.Transactions;
 using CIS.Transactions.AdoNet;
+using CIS.Management.Service.Backends;
 
 namespace CIS.Management.Service.Persistence;
 
 /// <summary>Explicit application deployment migration and read-only schema readiness.</summary>
 public static class ManagementSchema
 {
-    public const int Version = 1;
+    public const int Version = 2;
 
-    /// <summary>Installs the version-one schema in the caller's original deployment transaction.</summary>
+    /// <summary>Explicitly installs or upgrades version one without changing retained metadata, results or audit intent.</summary>
     public static Task InstallAsync(ILocalTransactionContext context, string schema,
-        ManagementPersistenceOptions? options = null, CancellationToken cancellationToken = default)
+        ManagementPersistenceOptions? options = null, CancellationToken cancellationToken = default,
+        ManagementBackendOptions? backend = null)
     {
         ManagementSql.RequireContext(context);
         options ??= new(schema);
+        backend ??= new();
         if (options.Schema != schema)
         {
             throw new ArgumentException("Schema and captured persistence options must agree.", nameof(schema));
@@ -22,6 +25,7 @@ public static class ManagementSchema
         string T(string name) => ManagementSql.Table(schema, name);
         return context.UseAdoNetAsync(async (connection, transaction, token) =>
         {
+            int existingVersion = 0;
             await using (var existing = ManagementSql.Command(connection, transaction, "SELECT to_regclass(@relation) IS NOT NULL",
                 ("relation", T("management_schema_version"))))
             {
@@ -31,17 +35,36 @@ public static class ManagementSchema
                     await using var version = ManagementSql.Command(connection, transaction,
                         $"SELECT COUNT(*)::integer,COALESCE(min(version),0) FROM {T("management_schema_version")}");
                     await using var reader = await version.ExecuteReaderAsync(token).ConfigureAwait(false);
-                    if (!await reader.ReadAsync(token).ConfigureAwait(false) || reader.GetInt32(0) != 1 || reader.GetInt32(1) != Version)
+                    if (!await reader.ReadAsync(token).ConfigureAwait(false) || reader.GetInt32(0) != 1
+                        || reader.GetInt32(1) is not (1 or Version))
                     {
                         throw new ManagementSchemaException("An existing management schema has an unsupported version.");
                     }
+                    existingVersion = reader.GetInt32(1);
                 }
+            }
+            if (existingVersion == Version)
+            {
+                // A missing/corrupt authority is recovery, not permission to mint a new namespace.
+                await using var validate = ManagementSql.Command(connection, transaction,
+                    $"SELECT namespace_name,recovery_epoch,authority_id,control_revision FROM {T("management_authority")} WHERE singleton=true");
+                await using var reader = await validate.ExecuteReaderAsync(token).ConfigureAwait(false);
+                if (!await reader.ReadAsync(token).ConfigureAwait(false) || reader.GetString(0) != backend.NamespaceName
+                    || reader.GetInt64(1) != backend.ExpectedRecoveryEpoch || reader.GetGuid(2) == Guid.Empty
+                    || !CIS.Management.Wire.ManagementWire.IsScalarText(reader.GetString(3), 256))
+                {
+                    throw new ManagementSchemaException("The installed authority must be reconciled explicitly, not reset by migration.");
+                }
+                return;
             }
 
             await using var command = ManagementSql.Command(connection, transaction, $"""
                 CREATE SCHEMA IF NOT EXISTS "{schema}";
-                CREATE TABLE IF NOT EXISTS {T("management_schema_version")} (version integer PRIMARY KEY CHECK (version=1));
-                INSERT INTO {T("management_schema_version")}(version) VALUES (1) ON CONFLICT DO NOTHING;
+                CREATE TABLE IF NOT EXISTS {T("management_schema_version")} (version integer PRIMARY KEY CHECK (version=2));
+                ALTER TABLE {T("management_schema_version")} DROP CONSTRAINT IF EXISTS management_schema_version_version_check;
+                UPDATE {T("management_schema_version")} SET version=2;
+                INSERT INTO {T("management_schema_version")}(version) VALUES (2) ON CONFLICT DO NOTHING;
+                ALTER TABLE {T("management_schema_version")} ADD CONSTRAINT management_schema_version_version_check CHECK(version=2);
                 CREATE TABLE IF NOT EXISTS {T("management_capacity")} (
                     singleton boolean PRIMARY KEY CHECK (singleton), application_count integer NOT NULL DEFAULT 0,
                     registration_count integer NOT NULL DEFAULT 0, inventory_bytes bigint NOT NULL DEFAULT 0,
@@ -61,7 +84,26 @@ public static class ManagementSchema
                     inventory_body bytea NULL, inventory_bytes bigint NOT NULL DEFAULT 0 CHECK(inventory_bytes>=0),
                     inventory_received_at timestamptz NULL, closed_at timestamptz NULL);
                 CREATE INDEX IF NOT EXISTS management_registration_application ON {T("management_registration")}(application_id,registration_id);
+                CREATE TABLE {T("management_authority")} (
+                    singleton boolean PRIMARY KEY CHECK(singleton), namespace_name text COLLATE "C" NOT NULL,
+                    authority_id uuid NOT NULL CHECK(authority_id<>'00000000-0000-0000-0000-000000000000'::uuid),
+                    control_revision text COLLATE "C" NOT NULL, recovery_epoch bigint NOT NULL CHECK(recovery_epoch>0),
+                    recovery_hold boolean NOT NULL,
+                    CHECK(char_length(namespace_name) BETWEEN 1 AND 128), CHECK(char_length(control_revision) BETWEEN 1 AND 256));
+                INSERT INTO {T("management_authority")}(singleton,namespace_name,authority_id,control_revision,recovery_epoch,recovery_hold)
+                    VALUES(true,@namespace,@authority,@revision,@epoch,@hold);
                 """);
+            foreach ((string name, object value) in new (string, object)[]
+            {
+                ("namespace", backend.NamespaceName), ("authority", Guid.NewGuid()),
+                ("revision", "control." + Guid.NewGuid().ToString("D")), ("epoch", backend.ExpectedRecoveryEpoch), ("hold", backend.RecoveryHold)
+            })
+            {
+                var parameter = command.CreateParameter();
+                parameter.ParameterName = name;
+                parameter.Value = value;
+                command.Parameters.Add(parameter);
+            }
             await command.ExecuteNonQueryAsync(token).ConfigureAwait(false);
         }, cancellationToken);
     }

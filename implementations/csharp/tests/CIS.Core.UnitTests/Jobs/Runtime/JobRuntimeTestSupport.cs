@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using CIS.CommonTesting;
 using CIS.Coordination;
 using CIS.Jobs;
+using CIS.Management;
 using CIS.Security;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -20,7 +21,7 @@ internal sealed class JobRuntimeTestSupport : IAsyncDisposable
     internal readonly string[] JobIds;
 
     internal JobRuntimeTestSupport(string[]? jobs = null, JobRuntimeLimits? limits = null, TimeProvider? runtimeClock = null,
-        ICoordinationService? coordinationService = null)
+        ICoordinationService? coordinationService = null, IManagedWorkAdmission? managedAdmission = null)
     {
         JobIds = jobs ?? ["wallet.compaction"];
         JobHandlerBinding[] bindings = JobIds.Select(id => JobHandlerBinding.Continuous<JobTestHandler>(new(
@@ -34,7 +35,8 @@ internal sealed class JobRuntimeTestSupport : IAsyncDisposable
         registration.AddScoped<ICoordinationTargetResolver, JobTestResolver>();
         registration.AddSingleton<ICoordinationService>(coordinationService ?? Coordination);
         services = registration.BuildServiceProvider(new ServiceProviderOptions { ValidateOnBuild = true, ValidateScopes = true });
-        Runtime = new(Catalog, new ScopeFactory(services, Control), Configuration(0, limits: limits), timeProvider: runtimeClock ?? Clock);
+        Runtime = new(Catalog, new ScopeFactory(services, Control), Configuration(0, limits: limits), null, null,
+            runtimeClock ?? Clock, managedAdmission);
         Runner = new(Runtime);
     }
 

@@ -15,6 +15,7 @@ using CIS.Management.Hosting;
 using CIS.Management.Service;
 using CIS.Management.Service.Persistence;
 using CIS.Management.Service.Metadata;
+using CIS.Management.Service.Backends;
 using CIS.Management.Service.Security;
 using CIS.Messaging.RabbitMQ;
 using CIS.Metrics.OpenTelemetry;
@@ -82,7 +83,7 @@ internal sealed class ManagementHostFixture : IAsyncDisposable
     }
 
     internal static async Task<ManagementHostFixture> CreateAsync(int replicas = 2, bool start = true,
-        long maximumRetainedEnvelopeBytes = 64L * 1024 * 1024)
+        long maximumRetainedEnvelopeBytes = 64L * 1024 * 1024, ManagementBackendOptions? backendOptions = null)
     {
         var fixture = new ManagementHostFixture();
         try
@@ -116,7 +117,8 @@ internal sealed class ManagementHostFixture : IAsyncDisposable
             await RabbitMqTopology.InstallAsync(setupBroker, delivery.CreateMessagingSnapshot());
             fixture.Options = new(database.CreateConnectionString(4), RandomNumberGenerator.GetBytes(32),
                 new("rm07_" + suffix), basePath: "/platform", operationsSchema: "rm07_op_" + suffix,
-                messagingSchema: "rm07_msg_" + suffix, delivery: delivery);
+                messagingSchema: "rm07_msg_" + suffix, delivery: delivery,
+                backend: backendOptions ?? new(mode: replicas > 1 ? ManagementDeploymentMode.Shared : ManagementDeploymentMode.Standalone));
             var services = new ServiceCollection();
             services.AddCisAdoNetDatabase("management", _ => fixture.Source, new()
             {
@@ -160,7 +162,8 @@ internal sealed class ManagementHostFixture : IAsyncDisposable
     }
 
     internal async Task StartReplicaAsync(Func<ManagementSecurityOptions, ManagementSecurityOptions>? selectSecurity = null,
-        string? hostEnvironment = null, Action<CISApplicationBuilder>? configure = null)
+        string? hostEnvironment = null, Action<CISApplicationBuilder>? configure = null,
+        ManagementServiceOptions? serviceOptions = null)
     {
         using var business = new TcpListener(IPAddress.Loopback, 0);
         using var operational = new TcpListener(IPAddress.Loopback, 0);
@@ -184,7 +187,7 @@ internal sealed class ManagementHostFixture : IAsyncDisposable
         };
         options = selectSecurity?.Invoke(options) ?? options;
         string[] arguments = hostEnvironment is null ? [] : ["--environment", hostEnvironment];
-        CISApplication application = ManagementServiceApplication.Create(arguments, Options, options, builder =>
+        CISApplication application = ManagementServiceApplication.Create(arguments, serviceOptions ?? Options, options, builder =>
         {
             builder.TypeManager = new TypeManagerOptions(typeof(ManagementServiceApplication).Assembly)
             {
@@ -200,6 +203,37 @@ internal sealed class ManagementHostFixture : IAsyncDisposable
         await application.StartAsync();
         Origins.Add("https://127.0.0.1:" + businessPort.ToString(CultureInfo.InvariantCulture));
         OperationalPorts.Add(operationalPort);
+    }
+
+    internal Task StopReplicaAsync(int index) => applications[index].StopAsync();
+
+    internal async Task StopReplicasAsync()
+    {
+        var failures = new List<Exception>();
+        foreach (CISApplication application in applications.AsEnumerable().Reverse())
+        {
+            try
+            {
+                await application.StopAsync();
+            }
+            catch (Exception error)
+            {
+                failures.Add(error);
+            }
+            try
+            {
+                await application.DisposeAsync();
+            }
+            catch (Exception error)
+            {
+                failures.Add(error);
+            }
+        }
+        if (failures.Count != 0)
+        {
+            throw new AggregateException("Management replicas did not fully drain.", failures);
+        }
+        applications.Clear();
     }
 
     // The caller owns its ordinary host/facade. This fixture retains borrowed native transports

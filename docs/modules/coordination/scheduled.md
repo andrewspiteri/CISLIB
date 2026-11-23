@@ -5,6 +5,11 @@
 fixed `IJobRunSource`. It does not calculate calendars, generate catch-up work,
 acknowledge durable source records or automatically replay a business callback.
 
+Selected [managed admission](managed-admission.md) is checked before source or
+lease admission and again at actual callback entry. A closed gate returns
+Deferred; it cannot consume the source's occurrence or cancel a callback that
+already entered under its captured settings and independent valid authority.
+
 Register the exact `JobDefinition` and
 `JobHandlerBinding.Scheduled<T, THandler>(definition, codec)`. The handler implements
 `IScheduledJobHandler<T>`; the captured `IMessageCodec<T>` and `MessageContract`

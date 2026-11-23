@@ -3,6 +3,7 @@ using System.Text;
 using CIS.CommonTesting;
 using CIS.Coordination;
 using CIS.Jobs;
+using CIS.Management;
 using CIS.Messaging;
 using CIS.Security;
 using Microsoft.Extensions.DependencyInjection;
@@ -42,7 +43,7 @@ internal sealed class ScheduledDispatcherFixture : IAsyncDisposable
 
     internal ScheduledDispatcherFixture(int maximumInvocations = 2, int maximumPending = 4,
         int? categoryMaximum = null, bool enabled = true, JobExecutionSettings? settings = null,
-        IJobRunSource? source = null, IJobScheduleEvaluator? evaluator = null)
+        IJobRunSource? source = null, IJobScheduleEvaluator? evaluator = null, IManagedWorkAdmission? managedAdmission = null)
     {
         Settings = settings ?? new(JobExecutionMode.Scheduled,
             schedule: JobScheduleDescriptor.Daily(new(2, 0), "Europe/Malta", JobMissedRunPolicy.RunLatestOnce));
@@ -59,7 +60,7 @@ internal sealed class ScheduledDispatcherFixture : IAsyncDisposable
         collection.AddScoped(_ => new ScheduledHandler(this));
         services = collection.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true, ValidateOnBuild = true });
         Runtime = new(catalog, new ScopeFactory(this), Configuration(1, enabled, categoryMaximum: categoryMaximum),
-            source ?? AdmissionSource, evaluator, Clock);
+            source ?? AdmissionSource, evaluator, Clock, managedAdmission);
         Dispatcher = new(Runtime);
     }
 

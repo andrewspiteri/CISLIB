@@ -5,6 +5,7 @@ import { createFetchTransport, ClientProtocolFailure, ClientTransportFailure } f
 
 const id = "11111111-1111-1111-1111-111111111111";
 const registrationId = "22222222-2222-2222-2222-222222222222";
+const attemptId = "44444444-4444-4444-8444-444444444444";
 const timestamp = "2026-11-23T12:34:56.1234567Z";
 const application = { applicationId: id, application: "worker", environment: "test", metadata: { displayName: "Café" }, metadataRevision: "9007199254740993", metadataETag: '"metadata-9007199254740993"' };
 const operation = { name: "management.metadata.replace", scope: "opaque-scope", key: "original-key" };
@@ -12,11 +13,14 @@ const metadataResult = { operation, resultSource: "prepared", originalCompletion
 const info = { serviceVersion: "1.0", protocolMajors: [1], features: [] };
 const inventory = { sequence: "1", observedAtUtc: timestamp, modules: [], categories: [], jobs: [] };
 const observation = { sequence: "1", observedAtUtc: timestamp, lifecycle: "ready", health: "healthy" };
+const control = { authorityId: "33333333-3333-4333-8333-333333333333", registrationId,
+  controlRevision: "opaque/Cafe\u0301/9007199254740993", admissionAllowed: true, validForMs: 15000, attemptId };
 
-test("all twelve typed methods preserve HTTPS prefix and explicit command headers", async () => {
+test("all thirteen typed methods preserve HTTPS prefix and explicit command headers", async () => {
   const cases = [
     [c => c.getServiceInfo(), "GET", "service-info", info],
     [c => c.register(registrationId, { protocolMajor: 1, reportedInstanceId: "replica", processStartedAtUtc: timestamp, applicationVersion: "1" }), "PUT", `registrations/${registrationId}`, { registrationId, applicationId: id, registeredAtUtc: timestamp }],
+    [c => c.getControl(registrationId, attemptId), "GET", `registrations/${registrationId}/control?attemptId=${attemptId}`, control],
     [c => c.reportObservation(registrationId, observation), "PUT", `registrations/${registrationId}/observation`, { registrationId, stream: "observation", submittedSequence: "1", acceptedSequence: "1", disposition: "accepted", receivedAtUtc: timestamp }],
     [c => c.reportInventory(registrationId, inventory), "PUT", `registrations/${registrationId}/inventory`, { registrationId, stream: "inventory", submittedSequence: "1", acceptedSequence: "1", disposition: "accepted", receivedAtUtc: timestamp }],
     [c => c.closeRegistration(registrationId), "DELETE", `registrations/${registrationId}`, { registrationId, closedAtUtc: timestamp }],
@@ -40,6 +44,42 @@ test("all twelve typed methods preserve HTTPS prefix and explicit command header
       assert.equal(records[0].headers["If-Match"], application.metadataETag);
     }
   }
+});
+
+test("control never inherits read retries and its attempt is not a mutation operation key", async () => {
+  let count = 0;
+  const client = new ManagementClient({ baseUrl: "https://example.test/platform", readRetries: 2, transport: { async send(request) {
+    count++; assert.equal(request.headers["Cache-Control"], "no-store");
+    return response(request, 503, problem(503), { "retry-after": "0" });
+  } } });
+  const result = await client.getControl(registrationId, attemptId, { readRetries: 2 });
+  assert.equal(result.kind, "http"); assert.equal(result.status, 503); assert.equal(count, 1);
+  assert.equal(result.attempts, 1); assert.equal(result.operationKey, undefined); assert.equal(result.mutationUncertain, false);
+});
+
+test("control rejects mismatched attempt or registration echoes inside decode and joins response cleanup", async () => {
+  for (const mismatch of [{ registrationId: id }, { attemptId: id }]) {
+    let cleaned = 0;
+    const client = new ManagementClient({ baseUrl: "https://example.test/", transport: { async send(request) {
+      return { ...response(request, 200, { ...control, ...mismatch }), async dispose() { cleaned++; } };
+    } } });
+    const result = await client.getControl(registrationId, attemptId);
+    assert.equal(result.kind, "protocolFailure"); assert.equal(result.code, "response.control_echo_mismatch");
+    assert.equal(cleaned, 1); assert.equal(result.cleanupSucceeded, true);
+  }
+});
+
+test("a current refusal remains typed control data and precancellation prevents any control dispatch", async () => {
+  let calls = 0;
+  const client = new ManagementClient({ baseUrl: "https://example.test/", transport: { async send(request) {
+    calls++; return response(request, 200, { ...control, admissionAllowed: false });
+  } } });
+  const refused = await client.getControl(registrationId, attemptId);
+  assert.equal(refused.kind, "http"); assert.equal(refused.value.admissionAllowed, false);
+  assert.equal(refused.value.controlRevision, control.controlRevision);
+  const canceled = new AbortController(); canceled.abort();
+  const before = await client.getControl(registrationId, attemptId, { signal: canceled.signal });
+  assert.equal(before.kind, "canceled"); assert.equal(before.attempts, 0); assert.equal(calls, 1);
 });
 
 test("base endpoint rejects ambiguous canonicalization, userinfo and non-HTTPS", () => {

@@ -43,26 +43,28 @@ public sealed class ManagementRegistrationTests
     }
 
     [TestMethod]
-    public async Task OptionalOutageReusesTheOriginalRegistrationFactsAndDoesNotAccumulateMissedTicks()
+    public async Task AnOutageAfterBootstrapRetainsRegistrationAndDoesNotAccumulateMissedTicks()
     {
         await using var fixture = new Fixture();
-        fixture.Script.EnqueueResult(ScriptedManagementCallKind.Registration, Failure<ManagementRegistrationReceipt>());
+        fixture.InitialSuccess();
         await fixture.Runtime.StartAsync();
-        Assert.IsFalse(fixture.Runtime.CaptureStatus().IsRegistered);
+        Assert.IsTrue(fixture.Runtime.CaptureStatus().IsRegistered);
         Assert.HasCount(1, fixture.Heartbeat.Registrations);
         ManagementRegistrationRequest original = fixture.Client.Registrations[0].Request;
+        fixture.Script.EnqueueResult(ScriptedManagementCallKind.Observation, Failure<ManagementReportReceipt>());
+        fixture.Clock.Advance(TimeSpan.FromSeconds(31));
+        await fixture.Heartbeat.TriggerAsync(fixture.Runtime);
+        Assert.IsFalse(fixture.Runtime.Admission.TryAdmit());
         fixture.Clock.Advance(TimeSpan.FromHours(1));
-        fixture.Script.EnqueueResult(ScriptedManagementCallKind.Registration, Registration(fixture.Id));
-        fixture.Script.EnqueueResult(ScriptedManagementCallKind.Observation, Receipt(fixture.Id, "observation", "2"));
-        fixture.Script.EnqueueResult(ScriptedManagementCallKind.InventoryReport, Receipt(fixture.Id, "inventory", "1"));
+        fixture.Script.EnqueueResult(ScriptedManagementCallKind.Observation, Receipt(fixture.Id, "observation", "3"));
 
         await fixture.Heartbeat.TriggerAsync(fixture.Runtime);
 
-        Assert.AreEqual(4, fixture.Script.TotalCalls);
-        Assert.AreEqual(fixture.Client.Registrations[0].Id, fixture.Client.Registrations[1].Id);
-        Assert.AreSame(original, fixture.Client.Registrations[1].Request);
-        Assert.HasCount(1, fixture.Client.Observations);
-        Assert.AreEqual("2", fixture.Client.Observations[0].Sequence);
+        Assert.AreEqual(5, fixture.Script.TotalCalls);
+        Assert.HasCount(1, fixture.Client.Registrations);
+        Assert.AreSame(original, fixture.Client.Registrations[0].Request);
+        Assert.HasCount(3, fixture.Client.Observations);
+        Assert.AreEqual("3", fixture.Client.Observations[2].Sequence);
         Assert.IsTrue(fixture.Runtime.CaptureStatus().IsConnected);
     }
 
@@ -98,12 +100,11 @@ public sealed class ManagementRegistrationTests
         await fixture.Runtime.StartAsync();
         fixture.Inventory.Value = Catalog("intermediate");
         fixture.Inventory.Value = Catalog("latest");
-        fixture.Script.EnqueueResult(ScriptedManagementCallKind.Observation, Receipt(fixture.Id, "observation", "2"));
         fixture.Clock.Advance(TimeSpan.FromSeconds(7));
         await fixture.Heartbeat.TriggerAsync(fixture.Runtime);
         Assert.HasCount(1, fixture.Client.Inventories, "Reconnect does not bypass the independent full-catalog interval.");
         Assert.IsTrue(fixture.Runtime.CaptureStatus().InventoryPending);
-        fixture.Script.EnqueueResult(ScriptedManagementCallKind.Observation, Receipt(fixture.Id, "observation", "3"));
+        fixture.Script.EnqueueResult(ScriptedManagementCallKind.Observation, Receipt(fixture.Id, "observation", "2"));
         fixture.Script.EnqueueResult(ScriptedManagementCallKind.InventoryReport, Receipt(fixture.Id, "inventory", "2"));
         fixture.Clock.Advance(TimeSpan.FromSeconds(31));
         await fixture.Heartbeat.TriggerAsync(fixture.Runtime);
@@ -405,6 +406,8 @@ public sealed class ManagementRegistrationTests
                 ReportedInstanceId = "body-label",
                 RequireInitialRegistration = requireInitial,
                 ReportingInterval = interval ?? TimeSpan.FromSeconds(30),
+                ControlCheckInterval = interval is { } selected && selected > TimeSpan.Zero && selected < TimeSpan.FromSeconds(5)
+                    ? selected : TimeSpan.FromSeconds(5),
                 InitialReconnectDelay = reconnect ?? TimeSpan.FromSeconds(5),
                 MaximumReconnectDelay = reconnect ?? TimeSpan.FromSeconds(60),
                 WireLimits = wireLimits ?? new()
@@ -486,6 +489,14 @@ public sealed class ManagementRegistrationTests
         internal List<(string Id, ManagementRegistrationRequest Request)> Registrations { get; } = [];
         internal List<ManagementObservation> Observations { get; } = [];
         internal List<ManagementInventorySnapshot> Inventories { get; } = [];
+        // These retained reporting stories use a controlled always-current control port.
+        // Separate managed bootstrap tests exercise real control scripts and freshness.
+        public Task<ManagementCallResult<ManagementControlConfirmation>> GetControlAsync(string id, string attemptId,
+            CancellationToken token = default)
+        {
+            token.ThrowIfCancellationRequested();
+            return Task.FromResult(Value(new ManagementControlConfirmation(ApplicationId, id, "opaque-v1", true, 15000, attemptId)));
+        }
         public Task<ManagementCallResult<ManagementRegistrationReceipt>> RegisterAsync(string id, ManagementRegistrationRequest request, ManagementCallOptions? options = null, CancellationToken token = default)
         {
             Registrations.Add((id, request));

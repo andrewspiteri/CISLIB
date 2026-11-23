@@ -10,7 +10,7 @@ own deployment, database and operational ownership.
 Start with the [portable v1 contract](../../../contracts/management/v1/README.md)
 and its checked-in [OpenAPI](../../../contracts/management/v1/openapi.json) and
 [schema](../../../contracts/management/v1/contract.schema.json). They define the
-twelve installed APIs, finite wire limits, exact identities, decimal revision
+thirteen installed APIs, finite wire limits, exact identities, decimal revision
 and sequence strings, closed requests and compatible response additions.
 
 - [Product service](../../../implementations/csharp/applications/CIS.Management.Service/README.md):
@@ -31,6 +31,8 @@ and sequence strings, closed requests and compatible response additions.
   substitution.
 - [Optional process reporting](registration.md): direct Startup registration,
   bounded Heartbeat reconnect, whole Jobs projection and actual dependency drain.
+- [Managed admission](admission.md): mandatory selected bootstrap, finite Jobs,
+  queue and effect HTTP boundaries, settlement and readiness independent of liveness.
 - [TypeScript workspace](../../../implementations/typescript/README.md) and
   [management package](../../../implementations/typescript/packages/management-client/README.md):
   portable ES modules, per-call credentials and explicit server-only adapters.

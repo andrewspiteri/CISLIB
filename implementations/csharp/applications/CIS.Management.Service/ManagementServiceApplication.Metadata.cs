@@ -10,6 +10,7 @@ using CIS.Operations;
 using CIS.Operations.Hosting;
 using CIS.Operations.PostgreSql;
 using CIS.Security;
+using CIS.Management.Service.Backends;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 
@@ -39,10 +40,12 @@ public static partial class ManagementServiceApplication
         builder.Services.AddCisMessageStore(new("management", "management"));
         builder.UseAudit(delivery.CreateAuditOptions());
         builder.UseMessaging(delivery.CreateMessagingOptions());
-        builder.Services.AddSingleton<IOperationJournal>(new PostgreSqlOperationJournal(new()
-        {
-            Schema = options.OperationsSchema
-        }));
+        builder.Services.AddSingleton<IOperationJournal>(root => new PostgreSqlManagementJournal(
+            new PostgreSqlOperationJournal(new()
+            {
+                Schema = options.OperationsSchema
+            }),
+            root.GetRequiredService<PostgreSqlManagementAuthority>()));
         builder.Services.AddCisOperation(ManagementMetadataDefinition.Create());
         builder.Services.AddCisOperations();
         builder.Services.AddScoped<ManagementMetadataTarget>();

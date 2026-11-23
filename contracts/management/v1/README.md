@@ -55,6 +55,36 @@ unsupported input fails visibly. The service defaults below are unchanged.
 
 ## Registration, reports and complete inventory
 
+The v1.1 addition is `GET /registrations/{registrationId}/control?attemptId=...`.
+The query has exactly one canonical nonempty UUID for the current exchange.
+Authentication, trusted self mapping and retained registration ownership are
+required. The service consults its authoritative backend and returns
+`Cache-Control: no-store`; registration, TCP reachability and presence do not
+substitute for this exchange.
+
+`ControlConfirmation` contains required `authorityId`, `registrationId`,
+`controlRevision`, `admissionAllowed`, `validForMs` and `attemptId`. The IDs use
+the existing UUID profile. The revision remains exact opaque control-free text
+of 1–256 Unicode scalars; it is never sorted or parsed as an integer. The required
+boolean can explicitly refuse admission. Lifetime is an integer token from
+1 through 15,000 milliseconds. Both SDKs check registration/attempt echoes inside
+their existing decoding deadline and disable automatic read retries for control,
+including a caller's generic read policy. Every later control exchange gets a
+fresh attempt ID; it is unrelated to tracing and durable operation keys.
+
+Usable freshness starts at the request's local monotonic entry, including
+authentication, HTTP, decoding and actual cleanup. Response arrival cannot begin
+another full window. A retained confirmation does not itself authorize later
+work: selected managed execution checks current expiry, registration, authority,
+attempt generation and local reconciliation before admission. Existing metadata
+replay and original-result rules remain unchanged.
+
+Service-info optionally adds `maximumInventoryRequestBytes`, an integer token
+from 1 through 16 MiB describing the effective accepted provider/wire bound.
+Older v1 service-info remains readable with the field absent; absence does not
+invent a provider limit. New authoritative providers advertise their actual bound.
+These additions preserve existing v1 paths and compatible response evolution.
+
 `PUT /registrations/{registrationId}` binds immutable process facts to the
 validated issuer/subject and exact mapped application/environment. Matching
 registration content returns its original receipt; changed content or foreign

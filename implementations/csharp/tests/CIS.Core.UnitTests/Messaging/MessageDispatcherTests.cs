@@ -1,13 +1,16 @@
 using System.Buffers;
 using System.Diagnostics.Metrics;
 using CIS.CommonTesting;
+using CIS.Management;
 using CIS.Messaging;
 using CIS.Metrics;
 using CIS.Operations;
+using CIS.Operations.Hosting;
 using CIS.Security;
 using CIS.Security.Hosting;
 using CIS.Tests.UnitTests.Security;
 using CIS.Tests.UnitTests.Metrics;
+using CIS.Tests.UnitTests.Operations;
 using CIS.Transactions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -319,15 +322,26 @@ internal sealed class DispatchUnitFixture : IAsyncDisposable
     internal readonly MessageProvenance Provenance;
     internal readonly PublicationNumberCodec Codec = new();
     internal readonly DispatchReplies? Replies;
+    internal readonly RuntimeJournal? OperationJournal;
+    internal static readonly OperationContract DurableResultContract = new("dispatch-result", 1);
+    internal const string DurableOperation = "DispatchDurable";
+    private const string DurableResourceType = "dispatch.resource";
+    private const string DurableResourceId = "actual-resource";
     internal Func<MessageHandlerContext, int, CancellationToken, Task>? OnHandle;
     internal int HandlerCalls;
+    internal int HandlerConstructions;
     private readonly string producerApplication;
     private readonly string producerEnvironment;
     private readonly bool requests;
+    private readonly bool durable;
 
-    internal DispatchUnitFixture(bool grant = true, bool retry = false, bool observe = false, bool requests = false)
+    internal DispatchUnitFixture(bool grant = true, bool retry = false, bool observe = false, bool requests = false,
+        IManagedWorkAdmission? managedAdmission = null, bool durable = false)
     {
+        requests = requests || durable;
         this.requests = requests;
+        this.durable = durable;
+        string requestAlias = durable ? "Durable" : "Query";
         producerApplication = retry ? Local.Application : "caller-a";
         producerEnvironment = retry ? Local.Environment : "Development";
         Provenance = new("Broker", "fixture", SecurityTestSupport.Subject, "application-a", producerApplication, producerEnvironment);
@@ -346,10 +360,20 @@ internal sealed class DispatchUnitFixture : IAsyncDisposable
             {
                 security.Grants.Add(new(SecurityTestSupport.Profile, "rules.read", producerApplication, producerEnvironment,
                     subject: SecurityTestSupport.Subject, resourceSelection: CapabilityResourceSelection.ExactResource,
-                    resourceType: "messaging.reply", resourceIdentifier: "Query"));
+                    resourceType: "messaging.reply", resourceIdentifier: requestAlias));
+            }
+            if (durable)
+            {
+                security.Grants.Add(new(SecurityTestSupport.Profile, "rules.read", Local.Application, Local.Environment,
+                    subject: SecurityTestSupport.Subject, resourceSelection: CapabilityResourceSelection.ExactResource,
+                    resourceType: DurableResourceType, resourceIdentifier: DurableResourceId));
             }
         }
         var services = new ServiceCollection();
+        if (managedAdmission is not null)
+        {
+            services.AddSingleton(managedAdmission);
+        }
         services.AddLogging();
         services.AddSingleton<TimeProvider>(new ManualTimeProvider(SecurityTestSupport.Now));
         services.AddSingleton<ISecurityAuditSink>(Audit);
@@ -365,6 +389,21 @@ internal sealed class DispatchUnitFixture : IAsyncDisposable
             _ = provider.GetRequiredService<DispatchScopeProbe>();
             return new SecurityTestSupport.FixtureProjector(null, null);
         });
+        if (durable)
+        {
+            OperationJournal = new RuntimeJournal();
+            services.AddSingleton<IOperationJournal>(OperationJournal);
+            services.AddSingleton<ILocalTransactionFactory>(Transactions);
+            services.AddCisOperation(new OperationDefinition<int, int>(DurableOperation, "Ledger", new("dispatch-input", 1),
+                new DispatchOperationNormalizer(), new DispatchOperationCodec(Codec),
+                _ => new RuntimeResolver { Scope = new("trusted-dispatch", DurableResourceType, DurableResourceId) },
+                new()
+                {
+                    ExecuteCapabilities = ["rules.read"],
+                    LookupCapabilities = ["rules.read"]
+                }));
+            services.AddCisOperations();
+        }
         Provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateOnBuild = true, ValidateScopes = true });
         async Task HandleAsync(MessageHandlerContext context, int value, CancellationToken token)
         {
@@ -375,25 +414,35 @@ internal sealed class DispatchUnitFixture : IAsyncDisposable
             }
         }
         MessageRequestDefinition<int, int>? request = requests
-            ? new("Query", "commands", Codec, Codec, MessageRequestMode.Query, Local.Application, Local.Environment,
-                responseCapabilities: ["rules.read"])
+            ? new(requestAlias, "commands", Codec, Codec, durable ? MessageRequestMode.DurableCommand : MessageRequestMode.Query,
+                Local.Application, Local.Environment, operationName: durable ? DurableOperation : null, responseCapabilities: ["rules.read"])
             : null;
         MessageSubscriptionDefinition subscription = request is not null
             ? new MessageRequestSubscriptionDefinition<int, int>("A", "Ledger", request,
-                _ => new DispatchRequestHandler(async (context, value, token) =>
+                _ =>
                 {
-                    await HandleAsync(context, value, token);
-                    return OperationDecision<int>.Succeed(value);
-                }), (_, _, _, _) => ValueTask.FromResult(new CapabilityTarget(Local.Application, Local.Environment)),
+                    HandlerConstructions++;
+                    return new DispatchRequestHandler(async (context, value, token) =>
+                    {
+                        await HandleAsync(context, value, token);
+                        return OperationDecision<int>.Succeed(value);
+                    });
+                }, (_, _, _, _) => ValueTask.FromResult(durable
+                    ? new CapabilityTarget(Local.Application, Local.Environment, DurableResourceType, DurableResourceId)
+                    : new CapabilityTarget(Local.Application, Local.Environment)),
                 ["rules.read"], new()
                 {
                     ReplyCapabilities = ["rules.read"]
                 })
             : new MessageSubscriptionDefinition<int>("A", "Ledger", "events", Codec,
-            _ => new DispatchHandler(async (context, value, token) =>
+            _ =>
             {
-                await HandleAsync(context, value, token);
-            }), (_, _, _, _) => ValueTask.FromResult(new CapabilityTarget(Local.Application, Local.Environment)),
+                HandlerConstructions++;
+                return new DispatchHandler(async (context, value, token) =>
+                {
+                    await HandleAsync(context, value, token);
+                });
+            }, (_, _, _, _) => ValueTask.FromResult(new CapabilityTarget(Local.Application, Local.Environment)),
             ["rules.read"], new()
             {
                 RetryCapabilities = ["rules.read"]
@@ -420,7 +469,8 @@ internal sealed class DispatchUnitFixture : IAsyncDisposable
     internal EncodedMessage Message() => MessageWire.Encode(new(Guid.NewGuid(), requests ? MessageKind.Request : MessageKind.Event, Codec.Contract,
         producerApplication, producerEnvironment, DateTimeOffset.UnixEpoch, "7"u8.ToArray(),
         requests ? Guid.NewGuid() : null,
-        requests ? new MessageReplyRoute(producerApplication, producerEnvironment, Guid.NewGuid()) : null));
+        requests ? new MessageReplyRoute(producerApplication, producerEnvironment, Guid.NewGuid()) : null,
+        operation: durable ? new MessageOperationReference(DurableOperation, "requested-dispatch", "original-key") : null));
 
     internal DispatchDelivery Delivery(ReadOnlyMemory<byte> body) => new(body,
         new(SecurityTestSupport.Profile, SecurityTestSupport.NativeAuthentication(), Provenance))
@@ -433,6 +483,24 @@ internal sealed class DispatchUnitFixture : IAsyncDisposable
         await Dispatcher.DisposeAsync();
         await Resources.DisposeAsync();
         await Provider.DisposeAsync();
+    }
+
+    private sealed class DispatchOperationNormalizer : IOperationRequestNormalizer<int>
+    {
+        public NormalizedOperationInput<int> Normalize(int input, OperationScope scope)
+            => new(input, [new(new("dispatch-input", 1), OperationCanonicalValue.Integer(input))]);
+    }
+
+    private sealed class DispatchOperationCodec(PublicationNumberCodec codec) : IOperationResultCodec<int>
+    {
+        public OperationContract CurrentContract => DurableResultContract;
+        public IReadOnlyList<OperationContract> ReadableContracts { get; } = [DurableResultContract];
+        public byte[] Encode(int value) => codec.Encode(value);
+        public bool TryDecode(OperationContract contract, ReadOnlyMemory<byte> value, out int decoded)
+        {
+            decoded = default;
+            return contract == DurableResultContract && codec.TryDecode(codec.Contract, value, out decoded);
+        }
     }
 }
 
@@ -462,6 +530,9 @@ internal sealed class DispatchRequestHandler(Func<MessageHandlerContext, int, Ca
 internal sealed class DispatchReplies(MessagingResourceBudget resources) : IMessageResponseCoordinator
 {
     internal int Staged;
+    internal int? LastNumber;
+    internal MessageProtocolDisposition? LastDisposition;
+    internal Func<EncodedMessage, IServiceProvider, CancellationToken, Task<MessageReplyHandling>>? OnReceive;
     public Task<Guid> StageReplyAsync<TRequest, TResponse>(ILocalTransactionContext context,
         MessageRequestSubscriptionDefinition<TRequest, TResponse> definition, EncodedMessage request,
         MessageProcessingAttempt attempt, MessageResponse<TResponse> response, MessageResponseAdmission admission,
@@ -470,10 +541,13 @@ internal sealed class DispatchReplies(MessagingResourceBudget resources) : IMess
         cancellationToken.ThrowIfCancellationRequested();
         admission.Require(resources);
         Staged++;
+        LastDisposition = response.Disposition;
+        LastNumber = response.Decision is { Value: int number } ? number : null;
         return Task.FromResult(Guid.NewGuid());
     }
     public Task<MessageReplyHandling> ReceiveReplyAsync(EncodedMessage reply, IServiceProvider scopedServices,
-        CancellationToken cancellationToken) => throw new InvalidOperationException("This fixture admits request dispatch only.");
+        CancellationToken cancellationToken) => OnReceive?.Invoke(reply, scopedServices, cancellationToken)
+            ?? throw new InvalidOperationException("This fixture admits request dispatch only.");
 }
 
 internal sealed class DispatchDelivery(ReadOnlyMemory<byte> body, MessageNativeEvidence evidence) : IMessageDelivery
@@ -481,11 +555,12 @@ internal sealed class DispatchDelivery(ReadOnlyMemory<byte> body, MessageNativeE
     internal Action? OnAcknowledge;
     internal Func<CancellationToken, Task>? OnRequeue;
     internal MessageDeliveryMetadata Headers = new("events");
+    internal string Alias = "A";
     internal int Acknowledgements;
     internal int Requeues;
     internal int Stops;
     public ReadOnlyMemory<byte> Body => body;
-    public string SubscriptionAlias => "A";
+    public string SubscriptionAlias => Alias;
     public MessageDeliveryMetadata Metadata => Headers;
     public ValueTask<MessageNativeEvidence?> GetNativeEvidenceAsync(CancellationToken cancellationToken = default)
         => ValueTask.FromResult<MessageNativeEvidence?>(evidence);
@@ -546,6 +621,7 @@ internal sealed class DispatchDispositions : IMessageDeliveryDispositionCoordina
 
 internal sealed class DispatchStore : IMessagingStore
 {
+    internal Action? OnClaim;
     internal MessageClaimDisposition ClaimDisposition = MessageClaimDisposition.Acquired;
     internal MessageProcessingRecord? Retained;
     internal ILocalTransactionContext? ClaimContext;
@@ -555,6 +631,7 @@ internal sealed class DispatchStore : IMessagingStore
     {
         Claims++;
         ClaimContext = context;
+        OnClaim?.Invoke();
         return Task.FromResult(new MessageProcessingClaim(ClaimDisposition, Retained ?? new(attempt.Key, attempt.Message.Digest,
             attempt.Provenance, attempt.DeliveryOrdinal, MessageProcessingDisposition.Ready, 1, attempt.Generation,
             DateTimeOffset.UnixEpoch, OperationBinding: attempt.OperationBinding)));

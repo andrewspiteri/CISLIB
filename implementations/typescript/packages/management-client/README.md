@@ -1,6 +1,6 @@
 # @cislib/management-client
 
-The portable entry exports `ManagementClient`, the twelve typed RM-07 APIs,
+The portable entry exports `ManagementClient`, the thirteen typed RM-07 APIs,
 readonly DTOs, exact wire codec/limits and known/raw status helpers. It imports
 only the sibling `@cislib/client-core` package and has no Node or UI framework
 dependency. Build the workspace before using its emitted ES modules/declarations.
@@ -28,6 +28,19 @@ The durable response contains exactly one nonnull `result` value or original
 rejection does not invent a metadata revision, timestamp or successful value.
 Retain the original key after a timeout or unknown completion. Matching replay
 does not become a fresh administrative decision.
+
+`getControl(registrationId, attemptId, context?)` reads the v1.1 authoritative
+confirmation. It preserves the HTTPS prefix and current per-call credential;
+both IDs are canonical UUIDs and exact echoed IDs are checked during decoding.
+It forces no automatic retries even when the client or call selects read retries.
+The attempt ID is not an operation key. A typed `admissionAllowed: false` is a
+current refusal, not an absent result. Hosts must measure `validForMs` from local
+monotonic request start, cap it at fifteen seconds and reconcile current authority
+before admitting new work. A late successful HTTP response cannot refresh that
+window. The SDK adds no browser or Node hosting loop or admission framework.
+
+Service-info's optional `maximumInventoryRequestBytes` preserves older v1
+responses while exposing a new server's effective provider/wire byte limit.
 
 See the workspace README for bounds, retry/deadline details, browser compilation,
 examples and the actual same-service native consumer.

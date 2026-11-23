@@ -10,7 +10,7 @@ namespace CIS.Management.Hosting;
 public static class ManagementClientServiceCollectionExtensions
 {
     private static readonly string[] Operations = ["service-info", "registration", "observation", "inventory-report",
-        "registration-close", "applications", "application", "instances", "inventory", "capabilities", "metadata-replace", "metadata-operation"];
+        "registration-close", "applications", "application", "instances", "inventory", "capabilities", "metadata-replace", "metadata-operation", "control"];
 
     /// <summary>Prepares one dedicated profile before ordinary or security-bound native REST registration.</summary>
     /// <remarks>Credentials, selected security binding, native transport, trace policy and LogCalls remain application choices.

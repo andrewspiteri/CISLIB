@@ -1,6 +1,7 @@
 using System.Data.Common;
 using CIS.Audit;
 using CIS.Management.Service.Persistence;
+using CIS.Management.Service.Backends;
 using CIS.Operations;
 using CIS.Security;
 using CIS.Transactions;
@@ -8,14 +9,14 @@ using CIS.Transactions.AdoNet;
 
 namespace CIS.Management.Service.Metadata;
 
-internal sealed record ManagementMetadataResponse(int Status, string? Code = null,
+public sealed record ManagementMetadataResponse(int Status, string? Code = null,
     ManagementOperationReference? Operation = null, ManagementMetadataResult? Result = null);
 
 // A short application-owned orchestration over the existing RM02/RM03/RM06 ports.
 // Only this owner completes the transaction; the original participant is shared by all three effects.
 internal sealed class ManagementMetadataService(IDurableOperationService operations, ILocalTransactionFactory transactions,
     PostgreSqlManagementStore store, ICallerContextAccessor callers, ManagementMetadataTarget target,
-    IAuditCapture capture, IAuditWriter audit)
+    IAuditCapture capture, IAuditWriter audit, PostgreSqlManagementAuthority authority)
 {
     internal async Task<ManagementMetadataResponse> ReplaceAsync(ManagementApplication application, string key,
         string ifMatch, ManagementMetadataCommand command, CancellationToken cancellationToken)
@@ -28,6 +29,7 @@ internal sealed class ManagementMetadataService(IDurableOperationService operati
         }
         catch (DbException)
         {
+            authority.MarkUnavailable();
             return new(503, "management.operation.unavailable", reference);
         }
 
@@ -35,6 +37,7 @@ internal sealed class ManagementMetadataService(IDurableOperationService operati
         {
             try
             {
+                _ = await authority.ReadAsync(owner.Context, true, cancellationToken);
                 OperationExecution<ManagementMetadataDecision> execution = await operations.ExecuteAsync<ManagementMetadataInput, ManagementMetadataDecision>(
                     owner.Context, new(reference.Name, reference.Scope, reference.Key,
                         new(application.ApplicationId, ifMatch, command)),
@@ -42,6 +45,10 @@ internal sealed class ManagementMetadataService(IDurableOperationService operati
                 if (execution.Disposition == OperationExecutionDisposition.Prepared)
                 {
                     TransactionCompletion completion = await owner.CommitAsync(cancellationToken);
+                    if (completion.Outcome != TransactionOutcome.Committed || completion.CleanupErrors.Count != 0)
+                    {
+                        authority.MarkUnavailable();
+                    }
                     ManagementMetadataResult result = Map(reference, execution.Decision!, "prepared", Outcome(completion), completion);
                     if (completion.Outcome != TransactionOutcome.Committed)
                     {
@@ -74,8 +81,14 @@ internal sealed class ManagementMetadataService(IDurableOperationService operati
             }
             catch (DbException)
             {
+                authority.MarkUnavailable();
                 await owner.RollbackAsync();
                 return new(503, "management.operation.unavailable", reference);
+            }
+            catch (ManagementBackendException error)
+            {
+                await owner.RollbackAsync();
+                return new(503, error.Code, reference);
             }
         }
     }
@@ -86,6 +99,10 @@ internal sealed class ManagementMetadataService(IDurableOperationService operati
         ManagementOperationReference reference = Bind(application, key);
         OperationLookup<ManagementMetadataDecision> lookup = await operations.GetResultAsync<ManagementMetadataDecision>(
             new(reference.Name, reference.Scope, reference.Key), cancellationToken);
+        if (lookup.ReadScopeCompletion?.CleanupErrors.Count > 0)
+        {
+            authority.MarkUnavailable();
+        }
         return lookup.Disposition switch
         {
             OperationLookupDisposition.Found => new(200, Result: Map(reference, lookup.Decision!, "found", "committed", lookup.ReadScopeCompletion)),

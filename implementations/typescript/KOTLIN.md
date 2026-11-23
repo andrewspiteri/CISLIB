@@ -27,6 +27,20 @@ not prove rollback. Default to no retry; an explicit read policy permits at most
 two selected transient GET retries inside that deadline. Never automatically
 replay PUT/DELETE or Commit.
 
+The typed registration control GET always disables retries, even under a selected
+read policy. Require the exact echoed registration/attempt UUIDs, a canonical
+authority UUID, an opaque bounded control revision, a boolean admission decision
+and an integer lifetime from one through 15,000 milliseconds. Measure usable
+freshness from local monotonic request entry through actual decoding and cleanup;
+response arrival cannot start a new window. Follow the shared integer-token
+fixtures rather than rounding fractional or exponent representations.
+
+Keep the API client passive. A separately selected managed host starts closed and
+requires live registration/control and module-owned reconciliation before new
+work. Failure, expiry, clock gaps and stopping close new admission while admitted
+finite work retains its existing owners. A report or connection alone cannot
+reopen admission, and a new process cannot bootstrap from a retained snapshot.
+
 Represent HTTP status, typed business decision, original operation completion and
 current cleanup as separate facts. A matching replay/found result retains its
 original committed decision even if the new read/arbitration attempt rolls back

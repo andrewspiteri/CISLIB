@@ -1,5 +1,6 @@
 using CIS.Management.Service;
 using CIS.Management.Service.Http;
+using CIS.Management.Service.Backends;
 using CIS.Security;
 
 namespace CIS.Tests.IntegrationTests.Management;
@@ -43,8 +44,9 @@ public sealed class ManagementBoundaryTests
     {
         byte[] key = Enumerable.Range(0, 32).Select(value => (byte)value).ToArray();
         var options = new ManagementServiceOptions("Host=localhost;Database=unused", key);
-        using var replicaOne = new ManagementCursor(options);
-        using var replicaTwo = new ManagementCursor(options);
+        var authority = new ManagementAuthoritySnapshot("management", "33333333-3333-4333-8333-333333333333", "opaque-v1", 1, false);
+        using var replicaOne = new ManagementCursor(options, () => authority);
+        using var replicaTwo = new ManagementCursor(options, () => authority);
         const string last = "11111111-1111-4111-8111-111111111111";
         string actor = ManagementActorScope.Create(Caller(), last);
         string cursor = replicaOne.Encode("inventory", actor, 100, last);
@@ -57,8 +59,25 @@ public sealed class ManagementBoundaryTests
         char replacement = cursor[0] == 'a' ? 'b' : 'a';
         Assert.IsFalse(replicaTwo.TryDecode(replacement + cursor[1..], "inventory", actor, 100, out _));
         Assert.IsFalse(replicaTwo.TryDecode(new string('a', 2049), "inventory", actor, 100, out _));
-        using var otherDeployment = new ManagementCursor(new("Host=localhost", new byte[32]));
+        using var otherDeployment = new ManagementCursor(new("Host=localhost", new byte[32]), () => authority);
         Assert.IsFalse(otherDeployment.TryDecode(cursor, "inventory", actor, 100, out _));
+        authority = authority with
+        {
+            RecoveryEpoch = 2
+        };
+        Assert.IsFalse(replicaTwo.TryDecode(cursor, "inventory", actor, 100, out _));
+        authority = authority with
+        {
+            RecoveryEpoch = 1,
+            AuthorityId = "44444444-4444-4444-8444-444444444444"
+        };
+        Assert.IsFalse(replicaTwo.TryDecode(cursor, "inventory", actor, 100, out _));
+        authority = authority with
+        {
+            AuthorityId = "33333333-3333-4333-8333-333333333333",
+            NamespaceName = "another"
+        };
+        Assert.IsFalse(replicaTwo.TryDecode(cursor, "inventory", actor, 100, out _));
     }
 
     [TestMethod]

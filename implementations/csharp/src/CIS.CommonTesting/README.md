@@ -26,6 +26,13 @@ Use them with `ManualHeartbeat` and `ManualTimeProvider` for ordinary applicatio
 tests. See [optional management reporting](../../../../docs/modules/management/registration.md)
 for the actual lifecycle, snapshot bounds and native-proof distinctions.
 
+The v1.1 control step records the safe registration and attempt IDs separately
+from durable operation keys. `ManualManagedWorkAdmission` holds one explicit
+caller-selected local snapshot and synchronous Changed event, with a saturating
+check count. It starts closed, performs no clock, reconciliation, authority or
+lifecycle policy, and never cancels admitted work. Use the actual managed host
+and real provider fixtures for bootstrap, expiry and failover evidence.
+
 - ManualHeartbeat creates public owners and records active registrations by
   subscriber reference. TriggerAsync explicitly awaits condition, callback,
   OnError and public monitor reporting. No background timer or dispatch queue runs.

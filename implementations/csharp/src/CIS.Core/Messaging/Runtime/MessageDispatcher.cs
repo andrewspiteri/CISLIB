@@ -1,4 +1,5 @@
 using System.Runtime.ExceptionServices;
+using CIS.Management;
 using CIS.Security;
 using CIS.Security.Hosting;
 using CIS.Transactions;
@@ -24,6 +25,7 @@ internal sealed class MessageDispatcher : IAsyncDisposable
     private readonly LocalApplicationIdentity local;
     private readonly TimeProvider clock;
     private readonly MessagingInstrumentation? instrumentation;
+    private readonly IManagedWorkAdmission? managedAdmission;
     private readonly CancellationTokenSource stopping = new();
     private readonly TaskCompletionSource drained = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private IMessageDeliveryDispositionCoordinator? dispositions;
@@ -59,6 +61,7 @@ internal sealed class MessageDispatcher : IAsyncDisposable
         this.dispositions = dispositions;
         clock = timeProvider ?? TimeProvider.System;
         this.instrumentation = instrumentation;
+        managedAdmission = root.GetService<IManagedWorkAdmission>();
     }
 
     internal void BindDispositions(IMessageDeliveryDispositionCoordinator coordinator)
@@ -310,7 +313,8 @@ internal sealed class MessageDispatcher : IAsyncDisposable
             return await FailAsync(new(message, subscription, MessageDeliveryFailureKind.Rejected, "messaging.producer_mismatch",
                 Services: services), cancellationToken).ConfigureAwait(false);
         }
-        var visitor = new MessageDispatchVisitor(services, caller, message, local, replies, cancellationToken, responseAdmission);
+        var visitor = new MessageDispatchVisitor(services, caller, message, local, replies, cancellationToken, responseAdmission,
+            managedAdmission);
         MessageDispatchPlan plan = await subscription.Accept(visitor).ConfigureAwait(false);
         if (plan.Rejection is { } reason)
         {
@@ -373,18 +377,28 @@ internal sealed class MessageDispatcher : IAsyncDisposable
     private async Task<DispatchResolution> ExecutePlanAsync(MessageSubscriptionDefinition subscription, EncodedMessage message,
         MessageDispatchPlan plan, MessageProcessingAttempt attempt, IServiceProvider services, CancellationToken cancellationToken)
     {
+        if (managedAdmission is not null && !managedAdmission.TryAdmit())
+        {
+            return ManagedAdmissionDeferred();
+        }
         ILocalTransaction? owner = null;
         bool acquired = false;
         MessageInvocation? invocation = null;
         MessageProcessingClaim? claim = null;
         TransactionCompletion? completion = null;
         ExceptionDispatchInfo? fault = null;
+        bool managedRefusal = false;
         try
         {
             owner = await transactions.BeginAsync(subscription.DatabaseName,
                 new LocalTransactionOptions { Isolation = TransactionIsolation.ReadCommitted }, cancellationToken).ConfigureAwait(false);
             completion = await MessagingTransaction.UseAsync(owner, subscription.DatabaseName, async current =>
             {
+                if (managedAdmission is not null && !managedAdmission.TryAdmit())
+                {
+                    managedRefusal = true;
+                    return await current.RollbackAsync().ConfigureAwait(false);
+                }
                 claim = await store.ClaimProcessingAsync(current.Context, attempt, cancellationToken).ConfigureAwait(false);
                 if (claim.Disposition is MessageClaimDisposition.HandledDuplicate or MessageClaimDisposition.Terminal or MessageClaimDisposition.RetryScheduled)
                 {
@@ -400,7 +414,20 @@ internal sealed class MessageDispatcher : IAsyncDisposable
                     return await current.RollbackAsync().ConfigureAwait(false);
                 }
                 acquired = true;
-                invocation = await plan.Invoke!(current.Context, attempt, cancellationToken).ConfigureAwait(false);
+                if (managedAdmission is not null && !managedAdmission.TryAdmit())
+                {
+                    managedRefusal = true;
+                    return await current.RollbackAsync().ConfigureAwait(false);
+                }
+                try
+                {
+                    invocation = await plan.Invoke!(current.Context, attempt, cancellationToken).ConfigureAwait(false);
+                }
+                catch (ManagedMessageAdmissionClosedException)
+                {
+                    managedRefusal = true;
+                    return await current.RollbackAsync().ConfigureAwait(false);
+                }
                 if (invocation.Kind != MessageInvocationKind.Completed || current.Context.IsRollbackOnly)
                 {
                     return await current.RollbackAsync().ConfigureAwait(false);
@@ -422,6 +449,13 @@ internal sealed class MessageDispatcher : IAsyncDisposable
                 // A post-commit cleanup fault must not schedule business work again.
                 fault.Throw();
             }
+        }
+        if (managedRefusal && fault is null)
+        {
+            // There was no application invocation. Preserve native uncertainty without creating durable retries or replies.
+            return completion?.Outcome == TransactionOutcome.NotCommitted
+                ? ManagedAdmissionDeferred(completion)
+                : new(new(MessageDispatchOutcome.Unknown, "messaging.management_admission_unsettled", completion), BrokerAction.Stop);
         }
         if (completion?.Outcome == TransactionOutcome.Committed)
         {
@@ -448,6 +482,9 @@ internal sealed class MessageDispatcher : IAsyncDisposable
             DeniedReply: kind == MessageDeliveryFailureKind.Rejected && code == "messaging.operation_denied"
                 ? plan.DeniedReply?.Invoke(attempt) : null), cancellationToken).ConfigureAwait(false);
     }
+
+    private static DispatchResolution ManagedAdmissionDeferred(TransactionCompletion? completion = null)
+        => new(new(MessageDispatchOutcome.Unknown, "messaging.management_admission_closed", completion), BrokerAction.Requeue);
 
     private async Task<MessageProcessingRecord?> ReadPriorAsync(string databaseName, MessageProcessingKey key, CancellationToken cancellationToken)
     {

@@ -6,6 +6,7 @@ using System.Text.Json.Serialization;
 using CIS.Management.Wire;
 using CIS.Transactions;
 using CIS.Transactions.AdoNet;
+using CIS.Management.Service.Backends;
 
 namespace CIS.Management.Service.Persistence;
 
@@ -17,14 +18,19 @@ public sealed partial class PostgreSqlManagementStore
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
     private readonly ILocalTransactionFactory factory;
+    private readonly PostgreSqlManagementAuthority? authority;
 
-    public PostgreSqlManagementStore(ILocalTransactionFactory factory, ManagementPersistenceOptions options)
+    public PostgreSqlManagementStore(ILocalTransactionFactory factory, ManagementPersistenceOptions options,
+        PostgreSqlManagementAuthority? authority = null)
     {
         ArgumentNullException.ThrowIfNull(factory);
         ArgumentNullException.ThrowIfNull(options);
         this.factory = factory;
         Options = options;
+        this.authority = authority;
     }
+
+    internal bool UsesAuthority(PostgreSqlManagementAuthority selected) => ReferenceEquals(authority, selected);
 
     public ManagementPersistenceOptions Options
     {
@@ -121,7 +127,7 @@ public sealed partial class PostgreSqlManagementStore
             }
 
             return Candidate<ManagementRegistrationReceipt>.Written(new(registrationId, applicationId.ToString("D"), registeredAt));
-        }, token).ConfigureAwait(false), cancellationToken);
+        }, token).ConfigureAwait(false), cancellationToken, requireReady: true);
     }
 
     public Task<ManagementStoreResult<ManagementReportReceipt>> ReportObservationAsync(ManagementRegistrationOwner owner,
@@ -155,7 +161,7 @@ public sealed partial class PostgreSqlManagementStore
                 $"UPDATE {Table("management_registration")} SET closed_at=clock_timestamp() WHERE registration_id=@id RETURNING closed_at", ("id", id));
             string closedAt = ManagementSql.Timestamp((DateTime)(await close.ExecuteScalarAsync(sqlToken).ConfigureAwait(false))!);
             return Candidate<ManagementCloseReceipt>.Written(new(registrationId, closedAt));
-        }, token).ConfigureAwait(false), cancellationToken);
+        }, token).ConfigureAwait(false), cancellationToken, requireReady: true);
     }
 
     private Task<ManagementStoreResult<ManagementReportReceipt>> ReportAsync(ManagementRegistrationOwner owner,
@@ -220,13 +226,18 @@ public sealed partial class PostgreSqlManagementStore
 
             return Candidate<ManagementReportReceipt>.Written(new(registrationId, stream, sequence.ToString(CultureInfo.InvariantCulture),
                 sequence.ToString(CultureInfo.InvariantCulture), "accepted", receivedAt));
-        }, token).ConfigureAwait(false), cancellationToken);
+        }, token).ConfigureAwait(false), cancellationToken, requireReady: true);
     }
 
     private string Table(string name) => ManagementSql.Table(Options.Schema, name);
 
-    private async Task<ManagementStoreResult<T>> RunAsync<T>(Func<ILocalTransactionContext, CancellationToken, Task<Candidate<T>>> work,
-        CancellationToken cancellationToken)
+    private Task<ManagementStoreResult<T>> RunAsync<T>(Func<ILocalTransactionContext, CancellationToken, Task<Candidate<T>>> work,
+        CancellationToken cancellationToken, bool requireReady = false)
+        => RunCoreAsync((context, _, token) => work(context, token), cancellationToken, requireReady);
+
+    private async Task<ManagementStoreResult<T>> RunCoreAsync<T>(
+        Func<ILocalTransactionContext, ManagementAuthoritySnapshot?, CancellationToken, Task<Candidate<T>>> work,
+        CancellationToken cancellationToken, bool requireReady = false, bool requireCleanRead = false)
     {
         ILocalTransaction? transaction = null;
         try
@@ -235,22 +246,39 @@ public sealed partial class PostgreSqlManagementStore
             {
                 Isolation = TransactionIsolation.ReadCommitted
             }, cancellationToken).ConfigureAwait(false);
-            Candidate<T> result = await work(transaction.Context, cancellationToken).ConfigureAwait(false);
+            ManagementAuthoritySnapshot? state = authority is null ? null
+                : await authority.ReadAsync(transaction.Context, requireReady, cancellationToken).ConfigureAwait(false);
+            Candidate<T> result = await work(transaction.Context, state, cancellationToken).ConfigureAwait(false);
             TransactionCompletion completion = result.Write && result.Code is null
                 ? await transaction.CommitAsync(cancellationToken).ConfigureAwait(false)
                 : await transaction.RollbackAsync().ConfigureAwait(false);
             if (result.Write && completion.Outcome != TransactionOutcome.Committed)
             {
+                authority?.MarkUnavailable();
                 return new(default, completion.Outcome == TransactionOutcome.Unknown ? "management.transaction_unknown" : "management.not_committed",
                     completion, false);
+            }
+            if (completion.CleanupErrors.Count != 0 || requireCleanRead && !completion.RollbackConfirmed)
+            {
+                authority?.MarkUnavailable();
+                if (requireCleanRead)
+                {
+                    return new(default, "management.authority.unavailable", completion, false);
+                }
             }
 
             return new(result.Value, result.Code, completion, result.PreviouslyCommitted, result.HasMore);
         }
         catch (DbException)
         {
+            authority?.MarkUnavailable();
             TransactionCompletion? completion = transaction is null ? null : await transaction.RollbackAsync().ConfigureAwait(false);
             return new(default, "management.unavailable", completion, false);
+        }
+        catch (ManagementBackendException error)
+        {
+            TransactionCompletion? completion = transaction is null ? null : await transaction.RollbackAsync().ConfigureAwait(false);
+            return new(default, error.Code, completion, false);
         }
         finally
         {

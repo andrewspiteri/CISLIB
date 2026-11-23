@@ -13,13 +13,20 @@ export interface Feature {
   readonly operationId: string; readonly version: number; readonly method: string;
   readonly path: string; readonly requiredCapabilities: readonly string[];
 }
-export interface ServiceInfo { readonly serviceVersion: string; readonly protocolMajors: readonly number[]; readonly features: readonly Feature[]; }
+export interface ServiceInfo {
+  readonly serviceVersion: string; readonly protocolMajors: readonly number[]; readonly features: readonly Feature[];
+  readonly maximumInventoryRequestBytes?: number;
+}
 export interface Capabilities {
   readonly applicationId: string; readonly implementedApis: readonly Feature[];
   readonly callerHints: readonly { readonly operationId: string; readonly allowed: boolean }[];
 }
 export interface RegistrationRequest { readonly protocolMajor: 1; readonly reportedInstanceId: string; readonly processStartedAtUtc: string; readonly applicationVersion: string; }
 export interface RegistrationReceipt { readonly registrationId: string; readonly applicationId: string; readonly registeredAtUtc: string; }
+export interface ControlConfirmation {
+  readonly authorityId: string; readonly registrationId: string; readonly controlRevision: string;
+  readonly admissionAllowed: boolean; readonly validForMs: number; readonly attemptId: string;
+}
 export interface Observation { readonly sequence: string; readonly observedAtUtc: string; readonly lifecycle: string; readonly health: string; }
 export interface ReportReceipt {
   readonly registrationId: string; readonly stream: string; readonly submittedSequence: string;

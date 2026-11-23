@@ -43,7 +43,7 @@ public sealed class ManagementClientPackageConsumerTests
         JsonObject report = JsonNode.Parse(run.StandardOutput)!.AsObject();
         foreach (string fact in new[] { "outsideFriend", "typedRead", "prefix", "nativeResultRetained", "scriptedUnknown",
             "originalKey", "noImplicitRecovery", "boundedSafeRecords", "noNativeProvider", "passiveProfile", "originalRejection",
-            "snapshotPorts", "boundedSnapshotRecords", "passiveRegistration" })
+            "snapshotPorts", "boundedSnapshotRecords", "passiveRegistration", "controlPort", "admissionPort", "reconciliationPort" })
         {
             Assert.IsTrue(report[fact]!.GetValue<bool>(), fact);
         }
@@ -81,6 +81,32 @@ public sealed class ManagementClientPackageConsumerTests
         scripted.EnqueueResult(ScriptedManagementCallKind.MetadataOperation, new ManagementCallResult<ManagementMetadataResult>(
             RestResult<ManagementMetadataResult>.FromValue(rejected, new RestResultContext(200, hasValue: true)), operationKey: "original-key"));
         ManagementCallResult<ManagementMetadataResult> recovered = await scripted.GetMetadataOperationAsync(id, "original-key");
+        const string attemptId = "22222222-2222-4222-8222-222222222222";
+        var controlScript = new ScriptedManagementClient(1);
+        ManagementCallResult<ManagementControlConfirmation>? selectedControl = null;
+        controlScript.EnqueueControl(call =>
+        {
+            var selected = new ManagementCallResult<ManagementControlConfirmation>(RestResult<ManagementControlConfirmation>.FromValue(
+                new(id, call.RegistrationId!, "opaque-public-revision", true, 15000, call.AttemptId!),
+                new RestResultContext(200, hasValue: true)));
+            selectedControl = selected;
+            return selected;
+        });
+        IManagementClient controlPort = controlScript;
+        ManagementCallResult<ManagementControlConfirmation> control = await controlPort.GetControlAsync(id, attemptId);
+        var manualAdmission = new ManualManagedWorkAdmission();
+        IManagedWorkAdmission admission = manualAdmission;
+        bool initiallyClosed = !admission.TryAdmit();
+        int changes = 0;
+        admission.Changed += (_, args) => { changes++; };
+        manualAdmission.Set(new(ManagedWorkAdmissionState.Ready, true, 1, AuthorityId: id,
+            RegistrationId: id, ControlRevision: "opaque-public-revision"));
+        bool readyAdmission = admission.TryAdmit();
+        ManagedWorkAdmissionSnapshot retainedAdmission = admission.CaptureSnapshot();
+        manualAdmission.Set(new(ManagedWorkAdmissionState.ContinuingOnly, false, 2, "selected-test-outage",
+            id, id, "opaque-public-revision"));
+        IManagedStateReconciler reconciler = new ConsumerReconciler();
+        bool reconciled = await reconciler.ReconcileAsync(control.Exchange.Value!);
         var observationScript = new ScriptedManagementObservationSource(1);
         var inventoryScript = new ScriptedManagementInventorySource(1);
         observationScript.EnqueueValue(new("ready", "healthy"));
@@ -110,6 +136,11 @@ public sealed class ManagementClientPackageConsumerTests
             originalKey = decision.OperationKey == "original-key" && scripted.Calls.Single().OperationKey == "original-key",
             noImplicitRecovery,
             originalRejection = recovered.Exchange.Value!.Result is null && recovered.Exchange.Value!.Rejection?.Message == "Original rejection",
+            controlPort = ReferenceEquals(selectedControl, control) && control.Exchange.Value!.AttemptId == attemptId
+                && controlScript.Calls.Single().AttemptId == attemptId && controlScript.Calls.Single().OperationKey is null,
+            admissionPort = initiallyClosed && readyAdmission && !admission.TryAdmit()
+                && retainedAdmission.AdmissionAllowed && changes == 2,
+            reconciliationPort = reconciled && reconciler.IsReady,
             boundedSafeRecords = scripted.Calls.Count == 1 && typeof(ScriptedManagementCall).GetProperty("Body") is null,
             noNativeProvider = !nativeProvider,
             passiveProfile = nativeOptions.Codec is ManagementContentCodec && nativeOptions.RetryPolicy.PolicyName is null,
@@ -126,5 +157,15 @@ public sealed class ManagementClientPackageConsumerTests
             corePath = typeof(IManagementClient).Assembly.Location,
             testingPath = typeof(ScriptedManagementClient).Assembly.Location
         }));
+
+        sealed class ConsumerReconciler : IManagedStateReconciler
+        {
+            public bool IsReady => true;
+            public Task<bool> ReconcileAsync(ManagementControlConfirmation confirmation, CancellationToken cancellationToken = default)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                return Task.FromResult(confirmation.AdmissionAllowed && confirmation.ControlRevision == "opaque-public-revision");
+            }
+        }
         """";
 }

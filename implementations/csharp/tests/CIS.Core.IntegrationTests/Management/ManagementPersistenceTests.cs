@@ -335,7 +335,7 @@ public sealed class ManagementPersistenceTests
         await using ManagementDatabaseFixture database = await ManagementDatabaseFixture.CreateAsync();
         await database.SqlAsync($"""
             ALTER TABLE {database.Table("management_schema_version")} DROP CONSTRAINT management_schema_version_version_check;
-            UPDATE {database.Table("management_schema_version")} SET version=2
+            UPDATE {database.Table("management_schema_version")} SET version={ManagementSchema.Version + 1}
             """);
         await using ILocalTransaction read = await database.Factory.BeginAsync("management");
         await Assert.ThrowsExactlyAsync<ManagementSchemaException>(() => ManagementSchema.ValidateAsync(read.Context, database.Options.Schema));
@@ -344,7 +344,7 @@ public sealed class ManagementPersistenceTests
         await Assert.ThrowsExactlyAsync<ManagementSchemaException>(() => ManagementSchema.InstallAsync(install.Context,
             database.Options.Schema, database.Options));
         _ = await install.RollbackAsync();
-        Assert.AreEqual(2L, await database.ScalarAsync($"SELECT version FROM {database.Table("management_schema_version")}"));
+        Assert.AreEqual((long)ManagementSchema.Version + 1, await database.ScalarAsync($"SELECT version FROM {database.Table("management_schema_version")}"));
     }
 
     [TestMethod]

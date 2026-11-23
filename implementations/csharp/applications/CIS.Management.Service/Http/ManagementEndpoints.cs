@@ -1,4 +1,5 @@
 using CIS.Management.Service.Persistence;
+using CIS.Management.Service.Backends;
 using CIS.Management.Wire;
 using CIS.Security;
 
@@ -14,6 +15,7 @@ internal static partial class ManagementEndpoints
             {
                 new("getServiceInfo", 1, "GET", "/service-info", []),
                 new("registerInstance", 1, "PUT", "/registrations/{registrationId}", ["management.registrations.write"]),
+                new("getRegistrationControl", 1, "GET", "/registrations/{registrationId}/control", ["management.registrations.write"]),
                 new("closeRegistration", 1, "DELETE", "/registrations/{registrationId}", ["management.registrations.write"]),
                 new("reportObservation", 1, "PUT", "/registrations/{registrationId}/observation", ["management.registrations.write"]),
                 new("replaceInventory", 1, "PUT", "/registrations/{registrationId}/inventory", ["management.registrations.write"]),
@@ -62,6 +64,10 @@ internal static partial class ManagementEndpoints
                 await ManagementHttp.Problem(context, error.StatusCode, error.StatusCode == 413
                     ? "management.request_too_large" : "management.invalid_request").ExecuteAsync(context);
             }
+            catch (ManagementBackendException error) when (!context.Response.HasStarted)
+            {
+                await ManagementHttp.Problem(context, 503, error.Code).ExecuteAsync(context);
+            }
             catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
             {
                 throw;
@@ -79,9 +85,13 @@ internal static partial class ManagementEndpoints
         });
 
         RouteGroupBuilder group = web.MapGroup(prefix.Value!);
-        group.MapGet("/service-info", () => ManagementHttp.Json(new ManagementServiceInfo(
-            EnvironmentOptions.ServiceVersion, [1], Features), limits: options.Persistence.WireLimits));
+        group.MapGet("/service-info", (IManagementBackend backend) => ManagementHttp.Json(new ManagementServiceInfo(
+            EnvironmentOptions.ServiceVersion, [1], Features)
+        {
+            MaximumInventoryRequestBytes = backend.MaximumInventoryRequestBytes
+        }, limits: backend.WireLimits));
         group.MapPut("/registrations/{registrationId}", Register);
+        group.MapGet("/registrations/{registrationId}/control", Control);
         group.MapPut("/registrations/{registrationId}/observation", Observation);
         group.MapPut("/registrations/{registrationId}/inventory", Inventory);
         group.MapDelete("/registrations/{registrationId}", Close);
@@ -93,7 +103,25 @@ internal static partial class ManagementEndpoints
         MapMetadata(group);
     }
 
-    private static async Task<IResult> Register(HttpContext context, string registrationId, PostgreSqlManagementStore store)
+    private static async Task<IResult> Control(HttpContext context, string registrationId, IManagementBackend store)
+    {
+        ManagementRegistrationOwner? owner = await RegistrationOwner(context);
+        if (owner is null)
+        {
+            return ManagementHttp.Problem(context, 403, "management.registration.forbidden");
+        }
+        if (!ManagementWire.IsUuid(registrationId) || context.Request.Query.Count != 1
+            || context.Request.Query.Keys.Any(key => key != "attemptId") || context.Request.Query["attemptId"].Count != 1
+            || !ManagementWire.IsUuid(context.Request.Query["attemptId"].ToString())
+            || context.Request.ContentLength > 0 || context.Request.Headers.TransferEncoding.Count != 0)
+        {
+            return ManagementHttp.Problem(context, 400, "management.invalid_request");
+        }
+        return ManagementHttp.Store(context, await store.ConfirmControlAsync(owner, registrationId,
+            context.Request.Query["attemptId"].ToString(), context.RequestAborted), store.WireLimits);
+    }
+
+    private static async Task<IResult> Register(HttpContext context, string registrationId, IManagementBackend store)
     {
         ManagementRegistrationOwner? owner = await RegistrationOwner(context);
         if (owner is null)
@@ -104,12 +132,12 @@ internal static partial class ManagementEndpoints
         {
             return ManagementHttp.Problem(context, 400, "management.invalid_request");
         }
-        ManagementRegistrationRequest? request = await ManagementHttp.Read<ManagementRegistrationRequest>(context, store.Options.WireLimits);
+        ManagementRegistrationRequest? request = await ManagementHttp.Read<ManagementRegistrationRequest>(context, store.WireLimits);
         return request is null ? ManagementHttp.Problem(context, 400, "management.invalid_request")
-            : ManagementHttp.Store(context, await store.RegisterAsync(owner, registrationId, request, context.RequestAborted), store.Options.WireLimits);
+            : ManagementHttp.Store(context, await store.RegisterAsync(owner, registrationId, request, context.RequestAborted), store.WireLimits);
     }
 
-    private static async Task<IResult> Observation(HttpContext context, string registrationId, PostgreSqlManagementStore store)
+    private static async Task<IResult> Observation(HttpContext context, string registrationId, IManagementBackend store)
     {
         ManagementRegistrationOwner? owner = await RegistrationOwner(context);
         if (owner is null)
@@ -120,12 +148,12 @@ internal static partial class ManagementEndpoints
         {
             return ManagementHttp.Problem(context, 400, "management.invalid_request");
         }
-        ManagementObservation? request = await ManagementHttp.Read<ManagementObservation>(context, store.Options.WireLimits);
+        ManagementObservation? request = await ManagementHttp.Read<ManagementObservation>(context, store.WireLimits);
         return request is null ? ManagementHttp.Problem(context, 400, "management.invalid_request")
-            : ManagementHttp.Store(context, await store.ReportObservationAsync(owner, registrationId, request, context.RequestAborted), store.Options.WireLimits);
+            : ManagementHttp.Store(context, await store.ReportObservationAsync(owner, registrationId, request, context.RequestAborted), store.WireLimits);
     }
 
-    private static async Task<IResult> Inventory(HttpContext context, string registrationId, PostgreSqlManagementStore store)
+    private static async Task<IResult> Inventory(HttpContext context, string registrationId, IManagementBackend store)
     {
         ManagementRegistrationOwner? owner = await RegistrationOwner(context);
         if (owner is null)
@@ -136,12 +164,12 @@ internal static partial class ManagementEndpoints
         {
             return ManagementHttp.Problem(context, 400, "management.invalid_request");
         }
-        ManagementInventorySnapshot? request = await ManagementHttp.Read<ManagementInventorySnapshot>(context, store.Options.WireLimits);
+        ManagementInventorySnapshot? request = await ManagementHttp.Read<ManagementInventorySnapshot>(context, store.WireLimits);
         return request is null ? ManagementHttp.Problem(context, 400, "management.invalid_request")
-            : ManagementHttp.Store(context, await store.ReportInventoryAsync(owner, registrationId, request, context.RequestAborted), store.Options.WireLimits);
+            : ManagementHttp.Store(context, await store.ReportInventoryAsync(owner, registrationId, request, context.RequestAborted), store.WireLimits);
     }
 
-    private static async Task<IResult> Close(HttpContext context, string registrationId, PostgreSqlManagementStore store)
+    private static async Task<IResult> Close(HttpContext context, string registrationId, IManagementBackend store)
     {
         ManagementRegistrationOwner? owner = await RegistrationOwner(context);
         if (owner is null)
@@ -149,7 +177,7 @@ internal static partial class ManagementEndpoints
             return ManagementHttp.Problem(context, 403, "management.registration.forbidden");
         }
         return !ManagementWire.IsUuid(registrationId) ? ManagementHttp.Problem(context, 400, "management.invalid_request")
-            : ManagementHttp.Store(context, await store.CloseAsync(owner, registrationId, context.RequestAborted), store.Options.WireLimits);
+            : ManagementHttp.Store(context, await store.CloseAsync(owner, registrationId, context.RequestAborted), store.WireLimits);
     }
 
     private static async Task<ManagementRegistrationOwner?> RegistrationOwner(HttpContext context)
@@ -171,7 +199,7 @@ internal static partial class ManagementEndpoints
     }
 
     internal static async Task<ManagementApplication?> VisibleApplication(HttpContext context, string applicationId,
-        PostgreSqlManagementStore store, string capability = "management.applications.read")
+        IManagementBackend store, string capability = "management.applications.read")
     {
         if (!ManagementWire.IsUuid(applicationId))
         {
@@ -180,13 +208,13 @@ internal static partial class ManagementEndpoints
         ManagementStoreResult<ManagementApplication> result = await store.ReadApplicationAsync(applicationId, context.RequestAborted);
         if (result.Code is not null && result.Code is not ("management.not_found" or "management.application.not_found"))
         {
-            throw new InvalidOperationException("Management storage could not settle the authorized resource read.");
+            throw new ManagementRequestException(503, result.Code);
         }
         return result.Value is { } application && result.IsKnownCommitted
             && await ManagementHttp.Allowed(context, capability, application.ApplicationId) ? application : null;
     }
 
-    private static async Task<IResult> Application(HttpContext context, string applicationId, PostgreSqlManagementStore store)
+    private static async Task<IResult> Application(HttpContext context, string applicationId, IManagementBackend store)
     {
         ManagementApplication? application = await VisibleApplication(context, applicationId, store);
         if (application is null)
@@ -194,10 +222,10 @@ internal static partial class ManagementEndpoints
             return ManagementHttp.Problem(context, 404, "management.not_found");
         }
         context.Response.Headers.ETag = application.MetadataETag;
-        return ManagementHttp.Json(application, limits: store.Options.WireLimits);
+        return ManagementHttp.Json(application, limits: store.WireLimits);
     }
 
-    private static async Task<IResult> Applications(HttpContext context, PostgreSqlManagementStore store, ManagementCursor cursors)
+    private static async Task<IResult> Applications(HttpContext context, IManagementBackend store, ManagementCursor cursors)
     {
         const string endpoint = "applications";
         if (!ManagementHttp.TryPage(context, cursors, endpoint, null, out int size, out string? after))
@@ -205,7 +233,7 @@ internal static partial class ManagementEndpoints
             return ManagementHttp.Problem(context, 400, "management.cursor.invalid");
         }
         var items = new List<ManagementApplication>();
-        int remaining = store.Options.WireLimits.MaximumRegularResponseBytes - 4096;
+        int remaining = store.WireLimits.MaximumRegularResponseBytes - 4096;
         bool more = false;
         while (true)
         {
@@ -221,7 +249,7 @@ internal static partial class ManagementEndpoints
                 {
                     continue;
                 }
-                int bytes = ManagementWire.EncodeResponse(candidate, store.Options.WireLimits).Length + 1;
+                int bytes = ManagementWire.EncodeResponse(candidate, store.WireLimits).Length + 1;
                 if (items.Count == size || bytes > remaining)
                 {
                     if (items.Count == 0)
@@ -240,10 +268,10 @@ internal static partial class ManagementEndpoints
             }
         }
         return ManagementHttp.Json(new ManagementPage<ManagementApplication>(items.AsReadOnly(), more
-            ? ManagementHttp.Cursor(context, cursors, endpoint, null, size, items[^1].ApplicationId) : null), limits: store.Options.WireLimits);
+            ? ManagementHttp.Cursor(context, cursors, endpoint, null, size, items[^1].ApplicationId) : null), limits: store.WireLimits);
     }
 
-    private static async Task<IResult> Instances(HttpContext context, string applicationId, PostgreSqlManagementStore store, ManagementCursor cursors)
+    private static async Task<IResult> Instances(HttpContext context, string applicationId, IManagementBackend store, ManagementCursor cursors)
     {
         if (await VisibleApplication(context, applicationId, store) is null)
         {
@@ -255,7 +283,7 @@ internal static partial class ManagementEndpoints
             return ManagementHttp.Problem(context, 400, "management.cursor.invalid");
         }
         var items = new List<ManagementInstance>();
-        int remaining = store.Options.WireLimits.MaximumRegularResponseBytes - 4096;
+        int remaining = store.WireLimits.MaximumRegularResponseBytes - 4096;
         bool more = false;
         while (true)
         {
@@ -266,7 +294,7 @@ internal static partial class ManagementEndpoints
             }
             foreach (ManagementInstance candidate in batch.Value)
             {
-                int bytes = ManagementWire.EncodeResponse(candidate, store.Options.WireLimits).Length + 1;
+                int bytes = ManagementWire.EncodeResponse(candidate, store.WireLimits).Length + 1;
                 if (items.Count == size || bytes > remaining)
                 {
                     if (items.Count == 0)
@@ -286,10 +314,10 @@ internal static partial class ManagementEndpoints
             }
         }
         return ManagementHttp.Json(new ManagementPage<ManagementInstance>(items.AsReadOnly(), more
-            ? ManagementHttp.Cursor(context, cursors, endpoint, applicationId, size, items[^1].RegistrationId) : null), limits: store.Options.WireLimits);
+            ? ManagementHttp.Cursor(context, cursors, endpoint, applicationId, size, items[^1].RegistrationId) : null), limits: store.WireLimits);
     }
 
-    private static async Task<IResult> Inventories(HttpContext context, string applicationId, PostgreSqlManagementStore store, ManagementCursor cursors)
+    private static async Task<IResult> Inventories(HttpContext context, string applicationId, IManagementBackend store, ManagementCursor cursors)
     {
         if (await VisibleApplication(context, applicationId, store) is null)
         {
@@ -301,7 +329,7 @@ internal static partial class ManagementEndpoints
             return ManagementHttp.Problem(context, 400, "management.cursor.invalid");
         }
         ManagementStoreResult<IReadOnlyList<ManagementInventoryEntry>> result = await store.ReadInventoryAsync(applicationId,
-            after, size + 1, store.Options.WireLimits.MaximumInventoryResponseBytes - 4096, context.RequestAborted);
+            after, size + 1, store.WireLimits.MaximumInventoryResponseBytes - 4096, context.RequestAborted);
         if (result.Code is not null || result.Value is null || !result.IsKnownCommitted)
         {
             return ManagementHttp.Problem(context, 503, result.Code ?? "management.transaction_unknown");
@@ -309,10 +337,10 @@ internal static partial class ManagementEndpoints
         ManagementInventoryEntry[] items = result.Value.Take(size).ToArray();
         bool more = result.HasMore || result.Value.Count > size;
         return ManagementHttp.Json(new ManagementPage<ManagementInventoryEntry>(Array.AsReadOnly(items), more && items.Length != 0
-            ? ManagementHttp.Cursor(context, cursors, endpoint, applicationId, size, items[^1].RegistrationId) : null), limits: store.Options.WireLimits);
+            ? ManagementHttp.Cursor(context, cursors, endpoint, applicationId, size, items[^1].RegistrationId) : null), limits: store.WireLimits);
     }
 
-    private static async Task<IResult> Capabilities(HttpContext context, string applicationId, PostgreSqlManagementStore store)
+    private static async Task<IResult> Capabilities(HttpContext context, string applicationId, IManagementBackend store)
     {
         if (await VisibleApplication(context, applicationId, store) is null)
         {
@@ -329,7 +357,7 @@ internal static partial class ManagementEndpoints
             }
             hints.Add(new(feature.OperationId, allowed));
         }
-        return ManagementHttp.Json(new ManagementCapabilities(applicationId, Features, hints.AsReadOnly()), limits: store.Options.WireLimits);
+        return ManagementHttp.Json(new ManagementCapabilities(applicationId, Features, hints.AsReadOnly()), limits: store.WireLimits);
     }
 
     static partial void MapMetadata(RouteGroupBuilder group);

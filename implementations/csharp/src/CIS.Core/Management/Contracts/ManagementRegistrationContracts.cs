@@ -73,7 +73,7 @@ public sealed class ManagementRegistrationOptions
     {
         get;
     }
-    /// <summary>Gets or sets whether the direct registration receipt is a finite startup prerequisite.</summary>
+    /// <summary>Gets or sets the retained legacy option; selected managed execution always requires live bootstrap.</summary>
     public bool RequireInitialRegistration
     {
         get; set;
@@ -82,11 +82,15 @@ public sealed class ManagementRegistrationOptions
     public TimeSpan InitialRegistrationTimeout { get; set; } = TimeSpan.FromSeconds(30);
     /// <summary>Gets or sets the completion-based report interval, initially thirty seconds, from ten milliseconds through one day.</summary>
     public TimeSpan ReportingInterval { get; set; } = TimeSpan.FromSeconds(30);
+    /// <summary>Gets or sets the control check interval, initially five seconds, from ten milliseconds through fifteen seconds.</summary>
+    public TimeSpan ControlCheckInterval { get; set; } = TimeSpan.FromSeconds(5);
+    /// <summary>Gets or sets the control/reconciliation attempt budget, initially five seconds, at most fifteen seconds.</summary>
+    public TimeSpan ControlTimeout { get; set; } = TimeSpan.FromSeconds(5);
     /// <summary>Gets or sets the first reconnect delay, initially five seconds, from ten milliseconds through one day, before bounded positive jitter.</summary>
     public TimeSpan InitialReconnectDelay { get; set; } = TimeSpan.FromSeconds(5);
     /// <summary>Gets or sets the finite reconnect cap, initially sixty seconds, no smaller than the first delay and at most one day.</summary>
     public TimeSpan MaximumReconnectDelay { get; set; } = TimeSpan.FromSeconds(60);
-    /// <summary>Gets or sets an explicitly selected ongoing connectivity health policy; the default is noncritical.</summary>
+    /// <summary>Gets or sets the retained legacy policy; managed admission affects readiness without failing process liveness.</summary>
     public bool IsHealthCritical
     {
         get; set;
@@ -114,6 +118,8 @@ public sealed class ManagementRegistrationOptions
         RequireInitialRegistration = RequireInitialRegistration,
         InitialRegistrationTimeout = InitialRegistrationTimeout,
         ReportingInterval = ReportingInterval,
+        ControlCheckInterval = ControlCheckInterval,
+        ControlTimeout = ControlTimeout,
         InitialReconnectDelay = InitialReconnectDelay,
         MaximumReconnectDelay = MaximumReconnectDelay,
         IsHealthCritical = IsHealthCritical,
@@ -127,4 +133,11 @@ public sealed class ManagementRegistrationOptions
 /// <summary>Bounded local reporting facts; registration and connectivity do not establish remote health or ownership.</summary>
 public sealed record ManagementRegistrationStatus(string RegistrationId, string? ApplicationId, bool IsRegistered,
     bool IsConnected, bool IsStopping, bool IsSuspended, bool InventoryPending, bool InventoryValid,
-    string? LastErrorCode, long FailedAttempts, long SuppressedDiagnostics);
+    string? LastErrorCode, long FailedAttempts, long SuppressedDiagnostics)
+{
+    /// <summary>Gets the current local admission observation; a retained snapshot is no permission for later work.</summary>
+    public ManagedWorkAdmissionSnapshot? Admission
+    {
+        get; init;
+    }
+}

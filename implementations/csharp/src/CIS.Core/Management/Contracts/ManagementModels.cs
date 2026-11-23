@@ -47,7 +47,14 @@ public sealed record ManagementFeature(string OperationId, int Version, string M
 /// <param name="ProtocolMajors">Actually supported positive protocol majors.</param>
 /// <param name="Features">Actually installed typed APIs.</param>
 public sealed record ManagementServiceInfo(string ServiceVersion, IReadOnlyList<int> ProtocolMajors,
-    IReadOnlyList<ManagementFeature> Features);
+    IReadOnlyList<ManagementFeature> Features)
+{
+    /// <summary>Gets the server's effective complete-inventory request byte bound, when advertised by this v1 server.</summary>
+    public int? MaximumInventoryRequestBytes
+    {
+        get; init;
+    }
+}
 
 /// <summary>An advisory permission hint that never replaces authorization at execution.</summary>
 /// <param name="OperationId">The installed typed operation alias.</param>
@@ -74,6 +81,16 @@ public sealed record ManagementRegistrationRequest(int ProtocolMajor, string Rep
 /// <param name="ApplicationId">The server's stable admitted application UUID.</param>
 /// <param name="RegisteredAtUtc">The original shared-database receipt time.</param>
 public sealed record ManagementRegistrationReceipt(string RegistrationId, string ApplicationId, string RegisteredAtUtc);
+
+/// <summary>Current authoritative control facts, distinct from presence, business permissions and RM-05 ownership.</summary>
+/// <param name="AuthorityId">The persisted management namespace's canonical UUID.</param>
+/// <param name="RegistrationId">The confirmed process registration UUID.</param>
+/// <param name="ControlRevision">Exact opaque control-free text of one through 256 Unicode scalars.</param>
+/// <param name="AdmissionAllowed">Whether current management-level prerequisites permit admission.</param>
+/// <param name="ValidForMs">One through 15,000 milliseconds, measured from the request's local monotonic start.</param>
+/// <param name="AttemptId">The exact canonical per-attempt UUID echoed from the request query.</param>
+public sealed record ManagementControlConfirmation(string AuthorityId, string RegistrationId, string ControlRevision,
+    bool AdmissionAllowed, int ValidForMs, string AttemptId);
 
 /// <summary>One complete latest observation, not a history event or ownership assertion.</summary>
 /// <param name="Sequence">The positive Int64 observation-stream sequence.</param>

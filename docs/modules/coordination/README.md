@@ -6,6 +6,11 @@ The [portable contract](../../../contracts/coordination/README.md) defines grant
 uncertainty, local-state and fencing semantics; [jobs](jobs.md) describes explicit
 catalog registration and the separate scheduled-occurrence boundary.
 
+Selected Central Management execution adds a small optional
+[new-work admission boundary](managed-admission.md) to Jobs. Unmanaged use
+retains its existing behavior; independent ownership, fencing and actual
+settlement remain authoritative in both modes.
+
 The scoped `ICoordinationService` resolves a `CoordinationRequest` through the
 application's trusted `ICoordinationTargetResolver`, then awaits the existing
 scoped `ICapabilityAuthorizer` against the complete actual resource. A requested

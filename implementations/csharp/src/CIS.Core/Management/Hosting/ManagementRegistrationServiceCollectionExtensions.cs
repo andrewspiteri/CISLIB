@@ -1,7 +1,9 @@
 using CIS.Healthcheck;
+using CIS.Coordination.Hosting;
 using CIS.Heartbeat;
 using CIS.Jobs;
 using CIS.Management.Wire;
+using CIS.Messaging.Hosting;
 using CIS.RestClient.Hosting;
 using CIS.Startup;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,7 +24,8 @@ public static class ManagementRegistrationServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(options);
         if (services.Any(item => item.ServiceType == typeof(ManagementRegistrationLifetime)
-            || item.ServiceType == typeof(ManagementRegistration)))
+            || item.ServiceType == typeof(ManagementRegistration)
+            || !item.IsKeyedService && (item.ServiceType == typeof(IManagedWorkAdmission) || item.ServiceType == typeof(ManagedWorkAdmission))))
         {
             throw new InvalidOperationException("Select one complete optional management registration composition.");
         }
@@ -39,20 +42,45 @@ public static class ManagementRegistrationServiceCollectionExtensions
         var lifetime = new ManagementRegistrationLifetime();
         services.AddSingleton(lifetime);
         services.TryAddSingleton<TimeProvider>(TimeProvider.System);
+        services.AddSingleton(root =>
+        {
+            using IDisposable construction = lifetime.EnterConstruction();
+            var admission = new ManagedWorkAdmission(root.GetService<TimeProvider>());
+            lifetime.BindAdmission(admission);
+            return admission;
+        });
+        services.TryAddSingleton<IManagedWorkAdmission>(root => root.GetRequiredService<ManagedWorkAdmission>());
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IHealthReadinessSource, ManagementReadinessSource>());
         services.TryAddSingleton<IManagementObservationSource>(root => root.GetService<IHealthSnapshotSource>() is { } health
             ? new HealthManagementObservationSource(health) : new HostObservationSource(root.GetService<IHostApplicationLifetime>()));
         services.TryAddSingleton<IManagementInventorySource, EmptyInventorySource>();
         services.AddSingleton(root =>
         {
             using IDisposable construction = lifetime.EnterConstruction();
-            var runtime = new ManagementRegistration(root.GetRequiredKeyedService<IManagementClient>(captured.ClientName),
+            ManagedWorkAdmission admission = root.GetRequiredService<ManagedWorkAdmission>();
+            if (!ReferenceEquals(admission, root.GetRequiredService<IManagedWorkAdmission>()))
+            {
+                throw new InvalidOperationException("Managed execution must use the actual reporting gate at every work boundary.");
+            }
+            var runtime = new ManagementRegistration(admission, root.GetRequiredKeyedService<IManagementClient>(captured.ClientName),
                 root.GetRequiredService<IHeartbeatOwnerFactory>(), root.GetRequiredService<IManagementObservationSource>(),
-                root.GetRequiredService<IManagementInventorySource>(), captured, root.GetService<TimeProvider>(),
+                root.GetRequiredService<IManagementInventorySource>(), captured,
+                root.GetServices<IManagedStateReconciler>(), root.GetService<TimeProvider>(),
                 root.GetService<IHealthMonitorFactory>(), root.GetService<ILogger<ManagementRegistration>>());
             lifetime.Bind(runtime);
             return runtime;
         });
-        services.AddSingleton<IStartable>(root => root.GetRequiredService<ManagementRegistration>());
+        var startup = ServiceDescriptor.Singleton<IStartable>(root => root.GetRequiredService<ManagementRegistration>());
+        int beforeWork = services.ToList().FindIndex(item => !item.IsKeyedService && item.ServiceType == typeof(IStartable)
+            && (item.ImplementationType == typeof(MessagingStartable) || item.ImplementationType == typeof(CoordinationStartable)));
+        if (beforeWork < 0)
+        {
+            services.Add(startup);
+        }
+        else
+        {
+            services.Insert(beforeWork, startup);
+        }
         return services;
     }
 
@@ -78,6 +106,11 @@ public static class ManagementRegistrationServiceCollectionExtensions
             cancellationToken.ThrowIfCancellationRequested();
             return new([], [], []);
         }
+    }
+
+    private sealed class ManagementReadinessSource(ManagedWorkAdmission admission) : IHealthReadinessSource
+    {
+        public bool IsReady => admission.TryAdmit();
     }
 
     private sealed class HostObservationSource(IHostApplicationLifetime? lifetime) : IManagementObservationSource
