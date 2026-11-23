@@ -149,3 +149,50 @@ delivery costs remain charged to this same owner.
 | Task ID | Check | Command or artifact | Result | Notes |
 | --- | --- | --- | --- | --- |
 | WORK-012 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2225; failed=304; possibleTokenSavings=591; ledgerDigest=sha256:396b4596a78284f15a8a7e07af909b6237a9d6b864270a3eb8a4ea4fbed7a02f |
+
+## Visual Studio process-fixture build correction — WORK-013
+
+The user reported the IntegrationTests copy error on 23 November 2026. Its
+`CrashHost` project reference was absent from the solution, so the IDE could not
+schedule that unloaded project before the parent's copy target. One entry in
+`CisLib.slnx` now loads the existing project under Fixtures, matching the other
+executable fixtures. The parent reference, configuration propagation and
+fail-closed DLL/runtimeconfig/deps check remain unchanged.
+
+| Native check | Actual result | Evidence under .artifacts/coordination/CIS-0022/WORK-013 |
+| --- | --- | --- |
+| Original Visual Studio Debug build | Exact reported error reproduced;17succeeded/1failed | vs-debug-original-reproduction/vs-build.log; no Debug CrashHost output existed before launch. |
+| Fixed Visual Studio Debug | 19succeeded/0failed; CrashHost built before IntegrationTests | vs-debug-fixed-solution/vs-build.log. |
+| Fixed Visual Studio Release | 19succeeded/0failed; CrashHost built before IntegrationTests | vs-release-fixed-solution/vs-build.log. |
+| Pinned CLI Release whole-solution build | Passed;0errors/1warning | vs-fixture-cli-release-solution-build/native.log; SDK10.0.401. |
+| Same-configuration copy and startup | Debug13/13 and Release13/13 files hash-match; both copied processes load and reject absent descriptor with expected exit2 | vs-fixture-copy-and-startup-check; .cis/local/coordination-intake/vs-fixture-process-proof.json. NET/ASP10.0.12 and RollForwardDisable verified. |
+
+These are actual Visual Studio2026 18.13 `devenv.com /Build /Project` runs, not
+MSBuild flags presented as IDE acceptance. Microsoft's
+[command reference](https://learn.microsoft.com/en-us/visualstudio/ide/reference/devenv-command-line-switches)
+documents this noninteractive build route. The existing **MSB3270** warning for
+AnyCPU IntegrationTests referencing AMD64 CountryData appeared in the original
+reproduction and remains in both fixed IDE builds and the CLI build. This
+correction changes no architecture contract or warning policy.
+
+No C# behavior, dependency, lock, SDK/runtime pin, process mode or copy guard was
+changed. No new test harness, functional-suite run, SQL/broker acceptance, push,
+merge or release is claimed. A short tests guide note and independent review
+cover this one-line build correction. The user's launch settings retain their
+previous hash.
+
+The same delegated outcome supplies a **2,880-second / two-attempt** WORK-013
+distribution inside the unchanged40-hour/48-attempt/6GiB ceiling and all protected
+reserves. Scope-only authorization v6 retains the original global constraints;
+the earlier controller-prose constraint addition and held allocations remain
+recorded, rather than resetting any costs. All source/native costs, including
+intake and the intentionally failing IDE reproduction, remain in the existing
+journals. No completed owner is reopened.
+
+## Visual Studio correction closeout
+
+Supported plan validation returned valid and WORK-013 is Complete.
+
+| Task ID | Check | Command or artifact | Result | Notes |
+| --- | --- | --- | --- | --- |
+| WORK-013 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2238; failed=307; possibleTokenSavings=591; ledgerDigest=sha256:466ab634992d99a904173a360fd70a07fe8155859fa6ea8a3f73fbf21515f398 |

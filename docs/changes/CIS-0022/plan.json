@@ -607,6 +607,57 @@
         }
       ],
       "contractErrors": []
+    },
+    {
+      "id": "WORK-013",
+      "category": "implementation",
+      "complexity": "low",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-013.md",
+      "title": "Correct Visual Studio messaging process fixture build ordering",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [],
+      "acceptanceCriteria": "The existing Messaging/CrashHost process fixture is loaded under the solution Fixtures folder so Visual Studio schedules its ProjectReference before the parent copies executable files. Preserve parent Debug/Release configuration and the fail-closed DLL/runtimeconfig/deps guard, existing fixture/public contracts and no-service defaults. Include a brief build note and actual native verification; no runtime, dependency or test-harness expansion.",
+      "validation": "Use installed Visual Studio 18 MSBuild with IDE-style reference scheduling plus the pinned CLI where appropriate to build Debug and Release, starting without Debug CrashHost output. Verify matching configuration-specific fixture DLL/deps/runtimeconfig copies and no-argument process loading with expected bounded rejection before any service access. Record actual output/warnings/errors and user-file preservation, without claiming interactive GUI or SQL/broker acceptance. Supporting docs and independent review belong to this one task; preserve completed owners/costs and original shared limits.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:2b46a44ac8cd4bb5ab11b6000548e147",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "consumers"
+      ],
+      "authorizationScopeBasis": "sha256:91d89d3432c818ed12b1dcfa668802728d1e8ba13587636d85bc2811dd5a56e0",
+      "workPaths": [
+        "implementations/csharp/CisLib.slnx",
+        "implementations/csharp/tests/README.md",
+        "docs/changes/CIS-0022"
+      ],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "The existing Messaging/CrashHost process fixture is loaded under the solution Fixtures folder so Visual Studio schedules its ProjectReference before the parent copies executable files. Preserve parent Debug/Release configuration and the fail-closed DLL/runtimeconfig/deps guard, existing fixture/public contracts and no-service defaults. Include a brief build note and actual native verification; no runtime, dependency or test-harness expansion."
+          ],
+          "description": "Use installed Visual Studio 18 MSBuild with IDE-style reference scheduling plus the pinned CLI where appropriate to build Debug and Release, starting without Debug CrashHost output. Verify matching configuration-specific fixture DLL/deps/runtimeconfig copies and no-argument process loading with expected bounded rejection before any service access. Record actual output/warnings/errors and user-file preservation, without claiming interactive GUI or SQL/broker acceptance. Supporting docs and independent review belong to this one task; preserve completed owners/costs and original shared limits.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Use installed Visual Studio 18 MSBuild with IDE-style reference scheduling plus the pinned CLI where appropriate to build Debug and Release, starting without Debug CrashHost output. Verify matching configuration-specific fixture DLL/deps/runtimeconfig copies and no-argument process loading with expected bounded rejection before any service access. Record actual output/warnings/errors and user-file preservation, without claiming interactive GUI or SQL/broker acceptance. Supporting docs and independent review belong to this one task; preserve completed owners/costs and original shared limits."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
     }
   ],
   "source": null

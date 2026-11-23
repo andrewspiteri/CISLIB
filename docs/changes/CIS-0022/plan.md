@@ -25,3 +25,4 @@ Derived under `cislib:CIS-0022:outcome:31de62abefb947ed8b11c51cc37ba560` by Code
 | WORK-011 | [Complete bounded coordination and jobs observations with native exporter integration](agent-tasks/WORK-011.md) | Complete | WORK-001, WORK-003, WORK-004, WORK-005 |
 | WORK-007 | [Deliver integrated consumers and coordination agent guidance](agent-tasks/WORK-007.md) | Complete | WORK-002, WORK-004, WORK-005, WORK-006 |
 | WORK-012 | [Correct managed jobs activation transitions and partition health](agent-tasks/WORK-012.md) | Complete |  |
+| WORK-013 | [Correct Visual Studio messaging process fixture build ordering](agent-tasks/WORK-013.md) | Complete |  |
