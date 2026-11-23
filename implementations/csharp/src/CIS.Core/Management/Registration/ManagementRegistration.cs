@@ -155,6 +155,7 @@ public sealed partial class ManagementRegistration : IStartable, IHeartbeatSubsc
     private async Task StartCoreAsync(TaskCompletionSource completion, CancellationToken caller)
     {
         CancellationToken selected = default;
+        var cancellationNotification = new StartupCancellation(admission);
         try
         {
             ValidateOptions();
@@ -162,52 +163,58 @@ public sealed partial class ManagementRegistration : IStartable, IHeartbeatSubsc
                 using var startupCancellation = CancellationTokenSource.CreateLinkedTokenSource(caller, stoppingToken);
                 CancellationToken token = startupCancellation.Token;
                 selected = token;
-                token.ThrowIfCancellationRequested();
-                request = new(1, options.ReportedInstanceId ?? EnvironmentOptions.InstanceId,
-                    Timestamp(options.ProcessStartedAtUtc ?? EnvironmentOptions.ProcessStartedAtUtc
-                        ?? throw new ArgumentException("Select an actual process start when the native fact is unavailable.")),
-                    options.ApplicationVersion ?? EnvironmentOptions.ServiceVersion);
-                _ = ManagementWire.EncodeRequest(request, options.WireLimits);
-                admission.BindRegistration(registrationId);
-                PrepareLatest(initial: true, token);
-                monitor = health?.CreateCondition(new ConditionMonitorOptions
+                using (token.UnsafeRegister(_ => cancellationNotification.Signal(), null))
                 {
-                    IsCritical = false,
-                    InitiallyFlagged = false,
-                    Name = "Management connectivity"
-                });
-                owner = heartbeat.CreateOwner();
-                bool initialRegistered;
-                using (var budget = new CancellationTokenSource(options.InitialRegistrationTimeout, clock))
-                using (var initial = CancellationTokenSource.CreateLinkedTokenSource(token, budget.Token))
-                {
-                    try
+                    token.ThrowIfCancellationRequested();
+                    request = new(1, options.ReportedInstanceId ?? EnvironmentOptions.InstanceId,
+                        Timestamp(options.ProcessStartedAtUtc ?? EnvironmentOptions.ProcessStartedAtUtc
+                            ?? throw new ArgumentException("Select an actual process start when the native fact is unavailable.")),
+                        options.ApplicationVersion ?? EnvironmentOptions.ServiceVersion);
+                    _ = ManagementWire.EncodeRequest(request, options.WireLimits);
+                    admission.BindRegistration(registrationId);
+                    PrepareLatest(initial: true, token);
+                    monitor = health?.CreateCondition(new ConditionMonitorOptions
                     {
-                        initialRegistered = await RegisterAsync(initial.Token,
-                            new ManagementCallOptions(options.InitialRegistrationTimeout)).ConfigureAwait(false);
-                        initial.Token.ThrowIfCancellationRequested();
-                    }
-                    catch (OperationCanceledException error) when (!token.IsCancellationRequested && budget.IsCancellationRequested
-                        && error.CancellationToken == initial.Token)
+                        IsCritical = false,
+                        InitiallyFlagged = false,
+                        Name = "Management connectivity"
+                    });
+                    owner = heartbeat.CreateOwner();
+                    bool initialRegistered;
+                    using (var budget = new CancellationTokenSource(options.InitialRegistrationTimeout, clock))
+                    using (var initial = CancellationTokenSource.CreateLinkedTokenSource(token, budget.Token))
                     {
-                        MarkFailure("management.registration.timeout");
-                        initialRegistered = false;
+                        try
+                        {
+                            initialRegistered = await RegisterAsync(initial.Token,
+                                new ManagementCallOptions(options.InitialRegistrationTimeout)).ConfigureAwait(false);
+                            initial.Token.ThrowIfCancellationRequested();
+                        }
+                        catch (OperationCanceledException error) when (!token.IsCancellationRequested && budget.IsCancellationRequested
+                            && error.CancellationToken == initial.Token)
+                        {
+                            MarkFailure("management.registration.timeout");
+                            initialRegistered = false;
+                        }
+                        catch (OperationCanceledException error) when (token.IsCancellationRequested && error.CancellationToken == initial.Token)
+                        {
+                            throw new OperationCanceledException(token);
+                        }
                     }
-                    catch (OperationCanceledException error) when (token.IsCancellationRequested && error.CancellationToken == initial.Token)
+                    token.ThrowIfCancellationRequested();
+                    if (!initialRegistered)
                     {
-                        throw new OperationCanceledException(token);
+                        throw new InvalidOperationException("Required initial management registration did not return a valid receipt.");
                     }
+                    if (!await ConfirmControlAsync(token).ConfigureAwait(false))
+                    {
+                        throw new InvalidOperationException("Required live management bootstrap or module reconciliation did not complete.");
+                    }
+                    await ReportCurrentAsync(token).ConfigureAwait(false);
+                    token.ThrowIfCancellationRequested();
                 }
-                token.ThrowIfCancellationRequested();
-                if (!initialRegistered)
-                {
-                    throw new InvalidOperationException("Required initial management registration did not return a valid receipt.");
-                }
-                if (!await ConfirmControlAsync(token).ConfigureAwait(false))
-                {
-                    throw new InvalidOperationException("Required live management bootstrap or module reconciliation did not complete.");
-                }
-                await ReportCurrentAsync(token).ConfigureAwait(false);
+                // Join the cutoff callback before activating recurring work or completing startup.
+                cancellationNotification.ThrowIfFaulted();
                 token.ThrowIfCancellationRequested();
                 SetNextAttempt();
                 TimeSpan heartbeatInterval = Minimum(options.ReportingInterval,
@@ -223,11 +230,19 @@ public sealed partial class ManagementRegistration : IStartable, IHeartbeatSubsc
         }
         catch (OperationCanceledException error) when (selected.IsCancellationRequested && error.CancellationToken == selected)
         {
-            completion.TrySetCanceled(error.CancellationToken);
+            Exception failure = CloseAdmissionAfterFault(cancellationNotification.Retain(error));
+            if (ReferenceEquals(failure, error))
+            {
+                completion.TrySetCanceled(error.CancellationToken);
+            }
+            else
+            {
+                completion.TrySetException(failure);
+            }
         }
         catch (Exception error)
         {
-            completion.TrySetException(CloseAdmissionAfterFault(error));
+            completion.TrySetException(CloseAdmissionAfterFault(cancellationNotification.Retain(error)));
         }
     }
 

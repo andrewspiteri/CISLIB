@@ -1,0 +1,30 @@
+{
+  "tasks": [
+    {
+      "title": "Close managed admission on canceled direct startup",
+      "scopeIds": [
+        "startup",
+        "records"
+      ],
+      "dependsOn": [],
+      "acceptanceCriteria": "Cancellation through initial observation or inventory closes and invalidates admission before startup cancellation completes, no recurring subscription remains, accepted work/cleanup joined and event programming faults preserved.",
+      "category": "implementation",
+      "validation": "Existing bounded lifecycle tests cover cooperative/uncooperative reporting cancellation and unchanged success/stop behavior; pinned focused MSTest/build/format plus current docs.",
+      "complexity": "medium",
+      "assignee": "Codex"
+    },
+    {
+      "title": "Preserve structured native-fetch response failure and mutation recovery",
+      "scopeIds": [
+        "fetch",
+        "records"
+      ],
+      "dependsOn": [],
+      "acceptanceCriteria": "Expected native-fetch response stream/disposal disconnect, deadline and caller cancellation return structured facts including original operationKey/mutationUncertain after PUT headers; actual cleanup awaited and unexpected programming faults propagate.",
+      "category": "implementation",
+      "validation": "Native fetch HTTPS body disconnect/deadline/cancel regressions using existing fixture; bounded unexpected-fault/held-cleanup tests; pinned TypeScript build/browser/Node and focused native MSTest fixture checks/docs.",
+      "complexity": "medium",
+      "assignee": "Codex"
+    }
+  ]
+}

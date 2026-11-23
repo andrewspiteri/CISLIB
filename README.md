@@ -21,12 +21,12 @@ cd implementations/csharp
 dotnet tool restore --configfile eng/Tools.NuGet.config
 dotnet restore CisLib.slnx --locked-mode
 dotnet build CisLib.slnx -c Release --no-restore
-dotnet test CisLib.slnx -c Release --no-build --no-restore --filter "TestCategory!=RequiresDocker&TestCategory!=PerformanceObservation&TestCategory!=ExtendedStress"
+dotnet test CisLib.slnx -c Release --no-build --no-restore --filter "TestCategory!=RequiresDocker&TestCategory!=RequiresNode&TestCategory!=PerformanceObservation&TestCategory!=ExtendedStress"
 ```
 
-This fast selection needs no Docker and excludes service, performance and extended
-stress cases. Real PostgreSQL/RabbitMQ integration provisions its own isolated
-Testcontainers services when selected:
+This fast selection needs no Docker or Node and excludes service, native Node,
+performance and extended stress cases. Real PostgreSQL/RabbitMQ integration
+provisions its own isolated Testcontainers services when selected:
 
 ```powershell
 dotnet test tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj -c Release --no-build --no-restore --settings tests/CIS.Core.IntegrationTests/service-tests.runsettings --filter "TestCategory=RequiresDocker&TestCategory!=PerformanceObservation&TestCategory!=ExtendedStress" --logger "trx;LogFileName=service-tests.trx"
@@ -39,10 +39,13 @@ for endpoint ownership, result validation, PostgreSQL-only selection and the Lin
 CI job. An unfiltered solution run or IDE Run All also includes performance and
 extended stress categories; full release qualification remains separate.
 
-The Management same-service cases also need the built TypeScript packages.
-Before that service selection, run `npm ci`, `npm run build`, `npm test` and
+The Management same-service and native-fetch HTTPS cases also need the built
+TypeScript packages.
+Before selecting those cases, run `npm ci`, `npm run build`, `npm test` and
 `npm run check:browser` from `implementations/typescript`, using Node **24.15.0**
-and npm **11.12.1**. The existing service CI job performs these steps. Set
+and npm **11.12.1**. The existing service CI job performs these steps and selects
+both `RequiresDocker` and `RequiresNode` cases. The native-fetch `RequiresNode`
+cases need no Docker. Set
 `CIS_TEST_NODE_EXECUTABLE` only when the native Node executable is absent from
 the test process's PATH.
 

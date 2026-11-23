@@ -53,6 +53,15 @@ work. The default direct registration budget is thirty seconds. The retained
 does not make selected managed bootstrap optional. There is no dependence on the
 first periodic Heartbeat callback to satisfy required startup.
 
+Canceling direct `ManagementRegistration.StartAsync` also closes and invalidates
+admission during the initial observation or inventory reports, even after live
+control has succeeded. Startup still joins the accepted report and its actual
+cleanup before completing as canceled, and installs no recurring subscription
+on that path. Repeated startup joins the same outcome. Unexpected admission
+notification or accepted-work faults remain visible; cancellation does not hide
+them. The application must still await `StopAsync` or disposal for the captured
+owner and monitor drain in the established dependency order.
+
 `IManagedWorkAdmission.TryAdmit()` is a point-in-time check immediately before a
 new managed claim, acquisition or finite invocation. Its snapshot and Changed
 event are observations, not reusable permits. The gate starts

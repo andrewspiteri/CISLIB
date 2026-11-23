@@ -147,6 +147,114 @@ public sealed class ManagedAdmissionTests
     }
 
     [TestMethod]
+    [DataRow(false, false)]
+    [DataRow(false, true)]
+    [DataRow(true, false)]
+    [DataRow(true, true)]
+    public async Task CanceledInitialReportsCloseAdmissionImmediatelyAndJoinActualWorkBeforeCompleting(
+        bool inventoryReport, bool observeCancellation)
+    {
+        await using var fixture = new Fixture();
+        fixture.Script.EnqueueResult(ScriptedManagementCallKind.Registration,
+            Value(new ManagementRegistrationReceipt(fixture.Id, Other, Time)));
+        fixture.EnqueueControl();
+        if (inventoryReport)
+        {
+            fixture.Script.EnqueueResult(ScriptedManagementCallKind.Observation,
+                Value(new ManagementReportReceipt(fixture.Id, "observation", "1", "1", "accepted", Time)));
+        }
+        PendingManagementCall pending = fixture.Script.EnqueuePending(
+            inventoryReport ? ScriptedManagementCallKind.InventoryReport : ScriptedManagementCallKind.Observation,
+            Value(new ManagementReportReceipt(fixture.Id, inventoryReport ? "inventory" : "observation", "1", "1", "accepted", Time)),
+            observeCancellation);
+        using var caller = new CancellationTokenSource();
+        Task startup = fixture.Runtime.StartAsync(caller.Token);
+        try
+        {
+            await pending.Entered.WaitAsync(Deadline);
+            Assert.IsTrue(fixture.Gate.TryAdmit(), "Initial reporting follows successful live control and reconciliation.");
+
+            caller.Cancel();
+
+            Assert.IsFalse(fixture.Gate.TryAdmit(), "Cancellation closes admission before accepted report cleanup finishes.");
+            Assert.AreEqual(ManagedWorkAdmissionState.ContinuingOnly, fixture.Gate.CaptureSnapshot().State);
+            Assert.HasCount(0, fixture.Heartbeat.Registrations);
+            if (!observeCancellation)
+            {
+                Assert.IsFalse(startup.IsCompleted, "Signaling cannot abandon an uncooperative accepted report.");
+            }
+        }
+        finally
+        {
+            pending.Release();
+        }
+
+        await Assert.ThrowsExactlyAsync<TaskCanceledException>(() => startup.WaitAsync(Deadline));
+
+        Assert.IsTrue(startup.IsCanceled);
+        Assert.AreSame(startup, fixture.Runtime.StartAsync(), "Repeated startup joins the same canceled operation.");
+        Assert.IsFalse(await fixture.Runtime.OnElapsedAsync(CancellationToken.None));
+        fixture.Clock.Advance(TimeSpan.FromMilliseconds(14999));
+        Assert.IsFalse(fixture.Gate.TryAdmit(), "The earlier confirmation cannot reopen canceled startup.");
+        Assert.HasCount(0, fixture.Heartbeat.Registrations);
+        Assert.AreEqual(inventoryReport ? 4 : 3, fixture.Script.TotalCalls);
+    }
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task StartupCancellationRetainsCutoffNotificationFaultsAndOriginalAcceptedWorkFaults(bool workFaults)
+    {
+        await using var fixture = new Fixture();
+        fixture.Script.EnqueueResult(ScriptedManagementCallKind.Registration,
+            Value(new ManagementRegistrationReceipt(fixture.Id, Other, Time)));
+        fixture.EnqueueControl();
+        TaskCompletionSource entered = Signal();
+        TaskCompletionSource release = Signal();
+        var workFailure = new InvalidOperationException("Original accepted report fault.");
+        var cutoffFailure = new InvalidOperationException("Original admission notification fault.");
+        fixture.Client.Observation = async (id, observation, token) =>
+        {
+            entered.TrySetResult();
+            await release.Task;
+            if (workFaults)
+            {
+                throw workFailure;
+            }
+            token.ThrowIfCancellationRequested();
+            return Value(new ManagementReportReceipt(id, "observation", observation.Sequence, observation.Sequence, "accepted", Time));
+        };
+        using var caller = new CancellationTokenSource();
+        Task startup = fixture.Runtime.StartAsync(caller.Token);
+        EventHandler<ManagedWorkAdmissionChangedEventArgs> notification = (_, _) => throw cutoffFailure;
+        try
+        {
+            await entered.Task.WaitAsync(Deadline);
+            fixture.Gate.Changed += notification;
+
+            caller.Cancel();
+
+            Assert.IsFalse(fixture.Gate.TryAdmit());
+            Assert.IsFalse(startup.IsCompleted);
+            release.TrySetResult();
+            AggregateException failure = await Assert.ThrowsExactlyAsync<AggregateException>(() => startup.WaitAsync(Deadline));
+            IReadOnlyCollection<Exception> retained = failure.Flatten().InnerExceptions;
+            Assert.HasCount(2, retained);
+            Assert.IsTrue(retained.Any(error => ReferenceEquals(error, cutoffFailure)));
+            Assert.IsTrue(workFaults
+                ? retained.Any(error => ReferenceEquals(error, workFailure))
+                : retained.Any(error => error is OperationCanceledException));
+            Assert.IsTrue(startup.IsFaulted, "Unexpected notification faults cannot be hidden as expected cancellation.");
+            Assert.HasCount(0, fixture.Heartbeat.Registrations);
+        }
+        finally
+        {
+            fixture.Gate.Changed -= notification;
+            release.TrySetResult();
+        }
+    }
+
+    [TestMethod]
     public async Task ObservedOutageClosesOnlyNewAdmissionAndReconnectionMustReconcileBeforeOpening()
     {
         var retained = new Reconciler();
@@ -406,10 +514,15 @@ public sealed class ManagedAdmissionTests
         {
             get; set;
         }
+        internal Func<string, ManagementObservation, CancellationToken, Task<ManagementCallResult<ManagementReportReceipt>>>? Observation
+        {
+            get; set;
+        }
         public Task<ManagementCallResult<ManagementControlConfirmation>> GetControlAsync(string id, string attempt, CancellationToken token = default)
             => Control?.Invoke(id, attempt, token) ?? inner.GetControlAsync(id, attempt, token);
         public Task<ManagementCallResult<ManagementRegistrationReceipt>> RegisterAsync(string id, ManagementRegistrationRequest request, ManagementCallOptions? options = null, CancellationToken token = default) => inner.RegisterAsync(id, request, options, token);
-        public Task<ManagementCallResult<ManagementReportReceipt>> ReportObservationAsync(string id, ManagementObservation value, ManagementCallOptions? options = null, CancellationToken token = default) => inner.ReportObservationAsync(id, value, options, token);
+        public Task<ManagementCallResult<ManagementReportReceipt>> ReportObservationAsync(string id, ManagementObservation value, ManagementCallOptions? options = null, CancellationToken token = default)
+            => Observation?.Invoke(id, value, token) ?? inner.ReportObservationAsync(id, value, options, token);
         public Task<ManagementCallResult<ManagementReportReceipt>> ReportInventoryAsync(string id, ManagementInventorySnapshot value, ManagementCallOptions? options = null, CancellationToken token = default) => inner.ReportInventoryAsync(id, value, options, token);
         public Task<ManagementCallResult<ManagementCloseReceipt>> CloseRegistrationAsync(string id, ManagementCallOptions? options = null, CancellationToken token = default) => inner.CloseRegistrationAsync(id, options, token);
         public Task<ManagementCallResult<ManagementServiceInfo>> GetServiceInfoAsync(ManagementCallOptions? options = null, CancellationToken token = default) => inner.GetServiceInfoAsync(options, token);

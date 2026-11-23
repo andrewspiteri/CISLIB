@@ -161,6 +161,38 @@ public sealed partial class ManagementRegistration
         return original;
     }
 
+    private sealed class StartupCancellation(ManagedWorkAdmission admission)
+    {
+        private Exception? failure;
+
+        internal void Signal()
+        {
+            try
+            {
+                admission.CloseAfterFault();
+            }
+            catch (Exception error)
+            {
+                Interlocked.CompareExchange(ref failure, error, null);
+            }
+        }
+
+        internal Exception Retain(Exception original)
+        {
+            return Volatile.Read(ref failure) is { } secondary && !ReferenceEquals(original, secondary)
+                ? new AggregateException("Management startup and its cancellation cutoff faulted.", original, secondary)
+                : original;
+        }
+
+        internal void ThrowIfFaulted()
+        {
+            if (Volatile.Read(ref failure) is { } error)
+            {
+                ExceptionDispatchInfo.Capture(error).Throw();
+            }
+        }
+    }
+
     private sealed class ControlCancellation(ManagedWorkAdmission admission, ManagedControlAttempt attempt)
     {
         private Exception? failure;

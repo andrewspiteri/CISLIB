@@ -104,7 +104,7 @@ jobs:
           results="$RUNNER_TEMP/cislib-service-results"
           mkdir -p "$results"
           set +e
-          dotnet test tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj -c Release --no-build --no-restore --settings tests/CIS.Core.IntegrationTests/service-tests.runsettings --filter "TestCategory=RequiresDocker&TestCategory!=PerformanceObservation&TestCategory!=ExtendedStress" --logger "trx;LogFileName=service-tests.trx" --results-directory "$results"
+          dotnet test tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj -c Release --no-build --no-restore --settings tests/CIS.Core.IntegrationTests/service-tests.runsettings --filter "(TestCategory=RequiresDocker|TestCategory=RequiresNode)&TestCategory!=PerformanceObservation&TestCategory!=ExtendedStress" --logger "trx;LogFileName=service-tests.trx" --results-directory "$results"
           service_exit=$?
           set -e
           dotnet run --file eng/VerifyServiceTestReport.cs --artifacts-path "$RUNNER_TEMP/cislib-service-guard" -- "$results/service-tests.trx" "$service_exit"

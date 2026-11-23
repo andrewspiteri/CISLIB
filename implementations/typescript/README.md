@@ -58,6 +58,15 @@ failures return structured facts. A decoded HTTP result remains established if
 the deadline elapses while cleanup drains. `cleanupSucceeded` is separate from
 HTTP status, a business decision and original persistence.
 
+Native fetch response-body connection loss, deadline and caller cancellation
+return those structured facts after actual stream cleanup, including the original
+key and uncertainty for a metadata PUT. The no-Docker native HTTPS consumer test
+uses freshly generated fixture PEM files and a child-process public-root input;
+it changes no machine trust store and does not establish a remote database commit.
+Build this TypeScript workspace first and make the pinned Node executable
+available before selecting `ManagementFetchTransportTests` in the C# integration
+project. `CIS_TEST_NODE_EXECUTABLE` can explicitly select that installed executable.
+
 Calls make no retry by default. Deliberately setting `readRetries` to 1 or 2
 permits only GET retries for 408, 429, 502, 503 and 504, with bounded Retry-After or
 200/400 ms delays inside the same deadline. Authentication rejection, failed body

@@ -18,3 +18,14 @@ unbounded buffer, reject redirects and join its real request/socket work in
 `dispose`. Its `ClientTransportFailure` is an expected exchange/cleanup failure;
 an arbitrary thrown error remains a programming fault. Cooperative timeout does
 not authorize abandoning a transport or claiming remote rollback.
+
+The default native fetch adapter classifies network loss while reading or
+canceling its response stream and joins the actual native cancellation. Expected
+body failures keep structured timeout/cancellation/transport facts, the original
+operation key and mutation uncertainty. A rejected native cleanup is retained in
+`cleanupSucceeded`; it does not replace those facts with a duplicate exception.
+An explicitly injected fetch implementation must return native response streams
+with their native failure marker or use `ClientTransportFailure` for an expected
+exchange failure. An ambiguous `TypeError` from an injected stream remains a
+programming fault. Reader-state operations and decoding faults are outside native
+error classification, and genuine operation/cleanup faults still propagate.
