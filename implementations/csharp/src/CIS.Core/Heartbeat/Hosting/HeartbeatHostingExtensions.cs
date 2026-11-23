@@ -1,3 +1,4 @@
+using CIS.Audit.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -56,6 +57,7 @@ internal sealed class HeartbeatHostedService(HeartbeatRuntime runtime, IHostAppl
     private readonly IRestClientRuntime? rest = root.GetService<IRestClientRuntime>();
     private readonly MessagingRuntime? messaging = root.GetService<MessagingRuntime>();
     private readonly CoordinationHostLifetime? coordination = root.GetService<CoordinationHostLifetime>();
+    private readonly AuditRuntime? audit = root.GetService<AuditRuntime>();
 
     public Task StartingAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
@@ -66,9 +68,9 @@ internal sealed class HeartbeatHostedService(HeartbeatRuntime runtime, IHostAppl
             throw new InvalidOperationException("Install AddCisHeartbeat after dependent hosted services and disable concurrent hosted stopping so its barrier precedes dependency teardown.");
         }
         stopping = lifetime.ApplicationStopping.UnsafeRegister(static value => ((HeartbeatHostedService)value!).BeginStopping(), this);
-        if (coordination is not null)
+        if (audit is not null || coordination is not null)
         {
-            dependencyStopping = coordination.DependencyStopping.UnsafeRegister(static value => ((HeartbeatHostedService)value!).BeginStopping(), this);
+            dependencyStopping = (audit?.DependencyStopping ?? coordination!.DependencyStopping).UnsafeRegister(static value => ((HeartbeatHostedService)value!).BeginStopping(), this);
         }
         started = lifetime.ApplicationStarted.UnsafeRegister(static value => ((HeartbeatRuntime)value!).Activate(), runtime);
         return Task.CompletedTask;
@@ -84,6 +86,12 @@ internal sealed class HeartbeatHostedService(HeartbeatRuntime runtime, IHostAppl
 
     private void BeginStopping()
     {
+        if (audit is not null && !audit.IsDrained)
+        {
+            audit.BeginStopping();
+            return;
+        }
+
         if (coordination is not null && !coordination.IsDrained)
         {
             coordination.BeginStopping();
@@ -101,7 +109,7 @@ internal sealed class HeartbeatHostedService(HeartbeatRuntime runtime, IHostAppl
 
     private async Task StopCoreAsync()
     {
-        Exception? coordinationFailure = await CoordinationHostLifetime.CaptureStopAsync(coordination).ConfigureAwait(false);
+        Exception? coordinationFailure = await AuditRuntime.CaptureStopAsync(audit, coordination).ConfigureAwait(false);
         BeginStopping();
         Task messagingDrain = messaging?.StopAsync() ?? Task.CompletedTask;
         try

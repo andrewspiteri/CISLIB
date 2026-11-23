@@ -1,0 +1,707 @@
+{
+  "auditVersion": 1,
+  "provenance": "Independently authored values; expected outcomes are not emitted by the Core writer. Structural schema and complete wire-binding validity are separate assertions.",
+  "caseCount": 20,
+  "cases": [
+    {
+      "id": "minimal-opaque-application-event",
+      "description": "Unknown detail fields and lossless decimal/identifier strings remain opaque.",
+      "expectedSchemaValid": true,
+      "expectedWireValid": true,
+      "record": {
+        "auditVersion": 1,
+        "auditId": "1fca92de-d6bb-45a7-92ea-00f391668ef9",
+        "eventType": "example.order.changed",
+        "eventVersion": 1,
+        "category": "business",
+        "occurredAtUtc": "2026-11-23T09:10:11Z",
+        "recordedAtUtc": "2026-11-23T09:10:12.1234567Z",
+        "producer": {
+          "application": "orders",
+          "environment": "test"
+        },
+        "actor": {
+          "kind": "unknown"
+        },
+        "outcome": "succeeded",
+        "details": {
+          "amount": "9007199254740993.123456789",
+          "currency": "EUR",
+          "externalId": "9223372036854775808",
+          "future": {
+            "enabled": true
+          }
+        }
+      }
+    },
+    {
+      "id": "leading-slash-event-type",
+      "description": "Messaging type grammar permits a leading slash.",
+      "expectedSchemaValid": true,
+      "expectedWireValid": true,
+      "record": {
+        "auditVersion": 1,
+        "auditId": "1fca92de-d6bb-45a7-92ea-00f391668ef9",
+        "eventType": "/future.event",
+        "eventVersion": 29,
+        "category": "business",
+        "occurredAtUtc": "2026-11-23T09:10:11Z",
+        "recordedAtUtc": "2026-11-23T09:10:12.1234567Z",
+        "producer": {
+          "application": "orders",
+          "environment": "test"
+        },
+        "actor": {
+          "kind": "unknown"
+        },
+        "outcome": "succeeded",
+        "details": {
+          "amount": "9007199254740993.123456789",
+          "currency": "EUR",
+          "externalId": "9223372036854775808",
+          "future": {
+            "enabled": true
+          }
+        }
+      }
+    },
+    {
+      "id": "delegated-application-distinct-human",
+      "description": "Executing application and separately established initiating human remain distinct.",
+      "expectedSchemaValid": true,
+      "expectedWireValid": true,
+      "record": {
+        "auditVersion": 1,
+        "auditId": "1fca92de-d6bb-45a7-92ea-00f391668ef9",
+        "eventType": "example.order.changed",
+        "eventVersion": 1,
+        "category": "security",
+        "occurredAtUtc": "2026-11-23T09:10:11Z",
+        "recordedAtUtc": "2026-11-23T09:10:12.1234567Z",
+        "producer": {
+          "application": "orders",
+          "environment": "test"
+        },
+        "actor": {
+          "kind": "application",
+          "subject": {
+            "issuer": "app-trust",
+            "identifier": "worker"
+          },
+          "application": "worker",
+          "environment": "test",
+          "profile": "native",
+          "authenticationMethod": "certificate",
+          "policyVersion": "policy-v3",
+          "humanSubject": {
+            "issuer": "people",
+            "identifier": "person-42"
+          },
+          "verifiedDelegation": "verified-exchange-v1",
+          "instance": {
+            "kind": "verified",
+            "reportedIdentifier": "claimed-replica",
+            "verifiedIdentifier": "attested-replica"
+          }
+        },
+        "outcome": "succeeded",
+        "details": {
+          "amount": "9007199254740993.123456789",
+          "currency": "EUR",
+          "externalId": "9223372036854775808",
+          "future": {
+            "enabled": true
+          }
+        }
+      }
+    },
+    {
+      "id": "user-distinct-provider-and-human",
+      "description": "Unicode aliases and distinct provider/human subjects retain their native meaning.",
+      "expectedSchemaValid": true,
+      "expectedWireValid": true,
+      "record": {
+        "auditVersion": 1,
+        "auditId": "1fca92de-d6bb-45a7-92ea-00f391668ef9",
+        "eventType": "example.order.changed",
+        "eventVersion": 1,
+        "category": "business",
+        "occurredAtUtc": "2026-11-23T09:10:11Z",
+        "recordedAtUtc": "2026-11-23T09:10:12.1234567Z",
+        "producer": {
+          "application": "orders",
+          "environment": "test"
+        },
+        "actor": {
+          "kind": "user",
+          "subject": {
+            "issuer": "provider",
+            "identifier": "provider-subject"
+          },
+          "humanSubject": {
+            "issuer": "human-mapping",
+            "identifier": "human-17"
+          },
+          "profile": "配置",
+          "authenticationMethod": "validated",
+          "instance": {
+            "kind": "notProvided"
+          }
+        },
+        "outcome": "succeeded",
+        "details": {
+          "amount": "9007199254740993.123456789",
+          "currency": "EUR",
+          "externalId": "9223372036854775808",
+          "future": {
+            "enabled": true
+          }
+        }
+      }
+    },
+    {
+      "id": "reported-process-instance",
+      "description": "Local process metadata is reported evidence.",
+      "expectedSchemaValid": true,
+      "expectedWireValid": true,
+      "record": {
+        "auditVersion": 1,
+        "auditId": "1fca92de-d6bb-45a7-92ea-00f391668ef9",
+        "eventType": "example.order.changed",
+        "eventVersion": 1,
+        "category": "business",
+        "occurredAtUtc": "2026-11-23T09:10:11Z",
+        "recordedAtUtc": "2026-11-23T09:10:12.1234567Z",
+        "producer": {
+          "application": "orders",
+          "environment": "test",
+          "instance": {
+            "kind": "reported",
+            "reportedIdentifier": "process-7"
+          }
+        },
+        "actor": {
+          "kind": "unknown"
+        },
+        "outcome": "succeeded",
+        "details": {
+          "amount": "9007199254740993.123456789",
+          "currency": "EUR",
+          "externalId": "9223372036854775808",
+          "future": {
+            "enabled": true
+          }
+        }
+      }
+    },
+    {
+      "id": "target-operation-reference",
+      "description": "Optional common fields project explicit source facts.",
+      "expectedSchemaValid": true,
+      "expectedWireValid": true,
+      "record": {
+        "auditVersion": 1,
+        "auditId": "1fca92de-d6bb-45a7-92ea-00f391668ef9",
+        "eventType": "example.order.changed",
+        "eventVersion": 1,
+        "category": "business",
+        "occurredAtUtc": "2026-11-23T09:10:11Z",
+        "recordedAtUtc": "2026-11-23T09:10:12.1234567Z",
+        "producer": {
+          "application": "orders",
+          "environment": "test"
+        },
+        "actor": {
+          "kind": "unknown"
+        },
+        "outcome": "succeeded",
+        "details": {
+          "amount": "9007199254740993.123456789",
+          "currency": "EUR",
+          "externalId": "9223372036854775808",
+          "future": {
+            "enabled": true
+          }
+        },
+        "target": {
+          "application": "ledger",
+          "environment": "test",
+          "resourceType": "account",
+          "resourceIdentifier": "account-42"
+        },
+        "operationReference": {
+          "operationName": "post-entry",
+          "scope": "tenant-42",
+          "key": "opaque-key-1"
+        },
+        "reason": {
+          "code": "settled",
+          "text": "Selected safe explanation."
+        },
+        "domainEventId": "domain-event-42",
+        "correlationId": "correlation-42",
+        "causationAuditId": "60b4213d-fd2f-47b7-9011-b572e468d80c"
+      }
+    },
+    {
+      "id": "missing-details",
+      "description": "Details is required even when empty.",
+      "expectedSchemaValid": false,
+      "expectedWireValid": false,
+      "record": {
+        "auditVersion": 1,
+        "auditId": "1fca92de-d6bb-45a7-92ea-00f391668ef9",
+        "eventType": "example.order.changed",
+        "eventVersion": 1,
+        "category": "business",
+        "occurredAtUtc": "2026-11-23T09:10:11Z",
+        "recordedAtUtc": "2026-11-23T09:10:12.1234567Z",
+        "producer": {
+          "application": "orders",
+          "environment": "test"
+        },
+        "actor": {
+          "kind": "unknown"
+        },
+        "outcome": "succeeded"
+      }
+    },
+    {
+      "id": "unknown-common-field",
+      "description": "The v1 common envelope is closed.",
+      "expectedSchemaValid": false,
+      "expectedWireValid": false,
+      "record": {
+        "auditVersion": 1,
+        "auditId": "1fca92de-d6bb-45a7-92ea-00f391668ef9",
+        "eventType": "example.order.changed",
+        "eventVersion": 1,
+        "category": "business",
+        "occurredAtUtc": "2026-11-23T09:10:11Z",
+        "recordedAtUtc": "2026-11-23T09:10:12.1234567Z",
+        "producer": {
+          "application": "orders",
+          "environment": "test"
+        },
+        "actor": {
+          "kind": "unknown"
+        },
+        "outcome": "succeeded",
+        "details": {
+          "amount": "9007199254740993.123456789",
+          "currency": "EUR",
+          "externalId": "9223372036854775808",
+          "future": {
+            "enabled": true
+          }
+        },
+        "auditExtra": true
+      }
+    },
+    {
+      "id": "optional-null",
+      "description": "An absent optional object is omitted rather than null.",
+      "expectedSchemaValid": false,
+      "expectedWireValid": false,
+      "record": {
+        "auditVersion": 1,
+        "auditId": "1fca92de-d6bb-45a7-92ea-00f391668ef9",
+        "eventType": "example.order.changed",
+        "eventVersion": 1,
+        "category": "business",
+        "occurredAtUtc": "2026-11-23T09:10:11Z",
+        "recordedAtUtc": "2026-11-23T09:10:12.1234567Z",
+        "producer": {
+          "application": "orders",
+          "environment": "test"
+        },
+        "actor": {
+          "kind": "unknown"
+        },
+        "outcome": "succeeded",
+        "details": {
+          "amount": "9007199254740993.123456789",
+          "currency": "EUR",
+          "externalId": "9223372036854775808",
+          "future": {
+            "enabled": true
+          }
+        },
+        "target": null
+      }
+    },
+    {
+      "id": "missing-user-subject",
+      "description": "An authenticated user requires the established subject.",
+      "expectedSchemaValid": false,
+      "expectedWireValid": false,
+      "record": {
+        "auditVersion": 1,
+        "auditId": "1fca92de-d6bb-45a7-92ea-00f391668ef9",
+        "eventType": "example.order.changed",
+        "eventVersion": 1,
+        "category": "business",
+        "occurredAtUtc": "2026-11-23T09:10:11Z",
+        "recordedAtUtc": "2026-11-23T09:10:12.1234567Z",
+        "producer": {
+          "application": "orders",
+          "environment": "test"
+        },
+        "actor": {
+          "kind": "user"
+        },
+        "outcome": "succeeded",
+        "details": {
+          "amount": "9007199254740993.123456789",
+          "currency": "EUR",
+          "externalId": "9223372036854775808",
+          "future": {
+            "enabled": true
+          }
+        }
+      }
+    },
+    {
+      "id": "unknown-with-subject",
+      "description": "Missing authenticated identity must not gain an invented subject.",
+      "expectedSchemaValid": false,
+      "expectedWireValid": false,
+      "record": {
+        "auditVersion": 1,
+        "auditId": "1fca92de-d6bb-45a7-92ea-00f391668ef9",
+        "eventType": "example.order.changed",
+        "eventVersion": 1,
+        "category": "business",
+        "occurredAtUtc": "2026-11-23T09:10:11Z",
+        "recordedAtUtc": "2026-11-23T09:10:12.1234567Z",
+        "producer": {
+          "application": "orders",
+          "environment": "test"
+        },
+        "actor": {
+          "kind": "unknown",
+          "subject": {
+            "issuer": "invented",
+            "identifier": "person"
+          }
+        },
+        "outcome": "succeeded",
+        "details": {
+          "amount": "9007199254740993.123456789",
+          "currency": "EUR",
+          "externalId": "9223372036854775808",
+          "future": {
+            "enabled": true
+          }
+        }
+      }
+    },
+    {
+      "id": "partial-actor-application-pair",
+      "description": "Trusted actor application/environment are both present or absent.",
+      "expectedSchemaValid": false,
+      "expectedWireValid": false,
+      "record": {
+        "auditVersion": 1,
+        "auditId": "1fca92de-d6bb-45a7-92ea-00f391668ef9",
+        "eventType": "example.order.changed",
+        "eventVersion": 1,
+        "category": "business",
+        "occurredAtUtc": "2026-11-23T09:10:11Z",
+        "recordedAtUtc": "2026-11-23T09:10:12.1234567Z",
+        "producer": {
+          "application": "orders",
+          "environment": "test"
+        },
+        "actor": {
+          "kind": "application",
+          "subject": {
+            "issuer": "app-trust",
+            "identifier": "worker"
+          },
+          "application": "worker"
+        },
+        "outcome": "succeeded",
+        "details": {
+          "amount": "9007199254740993.123456789",
+          "currency": "EUR",
+          "externalId": "9223372036854775808",
+          "future": {
+            "enabled": true
+          }
+        }
+      }
+    },
+    {
+      "id": "application-human-without-delegation",
+      "description": "An application actor cannot carry a human without verified delegation.",
+      "expectedSchemaValid": false,
+      "expectedWireValid": false,
+      "record": {
+        "auditVersion": 1,
+        "auditId": "1fca92de-d6bb-45a7-92ea-00f391668ef9",
+        "eventType": "example.order.changed",
+        "eventVersion": 1,
+        "category": "business",
+        "occurredAtUtc": "2026-11-23T09:10:11Z",
+        "recordedAtUtc": "2026-11-23T09:10:12.1234567Z",
+        "producer": {
+          "application": "orders",
+          "environment": "test"
+        },
+        "actor": {
+          "kind": "application",
+          "subject": {
+            "issuer": "app-trust",
+            "identifier": "worker"
+          },
+          "humanSubject": {
+            "issuer": "people",
+            "identifier": "person"
+          }
+        },
+        "outcome": "succeeded",
+        "details": {
+          "amount": "9007199254740993.123456789",
+          "currency": "EUR",
+          "externalId": "9223372036854775808",
+          "future": {
+            "enabled": true
+          }
+        }
+      }
+    },
+    {
+      "id": "reported-with-verified-identifier",
+      "description": "Reported evidence cannot contain a verified identifier.",
+      "expectedSchemaValid": false,
+      "expectedWireValid": false,
+      "record": {
+        "auditVersion": 1,
+        "auditId": "1fca92de-d6bb-45a7-92ea-00f391668ef9",
+        "eventType": "example.order.changed",
+        "eventVersion": 1,
+        "category": "business",
+        "occurredAtUtc": "2026-11-23T09:10:11Z",
+        "recordedAtUtc": "2026-11-23T09:10:12.1234567Z",
+        "producer": {
+          "application": "orders",
+          "environment": "test",
+          "instance": {
+            "kind": "reported",
+            "reportedIdentifier": "claimed",
+            "verifiedIdentifier": "upgraded"
+          }
+        },
+        "actor": {
+          "kind": "unknown"
+        },
+        "outcome": "succeeded",
+        "details": {
+          "amount": "9007199254740993.123456789",
+          "currency": "EUR",
+          "externalId": "9223372036854775808",
+          "future": {
+            "enabled": true
+          }
+        }
+      }
+    },
+    {
+      "id": "not-provided-with-identifier",
+      "description": "notProvided carries neither identifier.",
+      "expectedSchemaValid": false,
+      "expectedWireValid": false,
+      "record": {
+        "auditVersion": 1,
+        "auditId": "1fca92de-d6bb-45a7-92ea-00f391668ef9",
+        "eventType": "example.order.changed",
+        "eventVersion": 1,
+        "category": "business",
+        "occurredAtUtc": "2026-11-23T09:10:11Z",
+        "recordedAtUtc": "2026-11-23T09:10:12.1234567Z",
+        "producer": {
+          "application": "orders",
+          "environment": "test",
+          "instance": {
+            "kind": "notProvided",
+            "reportedIdentifier": "invented"
+          }
+        },
+        "actor": {
+          "kind": "unknown"
+        },
+        "outcome": "succeeded",
+        "details": {
+          "amount": "9007199254740993.123456789",
+          "currency": "EUR",
+          "externalId": "9223372036854775808",
+          "future": {
+            "enabled": true
+          }
+        }
+      }
+    },
+    {
+      "id": "partial-target-resource-pair",
+      "description": "A target resource type and identifier form one pair.",
+      "expectedSchemaValid": false,
+      "expectedWireValid": false,
+      "record": {
+        "auditVersion": 1,
+        "auditId": "1fca92de-d6bb-45a7-92ea-00f391668ef9",
+        "eventType": "example.order.changed",
+        "eventVersion": 1,
+        "category": "business",
+        "occurredAtUtc": "2026-11-23T09:10:11Z",
+        "recordedAtUtc": "2026-11-23T09:10:12.1234567Z",
+        "producer": {
+          "application": "orders",
+          "environment": "test"
+        },
+        "actor": {
+          "kind": "unknown"
+        },
+        "outcome": "succeeded",
+        "details": {
+          "amount": "9007199254740993.123456789",
+          "currency": "EUR",
+          "externalId": "9223372036854775808",
+          "future": {
+            "enabled": true
+          }
+        },
+        "target": {
+          "application": "ledger",
+          "environment": "test",
+          "resourceType": "account"
+        }
+      }
+    },
+    {
+      "id": "zero-audit-id",
+      "description": "The audit UUID must be nonempty.",
+      "expectedSchemaValid": false,
+      "expectedWireValid": false,
+      "record": {
+        "auditVersion": 1,
+        "auditId": "00000000-0000-0000-0000-000000000000",
+        "eventType": "example.order.changed",
+        "eventVersion": 1,
+        "category": "business",
+        "occurredAtUtc": "2026-11-23T09:10:11Z",
+        "recordedAtUtc": "2026-11-23T09:10:12.1234567Z",
+        "producer": {
+          "application": "orders",
+          "environment": "test"
+        },
+        "actor": {
+          "kind": "unknown"
+        },
+        "outcome": "succeeded",
+        "details": {
+          "amount": "9007199254740993.123456789",
+          "currency": "EUR",
+          "externalId": "9223372036854775808",
+          "future": {
+            "enabled": true
+          }
+        }
+      }
+    },
+    {
+      "id": "invalid-event-grammar",
+      "description": "Stable event names use the existing ASCII grammar.",
+      "expectedSchemaValid": false,
+      "expectedWireValid": false,
+      "record": {
+        "auditVersion": 1,
+        "auditId": "1fca92de-d6bb-45a7-92ea-00f391668ef9",
+        "eventType": "not a type",
+        "eventVersion": 1,
+        "category": "business",
+        "occurredAtUtc": "2026-11-23T09:10:11Z",
+        "recordedAtUtc": "2026-11-23T09:10:12.1234567Z",
+        "producer": {
+          "application": "orders",
+          "environment": "test"
+        },
+        "actor": {
+          "kind": "unknown"
+        },
+        "outcome": "succeeded",
+        "details": {
+          "amount": "9007199254740993.123456789",
+          "currency": "EUR",
+          "externalId": "9223372036854775808",
+          "future": {
+            "enabled": true
+          }
+        }
+      }
+    },
+    {
+      "id": "invalid-calendar-date",
+      "description": "Structural timestamp grammar alone cannot validate calendar values.",
+      "expectedSchemaValid": true,
+      "expectedWireValid": false,
+      "record": {
+        "auditVersion": 1,
+        "auditId": "1fca92de-d6bb-45a7-92ea-00f391668ef9",
+        "eventType": "example.order.changed",
+        "eventVersion": 1,
+        "category": "business",
+        "occurredAtUtc": "2026-02-30T09:10:11Z",
+        "recordedAtUtc": "2026-11-23T09:10:12.1234567Z",
+        "producer": {
+          "application": "orders",
+          "environment": "test"
+        },
+        "actor": {
+          "kind": "unknown"
+        },
+        "outcome": "succeeded",
+        "details": {
+          "amount": "9007199254740993.123456789",
+          "currency": "EUR",
+          "externalId": "9223372036854775808",
+          "future": {
+            "enabled": true
+          }
+        }
+      }
+    },
+    {
+      "id": "control-in-correlation",
+      "description": "The runtime text binding rejects controls beyond structural scalar limits.",
+      "expectedSchemaValid": true,
+      "expectedWireValid": false,
+      "record": {
+        "auditVersion": 1,
+        "auditId": "1fca92de-d6bb-45a7-92ea-00f391668ef9",
+        "eventType": "example.order.changed",
+        "eventVersion": 1,
+        "category": "business",
+        "occurredAtUtc": "2026-11-23T09:10:11Z",
+        "recordedAtUtc": "2026-11-23T09:10:12.1234567Z",
+        "producer": {
+          "application": "orders",
+          "environment": "test"
+        },
+        "actor": {
+          "kind": "unknown"
+        },
+        "outcome": "succeeded",
+        "details": {
+          "amount": "9007199254740993.123456789",
+          "currency": "EUR",
+          "externalId": "9223372036854775808",
+          "future": {
+            "enabled": true
+          }
+        },
+        "correlationId": "unsafe\nmetadata"
+      }
+    }
+  ]
+}

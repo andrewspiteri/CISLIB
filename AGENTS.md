@@ -76,6 +76,21 @@ resource authorization, explicit host stages, sequential credential Startup and
 native TLS/response drain. Keep the default unselected tutorial behavior. Local
 native evidence cannot replace AC-02/AC-24 deployment proof.
 
+## Audit contracts and existing delivery
+
+For `CIS.Audit`, trusted capture, original-transaction staging, standalone
+observations or the explicit Security bridge, read the
+[Audit skill](.github/skills/cislib-audit/SKILL.md),
+[portable contract](contracts/audit/README.md) and single
+[consumer guide](docs/modules/audit/README.md). Preserve source eligibility,
+immutable original bytes, native caller/instance distinctions and actual
+three-state submission/cleanup. AuditId and MessageId serve different roles.
+Reuse existing Messaging delivery and actual drain; keep authorization active
+while omitting only the configured recursive infrastructure observations.
+Destination persistence and AuditId conflict enforcement remain deferred.
+Use bounded public CommonTesting plus the existing native/provider/package
+fixtures, and preserve CountryData's explicit opt-in/database-free default.
+
 ## Explicit local transactions
 
 For `CIS.Transactions` implementation, consumer use, tests or observations, read

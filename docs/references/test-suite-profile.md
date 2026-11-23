@@ -3,7 +3,7 @@ title: "Test Suite Profile"
 type: test-suite-profile
 status: Active
 owner: "Repository maintainers"
-last_reviewed: "2026-11-22"
+last_reviewed: "2026-11-23"
 review_cadence: "on test framework, command, classification, or CI-tier change"
 ---
 
@@ -59,3 +59,16 @@ maintenance recipes alongside its catalog/lookup examples; no new suite or
 harness is introduced. Its scripted facts establish no SQL or authentication
 proof. See [Coordination verification](../changes/CIS-0022/verification.md) for the
 actual current cases, packages, native lanes and cleanup.
+
+Audit uses these existing selections as well. Managed capture, strict wire,
+source eligibility, publication substitutions, Security mapping and drain tests
+are Docker-free. Actual collector/facade and outside-friend package checks remain
+in IntegrationTests; PostgreSQL atomicity and RabbitMQ delivery, retry, pressure
+and ingress authorization cases carry `RequiresDocker` and use the strict
+service settings and report guard. CountryData's opt-in observation examples
+reuse `CIS.CommonTesting` in the existing examples unit project. Scripted results
+prove no SQL commit, authentication or destination persistence. The
+[Audit verification record](../changes/CIS-0023/verification.md) distinguishes
+actual Windows native services from Ubuntu managed-runtime units; it establishes
+neither a Linux-client service pass nor full release qualification. No additional
+test project, lane or harness is introduced.

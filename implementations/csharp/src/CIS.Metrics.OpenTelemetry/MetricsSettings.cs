@@ -139,6 +139,10 @@ internal sealed class MetricsSettings
     {
         get;
     }
+    internal bool CollectAudit
+    {
+        get;
+    }
     internal int SecurityProfileCapacity
     {
         get;
@@ -216,12 +220,12 @@ internal sealed class MetricsSettings
     // Only the final context derives composition before any provider/producer is activated.
     internal MetricsSettings ForComposition(bool hasRestClient, bool hasWorkflows = false, bool hasStateMachines = false,
         int securityProfileCapacity = 0, bool hasTransactions = false, bool hasOperations = false, bool hasMessaging = false,
-        bool hasCoordination = false, bool hasJobs = false)
+        bool hasCoordination = false, bool hasJobs = false, bool hasAudit = false)
         => new(this, hasRestClient, hasWorkflows, hasStateMachines, securityProfileCapacity, hasTransactions, hasOperations, hasMessaging,
-            hasCoordination, hasJobs);
+            hasCoordination, hasJobs, hasAudit);
 
     private MetricsSettings(MetricsSettings configured, bool hasRestClient, bool hasWorkflows, bool hasStateMachines,
-        int securityProfileCapacity, bool hasTransactions, bool hasOperations, bool hasMessaging, bool hasCoordination, bool hasJobs)
+        int securityProfileCapacity, bool hasTransactions, bool hasOperations, bool hasMessaging, bool hasCoordination, bool hasJobs, bool hasAudit)
     {
         Enabled = configured.Enabled;
         CollectCoreModules = configured.CollectCoreModules;
@@ -239,6 +243,7 @@ internal sealed class MetricsSettings
         CollectMessaging = hasMessaging && CollectCoreModules;
         CollectCoordination = hasCoordination && CollectCoreModules;
         CollectJobs = hasJobs && CollectCoreModules;
+        CollectAudit = hasAudit && CollectCoreModules;
         MaxDefinitions = configured.MaxDefinitions;
         MaxStreams = configured.MaxStreams;
         CardinalityLimit = configured.CardinalityLimit;

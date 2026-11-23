@@ -118,6 +118,52 @@ Tests supply controlled local HTTP responses and timing through existing
 configuration/DI boundaries. The application has no self-test/failure flags,
 barriers, reports, hardcoded live data or alternative HTTP implementation.
 
+## Explicit Audit observation
+
+The default application does not select Audit delivery or register the optional
+[CountryCatalogAuditObservation](Audit/CountryCatalogAuditObservation.cs) helper.
+An application can explicitly select the existing Audit/Messaging integration
+described in the [Audit consumer guide](../../../../docs/modules/audit/README.md),
+then register this scoped helper:
+
+```csharp
+builder.Services.AddCountryCatalogAuditObservation();
+```
+
+After the catalog is ready, invoke it explicitly from an owned application scope:
+
+```csharp
+await using AsyncServiceScope scope = host.Services.CreateAsyncScope();
+CountryCatalogAuditObservation observation =
+    scope.ServiceProvider.GetRequiredService<CountryCatalogAuditObservation>();
+AuditSubmissionResult result = await observation.SubmitAsync("MT", cancellationToken);
+// Inspect result.Outcome and retain its actual available receipt/completion.
+```
+
+The helper resolves the country from the actual current catalog and captures
+`country.catalog.observed` version 1, category `business`, outcome `succeeded`.
+Its explicit details contain only `name` (one through 512 Unicode scalars, no
+controls or malformed Unicode), uppercase `iso2` (two ASCII letters) and `iso3`
+(three ASCII letters). Its target is the local application/environment's `country`
+resource with the canonical ISO2 identifier. The scoped capture supplies the
+actual trusted caller; without one the actor remains unknown. A missing country
+fails before capture/submission. No lookup provider request is added.
+
+This describes an observation of an existing in-memory snapshot. It makes no
+business change and cannot make the earlier catalog publication atomic with SQL.
+The result preserves `OutboxCommitted`, `NotSubmitted` or `Unknown`; none proves
+broker confirmation, receiver processing or archive storage. The helper submits
+once and never retries Unknown. Required transactional business-change Audit is
+demonstrated separately in the existing real-provider fixture.
+
+The [example unit tests](../CountryData.UnitTests/Audit/CountryAuditObservationExamples.cs)
+reuse the actual catalog with existing CommonTesting REST/Heartbeat substitutes,
+public `ConfigureCisAudit` trusted capture and bounded `ScriptedAuditWriter`.
+They exercise public contracts without a database, broker or friend constructor.
+Scripted submission/completion facts prove caller behavior, not native durability.
+From `implementations/csharp`, run the existing example test project with
+`--filter FullyQualifiedName~CountryAuditObservationExamples` for focused checks.
+
 ## Selected security service and caller
 
 The default `--security=none` retains the behavior above. Explicit

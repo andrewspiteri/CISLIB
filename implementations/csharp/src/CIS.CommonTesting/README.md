@@ -5,6 +5,18 @@ There is no MSTest/xUnit/NUnit, mocking, collector or retry dependency. Runtime
 projects must never reference this package. These are explicit test controls,
 not proof of Core scheduling, health-policy evaluation, HTTP or hosted shutdown.
 
+`ScriptedAuditWriter` implements `IAuditWriter` with an ordered finite script.
+`EnqueueStage` and `EnqueueSubmit` preserve the supplied Messaging result,
+including receipt, uncertain completion and cleanup facts. Failure scripts return
+the original fault; caller pre-cancellation consumes nothing. Script and metadata
+capacities default to 16, independently bounded from 1 to 65,536. Missing scripts,
+wrong operation kinds and full recordings fault rather than invent acceptance.
+Calls retain only operation kind, AuditId and optional database alias, never the
+record, details, caller or original transaction. The helper neither owns nor
+poisons a transaction and proves no SQL atomicity, broker delivery or archive.
+Use trusted local capture to obtain a `CapturedAuditRecord`; decoding external
+data does not confer source eligibility.
+
 - ManualHeartbeat creates public owners and records active registrations by
   subscriber reference. TriggerAsync explicitly awaits condition, callback,
   OnError and public monitor reporting. No background timer or dispatch queue runs.

@@ -1,0 +1,529 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:cis:audit:v1:record",
+  "title": "CIS portable audit record v1",
+  "description": "Common receiving envelope. Unknown application event types and versions retain opaque details. Strict UTF-8, duplicate-key, scalar/control-free, timestamp, byte and depth checks are additional wire binding rules in contract.json.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "auditVersion",
+    "auditId",
+    "eventType",
+    "eventVersion",
+    "category",
+    "occurredAtUtc",
+    "recordedAtUtc",
+    "producer",
+    "actor",
+    "outcome",
+    "details"
+  ],
+  "properties": {
+    "auditVersion": {
+      "type": "integer",
+      "const": 1
+    },
+    "auditId": {
+      "$ref": "#/$defs/uuid"
+    },
+    "eventType": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9._/-]+$"
+    },
+    "eventVersion": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2147483647
+    },
+    "category": {
+      "enum": [
+        "business",
+        "administration",
+        "security"
+      ]
+    },
+    "occurredAtUtc": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "recordedAtUtc": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "producer": {
+      "$ref": "#/$defs/producer"
+    },
+    "actor": {
+      "$ref": "#/$defs/actor"
+    },
+    "target": {
+      "$ref": "#/$defs/target"
+    },
+    "outcome": {
+      "enum": [
+        "accepted",
+        "succeeded",
+        "rejected",
+        "failed",
+        "canceled",
+        "unknown",
+        "allowed",
+        "denied"
+      ]
+    },
+    "reason": {
+      "$ref": "#/$defs/reason"
+    },
+    "operationReference": {
+      "$ref": "#/$defs/operationReference"
+    },
+    "correlationId": {
+      "$ref": "#/$defs/safeCode"
+    },
+    "causationAuditId": {
+      "$ref": "#/$defs/uuid"
+    },
+    "domainEventId": {
+      "$ref": "#/$defs/identifier"
+    },
+    "details": {
+      "type": "object",
+      "description": "Opaque application detail fields are permitted; producers separately select and validate their event schema."
+    }
+  },
+  "$defs": {
+    "application": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255
+    },
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024
+    },
+    "alias": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "safeCode": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "uuid": {
+      "type": "string",
+      "minLength": 36,
+      "maxLength": 36,
+      "pattern": "^(?!00000000-0000-0000-0000-000000000000$)[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{1,7})?Z$"
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "issuer",
+        "identifier"
+      ],
+      "properties": {
+        "issuer": {
+          "$ref": "#/$defs/identifier"
+        },
+        "identifier": {
+          "$ref": "#/$defs/identifier"
+        }
+      }
+    },
+    "instance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "notProvided",
+            "reported",
+            "verified"
+          ]
+        },
+        "reportedIdentifier": {
+          "$ref": "#/$defs/identifier"
+        },
+        "verifiedIdentifier": {
+          "$ref": "#/$defs/identifier"
+        }
+      },
+      "anyOf": [
+        {
+          "properties": {
+            "kind": {
+              "const": "notProvided"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "required": [
+            "reportedIdentifier"
+          ],
+          "properties": {
+            "kind": {
+              "const": "reported"
+            },
+            "reportedIdentifier": {}
+          },
+          "additionalProperties": false
+        },
+        {
+          "required": [
+            "verifiedIdentifier"
+          ],
+          "properties": {
+            "kind": {
+              "const": "verified"
+            },
+            "reportedIdentifier": {},
+            "verifiedIdentifier": {}
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "producer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "application",
+        "environment"
+      ],
+      "properties": {
+        "application": {
+          "$ref": "#/$defs/application"
+        },
+        "environment": {
+          "$ref": "#/$defs/application"
+        },
+        "instance": {
+          "$ref": "#/$defs/instance"
+        }
+      }
+    },
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "user",
+            "application",
+            "system",
+            "anonymous",
+            "unknown"
+          ]
+        },
+        "subject": {
+          "$ref": "#/$defs/subject"
+        },
+        "application": {
+          "$ref": "#/$defs/application"
+        },
+        "environment": {
+          "$ref": "#/$defs/application"
+        },
+        "profile": {
+          "$ref": "#/$defs/alias"
+        },
+        "authenticationMethod": {
+          "$ref": "#/$defs/alias"
+        },
+        "policyVersion": {
+          "$ref": "#/$defs/identifier"
+        },
+        "instance": {
+          "$ref": "#/$defs/instance"
+        },
+        "humanSubject": {
+          "$ref": "#/$defs/subject"
+        },
+        "verifiedDelegation": {
+          "$ref": "#/$defs/identifier"
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "kind",
+            "subject"
+          ],
+          "properties": {
+            "kind": {
+              "const": "user"
+            },
+            "profile": {},
+            "authenticationMethod": {},
+            "policyVersion": {},
+            "instance": {},
+            "verifiedDelegation": {},
+            "subject": {},
+            "humanSubject": {}
+          },
+          "additionalProperties": false
+        },
+        {
+          "required": [
+            "kind",
+            "subject"
+          ],
+          "properties": {
+            "kind": {
+              "const": "application"
+            },
+            "profile": {},
+            "authenticationMethod": {},
+            "policyVersion": {},
+            "instance": {},
+            "verifiedDelegation": {},
+            "subject": {}
+          },
+          "additionalProperties": false
+        },
+        {
+          "required": [
+            "kind",
+            "subject",
+            "humanSubject",
+            "verifiedDelegation"
+          ],
+          "properties": {
+            "kind": {
+              "const": "application"
+            },
+            "profile": {},
+            "authenticationMethod": {},
+            "policyVersion": {},
+            "instance": {},
+            "verifiedDelegation": {},
+            "subject": {},
+            "humanSubject": {}
+          },
+          "additionalProperties": false
+        },
+        {
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "enum": [
+                "system",
+                "anonymous",
+                "unknown"
+              ]
+            },
+            "profile": {},
+            "authenticationMethod": {},
+            "policyVersion": {},
+            "instance": {},
+            "verifiedDelegation": {},
+            "humanSubject": {}
+          },
+          "additionalProperties": false
+        },
+        {
+          "required": [
+            "kind",
+            "application",
+            "environment",
+            "subject"
+          ],
+          "properties": {
+            "kind": {
+              "const": "user"
+            },
+            "profile": {},
+            "authenticationMethod": {},
+            "policyVersion": {},
+            "instance": {},
+            "verifiedDelegation": {},
+            "application": {},
+            "environment": {},
+            "subject": {},
+            "humanSubject": {}
+          },
+          "additionalProperties": false
+        },
+        {
+          "required": [
+            "kind",
+            "application",
+            "environment",
+            "subject"
+          ],
+          "properties": {
+            "kind": {
+              "const": "application"
+            },
+            "profile": {},
+            "authenticationMethod": {},
+            "policyVersion": {},
+            "instance": {},
+            "verifiedDelegation": {},
+            "application": {},
+            "environment": {},
+            "subject": {}
+          },
+          "additionalProperties": false
+        },
+        {
+          "required": [
+            "kind",
+            "application",
+            "environment",
+            "subject",
+            "humanSubject",
+            "verifiedDelegation"
+          ],
+          "properties": {
+            "kind": {
+              "const": "application"
+            },
+            "profile": {},
+            "authenticationMethod": {},
+            "policyVersion": {},
+            "instance": {},
+            "verifiedDelegation": {},
+            "application": {},
+            "environment": {},
+            "subject": {},
+            "humanSubject": {}
+          },
+          "additionalProperties": false
+        },
+        {
+          "required": [
+            "kind",
+            "application",
+            "environment"
+          ],
+          "properties": {
+            "kind": {
+              "enum": [
+                "system",
+                "anonymous",
+                "unknown"
+              ]
+            },
+            "profile": {},
+            "authenticationMethod": {},
+            "policyVersion": {},
+            "instance": {},
+            "verifiedDelegation": {},
+            "application": {},
+            "environment": {},
+            "humanSubject": {}
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "application",
+        "environment"
+      ],
+      "properties": {
+        "application": {
+          "$ref": "#/$defs/application"
+        },
+        "environment": {
+          "$ref": "#/$defs/application"
+        },
+        "resourceType": {
+          "$ref": "#/$defs/identifier"
+        },
+        "resourceIdentifier": {
+          "$ref": "#/$defs/identifier"
+        }
+      },
+      "anyOf": [
+        {
+          "properties": {
+            "application": {},
+            "environment": {}
+          },
+          "additionalProperties": false
+        },
+        {
+          "required": [
+            "resourceType",
+            "resourceIdentifier"
+          ],
+          "properties": {
+            "application": {},
+            "environment": {},
+            "resourceType": {},
+            "resourceIdentifier": {}
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "reason": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code"
+      ],
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/safeCode"
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        }
+      }
+    },
+    "operationReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operationName",
+        "scope",
+        "key"
+      ],
+      "properties": {
+        "operationName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]*$"
+        },
+        "scope": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "description": "The wire binding additionally enforces the existing 256 UTF-8 byte scope limit."
+        },
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[!-~]+$"
+        }
+      }
+    }
+  }
+}

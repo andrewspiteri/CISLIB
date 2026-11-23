@@ -1,0 +1,130 @@
+{
+  "auditVersion": 1,
+  "provenance": "Independently authored exact UTF-8 strings. Decode the manifest string as UTF-8 without reserializing its JSON content. Base64 carries intentionally invalid UTF-8.",
+  "caseCount": 16,
+  "cases": [
+    {
+      "id": "exact-opaque-original",
+      "description": "Independent exact source bytes; opaque unknown JSON number is not converted through floating point.",
+      "expectedValid": true,
+      "wireUtf8": "{\"auditVersion\":1,\"auditId\":\"1fca92de-d6bb-45a7-92ea-00f391668ef9\",\"eventType\":\"example.future\",\"eventVersion\":19,\"category\":\"business\",\"occurredAtUtc\":\"2026-11-23T09:10:11Z\",\"recordedAtUtc\":\"2026-11-23T09:10:12.1234567Z\",\"producer\":{\"application\":\"orders\",\"environment\":\"test\"},\"actor\":{\"kind\":\"unknown\"},\"outcome\":\"succeeded\",\"details\":{\"amount\":\"9007199254740993.123456789\",\"currency\":\"EUR\",\"largeInteger\":9007199254740993}}"
+    },
+    {
+      "id": "same-value-different-whitespace",
+      "description": "Equivalent parsed values still have different original payload bytes.",
+      "expectedValid": true,
+      "wireUtf8": "{ \"auditVersion\":1,\"auditId\":\"1fca92de-d6bb-45a7-92ea-00f391668ef9\",\"eventType\":\"example.future\",\"eventVersion\":19,\"category\":\"business\",\"occurredAtUtc\":\"2026-11-23T09:10:11Z\",\"recordedAtUtc\":\"2026-11-23T09:10:12.1234567Z\",\"producer\":{\"application\":\"orders\",\"environment\":\"test\"},\"actor\":{\"kind\":\"unknown\"},\"outcome\":\"succeeded\",\"details\":{\"amount\":\"9007199254740993.123456789\",\"currency\":\"EUR\",\"largeInteger\":9007199254740993}}"
+    },
+    {
+      "id": "same-value-different-escape",
+      "description": "Escaped string representation remains original content.",
+      "expectedValid": true,
+      "wireUtf8": "{\"auditVersion\":1,\"auditId\":\"1fca92de-d6bb-45a7-92ea-00f391668ef9\",\"eventType\":\"example.future\",\"eventVersion\":19,\"category\":\"business\",\"occurredAtUtc\":\"2026-11-23T09:10:11Z\",\"recordedAtUtc\":\"2026-11-23T09:10:12.1234567Z\",\"producer\":{\"application\":\"\\u006frders\",\"environment\":\"test\"},\"actor\":{\"kind\":\"unknown\"},\"outcome\":\"succeeded\",\"details\":{\"amount\":\"9007199254740993.123456789\",\"currency\":\"EUR\",\"largeInteger\":9007199254740993}}"
+    },
+    {
+      "id": "same-value-different-property-order",
+      "description": "Property order is not canonicalized by a receiving codec.",
+      "expectedValid": true,
+      "wireUtf8": "{\"auditId\":\"1fca92de-d6bb-45a7-92ea-00f391668ef9\",\"auditVersion\":1,\"eventType\":\"example.future\",\"eventVersion\":19,\"category\":\"business\",\"occurredAtUtc\":\"2026-11-23T09:10:11Z\",\"recordedAtUtc\":\"2026-11-23T09:10:12.1234567Z\",\"producer\":{\"application\":\"orders\",\"environment\":\"test\"},\"actor\":{\"kind\":\"unknown\"},\"outcome\":\"succeeded\",\"details\":{\"amount\":\"9007199254740993.123456789\",\"currency\":\"EUR\",\"largeInteger\":9007199254740993}}"
+    },
+    {
+      "id": "unsupported-envelope-version",
+      "description": "Unknown envelope versions are refused.",
+      "expectedValid": false,
+      "wireUtf8": "{\"auditVersion\":2,\"auditId\":\"1fca92de-d6bb-45a7-92ea-00f391668ef9\",\"eventType\":\"example.future\",\"eventVersion\":19,\"category\":\"business\",\"occurredAtUtc\":\"2026-11-23T09:10:11Z\",\"recordedAtUtc\":\"2026-11-23T09:10:12.1234567Z\",\"producer\":{\"application\":\"orders\",\"environment\":\"test\"},\"actor\":{\"kind\":\"unknown\"},\"outcome\":\"succeeded\",\"details\":{\"amount\":\"9007199254740993.123456789\",\"currency\":\"EUR\",\"largeInteger\":9007199254740993}}"
+    },
+    {
+      "id": "duplicate-root-key",
+      "description": "Repeated common names are refused even when values agree.",
+      "expectedValid": false,
+      "wireUtf8": "{\"auditVersion\":1,\"auditVersion\":1,\"auditId\":\"1fca92de-d6bb-45a7-92ea-00f391668ef9\",\"eventType\":\"example.future\",\"eventVersion\":19,\"category\":\"business\",\"occurredAtUtc\":\"2026-11-23T09:10:11Z\",\"recordedAtUtc\":\"2026-11-23T09:10:12.1234567Z\",\"producer\":{\"application\":\"orders\",\"environment\":\"test\"},\"actor\":{\"kind\":\"unknown\"},\"outcome\":\"succeeded\",\"details\":{\"amount\":\"9007199254740993.123456789\",\"currency\":\"EUR\",\"largeInteger\":9007199254740993}}"
+    },
+    {
+      "id": "escaped-duplicate-root-key",
+      "description": "Property uniqueness uses decoded ordinal names.",
+      "expectedValid": false,
+      "wireUtf8": "{\"auditVersion\":1,\"\\u0061uditVersion\":1,\"auditId\":\"1fca92de-d6bb-45a7-92ea-00f391668ef9\",\"eventType\":\"example.future\",\"eventVersion\":19,\"category\":\"business\",\"occurredAtUtc\":\"2026-11-23T09:10:11Z\",\"recordedAtUtc\":\"2026-11-23T09:10:12.1234567Z\",\"producer\":{\"application\":\"orders\",\"environment\":\"test\"},\"actor\":{\"kind\":\"unknown\"},\"outcome\":\"succeeded\",\"details\":{\"amount\":\"9007199254740993.123456789\",\"currency\":\"EUR\",\"largeInteger\":9007199254740993}}"
+    },
+    {
+      "id": "escaped-duplicate-detail-key",
+      "description": "Duplicate names inside opaque details are still refused.",
+      "expectedValid": false,
+      "wireUtf8": "{\"auditVersion\":1,\"auditId\":\"1fca92de-d6bb-45a7-92ea-00f391668ef9\",\"eventType\":\"example.future\",\"eventVersion\":19,\"category\":\"business\",\"occurredAtUtc\":\"2026-11-23T09:10:11Z\",\"recordedAtUtc\":\"2026-11-23T09:10:12.1234567Z\",\"producer\":{\"application\":\"orders\",\"environment\":\"test\"},\"actor\":{\"kind\":\"unknown\"},\"outcome\":\"succeeded\",\"details\":{\"x\":1,\"\\u0078\":2,\"amount\":\"9007199254740993.123456789\",\"currency\":\"EUR\",\"largeInteger\":9007199254740993}}"
+    },
+    {
+      "id": "duplicate-object-inside-array",
+      "description": "Duplicate detection applies to objects nested inside arrays.",
+      "expectedValid": false,
+      "wireUtf8": "{\"auditVersion\":1,\"auditId\":\"1fca92de-d6bb-45a7-92ea-00f391668ef9\",\"eventType\":\"example.future\",\"eventVersion\":19,\"category\":\"business\",\"occurredAtUtc\":\"2026-11-23T09:10:11Z\",\"recordedAtUtc\":\"2026-11-23T09:10:12.1234567Z\",\"producer\":{\"application\":\"orders\",\"environment\":\"test\"},\"actor\":{\"kind\":\"unknown\"},\"outcome\":\"succeeded\",\"details\":{\"entries\":[{\"x\":1,\"x\":2}],\"amount\":\"9007199254740993.123456789\",\"currency\":\"EUR\",\"largeInteger\":9007199254740993}}"
+    },
+    {
+      "id": "unpaired-escaped-surrogate",
+      "description": "Strict Unicode rejects an escaped unpaired surrogate.",
+      "expectedValid": false,
+      "wireUtf8": "{\"auditVersion\":1,\"auditId\":\"1fca92de-d6bb-45a7-92ea-00f391668ef9\",\"eventType\":\"example.future\",\"eventVersion\":19,\"category\":\"business\",\"occurredAtUtc\":\"2026-11-23T09:10:11Z\",\"recordedAtUtc\":\"2026-11-23T09:10:12.1234567Z\",\"producer\":{\"application\":\"orders\",\"environment\":\"test\"},\"actor\":{\"kind\":\"unknown\"},\"outcome\":\"succeeded\",\"details\":{\"bad\":\"\\uD800\",\"amount\":\"9007199254740993.123456789\",\"currency\":\"EUR\",\"largeInteger\":9007199254740993}}"
+    },
+    {
+      "id": "comment",
+      "description": "Comments are outside the portable JSON profile.",
+      "expectedValid": false,
+      "wireUtf8": "{/* comment */\"auditVersion\":1,\"auditId\":\"1fca92de-d6bb-45a7-92ea-00f391668ef9\",\"eventType\":\"example.future\",\"eventVersion\":19,\"category\":\"business\",\"occurredAtUtc\":\"2026-11-23T09:10:11Z\",\"recordedAtUtc\":\"2026-11-23T09:10:12.1234567Z\",\"producer\":{\"application\":\"orders\",\"environment\":\"test\"},\"actor\":{\"kind\":\"unknown\"},\"outcome\":\"succeeded\",\"details\":{\"amount\":\"9007199254740993.123456789\",\"currency\":\"EUR\",\"largeInteger\":9007199254740993}}"
+    },
+    {
+      "id": "trailing-second-document",
+      "description": "Trailing JSON documents are refused.",
+      "expectedValid": false,
+      "wireUtf8": "{\"auditVersion\":1,\"auditId\":\"1fca92de-d6bb-45a7-92ea-00f391668ef9\",\"eventType\":\"example.future\",\"eventVersion\":19,\"category\":\"business\",\"occurredAtUtc\":\"2026-11-23T09:10:11Z\",\"recordedAtUtc\":\"2026-11-23T09:10:12.1234567Z\",\"producer\":{\"application\":\"orders\",\"environment\":\"test\"},\"actor\":{\"kind\":\"unknown\"},\"outcome\":\"succeeded\",\"details\":{\"amount\":\"9007199254740993.123456789\",\"currency\":\"EUR\",\"largeInteger\":9007199254740993}} {}"
+    },
+    {
+      "id": "nonobject-root",
+      "description": "The complete Audit payload is one object.",
+      "expectedValid": false,
+      "wireUtf8": "[{\"auditVersion\":1,\"auditId\":\"1fca92de-d6bb-45a7-92ea-00f391668ef9\",\"eventType\":\"example.future\",\"eventVersion\":19,\"category\":\"business\",\"occurredAtUtc\":\"2026-11-23T09:10:11Z\",\"recordedAtUtc\":\"2026-11-23T09:10:12.1234567Z\",\"producer\":{\"application\":\"orders\",\"environment\":\"test\"},\"actor\":{\"kind\":\"unknown\"},\"outcome\":\"succeeded\",\"details\":{\"amount\":\"9007199254740993.123456789\",\"currency\":\"EUR\",\"largeInteger\":9007199254740993}}]"
+    },
+    {
+      "id": "nonobject-details",
+      "description": "Details is an object rather than an arbitrary JSON value.",
+      "expectedValid": false,
+      "wireUtf8": "{\"auditVersion\":1,\"auditId\":\"1fca92de-d6bb-45a7-92ea-00f391668ef9\",\"eventType\":\"example.future\",\"eventVersion\":19,\"category\":\"business\",\"occurredAtUtc\":\"2026-11-23T09:10:11Z\",\"recordedAtUtc\":\"2026-11-23T09:10:12.1234567Z\",\"producer\":{\"application\":\"orders\",\"environment\":\"test\"},\"actor\":{\"kind\":\"unknown\"},\"outcome\":\"succeeded\",\"details\":[]}"
+    },
+    {
+      "id": "noninteger-version-token",
+      "description": "The Int32 wire binding requires an integer token without exponent or decimal point.",
+      "expectedValid": false,
+      "wireUtf8": "{\"auditVersion\":1,\"auditId\":\"1fca92de-d6bb-45a7-92ea-00f391668ef9\",\"eventType\":\"example.future\",\"eventVersion\":19.0,\"category\":\"business\",\"occurredAtUtc\":\"2026-11-23T09:10:11Z\",\"recordedAtUtc\":\"2026-11-23T09:10:12.1234567Z\",\"producer\":{\"application\":\"orders\",\"environment\":\"test\"},\"actor\":{\"kind\":\"unknown\"},\"outcome\":\"succeeded\",\"details\":{\"amount\":\"9007199254740993.123456789\",\"currency\":\"EUR\",\"largeInteger\":9007199254740993}}"
+    },
+    {
+      "id": "malformed-utf8",
+      "description": "Raw FF inside a JSON string is not valid UTF-8.",
+      "expectedValid": false,
+      "wireBase64": "eyJ4Ijoi/yJ9"
+    }
+  ],
+  "identityCases": [
+    {
+      "id": "identical-original-bytes",
+      "left": "exact-opaque-original",
+      "right": "exact-opaque-original",
+      "expected": "repeated"
+    },
+    {
+      "id": "whitespace-content-conflict",
+      "left": "exact-opaque-original",
+      "right": "same-value-different-whitespace",
+      "expected": "conflict"
+    },
+    {
+      "id": "escape-content-conflict",
+      "left": "exact-opaque-original",
+      "right": "same-value-different-escape",
+      "expected": "conflict"
+    },
+    {
+      "id": "property-order-content-conflict",
+      "left": "exact-opaque-original",
+      "right": "same-value-different-property-order",
+      "expected": "conflict"
+    }
+  ],
+  "scope": "Identity cases document future durable receiver obligations; no source-side AuditId store or collector is implemented."
+}

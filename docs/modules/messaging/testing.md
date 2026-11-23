@@ -1,5 +1,11 @@
 # Testing messaging consumers
 
+For [Audit](../audit/README.md), `ScriptedAuditWriter` supplies bounded public
+consumer facts, while the existing native fixtures establish original-context
+atomicity, reconstruction/retry bytes and real pressure settlement. The receiving
+probe is test-only and supplies no destination archive. Generic portable vectors
+describe future AuditId duplicate/conflict obligations across distinct MessageIds.
+
 Use the public `CIS.CommonTesting` ports for application unit tests. The
 [Core guide](core.md#commontesting-boundaries) describes bounded scripts and
 ownership. `ScriptedMessagingClient.EnqueueRequest<TRequest,TResponse>` and

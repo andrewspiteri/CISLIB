@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:cis:audit:v1:security-authorization-details",
+  "title": "CIS Security authorization decision details v1",
+  "description": "Explicit producer schema for cis.security.authorization.decision version 1. Capabilities retain complete original ordering and duplicates. Common envelope outcome and reason are validated separately.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "capabilities",
+    "decisionCode"
+  ],
+  "properties": {
+    "capabilities": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 256,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128,
+        "pattern": "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)*$"
+      }
+    },
+    "decisionCode": {
+      "enum": [
+        "security.allowed",
+        "security.credential_unavailable",
+        "security.credential_invalid",
+        "security.credential_expired",
+        "security.unauthenticated",
+        "security.identity_unmapped",
+        "security.capability_denied",
+        "security.validation_unavailable",
+        "security.authentication_rejected",
+        "security.cause_unknown"
+      ]
+    },
+    "failureSource": {
+      "enum": [
+        "local",
+        "remote",
+        "unknown"
+      ]
+    },
+    "httpStatusCode": {
+      "type": "integer",
+      "minimum": 100,
+      "maximum": 599
+    },
+    "providerCode": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[^\\u0000-\\u001F\\u007F-\\u009F]+$"
+    },
+    "transportCode": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[^\\u0000-\\u001F\\u007F-\\u009F]+$"
+    }
+  }
+}

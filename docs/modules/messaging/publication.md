@@ -1,5 +1,12 @@
 # Transactional staging and publication
 
+[Audit](../audit/README.md) reuses these exact public publication ports with its
+single common Event route. Its source capture is distinct from decoded portable
+data. Stage on the original participant; source-specific refusal/fault poisons
+that usable context even before Messaging. A deliberate second submission keeps
+AuditId but obtains a new MessageId; transport retry preserves existing IDs/bytes.
+Audit adds no source-side occurrence deduplication or archive receipt.
+
 `IMessageOutbox` stages through the original `ILocalTransactionContext`; it never
 commits or disposes its caller's transaction. `PublishAsync` selects a registered
 event route and `SendAsync` selects a registered command route. Both use the

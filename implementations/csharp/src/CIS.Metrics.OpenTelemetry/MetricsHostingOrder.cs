@@ -4,6 +4,7 @@ using CIS.RestClient.Hosting;
 using CIS.Workflows.Hosting;
 using CIS.Messaging.Hosting;
 using CIS.Coordination.Hosting;
+using CIS.Audit.Hosting;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -28,6 +29,7 @@ internal sealed class MetricsHostingOrder(IServiceCollection services)
         }
         int bridge = Array.FindIndex(hosted, item => item.ImplementationType == typeof(PipelineHostedService)
             || item.ImplementationType == typeof(MessagingHostedService)
+            || item.ImplementationType == typeof(AuditHostedService)
             || item.ImplementationType == typeof(RestHostedService)
             || item.ImplementationType == typeof(CoordinationHostedService)
             || item.ImplementationType == typeof(HeartbeatHostedService)

@@ -124,6 +124,15 @@ internal sealed class MetricsStreamCatalog
                 CoordinationModule("cis.jobs.active.invocations", MetricKind.ObservableGauge, MetricUnit.Count, ["mode"], 2);
                 CoordinationModule("cis.jobs.pending.dispatches", MetricKind.ObservableGauge, MetricUnit.Count, [], 1);
             }
+            if (settings.CollectAudit)
+            {
+                const string auditName = "cis.audit.capture.results";
+                if (settings.Streams.GetValueOrDefault(auditName)?.CardinalityLimit is { } configured && configured < 9)
+                {
+                    throw new ArgumentException("The Audit capture stream must cover its nine category/outcome combinations.");
+                }
+                Module(auditName, MetricKind.Counter, MetricUnit.Count, ["category", "outcome"], 9);
+            }
             if (modules.Count > settings.MaxDefinitions)
             {
                 throw new ArgumentException("The known CIS module definitions exceed the configured definition capacity.");

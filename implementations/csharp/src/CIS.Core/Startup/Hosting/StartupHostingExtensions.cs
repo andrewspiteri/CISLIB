@@ -1,3 +1,4 @@
+using CIS.Audit.Hosting;
 using CIS.Healthcheck;
 using CIS.Configuration;
 using CIS.Coordination.Hosting;
@@ -46,6 +47,7 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
     private readonly MessagingRuntime? messaging;
     private readonly IRestClientRuntime? rest;
     private readonly CoordinationHostLifetime? coordination;
+    private readonly AuditRuntime? audit;
     private readonly StartupHostingOrder order;
     private readonly IHostApplicationLifetime lifetime;
     private readonly IOptions<HostOptions> hostOptions;
@@ -70,6 +72,7 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
         rest = root.GetService<IRestClientRuntime>();
         messaging = root.GetService<MessagingRuntime>();
         coordination = root.GetService<CoordinationHostLifetime>();
+        audit = root.GetService<AuditRuntime>();
         coordinator = new StartupCoordinator(root, order.Descriptors,
             root.GetService<HealthcheckService>(), root.GetService<ILogger<StartupCoordinator>>(),
             ConfirmStartupCompletion);
@@ -86,9 +89,9 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
         if (Interlocked.Exchange(ref subscribed, 1) == 0)
         {
             stopping = lifetime.ApplicationStopping.UnsafeRegister(static value => ((StartupHostedService)value!).BeginStopping(), this);
-            if (coordination is not null)
+            if (audit is not null || coordination is not null)
             {
-                dependencyStopping = coordination.DependencyStopping.UnsafeRegister(static value => ((StartupHostedService)value!).BeginStopping(), this);
+                dependencyStopping = (audit?.DependencyStopping ?? coordination!.DependencyStopping).UnsafeRegister(static value => ((StartupHostedService)value!).BeginStopping(), this);
                 startedRegistration = lifetime.ApplicationStarted.UnsafeRegister(static value => ((StartupHostedService)value!).ReleaseStartupSignals(), this);
             }
             // Close admission even while an initializer ignores startup cancellation.
@@ -136,7 +139,7 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
     {
         coordinator.RequestStopping();
         CloseModuleAdmission();
-        if (coordination is not null && !coordination.IsDrained)
+        if (coordination is not null && !coordination.IsDrained || audit is not null && !audit.IsDrained)
         {
             return;
         }
@@ -145,6 +148,12 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
 
     private void CloseModuleAdmission()
     {
+        if (audit is not null && !audit.IsDrained)
+        {
+            audit.BeginStopping();
+            return;
+        }
+
         if (coordination is not null && !coordination.IsDrained)
         {
             coordination.BeginStopping();
@@ -167,7 +176,7 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
 
     private async Task StopCoreAsync()
     {
-        Exception? coordinationFailure = await CoordinationHostLifetime.CaptureStopAsync(coordination).ConfigureAwait(false);
+        Exception? coordinationFailure = await AuditRuntime.CaptureStopAsync(audit, coordination).ConfigureAwait(false);
         BeginStopping();
         Task messagingDrain = messaging?.StopAsync() ?? Task.CompletedTask;
         try

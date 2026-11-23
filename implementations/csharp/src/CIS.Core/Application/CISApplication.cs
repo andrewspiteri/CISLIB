@@ -359,6 +359,11 @@ public sealed class CISApplication : IAsyncDisposable
             }
 
             CloseModuleAdmission(errors);
+            if (composition.Audit is { } audit)
+            {
+                await CaptureAsync(audit.StopAsync, errors).ConfigureAwait(false);
+            }
+            CloseModuleAdmission(errors);
             if (composition.Messaging is { } messaging)
             {
                 await CaptureAsync(messaging.StopAsync, errors).ConfigureAwait(false);
@@ -566,6 +571,12 @@ public sealed class CISApplication : IAsyncDisposable
 
             // Admitted jobs can still need credentials, REST, configuration and
             // collectors. The lifetime flags stopping health without closing them.
+            return;
+        }
+
+        if (composition.Audit is { IsDrained: false } audit)
+        {
+            Close(audit.BeginStopping);
             return;
         }
 

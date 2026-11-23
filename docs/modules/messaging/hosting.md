@@ -1,5 +1,14 @@
 # Messaging hosting and actual drain
 
+When [Audit](../audit/README.md) is selected, configure its definition before
+Messaging's completed graph and call `AddCisAudit` after `AddCisMessaging`, before
+the other cooperating bridges. Startup remains sequential. Hosting opens the
+configured Audit publication gate before Messaging starts consumers, then starts
+Audit and finally Coordination/jobs. During stop, jobs retain final Audit access;
+actual Audit capture/publication drain precedes Messaging dependency teardown.
+The facade's `UseAudit` arranges those same bridges and retains partially built
+Audit ownership on failed Build. This changes no unselected Messaging runtime.
+
 Register explicit routes, subscriptions, the store mapping, the application-owned
 database source and the optional transport. Then call `services.AddCisMessaging()`.
 It captures the completed immutable definition graph, registers the outbox/client

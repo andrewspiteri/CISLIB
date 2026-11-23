@@ -1,3 +1,4 @@
+using CIS.Audit.Hosting;
 using CIS.Configuration;
 using CIS.Coordination.Hosting;
 using CIS.Healthcheck;
@@ -30,6 +31,10 @@ internal sealed class CISApplicationComposition
     private PipelineHostingRegistration? workflows;
 
     internal PipelineHostingRegistration? Workflows => workflows;
+    internal AuditHostingRegistration? Audit
+    {
+        get; private set;
+    }
     internal CoordinationHostLifetime? Coordination
     {
         get; private set;
@@ -120,6 +125,7 @@ internal sealed class CISApplicationComposition
 
     internal void Seal()
     {
+        CaptureAudit();
         CaptureCoordination();
         workflows = setup.Services.LastOrDefault(item => !item.IsKeyedService
             && item.ServiceType == typeof(PipelineHostingRegistration))?.ImplementationInstance as PipelineHostingRegistration;
@@ -181,11 +187,16 @@ internal sealed class CISApplicationComposition
         {
             integration.ConfigureServices(setup.Services);
         }
+        CaptureAudit();
         CaptureCoordination();
         setup.Services.TryAddSingleton<IMetrics>(DisabledMetrics.Instance);
         if (setup.MessagingEnabled)
         {
             setup.Services.AddCisMessaging();
+        }
+        if (setup.AuditEnabled)
+        {
+            setup.Services.AddCisAudit();
         }
         if (setup.HeartbeatEnabled)
         {
@@ -208,6 +219,7 @@ internal sealed class CISApplicationComposition
 
         // Move only the exact cooperating bridges, preserving application registration order.
         MoveTail(typeof(MessagingHostedService));
+        MoveTail(typeof(AuditHostedService));
         MoveTail(typeof(PipelineHostedService));
         MoveTail(typeof(RestHostedService));
         MoveTail(typeof(CoordinationHostedService));
@@ -238,6 +250,12 @@ internal sealed class CISApplicationComposition
         Metrics = root.GetService<IMetrics>() as MetricsRuntime;
         Rest = root.GetService<IRestClientRuntime>();
         Messaging = root.GetService<MessagingRuntime>();
+    }
+
+    private void CaptureAudit()
+    {
+        Audit = setup.Services.LastOrDefault(item => !item.IsKeyedService
+            && item.ServiceType == typeof(AuditHostingRegistration))?.ImplementationInstance as AuditHostingRegistration;
     }
 
     private void CaptureCoordination()
