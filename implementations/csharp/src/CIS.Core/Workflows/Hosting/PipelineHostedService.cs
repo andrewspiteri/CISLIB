@@ -1,3 +1,4 @@
+using CIS.Audit.Hosting;
 using CIS.Heartbeat.Hosting;
 using CIS.RestClient.Hosting;
 using CIS.Startup.Hosting;
@@ -13,6 +14,7 @@ internal sealed class PipelineHostedService(PipelineLifetime owner, PipelineHost
     IHostApplicationLifetime lifetime, IOptions<HostOptions> options, IServiceProvider root) : IHostedLifecycleService, IAsyncDisposable
 {
     private readonly CoordinationHostLifetime? coordination = root.GetService<CoordinationHostLifetime>();
+    private readonly AuditRuntime? audit = root.GetService<AuditRuntime>();
     private CancellationTokenRegistration stopping;
     private CancellationTokenRegistration startupCancellation;
     private CancellationTokenRegistration started;
@@ -29,9 +31,9 @@ internal sealed class PipelineHostedService(PipelineLifetime owner, PipelineHost
 
         stopping = lifetime.ApplicationStopping.UnsafeRegister(static state => ((PipelineHostedService)state!).BeginStopping(), this);
         startupCancellation = cancellationToken.UnsafeRegister(static state => ((PipelineHostedService)state!).BeginStopping(), this);
-        if (coordination is not null)
+        if (audit is not null || coordination is not null)
         {
-            dependencyStopping = coordination.DependencyStopping.UnsafeRegister(static state => ((PipelineHostedService)state!).BeginStopping(), this);
+            dependencyStopping = (audit?.DependencyStopping ?? coordination!.DependencyStopping).UnsafeRegister(static state => ((PipelineHostedService)state!).BeginStopping(), this);
         }
         started = lifetime.ApplicationStarted.UnsafeRegister(static state => ((PipelineHostedService)state!).ReleaseStartupToken(), this);
         return Task.CompletedTask;
@@ -43,7 +45,7 @@ internal sealed class PipelineHostedService(PipelineLifetime owner, PipelineHost
 
     public Task StoppingAsync(CancellationToken cancellationToken)
     {
-        if (coordination is not null)
+        if (audit is not null || coordination is not null)
         {
             return StopCoreAsync();
         }
@@ -74,6 +76,12 @@ internal sealed class PipelineHostedService(PipelineLifetime owner, PipelineHost
 
     private void BeginStopping()
     {
+        if (audit is not null && !audit.IsDrained)
+        {
+            audit.BeginStopping();
+            return;
+        }
+
         if (coordination is not null && !coordination.IsDrained)
         {
             coordination.BeginStopping();
@@ -84,7 +92,7 @@ internal sealed class PipelineHostedService(PipelineLifetime owner, PipelineHost
 
     private async Task StopCoreAsync()
     {
-        Exception? failure = await CoordinationHostLifetime.CaptureStopAsync(coordination).ConfigureAwait(false);
+        Exception? failure = await AuditRuntime.CaptureStopAsync(audit, coordination).ConfigureAwait(false);
         await Task.WhenAll(owner.StopAsync(), failure is null ? Task.CompletedTask : Task.FromException(failure)).ConfigureAwait(false);
     }
 }

@@ -1,3 +1,4 @@
+using CIS.Audit.Hosting;
 using CIS.Heartbeat.Hosting;
 using CIS.Metrics;
 using CIS.Messaging;
@@ -18,6 +19,7 @@ internal sealed class RestHostedService(IRestClientRuntime runtime, IServiceProv
     private readonly MetricsRuntime? metrics = root.GetService<IMetrics>() as MetricsRuntime;
     private readonly MessagingRuntime? messaging = root.GetService<MessagingRuntime>();
     private readonly CoordinationHostLifetime? coordination = root.GetService<CoordinationHostLifetime>();
+    private readonly AuditRuntime? audit = root.GetService<AuditRuntime>();
     private CancellationTokenRegistration stopping;
     private CancellationTokenRegistration startupStopping;
     private CancellationTokenRegistration dependencyStopping;
@@ -31,9 +33,9 @@ internal sealed class RestHostedService(IRestClientRuntime runtime, IServiceProv
         }
         stopping = lifetime.ApplicationStopping.UnsafeRegister(static state => ((RestHostedService)state!).BeginStopping(), this);
         startupStopping = cancellationToken.UnsafeRegister(static state => ((RestHostedService)state!).BeginStopping(), this);
-        if (coordination is not null)
+        if (audit is not null || coordination is not null)
         {
-            dependencyStopping = coordination.DependencyStopping.UnsafeRegister(static state => ((RestHostedService)state!).BeginStopping(), this);
+            dependencyStopping = (audit?.DependencyStopping ?? coordination!.DependencyStopping).UnsafeRegister(static state => ((RestHostedService)state!).BeginStopping(), this);
             started = lifetime.ApplicationStarted.UnsafeRegister(static state => ((RestHostedService)state!).ReleaseStartup(), this);
         }
         return Task.CompletedTask;
@@ -46,6 +48,12 @@ internal sealed class RestHostedService(IRestClientRuntime runtime, IServiceProv
 
     private void BeginStopping()
     {
+        if (audit is not null && !audit.IsDrained)
+        {
+            audit.BeginStopping();
+            return;
+        }
+
         if (coordination is not null && !coordination.IsDrained)
         {
             coordination.BeginStopping();
@@ -61,7 +69,7 @@ internal sealed class RestHostedService(IRestClientRuntime runtime, IServiceProv
     }
     private async Task StopCoreAsync()
     {
-        Exception? coordinationFailure = await CoordinationHostLifetime.CaptureStopAsync(coordination).ConfigureAwait(false);
+        Exception? coordinationFailure = await AuditRuntime.CaptureStopAsync(audit, coordination).ConfigureAwait(false);
         BeginStopping();
         Task messagingDrain = messaging?.StopAsync() ?? Task.CompletedTask;
         try
@@ -81,7 +89,13 @@ internal sealed class RestHostedService(IRestClientRuntime runtime, IServiceProv
         {
             await StopCoreAsync().ConfigureAwait(false);
         }
-        finally { started.Dispose(); dependencyStopping.Dispose(); startupStopping.Dispose(); stopping.Dispose(); }
+        finally
+        {
+            started.Dispose();
+            dependencyStopping.Dispose();
+            startupStopping.Dispose();
+            stopping.Dispose();
+        }
     }
 
     private void ReleaseStartup() => startupStopping.Dispose();

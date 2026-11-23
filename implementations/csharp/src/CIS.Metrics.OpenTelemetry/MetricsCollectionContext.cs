@@ -1,4 +1,6 @@
 using System.Diagnostics.Metrics;
+using CIS.Audit;
+using CIS.Audit.Hosting;
 using CIS.Configuration;
 using CIS.Healthcheck;
 using CIS.Heartbeat;
@@ -39,6 +41,7 @@ internal sealed class MetricsCollectionContext : IAsyncDisposable
     private readonly MessagingComposition? messagingComposition;
     private readonly CoordinationComposition? coordinationComposition;
     private readonly JobsComposition? jobsComposition;
+    private readonly AuditHostingRegistration? auditComposition;
     private ILogger<MetricsCollectionContext>? logger;
     private int active, stopping;
 
@@ -47,7 +50,7 @@ internal sealed class MetricsCollectionContext : IAsyncDisposable
         StateMachineComposition? stateMachineComposition = null, SecurityComposition? securityComposition = null,
         TransactionsComposition? transactionsComposition = null, OperationsComposition? operationsComposition = null,
         MessagingComposition? messagingComposition = null, CoordinationComposition? coordinationComposition = null,
-        JobsComposition? jobsComposition = null)
+        JobsComposition? jobsComposition = null, AuditHostingRegistration? auditComposition = null)
     {
         this.root = root;
         this.guard = guard;
@@ -57,10 +60,11 @@ internal sealed class MetricsCollectionContext : IAsyncDisposable
         this.messagingComposition = messagingComposition;
         this.coordinationComposition = coordinationComposition;
         this.jobsComposition = jobsComposition;
+        this.auditComposition = auditComposition;
         settings = settings.ForComposition(restComposition is not null, workflowsComposition is not null,
             stateMachineComposition is not null, securityComposition?.ProfileCapacity ?? 0, transactionsComposition is not null,
             operationsComposition is not null, messagingComposition is not null, coordinationComposition is not null,
-            jobsComposition is not null);
+            jobsComposition is not null, auditComposition is not null);
         Settings = settings;
         IMeterFactory factory = root.GetRequiredService<IMeterFactory>();
         CisMeter = factory.Create("CIS.Metrics", "1.0.0");
@@ -232,6 +236,16 @@ internal sealed class MetricsCollectionContext : IAsyncDisposable
                 throw new InvalidOperationException("Jobs composition must belong to its exact instrumentation owner.");
             }
 
+            owner.AttachMetrics(Runtime);
+        }
+
+        if (Settings.CollectAudit)
+        {
+            AuditInstrumentation owner = root.GetRequiredService<AuditInstrumentation>();
+            if (!ReferenceEquals(owner.RegistrationIdentity, auditComposition))
+            {
+                throw new InvalidOperationException("Audit composition must belong to its exact instrumentation owner.");
+            }
             owner.AttachMetrics(Runtime);
         }
 

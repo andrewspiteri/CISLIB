@@ -11,7 +11,7 @@ internal sealed class FixtureSchemaValidator
     {
         "$schema", "$id", "title", "description", "$defs", "$ref", "type", "required",
         "properties", "additionalProperties", "items", "anyOf", "enum", "const",
-        "minLength", "maxLength", "pattern", "minimum", "maximum"
+        "minLength", "maxLength", "pattern", "minimum", "maximum", "minItems", "maxItems"
     };
 
     private readonly JsonElement root;
@@ -93,11 +93,19 @@ internal sealed class FixtureSchemaValidator
         return value.ValueKind switch
         {
             JsonValueKind.Object => EvaluateObject(schema, value, producer),
-            JsonValueKind.Array => !schema.TryGetProperty("items", out JsonElement items) || value.EnumerateArray().All(item => Evaluate(items, item, producer)),
+            JsonValueKind.Array => EvaluateArray(schema, value, producer),
             JsonValueKind.String => EvaluateString(schema, value.GetString()!),
             JsonValueKind.Number => EvaluateNumber(schema, value),
             _ => true
         };
+    }
+
+    private bool EvaluateArray(JsonElement schema, JsonElement value, bool producer)
+    {
+        int count = value.GetArrayLength();
+        return (!schema.TryGetProperty("minItems", out JsonElement minimum) || count >= minimum.GetInt32())
+            && (!schema.TryGetProperty("maxItems", out JsonElement maximum) || count <= maximum.GetInt32())
+            && (!schema.TryGetProperty("items", out JsonElement items) || value.EnumerateArray().All(item => Evaluate(items, item, producer)));
     }
 
     private bool EvaluateObject(JsonElement schema, JsonElement value, bool producer)

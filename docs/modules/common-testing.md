@@ -14,6 +14,14 @@ for the finite manual Heartbeat, recording health/logger, scripted REST,
 configured snapshot and single promoted clock APIs. Repository process runners
 and internal probes remain in nonpackable TestSupport.
 
+For Audit consumer tests, use `ScriptedAuditWriter` through `IAuditWriter`.
+Queue explicit staging or three-state submission results with `EnqueueStage` or
+`EnqueueSubmit`; the helper retains exact receipt/completion facts and bounded safe
+metadata. It does no encoding, SQL, transaction completion or rollback-only
+marking. Use the real-provider Audit tests for atomicity and failure poisoning.
+Obtain source records through trusted capture, rather than promoting decoded
+records. See the [Audit contract](../../contracts/audit/README.md).
+
 For the compiled CountryData example, supply a test-owned `IConfigurationReader`
 and `IHostApplicationLifetime` through their existing public contracts. The
 reader must respect its contract when shared with concurrent mutation. A simple

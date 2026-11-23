@@ -15,6 +15,11 @@ namespace CIS.Hosting;
 /// <remarks>Complete setup in the application callback. This object never builds a provider or starts services.</remarks>
 public sealed class CISApplicationBuilder
 {
+    internal bool AuditEnabled
+    {
+        get; set;
+    }
+
     internal bool MessagingEnabled
     {
         get; set;

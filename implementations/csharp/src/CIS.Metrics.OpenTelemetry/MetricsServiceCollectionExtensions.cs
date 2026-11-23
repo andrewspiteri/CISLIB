@@ -8,6 +8,7 @@ using CIS.Operations.Hosting;
 using CIS.Messaging.Hosting;
 using CIS.Coordination.Hosting;
 using CIS.Jobs.Hosting;
+using CIS.Audit.Hosting;
 using global::OpenTelemetry.Metrics;
 
 namespace CIS.Metrics.OpenTelemetry;
@@ -63,7 +64,8 @@ public static class MetricsServiceCollectionExtensions
         services.AddSingleton(provider => new MetricsCollectionContext(provider, settings, guard,
             RestComposition(services), WorkflowComposition(services), StateMachineCompositionMetadata(services),
             SecurityCompositionMetadata(services), TransactionCompositionMetadata(services), OperationCompositionMetadata(services),
-            MessagingCompositionMetadata(services), CoordinationCompositionMetadata(services), JobsCompositionMetadata(services)));
+            MessagingCompositionMetadata(services), CoordinationCompositionMetadata(services), JobsCompositionMetadata(services),
+            AuditCompositionMetadata(services)));
         services.AddSingleton<IMetrics>(provider => provider.GetRequiredService<MetricsCollectionContext>().Metrics);
         if (settings.CollectCoreModules)
         {
@@ -90,6 +92,7 @@ public static class MetricsServiceCollectionExtensions
         // Only descriptors added by this invocation move; no foreign service is reordered.
         ServiceDescriptor? bridge = precedingHosted.FirstOrDefault(descriptor =>
             descriptor.ImplementationType == typeof(MessagingHostedService)
+            || descriptor.ImplementationType == typeof(AuditHostedService)
             || descriptor.ImplementationType == typeof(CIS.Workflows.Hosting.PipelineHostedService)
             || descriptor.ImplementationType == typeof(CIS.RestClient.Hosting.RestHostedService)
             || descriptor.ImplementationType == typeof(CIS.Heartbeat.Hosting.HeartbeatHostedService)
@@ -111,6 +114,20 @@ public static class MetricsServiceCollectionExtensions
         }
         guard.Seal();
         return services;
+    }
+
+    private static AuditHostingRegistration? AuditCompositionMetadata(IServiceCollection services)
+    {
+        ServiceDescriptor[] markers = services.Where(descriptor => descriptor.ServiceType == typeof(AuditHostingRegistration)).ToArray();
+        if (markers.Length == 0)
+        {
+            return null;
+        }
+        if (markers.Length != 1 || markers[0].IsKeyedService || markers[0].ImplementationInstance is not AuditHostingRegistration registration)
+        {
+            throw new InvalidOperationException("Audit composition must be its one passive registration instance.");
+        }
+        return registration;
     }
 
     private static CoordinationComposition? CoordinationCompositionMetadata(IServiceCollection services)

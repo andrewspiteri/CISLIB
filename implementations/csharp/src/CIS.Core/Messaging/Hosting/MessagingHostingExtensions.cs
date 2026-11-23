@@ -1,3 +1,4 @@
+using CIS.Audit.Hosting;
 using CIS.Healthcheck;
 using CIS.Coordination.Hosting;
 using CIS.Heartbeat.Hosting;
@@ -106,15 +107,23 @@ public static class MessagingHostingExtensions
     }
 }
 
-internal sealed class MessagingStartable(MessagingRuntime runtime) : IStartable
+internal sealed class MessagingStartable(MessagingRuntime runtime, IServiceProvider? root = null) : IStartable
 {
-    public Task StartAsync(CancellationToken cancellationToken) => runtime.StartAsync(cancellationToken);
+    public async Task StartAsync(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        root?.GetService<AuditRuntime>()?.PreparePublishing();
+
+        await runtime.StartAsync(cancellationToken).ConfigureAwait(false);
+    }
 }
 
 internal sealed class MessagingHostedService(MessagingRuntime runtime, MessagingHostingOrder order,
     IHostApplicationLifetime lifetime, IOptions<HostOptions> options, IServiceProvider root) : IHostedLifecycleService, IAsyncDisposable
 {
     private readonly CoordinationHostLifetime? coordination = root.GetService<CoordinationHostLifetime>();
+    private readonly AuditRuntime? audit = root.GetService<AuditRuntime>();
     private CancellationTokenRegistration stopping;
     private CancellationTokenRegistration startupStopping;
     private CancellationTokenRegistration started;
@@ -128,15 +137,23 @@ internal sealed class MessagingHostedService(MessagingRuntime runtime, Messaging
         }
         stopping = lifetime.ApplicationStopping.UnsafeRegister(static owner => ((MessagingHostedService)owner!).BeginStopping(), this);
         startupStopping = cancellationToken.UnsafeRegister(static owner => ((MessagingHostedService)owner!).BeginStopping(), this);
-        if (coordination is not null)
+        if (audit is not null || coordination is not null)
         {
-            dependencyStopping = coordination.DependencyStopping.UnsafeRegister(static owner => ((MessagingHostedService)owner!).BeginStopping(), this);
+            dependencyStopping = (audit?.DependencyStopping ?? coordination!.DependencyStopping).UnsafeRegister(static owner => ((MessagingHostedService)owner!).BeginStopping(), this);
         }
         started = lifetime.ApplicationStarted.UnsafeRegister(static owner => ((MessagingHostedService)owner!).ReleaseStartup(), this);
         return Task.CompletedTask;
     }
 
-    public Task StartAsync(CancellationToken cancellationToken) => order.HasStartup ? Task.CompletedTask : runtime.StartAsync(cancellationToken);
+    public Task StartAsync(CancellationToken cancellationToken) => order.HasStartup ? Task.CompletedTask : StartMessagingAsync(cancellationToken);
+    private async Task StartMessagingAsync(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        audit?.PreparePublishing();
+
+        await runtime.StartAsync(cancellationToken).ConfigureAwait(false);
+    }
     public Task StartedAsync(CancellationToken cancellationToken) => Task.CompletedTask;
     public Task StoppingAsync(CancellationToken cancellationToken) => StopCoreAsync();
     public Task StopAsync(CancellationToken cancellationToken) => StopCoreAsync();
@@ -161,6 +178,12 @@ internal sealed class MessagingHostedService(MessagingRuntime runtime, Messaging
 
     private void BeginStopping()
     {
+        if (audit is not null && !audit.IsDrained)
+        {
+            audit.BeginStopping();
+            return;
+        }
+
         if (coordination is not null && !coordination.IsDrained)
         {
             coordination.BeginStopping();
@@ -171,7 +194,7 @@ internal sealed class MessagingHostedService(MessagingRuntime runtime, Messaging
 
     private async Task StopCoreAsync()
     {
-        Exception? failure = await CoordinationHostLifetime.CaptureStopAsync(coordination).ConfigureAwait(false);
+        Exception? failure = await AuditRuntime.CaptureStopAsync(audit, coordination).ConfigureAwait(false);
         await Task.WhenAll(runtime.StopAsync(), failure is null ? Task.CompletedTask : Task.FromException(failure)).ConfigureAwait(false);
     }
 }
@@ -195,7 +218,12 @@ internal sealed class MessagingHostingOrder(IServiceCollection services)
         bool messagingLast = participants.Length > 0 && participants[^1].ImplementationType == typeof(MessagingStartable);
         bool coordinationLast = participants.Length > 1 && participants[^1].ImplementationType == typeof(CoordinationStartable)
             && participants[^2].ImplementationType == typeof(MessagingStartable);
-        if (!messagingLast && !coordinationLast)
+        bool auditLast = participants.Length > 1 && participants[^1].ImplementationType == typeof(AuditStartable)
+            && participants[^2].ImplementationType == typeof(MessagingStartable);
+        bool auditBeforeCoordination = participants.Length > 2 && participants[^1].ImplementationType == typeof(CoordinationStartable)
+            && participants[^2].ImplementationType == typeof(AuditStartable)
+            && participants[^3].ImplementationType == typeof(MessagingStartable);
+        if (!messagingLast && !coordinationLast && !auditLast && !auditBeforeCoordination)
         {
             return false;
         }
@@ -207,7 +235,8 @@ internal sealed class MessagingHostingOrder(IServiceCollection services)
                 continue;
             }
             if (type != typeof(PipelineHostedService) && type != typeof(RestHostedService)
-                && type != typeof(HeartbeatHostedService) && type != typeof(StartupHostedService) && type != typeof(CoordinationHostedService))
+                && type != typeof(HeartbeatHostedService) && type != typeof(StartupHostedService)
+                && type != typeof(CoordinationHostedService) && type != typeof(AuditHostedService))
             {
                 return false;
             }

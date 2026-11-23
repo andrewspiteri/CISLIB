@@ -54,6 +54,7 @@ A local development package is not a published release. Scoped checks and curren
 | Product | Current reference |
 | --- | --- |
 | Application | [CISApplication](docs/modules/application/core.md), [CountryData](implementations/csharp/examples/CountryData/README.md) |
+| Audit | [Capture, publication and receiving](docs/modules/audit/README.md), [portable contract](contracts/audit/README.md), [Security bridge](docs/modules/security/audit.md), [capture metric](contracts/metrics/audit.md) |
 | Security | [Caller and capability contracts](docs/modules/security/README.md), [Entra](docs/modules/security/entra.md), [certificate trust](docs/modules/security/certificates.md), [credential renewal](docs/modules/security/credentials.md), [isolated local setup](docs/modules/security/local-development.md), [CountryData service/caller](docs/modules/security/consumer.md) |
 | Environment and Logging | [EnvironmentOptions](docs/modules/logging/environment-options.md), [runtime ownership](docs/modules/logging/runtime-contract.md), [incoming frontend](docs/modules/logging/incoming-pipeline.md), [processing policies](docs/modules/logging/processing-policies.md), [interpolation](docs/modules/logging/interpolation.md) |
 | Type Manager | [Definition](planning/type-manager/sources/CIS_Type_Manager_Definition_v1.0.md), [inventory build integration](implementations/csharp/build/type-manager/README.md), [Configuration boundary](docs/modules/type-management/configuration-boundary.md) |
