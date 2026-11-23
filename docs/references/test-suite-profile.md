@@ -49,3 +49,13 @@ enforcement remains repository configuration.
 For Compatibility only, restore the pinned native tools using `dotnet tool restore --configfile eng/Tools.NuGet.config` from `implementations/csharp`; ApiCompat requires .NET **8.0.31**. A private installation can use the existing `CIS_COMPAT_API_DOTNET` override; keep its machine-specific value local. No release-only tool installation is required for the selected unit demonstration.
 
 Fixtures, examples, shared support and `CIS.TypeManager.Build` remain their existing test/consumer/product-build dependencies, not additional shipping modules or test suites. Ordinary `dotnet` and IDE execution remain available, and CIS is not a shipping runtime dependency. Performance/stress and full release qualification remain separate open work; see [native test guidance](../../implementations/csharp/tests/README.md).
+
+Shared Coordination and Jobs use these same selections. The fast lane covers
+managed ownership, finite handlers, configuration, host drain and actual HTTP
+metrics collection. PostgreSQL authority/guard cases and durable outbox/process
+consumers carry `RequiresDocker` and use the strict service settings above.
+The existing `examples/CountryData.UnitTests` project contains public-helper
+maintenance recipes alongside its catalog/lookup examples; no new suite or
+harness is introduced. Its scripted facts establish no SQL or authentication
+proof. See [Coordination verification](../changes/CIS-0022/verification.md) for the
+actual current cases, packages, native lanes and cleanup.

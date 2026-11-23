@@ -3,6 +3,7 @@ using Azure.Identity;
 using CIS.Healthcheck;
 using CIS.Heartbeat;
 using CIS.RestClient;
+using CIS.Coordination.Hosting;
 using System.Runtime.ExceptionServices;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -29,6 +30,7 @@ internal sealed class EntraProfileRuntime : IAsyncDisposable, ISecurityCredentia
     private readonly SemaphoreSlim acquisitionGate = new(1, 1);
     private readonly TaskCompletionSource cutoffSettled = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly CancellationTokenRegistration stopRegistration;
+    private readonly CoordinationHostLifetime? coordination;
     private WorkloadIdentityCredential? credential;
     private IConfigurationManager<OpenIdConnectConfiguration>? metadataManager;
     private EntraJwtEvents? jwtEvents;
@@ -53,7 +55,8 @@ internal sealed class EntraProfileRuntime : IAsyncDisposable, ISecurityCredentia
 
     internal EntraProfileRuntime(EntraOptionsSnapshot options, ISecurityProfileStatusReporter reporter,
         TimeProvider clock, IHealthMonitorFactory? health, IHeartbeatOwnerFactory? heartbeat, ILogger<EntraProfileRuntime>? logger,
-        IHostApplicationLifetime? lifetime, Func<WorkloadIdentityCredential>? borrowedCredential)
+        IHostApplicationLifetime? lifetime, Func<WorkloadIdentityCredential>? borrowedCredential,
+        CoordinationHostLifetime? coordination = null)
     {
         this.options = options;
         this.reporter = reporter;
@@ -62,7 +65,9 @@ internal sealed class EntraProfileRuntime : IAsyncDisposable, ISecurityCredentia
         this.heartbeat = heartbeat;
         this.logger = logger;
         this.borrowedCredential = borrowedCredential;
-        stopRegistration = lifetime?.ApplicationStopping.Register(BeginStopping) ?? default;
+        this.coordination = coordination;
+        CancellationToken cutoff = coordination?.DependencyStopping ?? lifetime?.ApplicationStopping ?? default;
+        stopRegistration = cutoff.Register(BeginStopping);
     }
 
     public string Profile => options.Profile.Alias;
@@ -536,6 +541,11 @@ internal sealed class EntraProfileRuntime : IAsyncDisposable, ISecurityCredentia
     {
         try
         {
+            if (coordination is not null)
+            {
+                await coordination.WaitForDependenciesAsync().ConfigureAwait(false);
+            }
+
             BeginStopping();
             await cutoffSettled.Task.ConfigureAwait(false);
             Task? starting;

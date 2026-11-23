@@ -3,6 +3,7 @@ using System.Runtime.ExceptionServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using CIS.Heartbeat;
+using CIS.Coordination.Hosting;
 using CIS.RestClient;
 using CIS.RestClient.Http;
 using CIS.Security.Certificates.Hosting;
@@ -27,6 +28,7 @@ internal sealed class CertificatePemRuntime : IAsyncDisposable, IHeartbeatSubscr
     private readonly Func<IServiceProvider, RestHttpNativeKeyScope>? borrowedKeys;
     private readonly CancellationTokenSource stopping = new();
     private readonly CancellationTokenRegistration stopRegistration;
+    private readonly CoordinationHostLifetime? coordination;
     private readonly TaskCompletionSource cutoff = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly RestHttpTransport? transport;
     private CertificateTrustPolicy? trust;
@@ -80,7 +82,9 @@ internal sealed class CertificatePemRuntime : IAsyncDisposable, IHeartbeatSubscr
                 services.GetRequiredService<IMeterFactory>(), clock: clock);
             availability.BindOutboundTransport(transport);
         }
-        stopRegistration = services.GetService<IHostApplicationLifetime>()?.ApplicationStopping.Register(BeginStopping) ?? default;
+        coordination = services.GetService<CoordinationHostLifetime>();
+        CancellationToken nativeStopping = services.GetService<IHostApplicationLifetime>()?.ApplicationStopping ?? default;
+        stopRegistration = CoordinationHostLifetime.DependencyToken(services, nativeStopping).Register(BeginStopping);
     }
 
     internal string Profile => profile.Alias;
@@ -544,6 +548,23 @@ internal sealed class CertificatePemRuntime : IAsyncDisposable, IHeartbeatSubscr
 
     private async Task DisposeCoreAsync(TaskCompletionSource completion)
     {
+        try
+        {
+            await DrainAndDisposeAsync(completion).ConfigureAwait(false);
+        }
+        catch (Exception exception)
+        {
+            completion.TrySetException(exception);
+        }
+    }
+
+    private async Task DrainAndDisposeAsync(TaskCompletionSource completion)
+    {
+        if (coordination is not null)
+        {
+            await coordination.WaitForDependenciesAsync().ConfigureAwait(false);
+        }
+
         BeginStopping();
         await cutoff.Task.ConfigureAwait(false);
         var errors = new List<Exception>();

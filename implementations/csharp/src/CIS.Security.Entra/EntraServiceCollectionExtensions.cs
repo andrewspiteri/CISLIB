@@ -71,7 +71,8 @@ public static class EntraServiceCollectionExtensions
             provider.GetService<TimeProvider>() ?? TimeProvider.System,
             provider.GetService<IHealthMonitorFactory>(), provider.GetService<IHeartbeatOwnerFactory>(), provider.GetService<ILogger<EntraProfileRuntime>>(),
             provider.GetService<IHostApplicationLifetime>(),
-            borrowedCredential is null ? null : () => borrowedCredential(provider)));
+            borrowedCredential is null ? null : () => borrowedCredential(provider),
+            provider.GetService<CIS.Coordination.Hosting.CoordinationHostLifetime>()));
         services.AddKeyedSingleton<ISecurityCredentialControl>(alias, (provider, _) =>
             new EntraCredentialControl(provider.GetRequiredKeyedService<EntraProfileRuntime>(alias)));
         services.AddSingleton<IStartable>(provider => new EntraStartable(provider.GetRequiredKeyedService<EntraProfileRuntime>(alias),

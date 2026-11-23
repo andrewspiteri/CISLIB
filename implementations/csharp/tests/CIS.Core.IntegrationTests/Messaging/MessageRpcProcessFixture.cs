@@ -1,6 +1,7 @@
 using System.Text.Json;
 using CIS.Messaging;
 using CIS.Operations.PostgreSql;
+using CIS.Coordination.PostgreSql;
 using CIS.TestSupport;
 using CIS.Tests.MessagingCrashFixture;
 using CIS.Tests.IntegrationTests.Infrastructure.Containers;
@@ -18,15 +19,18 @@ internal sealed class MessageRpcProcessFixture : IAsyncDisposable
     private PostgresMessageFixture? caller;
     private RabbitMqMessageFixture? broker;
     private bool operationSchemaOwned;
+    private bool coordinationSchemaOwned;
     private bool preserve;
     internal PostgresMessageFixture Server => server!;
     internal PostgresMessageFixture Caller => caller!;
     internal RabbitMqMessageFixture Broker => broker!;
     internal string OperationSchema => Server.Schema + "_op";
+    internal string CoordinationSchema => Server.Schema + "_coord";
+    internal Guid CoordinationAuthority { get; } = Guid.NewGuid();
     internal string Path => directory.Path;
     internal static string Binary => System.IO.Path.Combine(AppContext.BaseDirectory, "messaging-crash-host", "CIS.Messaging.RpcCrashFixture.dll");
 
-    internal static async Task<MessageRpcProcessFixture> CreateAsync(bool minimum = false)
+    internal static async Task<MessageRpcProcessFixture> CreateAsync(bool minimum = false, bool coordination = false)
     {
         var fixture = new MessageRpcProcessFixture();
         try
@@ -36,8 +40,14 @@ internal sealed class MessageRpcProcessFixture : IAsyncDisposable
             fixture.operationSchemaOwned = true;
             await fixture.Server.SqlAsync(PostgreSqlOperationSchema.GetInstallationSql(fixture.OperationSchema));
             await fixture.Server.SqlAsync($"CREATE TABLE {fixture.Server.Table("rpc_effect_counter")} (total integer NOT NULL); INSERT INTO {fixture.Server.Table("rpc_effect_counter")} VALUES (0)");
+            if (coordination)
+            {
+                fixture.coordinationSchemaOwned = true;
+                await fixture.Server.SqlAsync(PostgreSqlCoordinationSchema.GetInstallationSql(fixture.CoordinationAuthority, fixture.CoordinationSchema));
+            }
             fixture.broker = await RabbitMqMessageFixture.CreateAsync(withRequests: true, transformSnapshot: _ =>
-                CrashContracts.Snapshot(CrashContracts.Options(minimum), CIS.Security.LocalApplicationIdentity.Capture(), true));
+                coordination ? CrashContracts.CoordinationSnapshot(CrashContracts.Options(minimum), CIS.Security.LocalApplicationIdentity.Capture(), true)
+                    : CrashContracts.Snapshot(CrashContracts.Options(minimum), CIS.Security.LocalApplicationIdentity.Capture(), true));
             return fixture;
         }
         catch (Exception original)
@@ -62,6 +72,8 @@ internal sealed class MessageRpcProcessFixture : IAsyncDisposable
             MessagingSchema = mode.StartsWith("caller", StringComparison.Ordinal) ? Caller.Schema : Server.Schema,
             OperationSchema = OperationSchema,
             CounterSchema = Server.Schema,
+            CoordinationSchema = mode.StartsWith("coord-", StringComparison.Ordinal) ? CoordinationSchema : "",
+            CoordinationAuthority = mode.StartsWith("coord-", StringComparison.Ordinal) ? CoordinationAuthority : Guid.Empty,
             Input = input,
             OperationKey = "rpc-key",
             TimeoutSeconds = timeout,
@@ -148,7 +160,10 @@ internal sealed class MessageRpcProcessFixture : IAsyncDisposable
         Assert.AreEqual(0, result.ExitCode, result.StandardError);
         Assert.IsTrue(result.OutputDrained);
         var report = JsonSerializer.Deserialize<CrashReport>(await File.ReadAllBytesAsync(child.Descriptor.ResultPath))!;
-        Broker.TrackReplyEndpoint(report.EndpointId);
+        if (!child.Descriptor.Mode.StartsWith("coord-", StringComparison.Ordinal))
+        {
+            Broker.TrackReplyEndpoint(report.EndpointId);
+        }
         return report;
     }
 
@@ -211,6 +226,10 @@ internal sealed class MessageRpcProcessFixture : IAsyncDisposable
             if (operationSchemaOwned && server is not null)
             {
                 await CaptureAsync(() => server.SqlAsync($"DROP SCHEMA IF EXISTS \"{OperationSchema}\" CASCADE"), failures);
+            }
+            if (coordinationSchemaOwned && server is not null)
+            {
+                await CaptureAsync(() => server.SqlAsync($"DROP SCHEMA IF EXISTS \"{CoordinationSchema}\" CASCADE"), failures);
             }
             if (caller is not null)
             {

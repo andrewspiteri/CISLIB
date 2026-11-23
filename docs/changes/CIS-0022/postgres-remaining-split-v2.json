@@ -1,0 +1,32 @@
+{
+  "tasks": [
+    {
+      "title": "Complete PostgreSQL grant operations and original-context guard",
+      "category": "implementation",
+      "complexity": "medium",
+      "scopeIds": [
+        "postgres"
+      ],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "assignee": "Codex",
+      "acceptanceCriteria": "Complete the existing frozen PostgreSQL provider and original-contextguard under the reconciled postgres scope: atomic per-key grant acquire/renew/release/resolve/prune, authoritative post-lock time, exactgrant/authority guards, original RM02 completionfacts and no uncertainmutationreplay. Include meaningful unit/realSQL locking/concurrency/uncertainty tests, consumerdocumentation and independentreview. Preserve all priorWORK002source/cost/attempt history.",
+      "validation": "Use existing typed ownedPG, independent application sources/sessions, real contention/unrelatedkeys, stalegrant rejection, pooledgeneration/release/prune/restart, sequenceproperties/authoritymismatch, real guard-lockwait expiry and transaction/takeover serialization. Focus Windows/actualLinux, zero selectedskips, exactcleanup; provider/lockorder/migration docs and independentreview."
+    },
+    {
+      "title": "Deliver explicit durable authority schema and packaged installer",
+      "assignee": "Codex",
+      "complexity": "medium",
+      "acceptanceCriteria": "Deliver the production explicit authority metadata/grant schema and persistent loggedBIGINT CACHE1 NO CYCLE allocator, required SQL embedding/contentFiles package wiring and public installer/options. Installation refuses existing/damagedallocator ratherthan reset acknowledgedhistory; actualschema validation and cleanup preservegeneration. Include packagedresource/optionboundary units, real installation/corruption/exhaustion/prune/restart proof and deployment/permissionsdocumentation.",
+      "scopeIds": [
+        "postgres"
+      ],
+      "category": "implementation",
+      "validation": "Use the same currentreal ownedPostgreSQLfixture and affected build/nativecases with explicit installer/resource extraction. Validate exactlyowned schema/prune/recreate/restart persistence and allocatorproperties; share real provider proof with sibling withoutduplicatingcampaign. Preserve originalparentWORK002cost/attempts and sharedfiniteallocation.",
+      "dependsOn": [
+        "WORK-001"
+      ]
+    }
+  ]
+}

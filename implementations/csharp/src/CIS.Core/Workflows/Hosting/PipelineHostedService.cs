@@ -1,6 +1,7 @@
 using CIS.Heartbeat.Hosting;
 using CIS.RestClient.Hosting;
 using CIS.Startup.Hosting;
+using CIS.Coordination.Hosting;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -9,11 +10,13 @@ using Microsoft.Extensions.Options;
 namespace CIS.Workflows.Hosting;
 
 internal sealed class PipelineHostedService(PipelineLifetime owner, PipelineHostingOrder order,
-    IHostApplicationLifetime lifetime, IOptions<HostOptions> options) : IHostedLifecycleService, IAsyncDisposable
+    IHostApplicationLifetime lifetime, IOptions<HostOptions> options, IServiceProvider root) : IHostedLifecycleService, IAsyncDisposable
 {
+    private readonly CoordinationHostLifetime? coordination = root.GetService<CoordinationHostLifetime>();
     private CancellationTokenRegistration stopping;
     private CancellationTokenRegistration startupCancellation;
     private CancellationTokenRegistration started;
+    private CancellationTokenRegistration dependencyStopping;
 
     public Task StartingAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
@@ -24,8 +27,12 @@ internal sealed class PipelineHostedService(PipelineLifetime owner, PipelineHost
             throw new InvalidOperationException("Install AddCisWorkflows/AddCisStateMachines after ordinary business hosted services and before CIS Heartbeat/Startup bridges; only the exact native web host may follow the cooperating bridges. Disable concurrent hosted starting/stopping.");
         }
 
-        stopping = lifetime.ApplicationStopping.UnsafeRegister(static state => ((PipelineLifetime)state!).BeginStopping(), owner);
-        startupCancellation = cancellationToken.UnsafeRegister(static state => ((PipelineLifetime)state!).BeginStopping(), owner);
+        stopping = lifetime.ApplicationStopping.UnsafeRegister(static state => ((PipelineHostedService)state!).BeginStopping(), this);
+        startupCancellation = cancellationToken.UnsafeRegister(static state => ((PipelineHostedService)state!).BeginStopping(), this);
+        if (coordination is not null)
+        {
+            dependencyStopping = coordination.DependencyStopping.UnsafeRegister(static state => ((PipelineHostedService)state!).BeginStopping(), this);
+        }
         started = lifetime.ApplicationStarted.UnsafeRegister(static state => ((PipelineHostedService)state!).ReleaseStartupToken(), this);
         return Task.CompletedTask;
     }
@@ -36,6 +43,10 @@ internal sealed class PipelineHostedService(PipelineLifetime owner, PipelineHost
 
     public Task StoppingAsync(CancellationToken cancellationToken)
     {
+        if (coordination is not null)
+        {
+            return StopCoreAsync();
+        }
         owner.BeginStopping();
         return Task.CompletedTask;
     }
@@ -43,15 +54,38 @@ internal sealed class PipelineHostedService(PipelineLifetime owner, PipelineHost
     // Reverse Stop order places the listener before this barrier and ordinary
     // business hosted-service teardown after it. Host wait cancellation never
     // substitutes for actual workflow settlement.
-    public Task StopAsync(CancellationToken cancellationToken) => owner.StopAsync();
-    public Task StoppedAsync(CancellationToken cancellationToken) => owner.StopAsync();
+    public Task StopAsync(CancellationToken cancellationToken) => StopCoreAsync();
+    public Task StoppedAsync(CancellationToken cancellationToken) => StopCoreAsync();
 
     public async ValueTask DisposeAsync()
     {
-        await owner.StopAsync().ConfigureAwait(false);
-        startupCancellation.Dispose();
-        started.Dispose();
-        stopping.Dispose();
+        try
+        {
+            await StopCoreAsync().ConfigureAwait(false);
+        }
+        finally
+        {
+            startupCancellation.Dispose();
+            started.Dispose();
+            stopping.Dispose();
+            dependencyStopping.Dispose();
+        }
+    }
+
+    private void BeginStopping()
+    {
+        if (coordination is not null && !coordination.IsDrained)
+        {
+            coordination.BeginStopping();
+            return;
+        }
+        owner.BeginStopping();
+    }
+
+    private async Task StopCoreAsync()
+    {
+        Exception? failure = await CoordinationHostLifetime.CaptureStopAsync(coordination).ConfigureAwait(false);
+        await Task.WhenAll(owner.StopAsync(), failure is null ? Task.CompletedTask : Task.FromException(failure)).ConfigureAwait(false);
     }
 }
 
@@ -79,7 +113,7 @@ internal sealed class PipelineHostingOrder(IServiceCollection services)
             }
 
             if (type != typeof(RestHostedService) && type != typeof(HeartbeatHostedService)
-                && type != typeof(StartupHostedService))
+                && type != typeof(StartupHostedService) && type != typeof(CoordinationHostedService))
             {
                 return false;
             }

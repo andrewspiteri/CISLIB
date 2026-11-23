@@ -1,5 +1,6 @@
 using CIS.Healthcheck;
 using CIS.Configuration;
+using CIS.Coordination.Hosting;
 using CIS.Heartbeat;
 using CIS.Heartbeat.Hosting;
 using CIS.Metrics;
@@ -44,12 +45,15 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
     private readonly MetricsRuntime? moduleMetrics;
     private readonly MessagingRuntime? messaging;
     private readonly IRestClientRuntime? rest;
+    private readonly CoordinationHostLifetime? coordination;
     private readonly StartupHostingOrder order;
     private readonly IHostApplicationLifetime lifetime;
     private readonly IOptions<HostOptions> hostOptions;
     private CancellationTokenRegistration stopping;
     private CancellationTokenRegistration startupStopping;
     private CancellationTokenRegistration completionStopping;
+    private CancellationTokenRegistration dependencyStopping;
+    private CancellationTokenRegistration startedRegistration;
     private int subscribed;
 
     public StartupHostedService(IServiceProvider root, StartupHostingOrder order,
@@ -65,6 +69,7 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
         moduleMetrics = root.GetService<MetricsRuntime>();
         rest = root.GetService<IRestClientRuntime>();
         messaging = root.GetService<MessagingRuntime>();
+        coordination = root.GetService<CoordinationHostLifetime>();
         coordinator = new StartupCoordinator(root, order.Descriptors,
             root.GetService<HealthcheckService>(), root.GetService<ILogger<StartupCoordinator>>(),
             ConfirmStartupCompletion);
@@ -81,6 +86,11 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
         if (Interlocked.Exchange(ref subscribed, 1) == 0)
         {
             stopping = lifetime.ApplicationStopping.UnsafeRegister(static value => ((StartupHostedService)value!).BeginStopping(), this);
+            if (coordination is not null)
+            {
+                dependencyStopping = coordination.DependencyStopping.UnsafeRegister(static value => ((StartupHostedService)value!).BeginStopping(), this);
+                startedRegistration = lifetime.ApplicationStarted.UnsafeRegister(static value => ((StartupHostedService)value!).ReleaseStartupSignals(), this);
+            }
             // Close admission even while an initializer ignores startup cancellation.
             startupStopping = heartbeat is null && configuration is null && metrics is null && rest is null && messaging is null ? default : cancellationToken.UnsafeRegister(
                 static value => ((StartupHostedService)value!).CloseModuleAdmission(), this);
@@ -126,11 +136,21 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
     {
         coordinator.RequestStopping();
         CloseModuleAdmission();
+        if (coordination is not null && !coordination.IsDrained)
+        {
+            return;
+        }
         coordinator.BeginStopping();
     }
 
     private void CloseModuleAdmission()
     {
+        if (coordination is not null && !coordination.IsDrained)
+        {
+            coordination.BeginStopping();
+            return;
+        }
+
         messaging?.BeginStopping();
         // A callback may be awaiting REST while holding another module's drain.
         rest?.BeginStopping();
@@ -147,6 +167,7 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
 
     private async Task StopCoreAsync()
     {
+        Exception? coordinationFailure = await CoordinationHostLifetime.CaptureStopAsync(coordination).ConfigureAwait(false);
         BeginStopping();
         Task messagingDrain = messaging?.StopAsync() ?? Task.CompletedTask;
         try
@@ -161,7 +182,8 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
         Task heartbeatDrain = heartbeat?.StopAsync() ?? Task.CompletedTask;
         Task metricsDrain = metrics?.StopAsync() ?? Task.CompletedTask;
         Task restDrain = rest?.StopAsync() ?? Task.CompletedTask;
-        await Task.WhenAll(messagingDrain, coordinator.StopAsync(), configurationDrain, heartbeatDrain, metricsDrain, restDrain).ConfigureAwait(false);
+        await Task.WhenAll(messagingDrain, coordinator.StopAsync(), configurationDrain, heartbeatDrain, metricsDrain, restDrain,
+            coordinationFailure is null ? Task.CompletedTask : Task.FromException(coordinationFailure)).ConfigureAwait(false);
     }
 
     public async ValueTask DisposeAsync()
@@ -181,8 +203,16 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
                 completionStopping.Dispose();
                 startupStopping.Dispose();
                 stopping.Dispose();
+                dependencyStopping.Dispose();
+                startedRegistration.Dispose();
             }
         }
+    }
+
+    private void ReleaseStartupSignals()
+    {
+        startupStopping.Dispose();
+        completionStopping.Dispose();
     }
 }
 

@@ -6,6 +6,7 @@ using CIS.Startup.Hosting;
 using CIS.Metrics;
 using CIS.Messaging;
 using CIS.RestClient;
+using CIS.Coordination.Hosting;
 
 namespace CIS.Heartbeat.Hosting;
 
@@ -50,9 +51,11 @@ internal sealed class HeartbeatHostedService(HeartbeatRuntime runtime, IHostAppl
 {
     private CancellationTokenRegistration started;
     private CancellationTokenRegistration stopping;
+    private CancellationTokenRegistration dependencyStopping;
     private readonly MetricsRuntime? metrics = root.GetService<IMetrics>() as MetricsRuntime;
     private readonly IRestClientRuntime? rest = root.GetService<IRestClientRuntime>();
     private readonly MessagingRuntime? messaging = root.GetService<MessagingRuntime>();
+    private readonly CoordinationHostLifetime? coordination = root.GetService<CoordinationHostLifetime>();
 
     public Task StartingAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
@@ -63,6 +66,10 @@ internal sealed class HeartbeatHostedService(HeartbeatRuntime runtime, IHostAppl
             throw new InvalidOperationException("Install AddCisHeartbeat after dependent hosted services and disable concurrent hosted stopping so its barrier precedes dependency teardown.");
         }
         stopping = lifetime.ApplicationStopping.UnsafeRegister(static value => ((HeartbeatHostedService)value!).BeginStopping(), this);
+        if (coordination is not null)
+        {
+            dependencyStopping = coordination.DependencyStopping.UnsafeRegister(static value => ((HeartbeatHostedService)value!).BeginStopping(), this);
+        }
         started = lifetime.ApplicationStarted.UnsafeRegister(static value => ((HeartbeatRuntime)value!).Activate(), runtime);
         return Task.CompletedTask;
     }
@@ -77,6 +84,12 @@ internal sealed class HeartbeatHostedService(HeartbeatRuntime runtime, IHostAppl
 
     private void BeginStopping()
     {
+        if (coordination is not null && !coordination.IsDrained)
+        {
+            coordination.BeginStopping();
+            return;
+        }
+
         messaging?.BeginStopping();
         rest?.BeginStopping();
         runtime.BeginStopping();
@@ -88,6 +101,7 @@ internal sealed class HeartbeatHostedService(HeartbeatRuntime runtime, IHostAppl
 
     private async Task StopCoreAsync()
     {
+        Exception? coordinationFailure = await CoordinationHostLifetime.CaptureStopAsync(coordination).ConfigureAwait(false);
         BeginStopping();
         Task messagingDrain = messaging?.StopAsync() ?? Task.CompletedTask;
         try
@@ -98,14 +112,22 @@ internal sealed class HeartbeatHostedService(HeartbeatRuntime runtime, IHostAppl
         {
             // Rejoin the original fault only after all other module owners have begun actual drain.
         }
-        await Task.WhenAll(messagingDrain, rest?.StopAsync() ?? Task.CompletedTask, runtime.StopAsync(), metrics?.StopAsync() ?? Task.CompletedTask).ConfigureAwait(false);
+        await Task.WhenAll(messagingDrain, rest?.StopAsync() ?? Task.CompletedTask, runtime.StopAsync(), metrics?.StopAsync() ?? Task.CompletedTask,
+            coordinationFailure is null ? Task.CompletedTask : Task.FromException(coordinationFailure)).ConfigureAwait(false);
     }
 
     public async ValueTask DisposeAsync()
     {
-        await StopCoreAsync().ConfigureAwait(false);
-        started.Dispose();
-        stopping.Dispose();
+        try
+        {
+            await StopCoreAsync().ConfigureAwait(false);
+        }
+        finally
+        {
+            started.Dispose();
+            stopping.Dispose();
+            dependencyStopping.Dispose();
+        }
     }
 }
 

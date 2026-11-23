@@ -126,7 +126,7 @@ public sealed class MessagingPackageConsumerTests
         }
     }
 
-    private static async Task ImportPinnedNpgsqlAsync(RestPackage package)
+    internal static async Task ImportPinnedNpgsqlAsync(RestPackage package)
     {
         string assetsPath = Path.Combine(CandidatePackageFixture.Repository(), "implementations/csharp/tests/CIS.Core.IntegrationTests/obj/project.assets.json");
         JsonObject assets = RestPackage.Assets(assetsPath);
@@ -152,7 +152,7 @@ public sealed class MessagingPackageConsumerTests
         await File.WriteAllBytesAsync(Path.Combine(package.Feed, "npgsql.10.0.4.nupkg"), bytes);
     }
 
-    private static void AssertRuntimeRestore(RestPackage package, string app)
+    internal static void AssertRuntimeRestore(RestPackage package, string app)
     {
         JsonObject assets = RestPackage.Assets(Path.Combine(app, "obj/project.assets.json"));
         Assert.AreEqual(1, assets["packageFolders"]!.AsObject().Count);
@@ -217,7 +217,8 @@ public sealed class MessagingPackageConsumerTests
             Path.Combine(output, assemblyName + ".dll")], package.Root);
         Assert.AreEqual("", process.StandardError);
         JsonObject report = JsonNode.Parse(process.StandardOutput)!.AsObject();
-        foreach (string fact in new[] { "publication", "unsecuredDelivery", "typedRequest", "typedWait", "ticketOwnership", "originalFault", "finiteRecords" })
+        foreach (string fact in new[] { "publication", "unsecuredDelivery", "typedRequest", "typedWait", "ticketOwnership", "originalFault", "finiteRecords",
+            "coordinationBoundary", "generationPrecision", "jobAdmissions" })
         {
             Assert.IsTrue(report[fact]!.GetValue<bool>(), fact);
         }
@@ -416,6 +417,8 @@ public sealed class MessagingPackageConsumerTests
         using System.Security.Cryptography;
         using System.Text.Json;
         using CIS.CommonTesting;
+        using CIS.Coordination;
+        using CIS.Jobs;
         using CIS.Messaging;
         using CIS.Operations;
 
@@ -474,6 +477,34 @@ public sealed class MessagingPackageConsumerTests
         {
             finiteRecords = client.PendingScripts == 1 && client.Calls.Count == 3;
         }
+
+        var acquisition = new CoordinationAcquisition(new("test", "package-scope", "maintenance", "partition"),
+            "package", "explicit-test-instance", Guid.NewGuid());
+        await using var lease = new ManualCoordinationLease(new(Guid.NewGuid(), acquisition, long.MaxValue, DateTimeOffset.UnixEpoch.AddMinutes(1)));
+        var coordination = new ScriptedCoordinationService(scriptCapacity: 1, recordingCapacity: 1);
+        coordination.Enqueue(new(CoordinationAcquireOutcome.Acquired, lease));
+        ManagedCoordinationResult acquired = await coordination.AcquireAsync(new("package-scope", "maintenance", "partition"));
+        await lease.LoseAsync(CoordinationLossReason.Expired);
+        bool coordinationBoundary = ReferenceEquals(lease, acquired.Lease) && acquired.Outcome == CoordinationAcquireOutcome.Acquired
+            && lease.State == CoordinationLeaseState.Lost && lease.OwnershipLost.IsCancellationRequested
+            && (await lease.Termination).LossReason == CoordinationLossReason.Expired && coordination.Calls.Count == 1;
+        using JsonDocument serializedGrant = JsonDocument.Parse(JsonSerializer.Serialize(lease.Grant));
+        bool generationPrecision = serializedGrant.RootElement.GetProperty("Generation").GetString() == "9223372036854775807";
+
+        var admissionSource = new ScriptedJobRunSource("package-admissions", scriptCapacity: 1, recordingCapacity: 1);
+        var operation = new MessageOperationReference("Maintain", "business-scope", "stable-key");
+        EncodedMessage admittedInput = MessageWire.Encode(new(Guid.NewGuid(), MessageKind.Command,
+            new("package.number", 1), "package", "test", DateTimeOffset.UnixEpoch, "1"u8.ToArray(), operation: operation));
+        var settings = new JobExecutionSettings(JobExecutionMode.Scheduled,
+            schedule: JobScheduleDescriptor.FixedDelay(TimeSpan.FromMinutes(5), JobMissedRunPolicy.Skip));
+        var run = new AdmittedJobRun("package-scope", "maintenance", "partition", "occurrence-1", operation, 1,
+            settings, admittedInput, admissionSource.SourceId, "expected-admission");
+        var admitted = new JobAdmissionValidation(true);
+        admissionSource.EnqueueValidation(run, admitted);
+        bool jobAdmissions = ReferenceEquals(admitted, await admissionSource.ValidateAsync(run))
+            && admissionSource.Capabilities == JobRunSourceCapabilities.ExternallyAdmittedOccurrences
+            && admissionSource.Calls.Single().InputDigest.Equals(admittedInput.Digest)
+            && admissionSource.Calls.Single().OccurrenceId == "occurrence-1";
         string corePath = typeof(MessageEnvelope).Assembly.Location;
         string helperPath = typeof(ScriptedMessagingClient).Assembly.Location;
         bool nativeProviderLoaded = AppDomain.CurrentDomain.GetAssemblies().Any(assembly => assembly.GetName().Name is { } name
@@ -482,7 +513,8 @@ public sealed class MessagingPackageConsumerTests
                 || name.StartsWith("Polly", StringComparison.Ordinal)));
         Console.WriteLine(JsonSerializer.Serialize(new
         {
-            publication, unsecuredDelivery, typedRequest, typedWait, ticketOwnership, originalFault, finiteRecords, nativeProviderLoaded,
+            publication, unsecuredDelivery, typedRequest, typedWait, ticketOwnership, originalFault, finiteRecords,
+            coordinationBoundary, generationPrecision, jobAdmissions, nativeProviderLoaded,
             corePath, coreHash = Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(corePath))),
             helperPath, helperHash = Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(helperPath)))
         }));

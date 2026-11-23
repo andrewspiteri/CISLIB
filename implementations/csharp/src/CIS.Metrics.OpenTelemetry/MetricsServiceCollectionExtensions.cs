@@ -6,6 +6,8 @@ using CIS.Security.Hosting;
 using CIS.Transactions;
 using CIS.Operations.Hosting;
 using CIS.Messaging.Hosting;
+using CIS.Coordination.Hosting;
+using CIS.Jobs.Hosting;
 using global::OpenTelemetry.Metrics;
 
 namespace CIS.Metrics.OpenTelemetry;
@@ -61,7 +63,7 @@ public static class MetricsServiceCollectionExtensions
         services.AddSingleton(provider => new MetricsCollectionContext(provider, settings, guard,
             RestComposition(services), WorkflowComposition(services), StateMachineCompositionMetadata(services),
             SecurityCompositionMetadata(services), TransactionCompositionMetadata(services), OperationCompositionMetadata(services),
-            MessagingCompositionMetadata(services)));
+            MessagingCompositionMetadata(services), CoordinationCompositionMetadata(services), JobsCompositionMetadata(services)));
         services.AddSingleton<IMetrics>(provider => provider.GetRequiredService<MetricsCollectionContext>().Metrics);
         if (settings.CollectCoreModules)
         {
@@ -109,6 +111,38 @@ public static class MetricsServiceCollectionExtensions
         }
         guard.Seal();
         return services;
+    }
+
+    private static CoordinationComposition? CoordinationCompositionMetadata(IServiceCollection services)
+    {
+        ServiceDescriptor[] markers = services.Where(descriptor => descriptor.ServiceType == typeof(CoordinationComposition)).ToArray();
+        if (markers.Length == 0)
+        {
+            return null;
+        }
+
+        if (markers.Length != 1 || markers[0].IsKeyedService || markers[0].ImplementationInstance is not CoordinationComposition composition)
+        {
+            throw new InvalidOperationException("Coordination composition must be its one passive registration instance.");
+        }
+
+        return composition;
+    }
+
+    private static JobsComposition? JobsCompositionMetadata(IServiceCollection services)
+    {
+        ServiceDescriptor[] markers = services.Where(descriptor => descriptor.ServiceType == typeof(JobsComposition)).ToArray();
+        if (markers.Length == 0)
+        {
+            return null;
+        }
+
+        if (markers.Length != 1 || markers[0].IsKeyedService || markers[0].ImplementationInstance is not JobsComposition composition)
+        {
+            throw new InvalidOperationException("Jobs composition must be its one passive registration instance.");
+        }
+
+        return composition;
     }
 
     private static RestClientComposition? RestComposition(IServiceCollection services)

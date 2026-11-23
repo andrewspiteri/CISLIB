@@ -1,4 +1,5 @@
 using CIS.Healthcheck;
+using CIS.Coordination.Hosting;
 using CIS.Heartbeat;
 using CIS.RestClient.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +17,7 @@ internal sealed class CertificateProfileAvailability : IAsyncDisposable, IHeartb
     private readonly IHealthMonitorFactory? health;
     private readonly IHeartbeatOwnerFactory? heartbeat;
     private readonly CancellationTokenRegistration stopping;
+    private readonly CoordinationHostLifetime? coordination;
     private readonly TaskCompletionSource cutoff = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private DateTimeOffset? inboundExpiry;
     private DateTimeOffset? outboundExpiry;
@@ -38,7 +40,9 @@ internal sealed class CertificateProfileAvailability : IAsyncDisposable, IHeartb
         reporter = services.GetRequiredService<ISecurityProfileStatusReporter>();
         health = services.GetService<IHealthMonitorFactory>();
         heartbeat = services.GetService<IHeartbeatOwnerFactory>();
-        stopping = services.GetService<IHostApplicationLifetime>()?.ApplicationStopping.Register(BeginStopping) ?? default;
+        coordination = services.GetService<CoordinationHostLifetime>();
+        CancellationToken nativeStopping = services.GetService<IHostApplicationLifetime>()?.ApplicationStopping ?? default;
+        stopping = CoordinationHostLifetime.DependencyToken(services, nativeStopping).Register(BeginStopping);
     }
 
     internal static void Register(IServiceCollection services, string alias)
@@ -242,6 +246,23 @@ internal sealed class CertificateProfileAvailability : IAsyncDisposable, IHeartb
 
     private async Task DisposeCoreAsync(TaskCompletionSource completion)
     {
+        try
+        {
+            await DrainAndDisposeAsync(completion).ConfigureAwait(false);
+        }
+        catch (Exception exception)
+        {
+            completion.TrySetException(exception);
+        }
+    }
+
+    private async Task DrainAndDisposeAsync(TaskCompletionSource completion)
+    {
+        if (coordination is not null)
+        {
+            await coordination.WaitForDependenciesAsync().ConfigureAwait(false);
+        }
+
         BeginStopping();
         await cutoff.Task.ConfigureAwait(false);
         var failures = new List<Exception>();

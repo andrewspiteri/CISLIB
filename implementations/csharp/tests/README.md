@@ -5,6 +5,12 @@ families, native Security tests, CountryData unit examples and shared test
 support. Use the same projects in the IDE or through `dotnet test`; no
 preparation checkpoint, package campaign or custom runner is required.
 
+Keep executable fixture projects, including Messaging's `CrashHost`, in the
+solution's Fixtures folder as well as their parent project's build references.
+Visual Studio schedules loaded solution projects before the parent copies their
+configuration-specific executable files. The copy checks require the fixture's
+DLL, runtime configuration and dependency manifest; retain those checks.
+
 | Project | Retained purpose |
 | --- | --- |
 | UnitTests | Core module behavior, bounds, ownership, errors and deterministic concurrency |

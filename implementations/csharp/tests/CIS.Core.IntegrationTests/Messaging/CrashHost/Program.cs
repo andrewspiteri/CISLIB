@@ -1,8 +1,11 @@
 using System.Data.Common;
+using System.Globalization;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Encodings.Web;
 using CIS.Messaging;
+using CIS.Coordination;
+using CIS.Coordination.PostgreSql;
 using CIS.Messaging.Hosting;
 using CIS.Messaging.PostgreSql;
 using CIS.Messaging.RabbitMQ;
@@ -39,7 +42,8 @@ internal static class Program
             }
             string descriptorPath = Absolute(args[0]);
             CrashDescriptor descriptor = JsonSerializer.Deserialize<CrashDescriptor>(await ReadBoundedAsync(descriptorPath), Json)!;
-            if (descriptor is null || descriptor.Version != 1 || descriptor.Mode is not ("roundtrip" or "responder" or "responder-hold" or "caller" or "caller-hold")
+            if (descriptor is null || descriptor.Version != 1 || descriptor.Mode is not ("roundtrip" or "responder" or "responder-hold" or "caller" or "caller-hold"
+                    or "coord-owner" or "coord-contender" or "coord-successor")
                 || descriptor.TimeoutSeconds is < 1 or > 60 || descriptor.Principal is not ("service" or "other"))
             {
                 throw new InvalidDataException("Invalid bounded process mode.");
@@ -104,6 +108,11 @@ internal static class Program
             var security = Security(local, settings, broker, descriptor.DenyExecute);
             bool consuming = descriptor.Mode is "roundtrip" or "responder" or "responder-hold";
             await using NpgsqlDataSource source = NpgsqlDataSource.Create(postgres.ConnectionString);
+            if (descriptor.Mode.StartsWith("coord-", StringComparison.Ordinal))
+            {
+                await RunCoordinationAsync(descriptor, source, rabbit, local, security);
+                return 0;
+            }
             var builder = Host.CreateApplicationBuilder();
             builder.Logging.ClearProviders();
             builder.Services.AddCisAdoNetDatabase("Messaging", _ => source,
@@ -280,6 +289,211 @@ internal static class Program
         {
             Console.Error.WriteLine("Messaging RPC fixture failed: " + failure.GetType().Name);
             return 2;
+        }
+    }
+
+    // Public package/process proof reuses this existing entry. No Docker, schema installation or alternate application mode escapes the fixture.
+    private static async Task RunCoordinationAsync(CrashDescriptor descriptor, NpgsqlDataSource source,
+        RabbitMqOptions rabbit, LocalApplicationIdentity local, SecurityOptions security)
+    {
+        Schema(descriptor.CoordinationSchema);
+        if (descriptor.CoordinationAuthority == Guid.Empty)
+        {
+            throw new InvalidDataException("Use the parent-installed coordination authority.");
+        }
+
+        var builder = Host.CreateApplicationBuilder();
+        builder.Logging.ClearProviders();
+        builder.Services.AddCisAdoNetDatabase("Messaging", _ => source,
+            new()
+            {
+                SupportedIsolationLevels = [TransactionIsolation.ReadCommitted]
+            });
+        builder.Services.AddSingleton<IOperationJournal>(new PostgreSqlOperationJournal(new()
+        {
+            Schema = descriptor.OperationSchema
+        }));
+        builder.Services.AddSingleton<IMessagingStore>(new PostgreSqlMessagingStore(new()
+        {
+            Schema = descriptor.MessagingSchema
+        }));
+        builder.Services.AddCisOperations();
+        builder.Services.AddCisOperation(CrashContracts.Operation());
+        MessagingOptions options = CrashContracts.Options(descriptor.MinimumBudget);
+        builder.Services.ConfigureCisMessaging(options);
+        CrashContracts.Register(builder.Services, CrashContracts.CoordinationSnapshot(options, local, consume: false));
+        builder.Services.AddAuthentication().AddScheme<AuthenticationSchemeOptions, BrokerOnlyScheme>("cis-rabbitmq", _ => { });
+        builder.Services.AddCisSecurity(security);
+        // Explicit bounded test policy, not fabricated workload authentication. Broker TLS/native evidence stays real.
+        builder.Services.Replace(ServiceDescriptor.Scoped<ICapabilityAuthorizer, CoordinationConsumerAuthorization>());
+        builder.Services.AddCisRabbitMqMessaging(rabbit);
+        builder.Services.AddCisMessaging();
+        builder.Services.AddCisStartup();
+        IHost host = builder.Build();
+        bool started = false;
+        try
+        {
+            using var lifetime = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+            ILocalTransactionFactory transactions = host.Services.GetRequiredService<ILocalTransactionFactory>();
+            var authority = new PostgreSqlCoordinationProvider(transactions, "Messaging", new()
+            {
+                AuthorityId = descriptor.CoordinationAuthority,
+                Schema = descriptor.CoordinationSchema
+            });
+            await authority.ValidateAsync(lifetime.Token);
+            var key = new CoordinationKey(local.Environment, "wallet-service", "wallet.compaction", "partition-12");
+            CoordinationAcquireResult acquired;
+            using (var acquisitionDeadline = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token))
+            {
+                acquisitionDeadline.CancelAfter(TimeSpan.FromSeconds(25));
+                do
+                {
+                    acquired = await authority.AcquireAsync(new(new(key, local.Application, local.InstanceId, Guid.NewGuid()),
+                        TimeSpan.FromSeconds(15)), acquisitionDeadline.Token);
+                    if (descriptor.Mode != "coord-successor" || acquired.Outcome != CoordinationAcquireOutcome.Busy)
+                    {
+                        break;
+                    }
+
+                    await Task.Delay(250, acquisitionDeadline.Token);
+                }
+                while (true);
+            }
+
+            var report = new CrashReport
+            {
+                Application = local.Application,
+                Environment = local.Environment,
+                InstanceId = local.InstanceId,
+                CoordinationOutcome = acquired.Outcome.ToString(),
+                ObservedOwnerInstanceId = acquired.ObservedOwner?.InstanceId ?? "",
+                CoreHash = Convert.ToHexStringLower(SHA256.HashData(await File.ReadAllBytesAsync(typeof(CoordinationGrant).Assembly.Location)))
+            };
+            if (descriptor.Mode == "coord-contender")
+            {
+                if (acquired.Outcome != CoordinationAcquireOutcome.Busy)
+                {
+                    throw new InvalidOperationException("The live independent owner must remain Busy.");
+                }
+                await MarkerAsync(descriptor.ResultPath, report);
+                return;
+            }
+
+            CoordinationGrant grant = acquired.Grant ?? throw new InvalidOperationException("The actual authority did not commit a grant.");
+            report.Generation = grant.Generation.ToString(CultureInfo.InvariantCulture);
+            await using AsyncServiceScope scope = host.Services.CreateAsyncScope();
+            IDurableOperationService operations = scope.ServiceProvider.GetRequiredService<IDurableOperationService>();
+            await using (ILocalTransaction owner = await transactions.BeginAsync("Messaging", cancellationToken: lifetime.Token))
+            {
+                OperationExecution<string> result = await operations.ExecuteAsync<int, string>(owner.Context,
+                    new("Submit", "requested-account", descriptor.OperationKey, descriptor.Input), async (context, value, token) =>
+                    {
+                        if (descriptor.Mode != "coord-owner")
+                        {
+                            throw new InvalidOperationException("A successor must replay the original result without repeating business work.");
+                        }
+                        (await authority.ValidateAsync(context, grant, token)).ThrowIfRejected();
+                        await context.UseAdoNetAsync(async (connection, transaction, cancellation) =>
+                        {
+                            await using DbCommand command = connection.CreateCommand();
+                            command.Transaction = transaction;
+                            command.CommandText = $"UPDATE \"{descriptor.CounterSchema}\".rpc_effect_counter SET total=total+1";
+                            if (await command.ExecuteNonQueryAsync(cancellation) != 1)
+                            {
+                                throw new InvalidOperationException("The owned effect counter is missing.");
+                            }
+                        }, token);
+                        MessageStageResult staged = await host.Services.GetRequiredService<IMessageOutbox>()
+                            .PublishAsync(context, "coordination", value, cancellationToken: token);
+                        if (staged.Disposition != MessageStageDisposition.Staged)
+                        {
+                            throw new InvalidOperationException("The guarded outgoing intent was not staged.");
+                        }
+                        report.MessageId = staged.Receipt!.MessageId;
+                        report.OutgoingRecordId = staged.Receipt.RecordId;
+                        report.OutgoingDigest = Convert.ToHexStringLower(staged.Receipt.Digest.CopyBytes());
+                        return OperationDecision<string>.Succeed("guarded:" + value);
+                    }, lifetime.Token);
+                OperationExecutionDisposition expected = descriptor.Mode == "coord-owner"
+                    ? OperationExecutionDisposition.Prepared : OperationExecutionDisposition.Replayed;
+                if (result.Disposition != expected)
+                {
+                    throw new InvalidOperationException("The original durable operation was not prepared or replayed as required.");
+                }
+                report.Business = result.Disposition.ToString();
+                report.Value = result.Decision!.Value;
+                TransactionCompletion completion = await owner.CommitAsync(lifetime.Token);
+                if (completion.Outcome != TransactionOutcome.Committed)
+                {
+                    throw new InvalidOperationException("The guarded original transaction did not commit.");
+                }
+                report.Completion = completion.Outcome.ToString();
+            }
+
+            if (descriptor.Mode == "coord-owner")
+            {
+                await MarkerAsync(descriptor.MarkerPath, new
+                {
+                    Phase = "coordination-committed",
+                    report.InstanceId,
+                    report.Generation,
+                    grant.ExpiresAtUtc,
+                    report.MessageId,
+                    report.OutgoingRecordId,
+                    report.OutgoingDigest,
+                    report.CoreHash
+                });
+                // The parent must kill and join this exact child; no cooperative release disguises recovery after failure.
+                await Task.Delay(TimeSpan.FromSeconds(20), lifetime.Token);
+                throw new InvalidOperationException("The parent did not terminate its bounded committed owner.");
+            }
+
+            if ((await authority.ReleaseAsync(grant, lifetime.Token)).Outcome != CoordinationMutationOutcome.Succeeded)
+            {
+                throw new InvalidOperationException("The successor must release its exact grant before publication starts.");
+            }
+            OperationLookup<string> retained = await operations.GetResultAsync<string>(new("Submit", "requested-account", descriptor.OperationKey), lifetime.Token);
+            if (retained.Disposition != OperationLookupDisposition.Found || retained.Decision!.Value != report.Value)
+            {
+                throw new InvalidOperationException("Authorized result lookup after ownership ended lost the original result.");
+            }
+
+            // Starting the existing publisher only here proves committed intent survives the failed owner and later release.
+            await host.StartAsync(lifetime.Token);
+            started = true;
+            while (await ScalarAsync(source, $"SELECT count(*) FROM \"{descriptor.MessagingSchema}\".outbox WHERE state=2") != 1)
+            {
+                await Task.Delay(25, lifetime.Token);
+            }
+            report.EffectCount = await ScalarAsync(source, $"SELECT total::bigint FROM \"{descriptor.CounterSchema}\".rpc_effect_counter");
+            report.JournalCount = await ScalarAsync(source, $"SELECT count(*) FROM \"{descriptor.OperationSchema}\".operation_journal");
+            await using (NpgsqlConnection connection = await source.OpenConnectionAsync(lifetime.Token))
+            {
+                await using var command = new NpgsqlCommand($"SELECT record_id,message_id,digest FROM \"{descriptor.MessagingSchema}\".outbox", connection);
+                await using NpgsqlDataReader reader = await command.ExecuteReaderAsync(lifetime.Token);
+                if (!await reader.ReadAsync(lifetime.Token))
+                {
+                    throw new InvalidOperationException("The committed outgoing record is missing.");
+                }
+                report.OutgoingRecordId = reader.GetGuid(0);
+                report.MessageId = reader.GetGuid(1);
+                report.OutgoingDigest = Convert.ToHexStringLower(reader.GetFieldValue<byte[]>(2));
+            }
+            await MarkerAsync(descriptor.ResultPath, report);
+        }
+        finally
+        {
+            try
+            {
+                if (started)
+                {
+                    await host.StopAsync(CancellationToken.None);
+                }
+            }
+            finally
+            {
+                await ((IAsyncDisposable)host).DisposeAsync();
+            }
         }
     }
 

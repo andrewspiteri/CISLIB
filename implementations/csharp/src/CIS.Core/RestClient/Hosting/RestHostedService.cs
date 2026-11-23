@@ -2,6 +2,7 @@ using CIS.Heartbeat.Hosting;
 using CIS.Metrics;
 using CIS.Messaging;
 using CIS.Startup.Hosting;
+using CIS.Coordination.Hosting;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -16,8 +17,11 @@ internal sealed class RestHostedService(IRestClientRuntime runtime, IServiceProv
 {
     private readonly MetricsRuntime? metrics = root.GetService<IMetrics>() as MetricsRuntime;
     private readonly MessagingRuntime? messaging = root.GetService<MessagingRuntime>();
+    private readonly CoordinationHostLifetime? coordination = root.GetService<CoordinationHostLifetime>();
     private CancellationTokenRegistration stopping;
     private CancellationTokenRegistration startupStopping;
+    private CancellationTokenRegistration dependencyStopping;
+    private CancellationTokenRegistration started;
 
     public Task StartingAsync(CancellationToken cancellationToken)
     {
@@ -27,6 +31,11 @@ internal sealed class RestHostedService(IRestClientRuntime runtime, IServiceProv
         }
         stopping = lifetime.ApplicationStopping.UnsafeRegister(static state => ((RestHostedService)state!).BeginStopping(), this);
         startupStopping = cancellationToken.UnsafeRegister(static state => ((RestHostedService)state!).BeginStopping(), this);
+        if (coordination is not null)
+        {
+            dependencyStopping = coordination.DependencyStopping.UnsafeRegister(static state => ((RestHostedService)state!).BeginStopping(), this);
+            started = lifetime.ApplicationStarted.UnsafeRegister(static state => ((RestHostedService)state!).ReleaseStartup(), this);
+        }
         return Task.CompletedTask;
     }
     public Task StartAsync(CancellationToken cancellationToken) => Task.CompletedTask;
@@ -37,6 +46,12 @@ internal sealed class RestHostedService(IRestClientRuntime runtime, IServiceProv
 
     private void BeginStopping()
     {
+        if (coordination is not null && !coordination.IsDrained)
+        {
+            coordination.BeginStopping();
+            return;
+        }
+
         messaging?.BeginStopping();
         runtime.BeginStopping();
         if (messaging is null)
@@ -46,6 +61,7 @@ internal sealed class RestHostedService(IRestClientRuntime runtime, IServiceProv
     }
     private async Task StopCoreAsync()
     {
+        Exception? coordinationFailure = await CoordinationHostLifetime.CaptureStopAsync(coordination).ConfigureAwait(false);
         BeginStopping();
         Task messagingDrain = messaging?.StopAsync() ?? Task.CompletedTask;
         try
@@ -56,7 +72,8 @@ internal sealed class RestHostedService(IRestClientRuntime runtime, IServiceProv
         {
             // The original fault remains joined below; it cannot skip REST or Metrics cleanup.
         }
-        await Task.WhenAll(messagingDrain, runtime.StopAsync(), metrics?.StopAsync() ?? Task.CompletedTask).ConfigureAwait(false);
+        await Task.WhenAll(messagingDrain, runtime.StopAsync(), metrics?.StopAsync() ?? Task.CompletedTask,
+            coordinationFailure is null ? Task.CompletedTask : Task.FromException(coordinationFailure)).ConfigureAwait(false);
     }
     public async ValueTask DisposeAsync()
     {
@@ -64,8 +81,10 @@ internal sealed class RestHostedService(IRestClientRuntime runtime, IServiceProv
         {
             await StopCoreAsync().ConfigureAwait(false);
         }
-        finally { startupStopping.Dispose(); stopping.Dispose(); }
+        finally { started.Dispose(); dependencyStopping.Dispose(); startupStopping.Dispose(); stopping.Dispose(); }
     }
+
+    private void ReleaseStartup() => startupStopping.Dispose();
 }
 
 internal sealed class RestHostingOrder(IServiceCollection services)
@@ -83,6 +102,10 @@ internal sealed class RestHostingOrder(IServiceCollection services)
             return false;
         }
         int cursor = rest + 1;
+        if (cursor < hosted.Length && hosted[cursor].ImplementationType == typeof(CoordinationHostedService))
+        {
+            cursor++;
+        }
         if (cursor < hosted.Length && hosted[cursor].ImplementationType == typeof(HeartbeatHostedService))
         {
             cursor++;
