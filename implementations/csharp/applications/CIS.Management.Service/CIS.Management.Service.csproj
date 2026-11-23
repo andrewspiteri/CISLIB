@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <AssemblyName>CIS.Management.Service</AssemblyName>
+    <RootNamespace>CIS.Management.Service</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <RuntimeFrameworkVersion>10.0.12</RuntimeFrameworkVersion>
+    <RollForward>Disable</RollForward>
+    <RuntimeIdentifiers>win-x64;linux-x64</RuntimeIdentifiers>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <CisTypeManagerEnabled>true</CisTypeManagerEnabled>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Npgsql" />
+    <ProjectReference Include="../../src/CIS.Core/CIS.Core.csproj" />
+    <ProjectReference Include="../../src/CIS.Security.Certificates/CIS.Security.Certificates.csproj" />
+    <ProjectReference Include="../../src/CIS.Security.Entra/CIS.Security.Entra.csproj" />
+    <ProjectReference Include="../../src/CIS.Metrics.OpenTelemetry/CIS.Metrics.OpenTelemetry.csproj" />
+    <ProjectReference Include="../../src/CIS.Messaging.RabbitMQ/CIS.Messaging.RabbitMQ.csproj" />
+    <InternalsVisibleTo Include="CIS.Core.IntegrationTests" />
+  </ItemGroup>
+  <Import Project="../../build/type-manager/CIS.TypeManager.targets" />
+</Project>

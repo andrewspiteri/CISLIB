@@ -1,0 +1,23 @@
+{
+  "name": "cislib-typescript",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "packageManager": "npm@11.12.1",
+  "engines": {
+    "node": "24.15.0",
+    "npm": "11.12.1"
+  },
+  "workspaces": [
+    "packages/client-core",
+    "packages/management-client"
+  ],
+  "scripts": {
+    "build": "node node_modules/typescript/bin/tsc -b packages/client-core packages/management-client examples/next-server",
+    "test": "node --test --test-concurrency=1 tests/*.test.mjs",
+    "check:browser": "node node_modules/typescript/bin/tsc -p tests/browser/tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  }
+}

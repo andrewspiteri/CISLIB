@@ -1,5 +1,6 @@
 using CIS.Coordination.Hosting;
 using CIS.Configuration;
+using CIS.Management;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
@@ -30,7 +31,8 @@ public static class JobServiceCollectionExtensions
         services.AddSingleton(composition);
         CoordinationServiceCollectionExtensions.RegisterOwner(services, coordination.Lifetime, root => new JobRuntime(
             root.GetRequiredService<IJobCatalog>(), root.GetRequiredService<IJobExecutionScopeFactory>(), captured,
-            root.GetService<IJobRunSource>(), root.GetService<IJobScheduleEvaluator>(), root.GetService<TimeProvider>()), coordination.Lifetime.Bind);
+            root.GetService<IJobRunSource>(), root.GetService<IJobScheduleEvaluator>(), root.GetService<TimeProvider>(),
+            root.GetService<IManagedWorkAdmission>()), coordination.Lifetime.Bind);
         services.TryAddSingleton<ContinuousJobRunner>();
         services.TryAddSingleton<IContinuousJobRunner>(root => root.GetRequiredService<ContinuousJobRunner>());
         services.TryAddSingleton<ScheduledJobDispatcher>();
@@ -38,7 +40,7 @@ public static class JobServiceCollectionExtensions
         services.TryAddSingleton(root =>
         {
             using IDisposable creation = coordination.Lifetime.EnterBinding();
-            var observations = new JobInstrumentation(composition, root.GetRequiredService<JobRuntime>(),
+            var observations = new JobInstrumentation(composition, SelectedRuntime(root),
                 root.GetService<TimeProvider>(), root.GetService<ILoggerFactory>());
             coordination.Lifetime.Bind(observations);
             return observations;
@@ -46,7 +48,7 @@ public static class JobServiceCollectionExtensions
         services.AddSingleton(root =>
         {
             using IDisposable creation = coordination.Lifetime.EnterBinding();
-            var supervisor = new JobHostingSupervisor(root.GetRequiredService<JobRuntime>(), options);
+            var supervisor = new JobHostingSupervisor(SelectedRuntime(root), options);
             coordination.Lifetime.Bind(supervisor);
             return supervisor;
         });
@@ -75,5 +77,15 @@ public static class JobServiceCollectionExtensions
             return binding;
         });
         return services;
+    }
+
+    private static JobRuntime SelectedRuntime(IServiceProvider root)
+    {
+        JobRuntime runtime = root.GetRequiredService<JobRuntime>();
+        if (!ReferenceEquals(runtime.ManagedAdmission, root.GetService<IManagedWorkAdmission>()))
+        {
+            throw new InvalidOperationException("A supplied Jobs runtime must capture the same optional managed-admission port as its host.");
+        }
+        return runtime;
     }
 }

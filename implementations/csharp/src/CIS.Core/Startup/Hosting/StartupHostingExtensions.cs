@@ -6,6 +6,7 @@ using CIS.Heartbeat;
 using CIS.Heartbeat.Hosting;
 using CIS.Metrics;
 using CIS.Messaging;
+using CIS.Management.Hosting;
 using CIS.RestClient;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -48,6 +49,7 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
     private readonly IRestClientRuntime? rest;
     private readonly CoordinationHostLifetime? coordination;
     private readonly AuditRuntime? audit;
+    private readonly ManagementRegistrationLifetime? management;
     private readonly StartupHostingOrder order;
     private readonly IHostApplicationLifetime lifetime;
     private readonly IOptions<HostOptions> hostOptions;
@@ -73,6 +75,7 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
         messaging = root.GetService<MessagingRuntime>();
         coordination = root.GetService<CoordinationHostLifetime>();
         audit = root.GetService<AuditRuntime>();
+        management = root.GetService<ManagementRegistrationLifetime>();
         coordinator = new StartupCoordinator(root, order.Descriptors,
             root.GetService<HealthcheckService>(), root.GetService<ILogger<StartupCoordinator>>(),
             ConfirmStartupCompletion);
@@ -148,6 +151,7 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
 
     private void CloseModuleAdmission()
     {
+        management?.BeginStopping();
         if (audit is not null && !audit.IsDrained)
         {
             audit.BeginStopping();
@@ -176,6 +180,7 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
 
     private async Task StopCoreAsync()
     {
+        management?.BeginStopping();
         Exception? coordinationFailure = await AuditRuntime.CaptureStopAsync(audit, coordination).ConfigureAwait(false);
         BeginStopping();
         Task messagingDrain = messaging?.StopAsync() ?? Task.CompletedTask;
@@ -191,7 +196,17 @@ internal sealed class StartupHostedService : IHostedLifecycleService, IAsyncDisp
         Task heartbeatDrain = heartbeat?.StopAsync() ?? Task.CompletedTask;
         Task metricsDrain = metrics?.StopAsync() ?? Task.CompletedTask;
         Task restDrain = rest?.StopAsync() ?? Task.CompletedTask;
+        try
+        {
+            await restDrain.ConfigureAwait(false);
+        }
+        catch (Exception)
+        {
+            // Preserve the settled original fault while still joining this known reporting owner.
+        }
+        Task managementDrain = management?.StopAsync() ?? Task.CompletedTask;
         await Task.WhenAll(messagingDrain, coordinator.StopAsync(), configurationDrain, heartbeatDrain, metricsDrain, restDrain,
+            managementDrain,
             coordinationFailure is null ? Task.CompletedTask : Task.FromException(coordinationFailure)).ConfigureAwait(false);
     }
 

@@ -17,33 +17,65 @@ public sealed class HealthSnapshot
         Application = data.Application;
         HealthStatus = data.HealthStatus;
         Ready = data.Ready;
+        RequestsAllowed = data.RequestsAllowed ?? data.Ready;
         MonitorCounts = data.MonitorCounts;
         Monitors = Array.AsReadOnly(data.Monitors.ToArray());
     }
 
     /// <summary>The report schema version.</summary>
-    public int SchemaVersion { get; }
+    public int SchemaVersion
+    {
+        get;
+    }
 
     /// <summary>The nonnegative non-reusing publication revision.</summary>
-    public BigInteger Revision { get; }
+    public BigInteger Revision
+    {
+        get;
+    }
 
     /// <summary>The fresh UTC snapshot capture time.</summary>
-    public DateTimeOffset CapturedAtUtc { get; }
+    public DateTimeOffset CapturedAtUtc
+    {
+        get;
+    }
 
     /// <summary>Detached application identity and lifecycle facts.</summary>
-    public HealthApplicationSnapshot Application { get; }
+    public HealthApplicationSnapshot Application
+    {
+        get;
+    }
 
     /// <summary>The health aggregate evaluated from active critical monitors.</summary>
-    public HealthStatus HealthStatus { get; }
+    public HealthStatus HealthStatus
+    {
+        get;
+    }
 
-    /// <summary>Whether startup completed, stopping has not begun and aggregate health is healthy.</summary>
-    public bool Ready { get; }
+    /// <summary>Whether startup completed, stopping has not begun, aggregate health is healthy and local readiness prerequisites permit it.</summary>
+    public bool Ready
+    {
+        get;
+    }
+
+    // Readiness-only prerequisites do not globally block authorized status/recovery routes.
+    // Effect-producing routes select their own actual managed admission boundary.
+    internal bool RequestsAllowed
+    {
+        get;
+    }
 
     /// <summary>Complete counts evaluated at the same revision as monitor details.</summary>
-    public HealthMonitorCounts MonitorCounts { get; }
+    public HealthMonitorCounts MonitorCounts
+    {
+        get;
+    }
 
     /// <summary>Complete monitor details ordered by registration ordinal.</summary>
-    public IReadOnlyList<HealthMonitorSnapshot> Monitors { get; }
+    public IReadOnlyList<HealthMonitorSnapshot> Monitors
+    {
+        get;
+    }
 }
 
 /// <summary>Detached application identity and lifecycle facts at snapshot capture.</summary>
@@ -63,28 +95,52 @@ public sealed class HealthApplicationSnapshot
     }
 
     /// <summary>The application name.</summary>
-    public string Name { get; }
+    public string Name
+    {
+        get;
+    }
 
     /// <summary>The optional actual build version.</summary>
-    public string? BuildVersion { get; }
+    public string? BuildVersion
+    {
+        get;
+    }
 
     /// <summary>The optional selected deployment version.</summary>
-    public string? ServiceVersion { get; }
+    public string? ServiceVersion
+    {
+        get;
+    }
 
     /// <summary>The application instance identity.</summary>
-    public Guid InstanceId { get; }
+    public Guid InstanceId
+    {
+        get;
+    }
 
     /// <summary>The optional host name.</summary>
-    public string? HostName { get; }
+    public string? HostName
+    {
+        get;
+    }
 
     /// <summary>The optional operating-system description.</summary>
-    public string? OsDescription { get; }
+    public string? OsDescription
+    {
+        get;
+    }
 
     /// <summary>Whether the application explicitly marked startup successful.</summary>
-    public bool StartupCompleted { get; }
+    public bool StartupCompleted
+    {
+        get;
+    }
 
     /// <summary>Whether terminal stopping has begun.</summary>
-    public bool IsStopping { get; }
+    public bool IsStopping
+    {
+        get;
+    }
 }
 
 /// <summary>Complete monitor counts from one coherent snapshot.</summary>
@@ -100,19 +156,34 @@ public sealed class HealthMonitorCounts
     }
 
     /// <summary>The number of active monitor registrations.</summary>
-    public int Active { get; }
+    public int Active
+    {
+        get;
+    }
 
     /// <summary>The number of active critical registrations.</summary>
-    public int Critical { get; }
+    public int Critical
+    {
+        get;
+    }
 
     /// <summary>The number of active unhealthy registrations, including noncritical ones.</summary>
-    public int Failing { get; }
+    public int Failing
+    {
+        get;
+    }
 
     /// <summary>The number of active critical unhealthy registrations.</summary>
-    public int CriticalFailing { get; }
+    public int CriticalFailing
+    {
+        get;
+    }
 
     /// <summary>The number of active registrations awaiting a required first observation.</summary>
-    public int Pending { get; }
+    public int Pending
+    {
+        get;
+    }
 }
 
 /// <summary>The detached state of one monitor at snapshot capture.</summary>
@@ -138,45 +209,84 @@ public sealed class HealthMonitorSnapshot
     }
 
     /// <summary>The opaque unique registration identity.</summary>
-    public Guid MonitorId { get; }
+    public Guid MonitorId
+    {
+        get;
+    }
 
     /// <summary>The optional display name.</summary>
-    public string? Name { get; }
+    public string? Name
+    {
+        get;
+    }
 
     /// <summary>The fixed evaluation policy.</summary>
-    public HealthPolicyKind Policy { get; }
+    public HealthPolicyKind Policy
+    {
+        get;
+    }
 
     /// <summary>Whether unhealthy state contributes to aggregate failure.</summary>
-    public bool IsCritical { get; }
+    public bool IsCritical
+    {
+        get;
+    }
 
     /// <summary>The policy's evaluated state.</summary>
-    public MonitorState State { get; }
+    public MonitorState State
+    {
+        get;
+    }
 
     /// <summary>The UTC registration instant.</summary>
-    public DateTimeOffset RegisteredAtUtc { get; }
+    public DateTimeOffset RegisteredAtUtc
+    {
+        get;
+    }
 
     /// <summary>The UTC instant of the latest applicable accepted health observation.</summary>
-    public DateTimeOffset? LastObservationAtUtc { get; }
+    public DateTimeOffset? LastObservationAtUtc
+    {
+        get;
+    }
 
     /// <summary>The latest applicable detached health reason, cleared on success or clear.</summary>
-    public HealthDiagnostic? Diagnostic { get; }
+    public HealthDiagnostic? Diagnostic
+    {
+        get;
+    }
 
     /// <summary>The latest accepted registration-level integration diagnostic, retained independently of health observations.</summary>
     /// <remarks>Multiple bindings share this monitor-lifetime last-observation slot. State commit order selects the latest diagnostic.
     /// Successful observations and external unbinding retain it; withdrawal removes the monitor from current snapshots.</remarks>
-    public HealthDiagnostic? RegistrationDiagnostic { get; }
+    public HealthDiagnostic? RegistrationDiagnostic
+    {
+        get;
+    }
 
     /// <summary>Outcome facts where this policy or binding actually has outcomes.</summary>
-    public HealthOutcomeSnapshot? Outcomes { get; }
+    public HealthOutcomeSnapshot? Outcomes
+    {
+        get;
+    }
 
     /// <summary>Applicable collector lifecycle and retained diagnostic facts.</summary>
-    public HealthCollectionSnapshot? Collection { get; }
+    public HealthCollectionSnapshot? Collection
+    {
+        get;
+    }
 
     /// <summary>The numeric policy's separate required value facts, where applicable.</summary>
-    public HealthNumericSnapshot? Numeric { get; }
+    public HealthNumericSnapshot? Numeric
+    {
+        get;
+    }
 
     /// <summary>Owned optional diagnostic measurements ordered ordinally by key.</summary>
-    public IReadOnlyList<HealthMeasurement> Measurements { get; }
+    public IReadOnlyList<HealthMeasurement> Measurements
+    {
+        get;
+    }
 }
 
 /// <summary>Detached lifetime outcome accounting, independent of the evaluated policy state.</summary>
@@ -199,37 +309,70 @@ public sealed class HealthOutcomeSnapshot
     }
 
     /// <summary>The nonnegative saturating lifetime success count.</summary>
-    public long Successful { get; }
+    public long Successful
+    {
+        get;
+    }
 
     /// <summary>The nonnegative saturating lifetime failure count.</summary>
-    public long Failed { get; }
+    public long Failed
+    {
+        get;
+    }
 
     /// <summary>The nonnegative saturating lifetime skipped count.</summary>
-    public long Skipped { get; }
+    public long Skipped
+    {
+        get;
+    }
 
     /// <summary>The nonnegative saturating lifetime expected-cancellation count.</summary>
-    public long ExpectedCanceled { get; }
+    public long ExpectedCanceled
+    {
+        get;
+    }
 
     /// <summary>The current failure streak, unaffected by skips or expected cancellation.</summary>
-    public long ConsecutiveFailures { get; }
+    public long ConsecutiveFailures
+    {
+        get;
+    }
 
     /// <summary>Whether a represented lifetime counter has reached its limit.</summary>
-    public bool CountersSaturated { get; }
+    public bool CountersSaturated
+    {
+        get;
+    }
 
     /// <summary>The latest recorded outcome, where available.</summary>
-    public HealthExecutionOutcome? LastOutcome { get; }
+    public HealthExecutionOutcome? LastOutcome
+    {
+        get;
+    }
 
     /// <summary>The UTC instant of the latest successful outcome.</summary>
-    public DateTimeOffset? LastSuccessAtUtc { get; }
+    public DateTimeOffset? LastSuccessAtUtc
+    {
+        get;
+    }
 
     /// <summary>The UTC instant of the latest failed outcome.</summary>
-    public DateTimeOffset? LastFailureAtUtc { get; }
+    public DateTimeOffset? LastFailureAtUtc
+    {
+        get;
+    }
 
     /// <summary>The latest failed outcome's detached diagnostic, retained through later success.</summary>
-    public HealthDiagnostic? LastFailureDiagnostic { get; }
+    public HealthDiagnostic? LastFailureDiagnostic
+    {
+        get;
+    }
 
     /// <summary>The bounded execution lifecycle facts, where an execution binding supplies them.</summary>
-    public HealthExecutionSnapshot? Execution { get; }
+    public HealthExecutionSnapshot? Execution
+    {
+        get;
+    }
 }
 
 /// <summary>Detached numeric policy configuration and its latest accepted finite value.</summary>
@@ -245,19 +388,34 @@ public sealed class HealthNumericSnapshot
     }
 
     /// <summary>The comparison whose result flags this monitor unhealthy.</summary>
-    public NumericComparison Comparison { get; }
+    public NumericComparison Comparison
+    {
+        get;
+    }
 
     /// <summary>The fixed finite threshold.</summary>
-    public double Threshold { get; }
+    public double Threshold
+    {
+        get;
+    }
 
     /// <summary>The explicitly selected unit, without automatic conversion.</summary>
-    public string Unit { get; }
+    public string Unit
+    {
+        get;
+    }
 
     /// <summary>The latest accepted finite value, unchanged by an evaluation error.</summary>
-    public double? LastValue { get; }
+    public double? LastValue
+    {
+        get;
+    }
 
     /// <summary>The value's actual UTC observation time, unchanged by snapshot capture.</summary>
-    public DateTimeOffset? LastValueAtUtc { get; }
+    public DateTimeOffset? LastValueAtUtc
+    {
+        get;
+    }
 }
 
 /// <summary>Detached collection lifecycle and diagnostic facts.</summary>
@@ -272,14 +430,26 @@ public sealed class HealthCollectionSnapshot
     }
 
     /// <summary>Whether an actual tracked collection has not yet settled.</summary>
-    public bool InProgress { get; }
+    public bool InProgress
+    {
+        get;
+    }
 
     /// <summary>The latest actual collection completion instant in UTC.</summary>
-    public DateTimeOffset? LastCompletedAtUtc { get; }
+    public DateTimeOffset? LastCompletedAtUtc
+    {
+        get;
+    }
 
     /// <summary>The latest retained detached collection error.</summary>
-    public HealthDiagnostic? LastError { get; }
+    public HealthDiagnostic? LastError
+    {
+        get;
+    }
 
     /// <summary>The UTC observation instant of the retained collection error.</summary>
-    public DateTimeOffset? LastErrorAtUtc { get; }
+    public DateTimeOffset? LastErrorAtUtc
+    {
+        get;
+    }
 }

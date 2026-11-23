@@ -1,0 +1,1797 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cislib.dev/contracts/management/v1/contract.schema.json",
+  "title": "CISLIB Management v1 HTTP contract",
+  "$defs": {
+    "ApplicationMetadata": {
+      "type": "object",
+      "properties": {
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "description": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 2048
+        }
+      },
+      "required": [
+        "displayName"
+      ],
+      "additionalProperties": false
+    },
+    "RegistrationRequest": {
+      "type": "object",
+      "properties": {
+        "protocolMajor": {
+          "type": "integer",
+          "enum": [
+            1
+          ]
+        },
+        "reportedInstanceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "processStartedAtUtc": {
+          "type": "string",
+          "minLength": 28,
+          "maxLength": 28,
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{7}Z$",
+          "x-cis-valid-utc-calendar": true
+        },
+        "applicationVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        }
+      },
+      "required": [
+        "protocolMajor",
+        "reportedInstanceId",
+        "processStartedAtUtc",
+        "applicationVersion"
+      ],
+      "additionalProperties": false,
+      "x-cis-max-body-bytes": 1048576,
+      "x-cis-default-max-body-bytes": 65536
+    },
+    "RegistrationReceipt": {
+      "type": "object",
+      "properties": {
+        "registrationId": {
+          "type": "string",
+          "minLength": 36,
+          "maxLength": 36,
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true
+        },
+        "applicationId": {
+          "type": "string",
+          "minLength": 36,
+          "maxLength": 36,
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true
+        },
+        "registeredAtUtc": {
+          "type": "string",
+          "minLength": 28,
+          "maxLength": 28,
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{7}Z$",
+          "x-cis-valid-utc-calendar": true
+        }
+      },
+      "required": [
+        "registrationId",
+        "applicationId",
+        "registeredAtUtc"
+      ],
+      "additionalProperties": true
+    },
+    "Observation": {
+      "type": "object",
+      "properties": {
+        "sequence": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 19,
+          "pattern": "^[1-9][0-9]{0,18}$",
+          "x-cis-maximum-integer": "9223372036854775807"
+        },
+        "observedAtUtc": {
+          "type": "string",
+          "minLength": 28,
+          "maxLength": 28,
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{7}Z$",
+          "x-cis-valid-utc-calendar": true
+        },
+        "lifecycle": {
+          "type": "string",
+          "enum": [
+            "starting",
+            "ready",
+            "stopping",
+            "stopped",
+            "unknown"
+          ]
+        },
+        "health": {
+          "type": "string",
+          "enum": [
+            "healthy",
+            "degraded",
+            "unhealthy",
+            "unknown"
+          ]
+        }
+      },
+      "required": [
+        "sequence",
+        "observedAtUtc",
+        "lifecycle",
+        "health"
+      ],
+      "additionalProperties": false,
+      "x-cis-max-body-bytes": 1048576,
+      "x-cis-default-max-body-bytes": 65536
+    },
+    "ObservationResponse": {
+      "type": "object",
+      "properties": {
+        "sequence": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 19,
+          "pattern": "^[1-9][0-9]{0,18}$",
+          "x-cis-maximum-integer": "9223372036854775807"
+        },
+        "observedAtUtc": {
+          "type": "string",
+          "minLength": 28,
+          "maxLength": 28,
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{7}Z$",
+          "x-cis-valid-utc-calendar": true
+        },
+        "lifecycle": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "x-known-values": [
+            "starting",
+            "ready",
+            "stopping",
+            "stopped",
+            "unknown"
+          ]
+        },
+        "health": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "x-known-values": [
+            "healthy",
+            "degraded",
+            "unhealthy",
+            "unknown"
+          ]
+        }
+      },
+      "required": [
+        "sequence",
+        "observedAtUtc",
+        "lifecycle",
+        "health"
+      ],
+      "additionalProperties": true
+    },
+    "ReportReceipt": {
+      "type": "object",
+      "properties": {
+        "registrationId": {
+          "type": "string",
+          "minLength": 36,
+          "maxLength": 36,
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true
+        },
+        "stream": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "x-known-values": [
+            "observation",
+            "inventory"
+          ]
+        },
+        "submittedSequence": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 19,
+          "pattern": "^[1-9][0-9]{0,18}$",
+          "x-cis-maximum-integer": "9223372036854775807"
+        },
+        "acceptedSequence": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 19,
+          "pattern": "^[1-9][0-9]{0,18}$",
+          "x-cis-maximum-integer": "9223372036854775807"
+        },
+        "disposition": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "x-known-values": [
+            "accepted",
+            "replayed"
+          ]
+        },
+        "receivedAtUtc": {
+          "type": "string",
+          "minLength": 28,
+          "maxLength": 28,
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{7}Z$",
+          "x-cis-valid-utc-calendar": true
+        }
+      },
+      "required": [
+        "registrationId",
+        "stream",
+        "submittedSequence",
+        "acceptedSequence",
+        "disposition",
+        "receivedAtUtc"
+      ],
+      "additionalProperties": true
+    },
+    "CloseReceipt": {
+      "type": "object",
+      "properties": {
+        "registrationId": {
+          "type": "string",
+          "minLength": 36,
+          "maxLength": 36,
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true
+        },
+        "closedAtUtc": {
+          "type": "string",
+          "minLength": 28,
+          "maxLength": 28,
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{7}Z$",
+          "x-cis-valid-utc-calendar": true
+        }
+      },
+      "required": [
+        "registrationId",
+        "closedAtUtc"
+      ],
+      "additionalProperties": true
+    },
+    "ModuleInventory": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-max-utf8-bytes": 128,
+          "x-cis-control-free": true
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "details": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "required": [
+        "kind",
+        "version"
+      ],
+      "additionalProperties": false
+    },
+    "CategoryInventory": {
+      "type": "object",
+      "properties": {
+        "executionScope": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "x-cis-max-utf8-bytes": 256,
+          "x-cis-control-free": true
+        },
+        "categoryId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-max-utf8-bytes": 128,
+          "x-cis-control-free": true
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "x-cis-max-utf8-bytes": 256,
+          "x-cis-control-free": true
+        },
+        "description": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 2048,
+          "x-cis-max-utf8-bytes": 2048,
+          "x-cis-control-free": true
+        }
+      },
+      "required": [
+        "executionScope",
+        "categoryId",
+        "displayName"
+      ],
+      "additionalProperties": false
+    },
+    "JobConfiguration": {
+      "type": "object",
+      "properties": {
+        "revision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]{0,18})$",
+          "x-cis-maximum-integer": "9223372036854775807"
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "revision",
+        "enabled"
+      ],
+      "additionalProperties": false
+    },
+    "OwnerObservation": {
+      "type": "object",
+      "properties": {
+        "ownerApplication": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "x-cis-max-utf8-bytes": 1024,
+          "x-cis-control-free": true
+        },
+        "instanceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-max-utf8-bytes": 128,
+          "x-cis-control-free": true
+        },
+        "generation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 19,
+          "pattern": "^[1-9][0-9]{0,18}$",
+          "x-cis-maximum-integer": "9223372036854775807"
+        },
+        "expiresAtUtc": {
+          "type": "string",
+          "minLength": 28,
+          "maxLength": 28,
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{7}Z$",
+          "x-cis-valid-utc-calendar": true
+        },
+        "observedAtUtc": {
+          "type": "string",
+          "minLength": 28,
+          "maxLength": 28,
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{7}Z$",
+          "x-cis-valid-utc-calendar": true
+        }
+      },
+      "required": [
+        "ownerApplication",
+        "instanceId",
+        "generation",
+        "expiresAtUtc",
+        "observedAtUtc"
+      ],
+      "additionalProperties": false
+    },
+    "JobObservation": {
+      "type": "object",
+      "properties": {
+        "resourceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "x-cis-max-utf8-bytes": 512,
+          "x-cis-control-free": true
+        },
+        "state": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "x-known-values": [
+            "disabled",
+            "standby",
+            "acquiring",
+            "running",
+            "idle",
+            "waiting",
+            "draining",
+            "lost",
+            "released",
+            "faulted"
+          ]
+        },
+        "lastOutcome": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-max-utf8-bytes": 128,
+          "x-cis-control-free": true
+        },
+        "observedOwner": {
+          "$ref": "#/$defs/OwnerObservation"
+        },
+        "lastOccurrenceUtc": {
+          "type": "string",
+          "minLength": 28,
+          "maxLength": 28,
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{7}Z$",
+          "x-cis-valid-utc-calendar": true
+        },
+        "nextOccurrenceUtc": {
+          "type": "string",
+          "minLength": 28,
+          "maxLength": 28,
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{7}Z$",
+          "x-cis-valid-utc-calendar": true
+        },
+        "mode": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "x-known-values": [
+            "continuous",
+            "scheduled"
+          ]
+        }
+      },
+      "required": [
+        "resourceId",
+        "mode",
+        "state"
+      ],
+      "additionalProperties": false
+    },
+    "JobInventory": {
+      "type": "object",
+      "properties": {
+        "executionScope": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "x-cis-max-utf8-bytes": 256,
+          "x-cis-control-free": true
+        },
+        "jobId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-max-utf8-bytes": 128,
+          "x-cis-control-free": true
+        },
+        "categoryId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-max-utf8-bytes": 128,
+          "x-cis-control-free": true
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "x-cis-max-utf8-bytes": 256,
+          "x-cis-control-free": true
+        },
+        "description": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 2048,
+          "x-cis-max-utf8-bytes": 2048,
+          "x-cis-control-free": true
+        },
+        "supportedModes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "maxItems": 2,
+          "minItems": 1
+        },
+        "effectiveConfiguration": {
+          "$ref": "#/$defs/JobConfiguration"
+        },
+        "observations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/JobObservation"
+          },
+          "maxItems": 65536,
+          "minItems": 0
+        },
+        "resourceScopeDescription": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "x-cis-max-utf8-bytes": 1024,
+          "x-cis-control-free": true
+        }
+      },
+      "required": [
+        "executionScope",
+        "jobId",
+        "categoryId",
+        "displayName",
+        "supportedModes"
+      ],
+      "additionalProperties": false
+    },
+    "InventorySnapshot": {
+      "type": "object",
+      "properties": {
+        "sequence": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 19,
+          "pattern": "^[1-9][0-9]{0,18}$",
+          "x-cis-maximum-integer": "9223372036854775807"
+        },
+        "observedAtUtc": {
+          "type": "string",
+          "minLength": 28,
+          "maxLength": 28,
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{7}Z$",
+          "x-cis-valid-utc-calendar": true
+        },
+        "modules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ModuleInventory"
+          },
+          "maxItems": 1024,
+          "minItems": 0,
+          "x-cis-default-max-items": 32
+        },
+        "categories": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CategoryInventory"
+          },
+          "maxItems": 65536,
+          "minItems": 0,
+          "x-cis-default-max-items": 64
+        },
+        "jobs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/JobInventory"
+          },
+          "maxItems": 65536,
+          "minItems": 0,
+          "x-cis-default-max-items": 1024
+        }
+      },
+      "required": [
+        "sequence",
+        "observedAtUtc",
+        "modules",
+        "categories",
+        "jobs"
+      ],
+      "additionalProperties": false,
+      "x-cis-max-body-bytes": 16777216,
+      "x-cis-max-total-job-observations": 65536,
+      "x-cis-unique-category-key": [
+        "executionScope",
+        "categoryId"
+      ],
+      "x-cis-unique-job-key": [
+        "executionScope",
+        "jobId"
+      ],
+      "x-cis-category-references-required": true,
+      "x-cis-default-max-body-bytes": 4194304,
+      "x-cis-default-max-total-job-observations": 4096
+    },
+    "Application": {
+      "type": "object",
+      "properties": {
+        "applicationId": {
+          "type": "string",
+          "minLength": 36,
+          "maxLength": 36,
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true
+        },
+        "application": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "environment": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "metadata": {
+          "$ref": "#/$defs/ApplicationMetadataResponse"
+        },
+        "metadataRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 19,
+          "pattern": "^[1-9][0-9]{0,18}$",
+          "x-cis-maximum-integer": "9223372036854775807"
+        },
+        "metadataETag": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 256,
+          "pattern": "^\"[\\u0021\\u0023-\\u007e]+\"$",
+          "description": "One strong opaque metadata ETag; clients never derive authority or revisions by parsing it."
+        }
+      },
+      "required": [
+        "applicationId",
+        "application",
+        "environment",
+        "metadata",
+        "metadataRevision",
+        "metadataETag"
+      ],
+      "additionalProperties": true
+    },
+    "InstanceEvidence": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "x-known-values": [
+            "notProvided",
+            "reported",
+            "verified"
+          ]
+        },
+        "reportedIdentifier": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "verifiedIdentifier": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "additionalProperties": true
+    },
+    "Instance": {
+      "type": "object",
+      "properties": {
+        "registrationId": {
+          "type": "string",
+          "minLength": 36,
+          "maxLength": 36,
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true
+        },
+        "applicationId": {
+          "type": "string",
+          "minLength": 36,
+          "maxLength": 36,
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true
+        },
+        "reportedInstanceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "instanceEvidence": {
+          "$ref": "#/$defs/InstanceEvidence"
+        },
+        "processStartedAtUtc": {
+          "type": "string",
+          "minLength": 28,
+          "maxLength": 28,
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{7}Z$",
+          "x-cis-valid-utc-calendar": true
+        },
+        "applicationVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "protocolMajor": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        },
+        "registeredAtUtc": {
+          "type": "string",
+          "minLength": 28,
+          "maxLength": 28,
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{7}Z$",
+          "x-cis-valid-utc-calendar": true
+        },
+        "presence": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "x-known-values": [
+            "active",
+            "stale",
+            "closed"
+          ]
+        },
+        "lastSeenAtUtc": {
+          "type": "string",
+          "minLength": 28,
+          "maxLength": 28,
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{7}Z$",
+          "x-cis-valid-utc-calendar": true
+        },
+        "closedAtUtc": {
+          "type": "string",
+          "minLength": 28,
+          "maxLength": 28,
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{7}Z$",
+          "x-cis-valid-utc-calendar": true
+        },
+        "observation": {
+          "$ref": "#/$defs/ObservationResponse"
+        },
+        "observationReceivedAtUtc": {
+          "type": "string",
+          "minLength": 28,
+          "maxLength": 28,
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{7}Z$",
+          "x-cis-valid-utc-calendar": true
+        },
+        "inventorySequence": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 19,
+          "pattern": "^[1-9][0-9]{0,18}$",
+          "x-cis-maximum-integer": "9223372036854775807"
+        },
+        "inventoryReceivedAtUtc": {
+          "type": "string",
+          "minLength": 28,
+          "maxLength": 28,
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{7}Z$",
+          "x-cis-valid-utc-calendar": true
+        }
+      },
+      "required": [
+        "registrationId",
+        "applicationId",
+        "reportedInstanceId",
+        "instanceEvidence",
+        "processStartedAtUtc",
+        "applicationVersion",
+        "protocolMajor",
+        "registeredAtUtc",
+        "presence"
+      ],
+      "additionalProperties": true
+    },
+    "InventoryItem": {
+      "type": "object",
+      "properties": {
+        "registrationId": {
+          "type": "string",
+          "minLength": 36,
+          "maxLength": 36,
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true
+        },
+        "applicationVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "receivedAtUtc": {
+          "type": "string",
+          "minLength": 28,
+          "maxLength": 28,
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{7}Z$",
+          "x-cis-valid-utc-calendar": true
+        },
+        "inventory": {
+          "$ref": "#/$defs/InventorySnapshotResponse"
+        }
+      },
+      "required": [
+        "registrationId",
+        "applicationVersion",
+        "receivedAtUtc",
+        "inventory"
+      ],
+      "additionalProperties": true
+    },
+    "Feature": {
+      "type": "object",
+      "properties": {
+        "operationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-max-utf8-bytes": 128,
+          "x-cis-control-free": true
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        },
+        "method": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16,
+          "x-cis-max-utf8-bytes": 16,
+          "x-cis-control-free": true
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "requiredCapabilities": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "x-cis-max-utf8-bytes": 128,
+            "x-cis-control-free": true
+          },
+          "maxItems": 8,
+          "minItems": 0
+        }
+      },
+      "required": [
+        "operationId",
+        "version",
+        "method",
+        "path",
+        "requiredCapabilities"
+      ],
+      "additionalProperties": true
+    },
+    "ServiceInfo": {
+      "type": "object",
+      "properties": {
+        "protocolMajors": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "maxItems": 16,
+          "minItems": 1
+        },
+        "serviceVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "features": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Feature"
+          },
+          "maxItems": 128,
+          "minItems": 0
+        },
+        "maximumInventoryRequestBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16777216,
+          "x-cis-canonical-integer-token": true,
+          "description": "Effective complete-inventory request bytes accepted by this server and selected provider; absent on older v1 servers."
+        }
+      },
+      "required": [
+        "protocolMajors",
+        "serviceVersion",
+        "features"
+      ],
+      "additionalProperties": true
+    },
+    "OperationHint": {
+      "type": "object",
+      "properties": {
+        "operationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-max-utf8-bytes": 128,
+          "x-cis-control-free": true
+        },
+        "allowed": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "operationId",
+        "allowed"
+      ],
+      "additionalProperties": true
+    },
+    "Capabilities": {
+      "type": "object",
+      "properties": {
+        "applicationId": {
+          "type": "string",
+          "minLength": 36,
+          "maxLength": 36,
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true
+        },
+        "implementedApis": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Feature"
+          },
+          "maxItems": 128,
+          "minItems": 0
+        },
+        "callerHints": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/OperationHint"
+          },
+          "maxItems": 128,
+          "minItems": 0
+        }
+      },
+      "required": [
+        "applicationId",
+        "implementedApis",
+        "callerHints"
+      ],
+      "additionalProperties": true
+    },
+    "MetadataCommand": {
+      "type": "object",
+      "properties": {
+        "commandVersion": {
+          "type": "integer",
+          "enum": [
+            1
+          ]
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "description": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 2048
+        }
+      },
+      "required": [
+        "commandVersion",
+        "displayName"
+      ],
+      "additionalProperties": false,
+      "x-cis-max-body-bytes": 1048576,
+      "x-cis-omitted-description": "clear",
+      "x-cis-explicit-null": "reject",
+      "x-cis-exact-no-unicode-normalization": true,
+      "x-cis-default-max-body-bytes": 65536
+    },
+    "OperationReference": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$"
+        },
+        "scope": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "x-cis-max-utf8-bytes": 256,
+          "x-cis-control-free": true
+        },
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9._~-]{1,128}$",
+          "description": "Original management operation key; exact dot and dot-dot segments are excluded to prevent URI path normalization."
+        }
+      },
+      "required": [
+        "name",
+        "scope",
+        "key"
+      ],
+      "additionalProperties": true
+    },
+    "MetadataDecision": {
+      "type": "object",
+      "properties": {
+        "commandVersion": {
+          "type": "integer",
+          "enum": [
+            1
+          ]
+        },
+        "applicationId": {
+          "type": "string",
+          "minLength": 36,
+          "maxLength": 36,
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true
+        },
+        "decision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "x-known-values": [
+            "applied",
+            "rejected"
+          ]
+        },
+        "code": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-max-utf8-bytes": 128,
+          "x-cis-control-free": true
+        },
+        "metadata": {
+          "$ref": "#/$defs/ApplicationMetadataResponse"
+        },
+        "metadataRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 19,
+          "pattern": "^[1-9][0-9]{0,18}$",
+          "x-cis-maximum-integer": "9223372036854775807"
+        },
+        "metadataETag": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 256,
+          "pattern": "^\"[\\u0021\\u0023-\\u007e]+\"$",
+          "description": "One strong opaque metadata ETag; clients never derive authority or revisions by parsing it."
+        },
+        "decidedAtUtc": {
+          "type": "string",
+          "minLength": 28,
+          "maxLength": 28,
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{7}Z$",
+          "x-cis-valid-utc-calendar": true
+        }
+      },
+      "required": [
+        "commandVersion",
+        "applicationId",
+        "decision",
+        "code",
+        "metadata",
+        "metadataRevision",
+        "metadataETag",
+        "decidedAtUtc"
+      ],
+      "additionalProperties": true
+    },
+    "TransactionFacts": {
+      "type": "object",
+      "properties": {
+        "outcome": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "x-known-values": [
+            "committed",
+            "notCommitted",
+            "unknown"
+          ]
+        },
+        "cleanupSucceeded": {
+          "type": "boolean"
+        },
+        "cleanupCodes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "x-cis-max-utf8-bytes": 128,
+            "x-cis-control-free": true
+          },
+          "maxItems": 16,
+          "minItems": 0
+        }
+      },
+      "required": [
+        "outcome",
+        "cleanupSucceeded"
+      ],
+      "additionalProperties": true
+    },
+    "MetadataResult": {
+      "type": "object",
+      "properties": {
+        "operation": {
+          "$ref": "#/$defs/OperationReference"
+        },
+        "resultSource": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "x-known-values": [
+            "prepared",
+            "replayed",
+            "found"
+          ]
+        },
+        "result": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MetadataDecision"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "originalCompletion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "x-known-values": [
+            "committed",
+            "notCommitted",
+            "unknown"
+          ]
+        },
+        "attemptCompletion": {
+          "$ref": "#/$defs/TransactionFacts"
+        },
+        "rejection": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OperationRejection"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "operation",
+        "resultSource",
+        "originalCompletion"
+      ],
+      "additionalProperties": true,
+      "x-cis-applied-only-with-known-original-commit": true,
+      "anyOf": [
+        {
+          "properties": {
+            "result": {
+              "$ref": "#/$defs/MetadataDecision"
+            },
+            "rejection": {
+              "type": "null"
+            }
+          },
+          "required": [
+            "result"
+          ]
+        },
+        {
+          "properties": {
+            "result": {
+              "type": "null"
+            },
+            "rejection": {
+              "$ref": "#/$defs/OperationRejection"
+            }
+          },
+          "required": [
+            "rejection"
+          ]
+        }
+      ],
+      "description": "Exactly one nonnull typed result or native rejection. The opposite branch may be omitted or null. Original decision, original persistence and later attempt cleanup remain separate."
+    },
+    "Problem": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "status": {
+          "type": "integer",
+          "minimum": 400,
+          "maximum": 599
+        },
+        "code": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-max-utf8-bytes": 128,
+          "x-cis-control-free": true
+        },
+        "detail": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 2048
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "operation": {
+          "$ref": "#/$defs/OperationReference"
+        },
+        "result": {
+          "$ref": "#/$defs/MetadataResult"
+        }
+      },
+      "required": [
+        "type",
+        "title",
+        "status",
+        "code"
+      ],
+      "additionalProperties": true
+    },
+    "ApplicationPage": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Application"
+          },
+          "maxItems": 500,
+          "minItems": 0
+        },
+        "nextCursor": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "additionalProperties": true
+    },
+    "InstancePage": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Instance"
+          },
+          "maxItems": 500,
+          "minItems": 0
+        },
+        "nextCursor": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "additionalProperties": true
+    },
+    "InventoryPage": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/InventoryItem"
+          },
+          "maxItems": 500,
+          "minItems": 0
+        },
+        "nextCursor": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "additionalProperties": true
+    },
+    "ApplicationMetadataResponse": {
+      "type": "object",
+      "properties": {
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "description": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 2048
+        }
+      },
+      "required": [
+        "displayName"
+      ],
+      "additionalProperties": true
+    },
+    "ModuleInventoryResponse": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-max-utf8-bytes": 128,
+          "x-cis-control-free": true
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "details": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "required": [
+        "kind",
+        "version"
+      ],
+      "additionalProperties": true
+    },
+    "CategoryInventoryResponse": {
+      "type": "object",
+      "properties": {
+        "executionScope": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "x-cis-max-utf8-bytes": 256,
+          "x-cis-control-free": true
+        },
+        "categoryId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-max-utf8-bytes": 128,
+          "x-cis-control-free": true
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "x-cis-max-utf8-bytes": 256,
+          "x-cis-control-free": true
+        },
+        "description": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 2048,
+          "x-cis-max-utf8-bytes": 2048,
+          "x-cis-control-free": true
+        }
+      },
+      "required": [
+        "executionScope",
+        "categoryId",
+        "displayName"
+      ],
+      "additionalProperties": true
+    },
+    "JobConfigurationResponse": {
+      "type": "object",
+      "properties": {
+        "revision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]{0,18})$",
+          "x-cis-maximum-integer": "9223372036854775807"
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "revision",
+        "enabled"
+      ],
+      "additionalProperties": true
+    },
+    "OwnerObservationResponse": {
+      "type": "object",
+      "properties": {
+        "ownerApplication": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "x-cis-max-utf8-bytes": 1024,
+          "x-cis-control-free": true
+        },
+        "instanceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-max-utf8-bytes": 128,
+          "x-cis-control-free": true
+        },
+        "generation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 19,
+          "pattern": "^[1-9][0-9]{0,18}$",
+          "x-cis-maximum-integer": "9223372036854775807"
+        },
+        "expiresAtUtc": {
+          "type": "string",
+          "minLength": 28,
+          "maxLength": 28,
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{7}Z$",
+          "x-cis-valid-utc-calendar": true
+        },
+        "observedAtUtc": {
+          "type": "string",
+          "minLength": 28,
+          "maxLength": 28,
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{7}Z$",
+          "x-cis-valid-utc-calendar": true
+        }
+      },
+      "required": [
+        "ownerApplication",
+        "instanceId",
+        "generation",
+        "expiresAtUtc",
+        "observedAtUtc"
+      ],
+      "additionalProperties": true
+    },
+    "JobObservationResponse": {
+      "type": "object",
+      "properties": {
+        "resourceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "x-cis-max-utf8-bytes": 512,
+          "x-cis-control-free": true
+        },
+        "state": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "x-known-values": [
+            "disabled",
+            "standby",
+            "acquiring",
+            "running",
+            "idle",
+            "waiting",
+            "draining",
+            "lost",
+            "released",
+            "faulted"
+          ]
+        },
+        "lastOutcome": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-max-utf8-bytes": 128,
+          "x-cis-control-free": true
+        },
+        "observedOwner": {
+          "$ref": "#/$defs/OwnerObservationResponse"
+        },
+        "lastOccurrenceUtc": {
+          "type": "string",
+          "minLength": 28,
+          "maxLength": 28,
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{7}Z$",
+          "x-cis-valid-utc-calendar": true
+        },
+        "nextOccurrenceUtc": {
+          "type": "string",
+          "minLength": 28,
+          "maxLength": 28,
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{7}Z$",
+          "x-cis-valid-utc-calendar": true
+        },
+        "mode": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "x-known-values": [
+            "continuous",
+            "scheduled"
+          ]
+        }
+      },
+      "required": [
+        "resourceId",
+        "mode",
+        "state"
+      ],
+      "additionalProperties": true
+    },
+    "JobInventoryResponse": {
+      "type": "object",
+      "properties": {
+        "executionScope": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "x-cis-max-utf8-bytes": 256,
+          "x-cis-control-free": true
+        },
+        "jobId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-max-utf8-bytes": 128,
+          "x-cis-control-free": true
+        },
+        "categoryId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-max-utf8-bytes": 128,
+          "x-cis-control-free": true
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "x-cis-max-utf8-bytes": 256,
+          "x-cis-control-free": true
+        },
+        "description": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 2048,
+          "x-cis-max-utf8-bytes": 2048,
+          "x-cis-control-free": true
+        },
+        "supportedModes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "maxItems": 2,
+          "minItems": 1
+        },
+        "effectiveConfiguration": {
+          "$ref": "#/$defs/JobConfigurationResponse"
+        },
+        "observations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/JobObservationResponse"
+          },
+          "maxItems": 65536,
+          "minItems": 0
+        },
+        "resourceScopeDescription": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "x-cis-max-utf8-bytes": 1024,
+          "x-cis-control-free": true
+        }
+      },
+      "required": [
+        "executionScope",
+        "jobId",
+        "categoryId",
+        "displayName",
+        "supportedModes"
+      ],
+      "additionalProperties": true
+    },
+    "InventorySnapshotResponse": {
+      "type": "object",
+      "properties": {
+        "sequence": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 19,
+          "pattern": "^[1-9][0-9]{0,18}$",
+          "x-cis-maximum-integer": "9223372036854775807"
+        },
+        "observedAtUtc": {
+          "type": "string",
+          "minLength": 28,
+          "maxLength": 28,
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{7}Z$",
+          "x-cis-valid-utc-calendar": true
+        },
+        "modules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ModuleInventoryResponse"
+          },
+          "maxItems": 1024,
+          "minItems": 0,
+          "x-cis-default-max-items": 32
+        },
+        "categories": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CategoryInventoryResponse"
+          },
+          "maxItems": 65536,
+          "minItems": 0,
+          "x-cis-default-max-items": 64
+        },
+        "jobs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/JobInventoryResponse"
+          },
+          "maxItems": 65536,
+          "minItems": 0,
+          "x-cis-default-max-items": 1024
+        }
+      },
+      "required": [
+        "sequence",
+        "observedAtUtc",
+        "modules",
+        "categories",
+        "jobs"
+      ],
+      "additionalProperties": true,
+      "x-cis-max-body-bytes": 16777216,
+      "x-cis-max-total-job-observations": 65536,
+      "x-cis-unique-category-key": [
+        "executionScope",
+        "categoryId"
+      ],
+      "x-cis-unique-job-key": [
+        "executionScope",
+        "jobId"
+      ],
+      "x-cis-category-references-required": true,
+      "x-cis-default-max-body-bytes": 4194304,
+      "x-cis-default-max-total-job-observations": 4096
+    },
+    "OperationRejection": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[\\u0020-\\u007e]+$",
+          "x-cis-non-whitespace": true
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "x-cis-max-utf8-bytes": 1024,
+          "x-cis-valid-unicode-without-nul": true,
+          "x-cis-non-whitespace": true
+        }
+      },
+      "required": [
+        "code",
+        "message"
+      ],
+      "additionalProperties": true,
+      "description": "The unchanged native RM03 OperationError. It contains no original metadata, revision or decision timestamp."
+    },
+    "ControlConfirmation": {
+      "type": "object",
+      "properties": {
+        "authorityId": {
+          "type": "string",
+          "minLength": 36,
+          "maxLength": 36,
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true
+        },
+        "registrationId": {
+          "type": "string",
+          "minLength": 36,
+          "maxLength": 36,
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true
+        },
+        "controlRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "x-cis-control-free-nonblank-unicode": true
+        },
+        "admissionAllowed": {
+          "type": "boolean"
+        },
+        "validForMs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 15000,
+          "x-cis-canonical-integer-token": true
+        },
+        "attemptId": {
+          "type": "string",
+          "minLength": 36,
+          "maxLength": 36,
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true
+        }
+      },
+      "required": [
+        "authorityId",
+        "registrationId",
+        "controlRevision",
+        "admissionAllowed",
+        "validForMs",
+        "attemptId"
+      ],
+      "additionalProperties": true,
+      "x-cis-freshness-origin": "Local monotonic request start, including actual response cleanup; never response arrival.",
+      "x-cis-authority": "A current backend confirmation, not business permission, presence or RM-05 ownership."
+    }
+  },
+  "description": "Canonical DTO schemas. Requests are closed; response readers tolerate optional additions and preserve unknown raw values. x-cis annotations document runtime lexical/semantic/byte requirements not all expressible in JSON Schema or the existing evaluator.",
+  "x-cis-limit-profile": "Schemas express absolute supported ceilings; x-cis-default-* annotations state initial operational limits. Actual configured limits are enforced at runtime and may be lower."
+}

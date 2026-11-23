@@ -22,6 +22,10 @@ public sealed class ScheduledJobDispatcher : IScheduledJobDispatcher
     {
         ArgumentNullException.ThrowIfNull(run);
         cancellationToken.ThrowIfCancellationRequested();
+        if (!runtime.CanAdmitManagedWork())
+        {
+            return new(ScheduledJobOutcome.Deferred, JobRuntime.ManagedAdmissionClosed);
+        }
         using JobPendingDispatch? pending = runtime.TryReservePending();
         if (pending is null)
         {

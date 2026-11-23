@@ -101,6 +101,7 @@ public sealed class ContinuousJobRunner : IContinuousJobRunner
             using var admission = CancellationTokenSource.CreateLinkedTokenSource(duty.StopRequested, runtime.AdmissionStopping);
             while (!duty.IsDraining)
             {
+                await runtime.WaitForManagedAdmissionAsync(admission.Token).ConfigureAwait(false);
                 ManagedCoordinationResult acquired = await runtime.AcquireAsync(duty, admission.Token).ConfigureAwait(false);
                 if (acquired.Lease is { } lease)
                 {
@@ -114,6 +115,11 @@ public sealed class ContinuousJobRunner : IContinuousJobRunner
                     duty.SetState(JobLocalState.Faulted, acquired.Outcome == CoordinationAcquireOutcome.Indeterminate
                         ? "jobs.acquisition_indeterminate" : "jobs.acquisition_refused");
                     return;
+                }
+                if (acquired.ReasonCode == JobRuntime.ManagedAdmissionClosed)
+                {
+                    duty.SetState(JobLocalState.Standby, JobRuntime.ManagedAdmissionClosed);
+                    continue;
                 }
 
                 duty.SetState(JobLocalState.Standby, acquired.ReasonCode);

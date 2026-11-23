@@ -38,6 +38,27 @@ jobs:
           printf 'DOTNET_INSTALL_DIR=%s/cislib-dotnet\n' "$RUNNER_TEMP" >> "$GITHUB_ENV"
           printf 'DOTNET_CLI_HOME=%s/cislib-cli\n' "$RUNNER_TEMP" >> "$GITHUB_ENV"
 
+      - name: Install pinned Management client runtime
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24.15.0"
+          check-latest: false
+          package-manager-cache: false
+
+      - name: Build and check portable Management clients
+        working-directory: implementations/typescript
+        timeout-minutes: 4
+        env:
+          NPM_CONFIG_CACHE: ${{ runner.temp }}/cislib-management-npm
+        run: |
+          set -euo pipefail
+          test "$(node --version)" = "v24.15.0"
+          test "$(npm --version)" = "11.12.1"
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm run build
+          npm test
+          npm run check:browser
+
       - name: Install pinned SDK
         uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:
@@ -83,7 +104,7 @@ jobs:
           results="$RUNNER_TEMP/cislib-service-results"
           mkdir -p "$results"
           set +e
-          dotnet test tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj -c Release --no-build --no-restore --settings tests/CIS.Core.IntegrationTests/service-tests.runsettings --filter "TestCategory=RequiresDocker&TestCategory!=PerformanceObservation&TestCategory!=ExtendedStress" --logger "trx;LogFileName=service-tests.trx" --results-directory "$results"
+          dotnet test tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj -c Release --no-build --no-restore --settings tests/CIS.Core.IntegrationTests/service-tests.runsettings --filter "(TestCategory=RequiresDocker|TestCategory=RequiresNode)&TestCategory!=PerformanceObservation&TestCategory!=ExtendedStress" --logger "trx;LogFileName=service-tests.trx" --results-directory "$results"
           service_exit=$?
           set -e
           dotnet run --file eng/VerifyServiceTestReport.cs --artifacts-path "$RUNNER_TEMP/cislib-service-guard" -- "$results/service-tests.trx" "$service_exit"

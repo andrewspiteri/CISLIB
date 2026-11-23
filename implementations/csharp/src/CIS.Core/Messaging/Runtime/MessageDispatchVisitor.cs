@@ -1,12 +1,20 @@
 using CIS.Operations;
+using CIS.Management;
 using CIS.Security;
 using CIS.Transactions;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CIS.Messaging;
 
-internal enum MessageInvocationKind { Completed, Terminal, Rejected, Retry }
+internal enum MessageInvocationKind
+{
+    Completed, Terminal, Rejected, Retry
+}
 internal sealed record MessageInvocation(MessageInvocationKind Kind, string SafeCode = "messaging.handled", Guid? ReplyRecordId = null);
+
+internal sealed class ManagedMessageAdmissionClosedException : Exception
+{
+}
 
 internal sealed class MessageDispatchPlan
 {
@@ -22,7 +30,8 @@ internal sealed class MessageDispatchPlan
 
 internal sealed class MessageDispatchVisitor(IServiceProvider services, CallerContext caller, EncodedMessage message,
     LocalApplicationIdentity local, IMessageResponseCoordinator? replies, CancellationToken cancellationToken,
-    MessageResponseAdmission? responseAdmission = null) : IMessageSubscriptionVisitor<Task<MessageDispatchPlan>>
+    MessageResponseAdmission? responseAdmission = null, IManagedWorkAdmission? managedAdmission = null)
+    : IMessageSubscriptionVisitor<Task<MessageDispatchPlan>>
 {
     public async Task<MessageDispatchPlan> Visit<T>(MessageSubscriptionDefinition<T> definition)
     {
@@ -43,8 +52,10 @@ internal sealed class MessageDispatchVisitor(IServiceProvider services, CallerCo
         }
         plan.Invoke = async (context, attempt, token) =>
         {
+            RequireManagedAdmission();
             IMessageHandler<T> handler = definition.HandlerFactory(services)
                 ?? throw new InvalidOperationException("The message handler factory returned no scoped handler.");
+            RequireManagedAdmission();
             plan.HandlerStarted = true;
             await handler.HandleAsync(new(context, services, message.Envelope, attempt.DeliveryOrdinal, attempt.Generation), input!, token).ConfigureAwait(false);
             return new(MessageInvocationKind.Completed);
@@ -106,8 +117,10 @@ internal sealed class MessageDispatchVisitor(IServiceProvider services, CallerCo
                     .ExecuteAsync(context, new OperationRequest<TRequest>(envelope.Operation!.OperationName,
                         envelope.Operation.RequestedScope, envelope.Operation.Key, input!), async (original, normalized, cancellation) =>
                     {
+                        RequireManagedAdmission();
                         IRequestHandler<TRequest, TResponse> handler = definition.HandlerFactory(services)
                             ?? throw new InvalidOperationException("The durable message handler factory returned no scoped handler.");
+                        RequireManagedAdmission();
                         plan.HandlerStarted = true;
                         return await handler.HandleAsync(new(original, services, envelope, attempt.DeliveryOrdinal, attempt.Generation),
                             normalized, cancellation).ConfigureAwait(false);
@@ -131,8 +144,10 @@ internal sealed class MessageDispatchVisitor(IServiceProvider services, CallerCo
             }
             else
             {
+                RequireManagedAdmission();
                 IRequestHandler<TRequest, TResponse> handler = definition.HandlerFactory(services)
                     ?? throw new InvalidOperationException("The query handler factory returned no scoped handler.");
+                RequireManagedAdmission();
                 plan.HandlerStarted = true;
                 OperationDecision<TResponse> decision = await handler.HandleAsync(
                     new(context, services, envelope, attempt.DeliveryOrdinal, attempt.Generation), input!, token).ConfigureAwait(false)
@@ -149,5 +164,13 @@ internal sealed class MessageDispatchVisitor(IServiceProvider services, CallerCo
             return new(MessageInvocationKind.Completed, ReplyRecordId: reply);
         };
         return plan;
+    }
+
+    private void RequireManagedAdmission()
+    {
+        if (managedAdmission is not null && !managedAdmission.TryAdmit())
+        {
+            throw new ManagedMessageAdmissionClosedException();
+        }
     }
 }

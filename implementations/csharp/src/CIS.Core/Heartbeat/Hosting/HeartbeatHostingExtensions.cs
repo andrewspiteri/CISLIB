@@ -8,6 +8,7 @@ using CIS.Metrics;
 using CIS.Messaging;
 using CIS.RestClient;
 using CIS.Coordination.Hosting;
+using CIS.Management.Hosting;
 
 namespace CIS.Heartbeat.Hosting;
 
@@ -58,6 +59,7 @@ internal sealed class HeartbeatHostedService(HeartbeatRuntime runtime, IHostAppl
     private readonly MessagingRuntime? messaging = root.GetService<MessagingRuntime>();
     private readonly CoordinationHostLifetime? coordination = root.GetService<CoordinationHostLifetime>();
     private readonly AuditRuntime? audit = root.GetService<AuditRuntime>();
+    private readonly ManagementRegistrationLifetime? management = root.GetService<ManagementRegistrationLifetime>();
 
     public Task StartingAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
@@ -86,6 +88,7 @@ internal sealed class HeartbeatHostedService(HeartbeatRuntime runtime, IHostAppl
 
     private void BeginStopping()
     {
+        management?.BeginStopping();
         if (audit is not null && !audit.IsDrained)
         {
             audit.BeginStopping();
@@ -109,6 +112,7 @@ internal sealed class HeartbeatHostedService(HeartbeatRuntime runtime, IHostAppl
 
     private async Task StopCoreAsync()
     {
+        management?.BeginStopping();
         Exception? coordinationFailure = await AuditRuntime.CaptureStopAsync(audit, coordination).ConfigureAwait(false);
         BeginStopping();
         Task messagingDrain = messaging?.StopAsync() ?? Task.CompletedTask;
@@ -120,7 +124,17 @@ internal sealed class HeartbeatHostedService(HeartbeatRuntime runtime, IHostAppl
         {
             // Rejoin the original fault only after all other module owners have begun actual drain.
         }
-        await Task.WhenAll(messagingDrain, rest?.StopAsync() ?? Task.CompletedTask, runtime.StopAsync(), metrics?.StopAsync() ?? Task.CompletedTask,
+        Task restDrain = rest?.StopAsync() ?? Task.CompletedTask;
+        try
+        {
+            await restDrain.ConfigureAwait(false);
+        }
+        catch (Exception)
+        {
+            // The original REST fault remains part of the joint drain below.
+        }
+        await Task.WhenAll(messagingDrain, restDrain, management?.StopAsync() ?? Task.CompletedTask,
+            runtime.StopAsync(), metrics?.StopAsync() ?? Task.CompletedTask,
             coordinationFailure is null ? Task.CompletedTask : Task.FromException(coordinationFailure)).ConfigureAwait(false);
     }
 

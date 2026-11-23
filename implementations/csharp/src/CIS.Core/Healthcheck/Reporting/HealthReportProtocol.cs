@@ -28,21 +28,37 @@ internal static class HealthReportProtocol
     {
         view = default;
         errorCode = null;
-        if (payload.Length is < 1 or > 512) { errorCode = "InvalidFrame"; return false; }
+        if (payload.Length is < 1 or > 512)
+        {
+            errorCode = "InvalidFrame";
+            return false;
+        }
         try
         {
             using var document = ParseStrict(payload);
             var root = document.RootElement;
             RequireObject(root);
             int version = Integer(Required(root, "protocolVersion"), int.MinValue, int.MaxValue);
-            if (version != 1) { errorCode = "UnsupportedVersion"; return false; }
+            if (version != 1)
+            {
+                errorCode = "UnsupportedVersion";
+                return false;
+            }
             string selected = Text(Required(root, "view"), 512);
             switch (selected)
             {
-                case "health": view = HealthReportView.Health; break;
-                case "readiness": view = HealthReportView.Readiness; break;
-                case "details": view = HealthReportView.Details; break;
-                default: errorCode = "InvalidView"; return false;
+                case "health":
+                    view = HealthReportView.Health;
+                    break;
+                case "readiness":
+                    view = HealthReportView.Readiness;
+                    break;
+                case "details":
+                    view = HealthReportView.Details;
+                    break;
+                default:
+                    errorCode = "InvalidView";
+                    return false;
             }
             return true;
         }
@@ -57,32 +73,56 @@ internal static class HealthReportProtocol
     internal static HealthParsedResponse ParseResponse(ReadOnlyMemory<byte> payload, HealthReportView expectedView, int maxReportBytes)
     {
         ValidateMaximum(maxReportBytes);
-        if (!Enum.IsDefined(expectedView)) { throw new ArgumentOutOfRangeException(nameof(expectedView)); }
-        if (payload.Length == 0 || payload.Length > maxReportBytes) { throw Invalid(); }
+        if (!Enum.IsDefined(expectedView))
+        {
+            throw new ArgumentOutOfRangeException(nameof(expectedView));
+        }
+        if (payload.Length == 0 || payload.Length > maxReportBytes)
+        {
+            throw Invalid();
+        }
         try
         {
             using var document = ParseStrict(payload);
             var root = document.RootElement;
             RequireObject(root);
-            if (Integer(Required(root, "protocolVersion"), 1, 1) != 1 || Integer(Required(root, "schemaVersion"), 1, 1) != 1) { throw Invalid(); }
+            if (Integer(Required(root, "protocolVersion"), 1, 1) != 1 || Integer(Required(root, "schemaVersion"), 1, 1) != 1)
+            {
+                throw Invalid();
+            }
             var view = Required(root, "view");
             string kind = Text(Required(root, "kind"), 16);
             if (kind == "error")
             {
-                if (root.TryGetProperty("snapshot", out _)) { throw Invalid(); }
+                if (root.TryGetProperty("snapshot", out _))
+                {
+                    throw Invalid();
+                }
                 var error = Required(root, "error");
                 RequireObject(error);
                 string code = Text(Required(error, "code"), 64);
-                if (!IsErrorCode(code, pipe: true)) { throw Invalid(); }
+                if (!IsErrorCode(code, pipe: true))
+                {
+                    throw Invalid();
+                }
                 OptionalText(error, "message", 128);
                 if (view.ValueKind == JsonValueKind.Null)
                 {
-                    if (code is not ("InvalidRequest" or "InvalidFrame" or "InvalidView" or "UnsupportedVersion")) { throw Invalid(); }
+                    if (code is not ("InvalidRequest" or "InvalidFrame" or "InvalidView" or "UnsupportedVersion"))
+                    {
+                        throw Invalid();
+                    }
                 }
-                else if (Text(view, 32) != ViewName(expectedView)) { throw Invalid(); }
+                else if (Text(view, 32) != ViewName(expectedView))
+                {
+                    throw Invalid();
+                }
                 return new HealthParsedResponse([], true, code, false);
             }
-            if (kind != "snapshot" || root.TryGetProperty("error", out _) || Text(view, 32) != ViewName(expectedView)) { throw Invalid(); }
+            if (kind != "snapshot" || root.TryGetProperty("error", out _) || Text(view, 32) != ViewName(expectedView))
+            {
+                throw Invalid();
+            }
             var snapshot = Required(root, "snapshot");
             bool selectedHealthy = ValidateSnapshot(snapshot, expectedView);
             return new HealthParsedResponse(StrictUtf8.GetBytes(snapshot.GetRawText()), false, null, selectedHealthy);
@@ -111,7 +151,10 @@ internal static class HealthReportProtocol
         {
             await stream.ReadExactlyAsync(prefix, cancellationToken).ConfigureAwait(false);
             uint length = BinaryPrimitives.ReadUInt32LittleEndian(prefix);
-            if (length == 0 || length > maximumPayloadBytes) { throw Invalid(); }
+            if (length == 0 || length > maximumPayloadBytes)
+            {
+                throw Invalid();
+            }
             byte[] payload = new byte[(int)length];
             await stream.ReadExactlyAsync(payload, cancellationToken).ConfigureAwait(false);
             return payload;
@@ -140,14 +183,24 @@ internal static class HealthReportProtocol
         {
             switch (reader.TokenType)
             {
-                case JsonTokenType.StartObject: objects.Push(new HashSet<string>(StringComparer.Ordinal)); break;
-                case JsonTokenType.EndObject: objects.Pop(); break;
+                case JsonTokenType.StartObject:
+                    objects.Push(new HashSet<string>(StringComparer.Ordinal));
+                    break;
+                case JsonTokenType.EndObject:
+                    objects.Pop();
+                    break;
                 case JsonTokenType.PropertyName:
                     string name = reader.GetString()!;
-                    if (!UnicodeScalarText.IsValid(name, int.MaxValue, allowControls: true) || !objects.Peek().Add(name)) { throw Invalid(); }
+                    if (!UnicodeScalarText.IsValid(name, int.MaxValue, allowControls: true) || !objects.Peek().Add(name))
+                    {
+                        throw Invalid();
+                    }
                     break;
                 case JsonTokenType.String:
-                    if (!UnicodeScalarText.IsValid(reader.GetString()!, int.MaxValue, allowControls: true)) { throw Invalid(); }
+                    if (!UnicodeScalarText.IsValid(reader.GetString()!, int.MaxValue, allowControls: true))
+                    {
+                        throw Invalid();
+                    }
                     break;
             }
         }
@@ -157,7 +210,10 @@ internal static class HealthReportProtocol
     private static bool ValidateSnapshot(JsonElement snapshot, HealthReportView view)
     {
         RequireObject(snapshot);
-        if (snapshot.TryGetProperty("kind", out _)) { throw Invalid(); }
+        if (snapshot.TryGetProperty("kind", out _))
+        {
+            throw Invalid();
+        }
         Integer(Required(snapshot, "schemaVersion"), 1, 1);
         CanonicalDecimal(Required(snapshot, "revision"), signed: false, int64: false);
         Timestamp(Required(snapshot, "capturedAtUtc"));
@@ -173,31 +229,62 @@ internal static class HealthReportProtocol
         bool stopping = Boolean(Required(app, "isStopping"));
         string health = EnumText<HealthStatus>(Required(snapshot, "healthStatus"));
         bool ready = Boolean(Required(snapshot, "ready"));
-        if (ready != (startup && !stopping && health == "Healthy")) { throw Invalid(); }
+        if (ready && (!startup || stopping || health != "Healthy"))
+        {
+            throw Invalid();
+        }
         var counts = Required(snapshot, "monitorCounts");
         RequireObject(counts);
         int active = Count("active"), critical = Count("critical"), failing = Count("failing"), criticalFailing = Count("criticalFailing"), pending = Count("pending");
         if (critical > active || failing > active || pending > active - failing || criticalFailing > critical || criticalFailing > failing ||
-            failing - criticalFailing > active - critical || (health == "Healthy") != (criticalFailing == 0)) { throw Invalid(); }
+            failing - criticalFailing > active - critical || (health == "Healthy") != (criticalFailing == 0))
+        {
+            throw Invalid();
+        }
         if (snapshot.TryGetProperty("monitors", out var monitors))
         {
             RequireArray(monitors, 65536);
-            if (monitors.GetArrayLength() != active) { throw Invalid(); }
+            if (monitors.GetArrayLength() != active)
+            {
+                throw Invalid();
+            }
             int actualCritical = 0, actualFailing = 0, actualCriticalFailing = 0, actualPending = 0;
             var ids = new HashSet<Guid>();
             foreach (var monitor in monitors.EnumerateArray())
             {
                 ValidateMonitor(monitor);
-                if (!ids.Add(GuidValue(Required(monitor, "monitorId")))) { throw Invalid(); }
+                if (!ids.Add(GuidValue(Required(monitor, "monitorId"))))
+                {
+                    throw Invalid();
+                }
                 bool isCritical = Boolean(Required(monitor, "isCritical"));
                 string state = EnumText<MonitorState>(Required(monitor, "state"));
-                if (isCritical) { actualCritical++; }
-                if (state == "Unhealthy") { actualFailing++; if (isCritical) { actualCriticalFailing++; } }
-                if (state == "Pending") { actualPending++; }
+                if (isCritical)
+                {
+                    actualCritical++;
+                }
+                if (state == "Unhealthy")
+                {
+                    actualFailing++;
+                    if (isCritical)
+                    {
+                        actualCriticalFailing++;
+                    }
+                }
+                if (state == "Pending")
+                {
+                    actualPending++;
+                }
             }
-            if (actualCritical != critical || actualFailing != failing || actualCriticalFailing != criticalFailing || actualPending != pending) { throw Invalid(); }
+            if (actualCritical != critical || actualFailing != failing || actualCriticalFailing != criticalFailing || actualPending != pending)
+            {
+                throw Invalid();
+            }
         }
-        else if (view == HealthReportView.Details) { throw Invalid(); }
+        else if (view == HealthReportView.Details)
+        {
+            throw Invalid();
+        }
         return view == HealthReportView.Readiness ? ready : health == "Healthy";
 
         int Count(string name) => Integer(Required(counts, name), 0, 65536);
@@ -211,13 +298,19 @@ internal static class HealthReportProtocol
         string policy = EnumText<HealthPolicyKind>(Required(monitor, "policy"));
         Boolean(Required(monitor, "isCritical"));
         string state = EnumText<MonitorState>(Required(monitor, "state"));
-        if (policy == "Condition" && state == "Pending") { throw Invalid(); }
+        if (policy == "Condition" && state == "Pending")
+        {
+            throw Invalid();
+        }
         Timestamp(Required(monitor, "registeredAtUtc"));
         OptionalTimestamp(monitor, "lastObservationAtUtc");
         OptionalDiagnostic(monitor, "diagnostic");
         OptionalDiagnostic(monitor, "registrationDiagnostic");
         bool hasNumeric = monitor.TryGetProperty("numeric", out var numeric);
-        if (hasNumeric != (policy == "NumericThreshold")) { throw Invalid(); }
+        if (hasNumeric != (policy == "NumericThreshold"))
+        {
+            throw Invalid();
+        }
         if (hasNumeric)
         {
             RequireObject(numeric);
@@ -225,13 +318,29 @@ internal static class HealthReportProtocol
             Number(Required(numeric, "threshold"));
             Text(Required(numeric, "unit"), 32, nonblank: true);
             bool hasValue = numeric.TryGetProperty("lastValue", out var value);
-            if (hasValue != numeric.TryGetProperty("lastValueAtUtc", out var at)) { throw Invalid(); }
-            if (hasValue && state == "Pending" || !hasValue && state == "Healthy") { throw Invalid(); }
-            if (hasValue) { Number(value); Timestamp(at); }
+            if (hasValue != numeric.TryGetProperty("lastValueAtUtc", out var at))
+            {
+                throw Invalid();
+            }
+            if (hasValue && state == "Pending" || !hasValue && state == "Healthy")
+            {
+                throw Invalid();
+            }
+            if (hasValue)
+            {
+                Number(value);
+                Timestamp(at);
+            }
         }
         bool hasOutcomes = monitor.TryGetProperty("outcomes", out var outcomes);
-        if (policy == "Condition" && hasOutcomes || policy is "ConsecutiveFailures" or "FirstSuccessAvailability" && !hasOutcomes) { throw Invalid(); }
-        if (hasOutcomes) { ValidateOutcomes(outcomes, policy, state); }
+        if (policy == "Condition" && hasOutcomes || policy is "ConsecutiveFailures" or "FirstSuccessAvailability" && !hasOutcomes)
+        {
+            throw Invalid();
+        }
+        if (hasOutcomes)
+        {
+            ValidateOutcomes(outcomes, policy, state);
+        }
         if (monitor.TryGetProperty("collection", out var collection))
         {
             RequireObject(collection);
@@ -239,7 +348,10 @@ internal static class HealthReportProtocol
             OptionalTimestamp(collection, "lastCompletedAtUtc");
             OptionalDiagnostic(collection, "lastError");
             OptionalTimestamp(collection, "lastErrorAtUtc");
-            if (collection.TryGetProperty("lastError", out _) != collection.TryGetProperty("lastErrorAtUtc", out _)) { throw Invalid(); }
+            if (collection.TryGetProperty("lastError", out _) != collection.TryGetProperty("lastErrorAtUtc", out _))
+            {
+                throw Invalid();
+            }
         }
         var measurements = Required(monitor, "measurements");
         RequireArray(measurements, 32);
@@ -249,21 +361,48 @@ internal static class HealthReportProtocol
         {
             RequireObject(measurement);
             string key = Text(Required(measurement, "key"), 128, nonblank: true);
-            if (!keys.Add(key) || previousKey is not null && StringComparer.Ordinal.Compare(previousKey, key) >= 0) { throw Invalid(); }
+            if (!keys.Add(key) || previousKey is not null && StringComparer.Ordinal.Compare(previousKey, key) >= 0)
+            {
+                throw Invalid();
+            }
             previousKey = key;
             string kind = EnumText<HealthMeasurementValueKind>(Required(measurement, "valueKind"));
-            if (measurement.TryGetProperty("unit", out var unit)) { Text(unit, 32, nonblank: true); }
+            if (measurement.TryGetProperty("unit", out var unit))
+            {
+                Text(unit, 32, nonblank: true);
+            }
             Timestamp(Required(measurement, "observedAtUtc"));
-            if (!Boolean(Required(measurement, "isDiagnostic"))) { throw Invalid(); }
+            if (!Boolean(Required(measurement, "isDiagnostic")))
+            {
+                throw Invalid();
+            }
             bool hasValue = measurement.TryGetProperty("value", out var scalar);
-            if (kind == "Unavailable") { if (hasValue) { throw Invalid(); } continue; }
-            if (!hasValue) { throw Invalid(); }
+            if (kind == "Unavailable")
+            {
+                if (hasValue)
+                {
+                    throw Invalid();
+                }
+                continue;
+            }
+            if (!hasValue)
+            {
+                throw Invalid();
+            }
             switch (kind)
             {
-                case "String": Text(scalar, 1024); break;
-                case "Boolean": Boolean(scalar); break;
-                case "Integer": CanonicalDecimal(scalar, signed: true, int64: true); break;
-                case "Number": Number(scalar); break;
+                case "String":
+                    Text(scalar, 1024);
+                    break;
+                case "Boolean":
+                    Boolean(scalar);
+                    break;
+                case "Integer":
+                    CanonicalDecimal(scalar, signed: true, int64: true);
+                    break;
+                case "Number":
+                    Number(scalar);
+                    break;
             }
         }
     }
@@ -273,13 +412,19 @@ internal static class HealthReportProtocol
         RequireObject(outcomes);
         long successful = Counter("successful"), failed = Counter("failed"), skipped = Counter("skipped"), canceled = Counter("expectedCanceled"), streak = Counter("consecutiveFailures");
         bool saturated = Boolean(Required(outcomes, "countersSaturated"));
-        if (streak > failed || saturated != (successful == long.MaxValue || failed == long.MaxValue || skipped == long.MaxValue || canceled == long.MaxValue)) { throw Invalid(); }
+        if (streak > failed || saturated != (successful == long.MaxValue || failed == long.MaxValue || skipped == long.MaxValue || canceled == long.MaxValue))
+        {
+            throw Invalid();
+        }
         // These are definite contradictions in recorded facts, not another policy
         // evaluator. The wire deliberately carries no consecutive-failure threshold.
         if (policy is "ConsecutiveFailures" or "FirstSuccessAvailability" && state == "Pending" && (successful != 0 || failed != 0) ||
             policy == "ConsecutiveFailures" && state == "Unhealthy" && streak == 0 ||
             policy == "FirstSuccessAvailability" && state == "Healthy" && successful == 0 ||
-            policy == "ConsecutiveFailures" && state == "Healthy" && successful == 0 && failed == 0) { throw Invalid(); }
+            policy == "ConsecutiveFailures" && state == "Healthy" && successful == 0 && failed == 0)
+        {
+            throw Invalid();
+        }
         if (outcomes.TryGetProperty("lastOutcome", out var last))
         {
             string outcome = EnumText<HealthExecutionOutcome>(last);
@@ -290,35 +435,62 @@ internal static class HealthReportProtocol
                 "Skipped" => skipped == 0,
                 "ExpectedCancellation" => canceled == 0,
                 _ => true
-            }) { throw Invalid(); }
+            })
+            {
+                throw Invalid();
+            }
         }
         OptionalTimestamp(outcomes, "lastSuccessAtUtc");
         OptionalTimestamp(outcomes, "lastFailureAtUtc");
         OptionalDiagnostic(outcomes, "lastFailureDiagnostic");
-        if (!outcomes.TryGetProperty("execution", out var execution)) { return; }
+        if (!outcomes.TryGetProperty("execution", out var execution))
+        {
+            return;
+        }
         RequireObject(execution);
         GuidValue(Required(execution, "registrationId"));
-        if (CanonicalDecimal(Required(execution, "executionId"), signed: false, int64: true) == "0") { throw Invalid(); }
+        if (CanonicalDecimal(Required(execution, "executionId"), signed: false, int64: true) == "0")
+        {
+            throw Invalid();
+        }
         string phase = EnumText<HealthExecutionPhase>(Required(execution, "phase"));
         foreach (string name in new[] { "eligibleAtUtc", "admittedAtUtc", "dispatchedAtUtc", "suppressedAtUtc", "conditionStartedAtUtc", "callbackStartedAtUtc", "workCompletedAtUtc",
-                     "errorHandlingStartedAtUtc", "errorHandlingCompletedAtUtc", "cleanupCompletedAtUtc", "settledAtUtc" }) { OptionalTimestamp(execution, name); }
+                     "errorHandlingStartedAtUtc", "errorHandlingCompletedAtUtc", "cleanupCompletedAtUtc", "settledAtUtc" })
+        {
+            OptionalTimestamp(execution, name);
+        }
         foreach (string name in new[] { "queueDelayMs", "dispatchDelayMs", "conditionDurationMs", "callbackDurationMs", "errorHandlingDurationMs", "cleanupDurationMs", "totalDurationMs" })
         {
-            if (execution.TryGetProperty(name, out var value) && Number(value) < 0) { throw Invalid(); }
+            if (execution.TryGetProperty(name, out var value) && Number(value) < 0)
+            {
+                throw Invalid();
+            }
         }
         string handler = EnumText<HealthExecutionStepStatus>(Required(execution, "errorHandlingStatus"));
         string cleanup = EnumText<HealthExecutionStepStatus>(Required(execution, "cleanupStatus"));
-        foreach (string name in new[] { "originalError", "errorHandlingError", "cleanupError", "integrationError" }) { OptionalDiagnostic(execution, name); }
+        foreach (string name in new[] { "originalError", "errorHandlingError", "cleanupError", "integrationError" })
+        {
+            OptionalDiagnostic(execution, name);
+        }
         bool settled = execution.TryGetProperty("settledAtUtc", out _);
         if (phase == "Settled" && !settled || settled && (phase is not ("Settled" or "Retired") || handler is "Running" or "NotStarted" || cleanup is "Running" or "NotStarted") ||
-            !settled && execution.TryGetProperty("totalDurationMs", out _)) { throw Invalid(); }
+            !settled && execution.TryGetProperty("totalDurationMs", out _))
+        {
+            throw Invalid();
+        }
         bool handlerStarted = Has("errorHandlingStartedAtUtc"), handlerCompleted = Has("errorHandlingCompletedAtUtc"), handlerDuration = Has("errorHandlingDurationMs");
         if (handler == "NotStarted" && (handlerStarted || handlerCompleted || handlerDuration) || handler == "Running" && handlerCompleted ||
             handler is "NotApplicable" or "NotInvoked" && (handlerStarted || handlerDuration) ||
-            Has("errorHandlingError") && handler is "NotStarted" or "Running" or "Succeeded" or "NotApplicable") { throw Invalid(); }
+            Has("errorHandlingError") && handler is "NotStarted" or "Running" or "Succeeded" or "NotApplicable")
+        {
+            throw Invalid();
+        }
         if (cleanup is "NotStarted" or "Running" && Has("cleanupCompletedAtUtc") ||
             cleanup is "NotApplicable" or "NotInvoked" && Has("cleanupDurationMs") ||
-            Has("cleanupError") && cleanup is "NotStarted" or "Running" or "Succeeded" or "NotApplicable") { throw Invalid(); }
+            Has("cleanupError") && cleanup is "NotStarted" or "Running" or "Succeeded" or "NotApplicable")
+        {
+            throw Invalid();
+        }
         ValidateExecutionProducerContext(execution, phase);
 
         long Counter(string name) => long.Parse(CanonicalDecimal(Required(outcomes, name), signed: false, int64: true), CultureInfo.InvariantCulture);
@@ -331,8 +503,14 @@ internal static class HealthReportProtocol
         bool? callbackResult = execution.TryGetProperty("callbackResult", out var callback) ? Boolean(callback) : null;
         string? suppressedPhase = Phase("suppressedPhase"), canceledPhase = Phase("expectedCancellationPhase");
         bool suppressed = Has("suppressedAtUtc");
-        if (suppressed != (suppressedPhase is not null) || suppressed != Has("suppressionReason")) { throw Invalid(); }
-        if (Has("suppressionReason")) { EnumText<HealthExecutionSuppressionReason>(execution.GetProperty("suppressionReason")); }
+        if (suppressed != (suppressedPhase is not null) || suppressed != Has("suppressionReason"))
+        {
+            throw Invalid();
+        }
+        if (Has("suppressionReason"))
+        {
+            EnumText<HealthExecutionSuppressionReason>(execution.GetProperty("suppressionReason"));
+        }
         bool conditionRan = Has("conditionStartedAtUtc") || Has("conditionDurationMs") || conditionResult.HasValue || canceledPhase == "Condition" || phase == "Condition";
         bool callbackRan = Has("callbackStartedAtUtc") || Has("callbackDurationMs") || callbackResult.HasValue || canceledPhase == "Callback" || phase == "Callback";
         if (conditionResult == false && (callbackRan || suppressedPhase == "Callback")
@@ -340,12 +518,17 @@ internal static class HealthReportProtocol
             || canceledPhase == "Callback" && callbackResult.HasValue
             || suppressedPhase == "Condition" && (conditionRan || callbackRan)
             || suppressedPhase == "Callback" && callbackRan)
-        { throw Invalid(); }
+        {
+            throw Invalid();
+        }
 
         bool Has(string name) => execution.TryGetProperty(name, out _);
         string? Phase(string name)
         {
-            if (!execution.TryGetProperty(name, out var value)) { return null; }
+            if (!execution.TryGetProperty(name, out var value))
+            {
+                return null;
+            }
             string result = EnumText<HealthExecutionPhase>(value);
             return result is "Condition" or "Callback" ? result : throw Invalid();
         }
@@ -359,9 +542,15 @@ internal static class HealthReportProtocol
 
     private static string Text(JsonElement value, int maximum, bool nonblank = false)
     {
-        if (value.ValueKind != JsonValueKind.String) { throw Invalid(); }
+        if (value.ValueKind != JsonValueKind.String)
+        {
+            throw Invalid();
+        }
         string text = value.GetString()!;
-        if (!UnicodeScalarText.IsValid(text, maximum, allowControls: true) || nonblank && string.IsNullOrWhiteSpace(text)) { throw Invalid(); }
+        if (!UnicodeScalarText.IsValid(text, maximum, allowControls: true) || nonblank && string.IsNullOrWhiteSpace(text))
+        {
+            throw Invalid();
+        }
         return text;
     }
 
@@ -374,12 +563,18 @@ internal static class HealthReportProtocol
 
     private static void OptionalText(JsonElement value, string name, int maximum)
     {
-        if (value.TryGetProperty(name, out var property)) { Text(property, maximum); }
+        if (value.TryGetProperty(name, out var property))
+        {
+            Text(property, maximum);
+        }
     }
 
     private static int Integer(JsonElement value, int minimum, int maximum)
     {
-        if (value.ValueKind != JsonValueKind.Number || !value.TryGetInt32(out int number) || number < minimum || number > maximum) { throw Invalid(); }
+        if (value.ValueKind != JsonValueKind.Number || !value.TryGetInt32(out int number) || number < minimum || number > maximum)
+        {
+            throw Invalid();
+        }
         return number;
     }
 
@@ -392,7 +587,10 @@ internal static class HealthReportProtocol
 
     private static double Number(JsonElement value)
     {
-        if (value.ValueKind != JsonValueKind.Number || !value.TryGetDouble(out double number) || !double.IsFinite(number)) { throw Invalid(); }
+        if (value.ValueKind != JsonValueKind.Number || !value.TryGetDouble(out double number) || !double.IsFinite(number))
+        {
+            throw Invalid();
+        }
         return number;
     }
 
@@ -400,16 +598,31 @@ internal static class HealthReportProtocol
     {
         string text = Text(value, int.MaxValue);
         int start = signed && text.StartsWith('-') ? 1 : 0;
-        if (text.Length == start || text[start] == '0' && (text.Length - start != 1 || start == 1)) { throw Invalid(); }
-        for (int i = start; i < text.Length; i++) { if (text[i] is < '0' or > '9') { throw Invalid(); } }
-        if (int64 && (!long.TryParse(text, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out long number) || !signed && number < 0)) { throw Invalid(); }
+        if (text.Length == start || text[start] == '0' && (text.Length - start != 1 || start == 1))
+        {
+            throw Invalid();
+        }
+        for (int i = start; i < text.Length; i++)
+        {
+            if (text[i] is < '0' or > '9')
+            {
+                throw Invalid();
+            }
+        }
+        if (int64 && (!long.TryParse(text, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out long number) || !signed && number < 0))
+        {
+            throw Invalid();
+        }
         return text;
     }
 
     private static Guid GuidValue(JsonElement value)
     {
         string text = Text(value, 36);
-        if (!Guid.TryParseExact(text, "D", out var guid) || guid == Guid.Empty || guid.ToString("D") != text) { throw Invalid(); }
+        if (!Guid.TryParseExact(text, "D", out var guid) || guid == Guid.Empty || guid.ToString("D") != text)
+        {
+            throw Invalid();
+        }
         return guid;
     }
 
@@ -419,17 +632,26 @@ internal static class HealthReportProtocol
         if (text.Length is < 20 or > 28 || text[^1] != 'Z' ||
             text.Length != 20 && (text.Length < 22 || text[19] != '.') ||
             !DateTimeOffset.TryParseExact(text, ["yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'T'HH:mm:ss.FFFFFFF'Z'"],
-                CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out _)) { throw Invalid(); }
+                CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out _))
+        {
+            throw Invalid();
+        }
     }
 
     private static void OptionalTimestamp(JsonElement value, string name)
     {
-        if (value.TryGetProperty(name, out var property)) { Timestamp(property); }
+        if (value.TryGetProperty(name, out var property))
+        {
+            Timestamp(property);
+        }
     }
 
     private static void OptionalDiagnostic(JsonElement value, string name)
     {
-        if (!value.TryGetProperty(name, out var diagnostic)) { return; }
+        if (!value.TryGetProperty(name, out var diagnostic))
+        {
+            return;
+        }
         RequireObject(diagnostic);
         OptionalText(diagnostic, "code", 64);
         OptionalText(diagnostic, "message", 1024);
@@ -437,21 +659,36 @@ internal static class HealthReportProtocol
         Boolean(Required(diagnostic, "isTruncated"));
     }
 
-    private static void RequireObject(JsonElement value) { if (value.ValueKind != JsonValueKind.Object) { throw Invalid(); } }
+    private static void RequireObject(JsonElement value)
+    {
+        if (value.ValueKind != JsonValueKind.Object)
+        {
+            throw Invalid();
+        }
+    }
     private static void RequireArray(JsonElement value, int maximum)
     {
-        if (value.ValueKind != JsonValueKind.Array || value.GetArrayLength() > maximum) { throw Invalid(); }
+        if (value.ValueKind != JsonValueKind.Array || value.GetArrayLength() > maximum)
+        {
+            throw Invalid();
+        }
     }
 
     private static void ValidateMaximum(int maximum)
     {
-        if (maximum is < 1 or > 16777216) { throw new ArgumentOutOfRangeException(nameof(maximum)); }
+        if (maximum is < 1 or > 16777216)
+        {
+            throw new ArgumentOutOfRangeException(nameof(maximum));
+        }
     }
 
     private static void ValidateLength(int length, int maximum)
     {
         ValidateMaximum(maximum);
-        if (length == 0 || length > maximum) { throw Invalid(); }
+        if (length == 0 || length > maximum)
+        {
+            throw Invalid();
+        }
     }
 
     private static FormatException Invalid() => new("Invalid Healthcheck protocol payload.");

@@ -71,6 +71,15 @@ The existing native test framework is MSTest. SDK and package versions are pinne
 
 ## Owned external-service tests
 
+RM-07's nonpackable `CIS.Management.Service` is an independent product consumer.
+The delegated [CIS-0024 profile](../changes/CIS-0024/implementation-plan.md)
+selects the already pinned **Npgsql 10.0.4** directly in that application and
+reuses the existing optional identity, Metrics and RabbitMQ integrations.
+Core's two-package closure and all source mappings remain unchanged. Neither
+the C# client nor CommonTesting acquires PostgreSQL, broker or native identity
+provider packages. The separate TypeScript clients have no external runtime
+dependency; their sole external development package is TypeScript **5.9.3**.
+
 [CIS-0021](../changes/CIS-0021/implementation-plan.md) selects
 `Testcontainers.PostgreSql` and `Testcontainers.RabbitMq` **4.17.0** for the
 nonpackable `CIS.Core.IntegrationTests` project, with `PrivateAssets="all"`.

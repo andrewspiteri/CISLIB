@@ -1,0 +1,788 @@
+{
+  "contract": "cis.management",
+  "version": 1,
+  "provenance": "Independently authored exact JSON text vectors. The json string is the wire input; do not normalize, round or reserialize it before a runtime/client check.",
+  "validationBoundary": "schemaValid records only acceptance by the repository's existing limited schema evaluator and JSON parser. It does not prove duplicate-name rejection, exact signed-Int64 range, calendar validity, Jobs UTF-8 byte bounds, native catalog uniqueness/references or HTTP authorization/durability. The valid flag is the full wire expectation for actual C# and TypeScript consumer tests.",
+  "caseCount": 85,
+  "cases": [
+    {
+      "id": "registration-current-major",
+      "schema": "RegistrationRequest",
+      "direction": "request",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"protocolMajor\":1,\"reportedInstanceId\":\"replica-α\",\"processStartedAtUtc\":\"2026-11-23T12:34:56.1234567Z\",\"applicationVersion\":\"1.2.3\"}",
+      "expected": {
+        "processStartedAtUtc": "2026-11-23T12:34:56.1234567Z",
+        "reportedInstanceId": "replica-α"
+      }
+    },
+    {
+      "id": "registration-unsupported-major",
+      "schema": "RegistrationRequest",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"protocolMajor\":2,\"reportedInstanceId\":\"replica-α\",\"processStartedAtUtc\":\"2026-11-23T12:34:56.1234567Z\",\"applicationVersion\":\"1.2.3\"}"
+    },
+    {
+      "id": "registration-rejects-body-identity-override",
+      "schema": "RegistrationRequest",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"protocolMajor\":1,\"reportedInstanceId\":\"replica-α\",\"processStartedAtUtc\":\"2026-11-23T12:34:56.1234567Z\",\"applicationVersion\":\"1.2.3\",\"application\":\"somebody-else\"}"
+    },
+    {
+      "id": "registration-requires-utc-z-timestamp",
+      "schema": "RegistrationRequest",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"protocolMajor\":1,\"reportedInstanceId\":\"replica-α\",\"processStartedAtUtc\":\"2026-11-23T12:34:56.1234567+00:00\",\"applicationVersion\":\"1.2.3\"}"
+    },
+    {
+      "id": "observation-lossless-large-sequence",
+      "schema": "Observation",
+      "direction": "request",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"sequence\":\"9007199254740993\",\"observedAtUtc\":\"2026-11-23T12:34:56.1234567Z\",\"lifecycle\":\"ready\",\"health\":\"healthy\"}",
+      "expected": {
+        "sequence": "9007199254740993",
+        "observedAtUtc": "2026-11-23T12:34:56.1234567Z"
+      }
+    },
+    {
+      "id": "observation-rejects-json-number-sequence",
+      "schema": "Observation",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"sequence\":9007199254740992,\"observedAtUtc\":\"2026-11-23T12:34:56.1234567Z\",\"lifecycle\":\"ready\",\"health\":\"healthy\"}"
+    },
+    {
+      "id": "observation-rejects-zero-sequence",
+      "schema": "Observation",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"sequence\":\"0\",\"observedAtUtc\":\"2026-11-23T12:34:56.1234567Z\",\"lifecycle\":\"ready\",\"health\":\"healthy\"}"
+    },
+    {
+      "id": "observation-rejects-leading-zero-sequence",
+      "schema": "Observation",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"sequence\":\"01\",\"observedAtUtc\":\"2026-11-23T12:34:56.1234567Z\",\"lifecycle\":\"ready\",\"health\":\"healthy\"}"
+    },
+    {
+      "id": "observation-int64-overflow-is-runtime-rule",
+      "schema": "Observation",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"sequence\":\"9223372036854775808\",\"observedAtUtc\":\"2026-11-23T12:34:56.1234567Z\",\"lifecycle\":\"ready\",\"health\":\"healthy\"}"
+    },
+    {
+      "id": "observation-calendar-validity-is-runtime-rule",
+      "schema": "Observation",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"sequence\":\"9007199254740993\",\"observedAtUtc\":\"2026-02-30T12:34:56.1234567Z\",\"lifecycle\":\"ready\",\"health\":\"healthy\"}"
+    },
+    {
+      "id": "observation-rejects-unknown-request-lifecycle",
+      "schema": "Observation",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"sequence\":\"9007199254740993\",\"observedAtUtc\":\"2026-11-23T12:34:56.1234567Z\",\"lifecycle\":\"future-lifecycle\",\"health\":\"healthy\"}"
+    },
+    {
+      "id": "inventory-empty-complete-replacement",
+      "schema": "InventorySnapshot",
+      "direction": "request",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"sequence\":\"7\",\"observedAtUtc\":\"2026-11-23T12:34:56.1234567Z\",\"modules\":[],\"categories\":[],\"jobs\":[]}"
+    },
+    {
+      "id": "inventory-preserves-unknown-module-observation",
+      "schema": "InventorySnapshot",
+      "direction": "request",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"sequence\":\"7\",\"observedAtUtc\":\"2026-11-23T12:34:56.1234567Z\",\"modules\":[{\"kind\":\"third-party.future\",\"version\":\"19\",\"details\":{\"opaque\":{\"largeIdentifier\":\"9007199254740993\"}}}],\"categories\":[],\"jobs\":[]}",
+      "expected": {
+        "moduleKind": "third-party.future",
+        "largeIdentifier": "9007199254740993"
+      }
+    },
+    {
+      "id": "inventory-native-category-job-binding",
+      "schema": "InventorySnapshot",
+      "direction": "request",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"sequence\":\"7\",\"observedAtUtc\":\"2026-11-23T12:34:56.1234567Z\",\"modules\":[],\"categories\":[{\"executionScope\":\"orders\",\"categoryId\":\"maintenance\",\"displayName\":\"Maintenance\"}],\"jobs\":[{\"executionScope\":\"orders\",\"jobId\":\"refresh\",\"categoryId\":\"maintenance\",\"displayName\":\"Refresh\",\"supportedModes\":[\"continuous\"]}]}"
+    },
+    {
+      "id": "inventory-category-id-is-scoped",
+      "schema": "InventorySnapshot",
+      "direction": "request",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"sequence\":\"7\",\"observedAtUtc\":\"2026-11-23T12:34:56.1234567Z\",\"modules\":[],\"categories\":[{\"executionScope\":\"orders\",\"categoryId\":\"maintenance\",\"displayName\":\"Maintenance\"},{\"executionScope\":\"billing\",\"categoryId\":\"maintenance\",\"displayName\":\"Maintenance\"}],\"jobs\":[]}"
+    },
+    {
+      "id": "inventory-duplicate-scope-category-is-runtime-rule",
+      "schema": "InventorySnapshot",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"sequence\":\"7\",\"observedAtUtc\":\"2026-11-23T12:34:56.1234567Z\",\"modules\":[],\"categories\":[{\"executionScope\":\"orders\",\"categoryId\":\"maintenance\",\"displayName\":\"Maintenance\"},{\"executionScope\":\"orders\",\"categoryId\":\"maintenance\",\"displayName\":\"Maintenance\"}],\"jobs\":[]}"
+    },
+    {
+      "id": "inventory-category-utf8-byte-bound-is-runtime-rule",
+      "schema": "InventorySnapshot",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"sequence\":\"7\",\"observedAtUtc\":\"2026-11-23T12:34:56.1234567Z\",\"modules\":[],\"categories\":[{\"executionScope\":\"orders\",\"categoryId\":\"ééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé\",\"displayName\":\"Maintenance\"}],\"jobs\":[]}"
+    },
+    {
+      "id": "inventory-job-utf8-byte-bound-is-runtime-rule",
+      "schema": "InventorySnapshot",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"sequence\":\"7\",\"observedAtUtc\":\"2026-11-23T12:34:56.1234567Z\",\"modules\":[],\"categories\":[{\"executionScope\":\"orders\",\"categoryId\":\"maintenance\",\"displayName\":\"Maintenance\"}],\"jobs\":[{\"executionScope\":\"orders\",\"jobId\":\"ééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé\",\"categoryId\":\"maintenance\",\"displayName\":\"Refresh\",\"supportedModes\":[\"continuous\"]}]}"
+    },
+    {
+      "id": "inventory-job-display-utf8-byte-bound-is-runtime-rule",
+      "schema": "InventorySnapshot",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"sequence\":\"7\",\"observedAtUtc\":\"2026-11-23T12:34:56.1234567Z\",\"modules\":[],\"categories\":[{\"executionScope\":\"orders\",\"categoryId\":\"maintenance\",\"displayName\":\"Maintenance\"}],\"jobs\":[{\"executionScope\":\"orders\",\"jobId\":\"refresh\",\"categoryId\":\"maintenance\",\"displayName\":\"ééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé\",\"supportedModes\":[\"continuous\"]}]}"
+    },
+    {
+      "id": "inventory-missing-category-is-runtime-rule",
+      "schema": "InventorySnapshot",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"sequence\":\"7\",\"observedAtUtc\":\"2026-11-23T12:34:56.1234567Z\",\"modules\":[],\"categories\":[{\"executionScope\":\"orders\",\"categoryId\":\"maintenance\",\"displayName\":\"Maintenance\"}],\"jobs\":[{\"executionScope\":\"orders\",\"jobId\":\"refresh\",\"categoryId\":\"not-present\",\"displayName\":\"Refresh\",\"supportedModes\":[\"continuous\"]}]}"
+    },
+    {
+      "id": "metadata-description-omission-clears",
+      "schema": "MetadataCommand",
+      "direction": "request",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"commandVersion\":1,\"displayName\":\"Orders\"}",
+      "expected": {
+        "descriptionAbsent": true
+      }
+    },
+    {
+      "id": "metadata-unicode-decomposed-preserved",
+      "schema": "MetadataCommand",
+      "direction": "request",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"commandVersion\":1,\"displayName\":\"Café — 日本語\",\"description\":\"Grüße 👩‍💻\"}",
+      "expected": {
+        "displayName": "Café — 日本語",
+        "description": "Grüße 👩‍💻"
+      }
+    },
+    {
+      "id": "metadata-256-scalar-name-boundary",
+      "schema": "MetadataCommand",
+      "direction": "request",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"commandVersion\":1,\"displayName\":\"😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀\"}",
+      "expected": {
+        "displayNameScalars": 256
+      }
+    },
+    {
+      "id": "metadata-257-scalar-name-rejected",
+      "schema": "MetadataCommand",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"commandVersion\":1,\"displayName\":\"😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀\"}"
+    },
+    {
+      "id": "metadata-2048-scalar-description-boundary",
+      "schema": "MetadataCommand",
+      "direction": "request",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"commandVersion\":1,\"displayName\":\"Orders\",\"description\":\"éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé\"}",
+      "expected": {
+        "descriptionScalars": 2048
+      }
+    },
+    {
+      "id": "metadata-2049-scalar-description-rejected",
+      "schema": "MetadataCommand",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"commandVersion\":1,\"displayName\":\"Orders\",\"description\":\"ééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé\"}"
+    },
+    {
+      "id": "metadata-explicit-null-description-rejected",
+      "schema": "MetadataCommand",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"commandVersion\":1,\"displayName\":\"Orders\",\"description\":null}"
+    },
+    {
+      "id": "metadata-empty-display-name-rejected",
+      "schema": "MetadataCommand",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"commandVersion\":1,\"displayName\":\"\"}"
+    },
+    {
+      "id": "metadata-unknown-command-field-rejected",
+      "schema": "MetadataCommand",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"commandVersion\":1,\"displayName\":\"Orders\",\"enableJobs\":true}"
+    },
+    {
+      "id": "metadata-unsupported-command-version",
+      "schema": "MetadataCommand",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"commandVersion\":2,\"displayName\":\"Orders\"}"
+    },
+    {
+      "id": "metadata-duplicate-command-field",
+      "schema": "MetadataCommand",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"commandVersion\":1,\"displayName\":\"Orders\",\"displayName\":\"Billing\"}"
+    },
+    {
+      "id": "metadata-escaped-duplicate-command-field",
+      "schema": "MetadataCommand",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"commandVersion\":1,\"displayName\":\"Orders\",\"\\u0064isplayName\":\"Billing\"}"
+    },
+    {
+      "id": "metadata-malformed-surrogate-rejected",
+      "schema": "MetadataCommand",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"commandVersion\":1,\"displayName\":\"\\uD800\"}"
+    },
+    {
+      "id": "metadata-json-comment-rejected",
+      "schema": "MetadataCommand",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{/* comment */\"commandVersion\":1,\"displayName\":\"Orders\"}"
+    },
+    {
+      "id": "metadata-trailing-root-rejected",
+      "schema": "MetadataCommand",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"commandVersion\":1,\"displayName\":\"Orders\"}{}"
+    },
+    {
+      "id": "application-lossless-revision",
+      "schema": "Application",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"applicationId\":\"6d2222a6-2ffd-4010-bf15-bd22a8b70f4b\",\"application\":\"orders\",\"environment\":\"Production\",\"metadata\":{\"displayName\":\"Orders\",\"description\":\"Order administration\"},\"metadataRevision\":\"9007199254740993\",\"metadataETag\":\"\\\"m1-9007199254740993\\\"\"}",
+      "expected": {
+        "metadataRevision": "9007199254740993",
+        "metadataETag": "\"m1-9007199254740993\""
+      }
+    },
+    {
+      "id": "application-added-response-field-tolerated",
+      "schema": "Application",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"applicationId\":\"6d2222a6-2ffd-4010-bf15-bd22a8b70f4b\",\"application\":\"orders\",\"environment\":\"Production\",\"metadata\":{\"displayName\":\"Orders\",\"description\":\"Order administration\"},\"metadataRevision\":\"9007199254740993\",\"metadataETag\":\"\\\"m1-9007199254740993\\\"\",\"futureManagementHint\":{\"supported\":true}}"
+    },
+    {
+      "id": "application-optional-description-absent",
+      "schema": "Application",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"applicationId\":\"6d2222a6-2ffd-4010-bf15-bd22a8b70f4b\",\"application\":\"orders\",\"environment\":\"Production\",\"metadata\":{\"displayName\":\"Orders\"},\"metadataRevision\":\"9007199254740993\",\"metadataETag\":\"\\\"m1-9007199254740993\\\"\"}",
+      "expected": {
+        "descriptionAbsent": true
+      }
+    },
+    {
+      "id": "application-noncanonical-uuid-rejected",
+      "schema": "Application",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"applicationId\":\"6D2222A6-2FFD-4010-BF15-BD22A8B70F4B\",\"application\":\"orders\",\"environment\":\"Production\",\"metadata\":{\"displayName\":\"Orders\",\"description\":\"Order administration\"},\"metadataRevision\":\"9007199254740993\",\"metadataETag\":\"\\\"m1-9007199254740993\\\"\"}"
+    },
+    {
+      "id": "application-json-number-revision-rejected",
+      "schema": "Application",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"applicationId\":\"6d2222a6-2ffd-4010-bf15-bd22a8b70f4b\",\"application\":\"orders\",\"environment\":\"Production\",\"metadata\":{\"displayName\":\"Orders\",\"description\":\"Order administration\"},\"metadataRevision\":9007199254740992,\"metadataETag\":\"\\\"m1-9007199254740993\\\"\"}"
+    },
+    {
+      "id": "metadata-original-matching-replay",
+      "schema": "MetadataResult",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"operation\":{\"name\":\"metadata.replace\",\"scope\":\"mgmt-meta.v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"key\":\"edit-1\"},\"resultSource\":\"replayed\",\"result\":{\"commandVersion\":1,\"applicationId\":\"6d2222a6-2ffd-4010-bf15-bd22a8b70f4b\",\"decision\":\"applied\",\"code\":\"management.metadata.applied\",\"metadata\":{\"displayName\":\"Orders\",\"description\":\"Order administration\"},\"metadataRevision\":\"9007199254740993\",\"metadataETag\":\"\\\"m1-9007199254740993\\\"\",\"decidedAtUtc\":\"2026-11-23T12:34:56.1234567Z\"},\"originalCompletion\":\"committed\"}",
+      "expected": {
+        "resultSource": "replayed",
+        "decision": "applied",
+        "metadataRevision": "9007199254740993",
+        "decidedAtUtc": "2026-11-23T12:34:56.1234567Z",
+        "originalCompletion": "committed"
+      }
+    },
+    {
+      "id": "metadata-original-result-found",
+      "schema": "MetadataResult",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"operation\":{\"name\":\"metadata.replace\",\"scope\":\"mgmt-meta.v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"key\":\"edit-1\"},\"resultSource\":\"found\",\"result\":{\"commandVersion\":1,\"applicationId\":\"6d2222a6-2ffd-4010-bf15-bd22a8b70f4b\",\"decision\":\"applied\",\"code\":\"management.metadata.applied\",\"metadata\":{\"displayName\":\"Orders\",\"description\":\"Order administration\"},\"metadataRevision\":\"9007199254740993\",\"metadataETag\":\"\\\"m1-9007199254740993\\\"\",\"decidedAtUtc\":\"2026-11-23T12:34:56.1234567Z\"},\"originalCompletion\":\"committed\"}",
+      "expected": {
+        "resultSource": "found",
+        "metadataRevision": "9007199254740993"
+      }
+    },
+    {
+      "id": "metadata-replay-retains-original-through-attempt-cleanup",
+      "schema": "MetadataResult",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"operation\":{\"name\":\"metadata.replace\",\"scope\":\"mgmt-meta.v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"key\":\"edit-1\"},\"resultSource\":\"replayed\",\"result\":{\"commandVersion\":1,\"applicationId\":\"6d2222a6-2ffd-4010-bf15-bd22a8b70f4b\",\"decision\":\"applied\",\"code\":\"management.metadata.applied\",\"metadata\":{\"displayName\":\"Orders\",\"description\":\"Order administration\"},\"metadataRevision\":\"9007199254740993\",\"metadataETag\":\"\\\"m1-9007199254740993\\\"\",\"decidedAtUtc\":\"2026-11-23T12:34:56.1234567Z\"},\"originalCompletion\":\"committed\",\"attemptCompletion\":{\"outcome\":\"notCommitted\",\"cleanupSucceeded\":false,\"cleanupCodes\":[\"transactions.cleanup_failed\"]}}",
+      "expected": {
+        "originalCompletion": "committed",
+        "attemptOutcome": "notCommitted",
+        "cleanupSucceeded": false
+      }
+    },
+    {
+      "id": "metadata-unknown-response-status-preserved",
+      "schema": "MetadataResult",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"operation\":{\"name\":\"metadata.replace\",\"scope\":\"mgmt-meta.v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"key\":\"edit-1\"},\"resultSource\":\"replayed\",\"result\":{\"commandVersion\":1,\"applicationId\":\"6d2222a6-2ffd-4010-bf15-bd22a8b70f4b\",\"decision\":\"applied\",\"code\":\"management.metadata.applied\",\"metadata\":{\"displayName\":\"Orders\",\"description\":\"Order administration\"},\"metadataRevision\":\"9007199254740993\",\"metadataETag\":\"\\\"m1-9007199254740993\\\"\",\"decidedAtUtc\":\"2026-11-23T12:34:56.1234567Z\"},\"originalCompletion\":\"future-completion\"}",
+      "expected": {
+        "originalCompletion": "future-completion",
+        "knownOriginalCompletion": false
+      }
+    },
+    {
+      "id": "metadata-recorded-rejected-decision",
+      "schema": "MetadataResult",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"operation\":{\"name\":\"metadata.replace\",\"scope\":\"mgmt-meta.v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"key\":\"edit-1\"},\"resultSource\":\"replayed\",\"result\":{\"commandVersion\":1,\"applicationId\":\"6d2222a6-2ffd-4010-bf15-bd22a8b70f4b\",\"decision\":\"rejected\",\"code\":\"management.precondition_failed\",\"metadata\":{\"displayName\":\"Orders\",\"description\":\"Order administration\"},\"metadataRevision\":\"9007199254740993\",\"metadataETag\":\"\\\"m1-9007199254740993\\\"\",\"decidedAtUtc\":\"2026-11-23T12:34:56.1234567Z\"},\"originalCompletion\":\"committed\"}",
+      "expected": {
+        "decision": "rejected",
+        "code": "management.precondition_failed",
+        "originalCompletion": "committed"
+      }
+    },
+    {
+      "id": "problem-stale-metadata-precondition",
+      "schema": "Problem",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"type\":\"about:blank\",\"title\":\"Metadata precondition failed\",\"status\":412,\"code\":\"management.precondition_failed\",\"correlationId\":\"correlation-1\"}",
+      "expected": {
+        "status": 412,
+        "code": "management.precondition_failed"
+      }
+    },
+    {
+      "id": "problem-changed-input-key-conflict",
+      "schema": "Problem",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"type\":\"about:blank\",\"title\":\"Operation key conflict\",\"status\":409,\"code\":\"management.operation_key_conflict\",\"operation\":{\"name\":\"metadata.replace\",\"scope\":\"mgmt-meta.v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"key\":\"edit-1\"}}",
+      "expected": {
+        "status": 409,
+        "code": "management.operation_key_conflict",
+        "key": "edit-1"
+      }
+    },
+    {
+      "id": "problem-unknown-completion-retains-operation",
+      "schema": "Problem",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"type\":\"about:blank\",\"title\":\"Operation completion is unknown\",\"status\":503,\"code\":\"management.operation_unknown\",\"operation\":{\"name\":\"metadata.replace\",\"scope\":\"mgmt-meta.v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"key\":\"edit-1\"},\"result\":{\"operation\":{\"name\":\"metadata.replace\",\"scope\":\"mgmt-meta.v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"key\":\"edit-1\"},\"resultSource\":\"prepared\",\"result\":{\"commandVersion\":1,\"applicationId\":\"6d2222a6-2ffd-4010-bf15-bd22a8b70f4b\",\"decision\":\"applied\",\"code\":\"management.metadata.applied\",\"metadata\":{\"displayName\":\"Orders\",\"description\":\"Order administration\"},\"metadataRevision\":\"9007199254740993\",\"metadataETag\":\"\\\"m1-9007199254740993\\\"\",\"decidedAtUtc\":\"2026-11-23T12:34:56.1234567Z\"},\"originalCompletion\":\"unknown\"}}",
+      "expected": {
+        "status": 503,
+        "code": "management.operation_unknown",
+        "key": "edit-1",
+        "originalCompletion": "unknown"
+      }
+    },
+    {
+      "id": "inventory-lossless-native-owner-and-revision",
+      "schema": "InventorySnapshot",
+      "direction": "request",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"sequence\":\"8\",\"observedAtUtc\":\"2026-11-23T12:34:56.1234567Z\",\"modules\":[],\"categories\":[{\"executionScope\":\"orders\",\"categoryId\":\"maintenance\",\"displayName\":\"Maintenance\"}],\"jobs\":[{\"executionScope\":\"orders\",\"jobId\":\"refresh\",\"categoryId\":\"maintenance\",\"displayName\":\"Refresh\",\"supportedModes\":[\"continuous\"],\"effectiveConfiguration\":{\"revision\":\"9007199254740993\",\"enabled\":true},\"observations\":[{\"resourceId\":\"primary\",\"mode\":\"continuous\",\"state\":\"idle\",\"observedOwner\":{\"ownerApplication\":\"orders\",\"instanceId\":\"process-1\",\"generation\":\"9007199254740993\",\"expiresAtUtc\":\"2026-11-23T12:35:56.1234567Z\",\"observedAtUtc\":\"2026-11-23T12:34:56.1234567Z\"}}]}]}",
+      "expected": {
+        "configurationRevision": "9007199254740993",
+        "generation": "9007199254740993",
+        "ownerObservedAtUtc": "2026-11-23T12:34:56.1234567Z"
+      }
+    },
+    {
+      "id": "inventory-duplicate-scope-job-is-runtime-rule",
+      "schema": "InventorySnapshot",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"sequence\":\"9\",\"observedAtUtc\":\"2026-11-23T12:34:56.1234567Z\",\"modules\":[],\"categories\":[{\"executionScope\":\"orders\",\"categoryId\":\"maintenance\",\"displayName\":\"Maintenance\"}],\"jobs\":[{\"executionScope\":\"orders\",\"jobId\":\"refresh\",\"categoryId\":\"maintenance\",\"displayName\":\"Refresh\",\"supportedModes\":[\"continuous\"]},{\"executionScope\":\"orders\",\"jobId\":\"refresh\",\"categoryId\":\"maintenance\",\"displayName\":\"Refresh\",\"supportedModes\":[\"continuous\"]}]}"
+    },
+    {
+      "id": "inventory-native-zero-revision-and-empty-descriptions",
+      "schema": "InventorySnapshot",
+      "direction": "request",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"sequence\":\"10\",\"observedAtUtc\":\"2026-11-23T12:34:56.1234567Z\",\"modules\":[],\"categories\":[{\"executionScope\":\"orders\",\"categoryId\":\"maintenance\",\"displayName\":\"Maintenance\",\"description\":\"\"}],\"jobs\":[{\"executionScope\":\"orders\",\"jobId\":\"refresh\",\"categoryId\":\"maintenance\",\"displayName\":\"Refresh\",\"description\":\"\",\"resourceScopeDescription\":\"default\",\"supportedModes\":[\"continuous\"],\"effectiveConfiguration\":{\"revision\":\"0\",\"enabled\":true}}]}",
+      "expected": {
+        "configurationRevision": "0",
+        "categoryDescription": "",
+        "jobDescription": "",
+        "resourceScopeDescription": "default"
+      }
+    },
+    {
+      "id": "application-added-nested-metadata-field-tolerated",
+      "schema": "Application",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"applicationId\":\"6d2222a6-2ffd-4010-bf15-bd22a8b70f4b\",\"application\":\"orders\",\"environment\":\"Production\",\"metadata\":{\"displayName\":\"Orders\",\"description\":\"Order administration\",\"futureDisplayHint\":{\"visible\":true}},\"metadataRevision\":\"9007199254740993\",\"metadataETag\":\"\\\"m1-9007199254740993\\\"\"}",
+      "expected": {
+        "displayName": "Orders",
+        "metadataRevision": "9007199254740993"
+      }
+    },
+    {
+      "id": "metadata-added-nested-attempt-field-tolerated",
+      "schema": "MetadataResult",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"operation\":{\"name\":\"metadata.replace\",\"scope\":\"mgmt-meta.v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"key\":\"edit-1\"},\"resultSource\":\"replayed\",\"result\":{\"commandVersion\":1,\"applicationId\":\"6d2222a6-2ffd-4010-bf15-bd22a8b70f4b\",\"decision\":\"applied\",\"code\":\"management.metadata.applied\",\"metadata\":{\"displayName\":\"Orders\",\"description\":\"Order administration\"},\"metadataRevision\":\"9007199254740993\",\"metadataETag\":\"\\\"m1-9007199254740993\\\"\",\"decidedAtUtc\":\"2026-11-23T12:34:56.1234567Z\"},\"originalCompletion\":\"committed\",\"attemptCompletion\":{\"outcome\":\"notCommitted\",\"cleanupSucceeded\":true,\"futureCleanupHint\":{\"mode\":\"future\"}}}",
+      "expected": {
+        "originalCompletion": "committed",
+        "attemptOutcome": "notCommitted",
+        "cleanupSucceeded": true
+      }
+    },
+    {
+      "id": "inventory-empty-resource-scope-description-rejected",
+      "schema": "InventorySnapshot",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"sequence\":\"11\",\"observedAtUtc\":\"2026-11-23T12:34:56.1234567Z\",\"modules\":[],\"categories\":[{\"executionScope\":\"orders\",\"categoryId\":\"maintenance\",\"displayName\":\"Maintenance\",\"description\":\"\"}],\"jobs\":[{\"executionScope\":\"orders\",\"jobId\":\"refresh\",\"categoryId\":\"maintenance\",\"displayName\":\"Refresh\",\"description\":\"\",\"resourceScopeDescription\":\"\",\"supportedModes\":[\"continuous\"],\"effectiveConfiguration\":{\"revision\":\"0\",\"enabled\":true}}]}"
+    },
+    {
+      "id": "metadata-single-dot-operation-key-rejected",
+      "schema": "MetadataResult",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"operation\":{\"name\":\"metadata.replace\",\"scope\":\"mgmt-meta.v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"key\":\".\"},\"resultSource\":\"replayed\",\"result\":{\"commandVersion\":1,\"applicationId\":\"6d2222a6-2ffd-4010-bf15-bd22a8b70f4b\",\"decision\":\"applied\",\"code\":\"management.metadata.applied\",\"metadata\":{\"displayName\":\"Orders\",\"description\":\"Order administration\"},\"metadataRevision\":\"9007199254740993\",\"metadataETag\":\"\\\"m1-9007199254740993\\\"\",\"decidedAtUtc\":\"2026-11-23T12:34:56.1234567Z\"},\"originalCompletion\":\"committed\"}"
+    },
+    {
+      "id": "metadata-double-dot-operation-key-rejected",
+      "schema": "MetadataResult",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"operation\":{\"name\":\"metadata.replace\",\"scope\":\"mgmt-meta.v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"key\":\"..\"},\"resultSource\":\"replayed\",\"result\":{\"commandVersion\":1,\"applicationId\":\"6d2222a6-2ffd-4010-bf15-bd22a8b70f4b\",\"decision\":\"applied\",\"code\":\"management.metadata.applied\",\"metadata\":{\"displayName\":\"Orders\",\"description\":\"Order administration\"},\"metadataRevision\":\"9007199254740993\",\"metadataETag\":\"\\\"m1-9007199254740993\\\"\",\"decidedAtUtc\":\"2026-11-23T12:34:56.1234567Z\"},\"originalCompletion\":\"committed\"}"
+    },
+    {
+      "valid": true,
+      "json": "{\"operation\":{\"scope\":\"management.actor.v1.fixture\",\"name\":\"management-metadata\",\"key\":\"original-key\"},\"resultSource\":\"found\",\"originalCompletion\":\"committed\",\"rejection\":{\"code\":\"management.metadata.precondition_failed\",\"message\":\"The metadata revision is stale.\"}}",
+      "schema": "MetadataResult",
+      "direction": "response",
+      "schemaValid": true,
+      "id": "metadata-native-rejection-retains-original-error-only"
+    },
+    {
+      "valid": true,
+      "json": "{\"operation\":{\"scope\":\"management.actor.v1.fixture\",\"name\":\"management-metadata\",\"key\":\"original-key\"},\"resultSource\":\"found\",\"originalCompletion\":\"committed\",\"rejection\":{\"code\":\"management.metadata.precondition_failed\",\"message\":\"The metadata revision is stale.\"},\"result\":null}",
+      "schema": "MetadataResult",
+      "direction": "response",
+      "schemaValid": true,
+      "id": "metadata-native-rejection-opposite-explicit-null"
+    },
+    {
+      "valid": false,
+      "json": "{\"resultSource\":\"found\",\"operation\":{\"scope\":\"management.actor.v1.fixture\",\"name\":\"management-metadata\",\"key\":\"original-key\"},\"originalCompletion\":\"committed\"}",
+      "schema": "MetadataResult",
+      "direction": "response",
+      "schemaValid": false,
+      "id": "metadata-result-rejects-both-branches-absent"
+    },
+    {
+      "valid": false,
+      "json": "{\"rejection\":null,\"resultSource\":\"found\",\"operation\":{\"scope\":\"management.actor.v1.fixture\",\"name\":\"management-metadata\",\"key\":\"original-key\"},\"result\":null,\"originalCompletion\":\"committed\"}",
+      "schema": "MetadataResult",
+      "direction": "response",
+      "schemaValid": false,
+      "id": "metadata-result-rejects-both-branches-null"
+    },
+    {
+      "valid": false,
+      "json": "{\"protocolMajor\":1.0,\"reportedInstanceId\":\"replica-α\",\"processStartedAtUtc\":\"2026-11-23T12:34:56.1234567Z\",\"applicationVersion\":\"1.2.3\"}",
+      "schema": "RegistrationRequest",
+      "direction": "request",
+      "schemaValid": true,
+      "id": "registration-version-lexeme-1dot0"
+    },
+    {
+      "valid": false,
+      "json": "{\"protocolMajor\":1e0,\"reportedInstanceId\":\"replica-α\",\"processStartedAtUtc\":\"2026-11-23T12:34:56.1234567Z\",\"applicationVersion\":\"1.2.3\"}",
+      "schema": "RegistrationRequest",
+      "direction": "request",
+      "schemaValid": true,
+      "id": "registration-version-lexeme-1e0"
+    },
+    {
+      "valid": false,
+      "json": "{\"operation\":{\"name\":\"metadata.replace\",\"scope\":\"mgmt-meta.v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"key\":\"edit-1\"},\"resultSource\":\"found\",\"result\":{\"commandVersion\":1,\"applicationId\":\"6d2222a6-2ffd-4010-bf15-bd22a8b70f4b\",\"decision\":\"applied\",\"code\":\"management.metadata.applied\",\"metadata\":{\"displayName\":\"Orders\",\"description\":\"Order administration\"},\"metadataRevision\":\"9007199254740993\",\"metadataETag\":\"\\\"m1-9007199254740993\\\"\",\"decidedAtUtc\":\"2026-11-23T12:34:56.1234567Z\"},\"originalCompletion\":\"committed\",\"rejection\":{\"code\":\"management.metadata.precondition_failed\",\"message\":\"The metadata revision is stale.\"}}",
+      "schema": "MetadataResult",
+      "direction": "response",
+      "schemaValid": false,
+      "id": "metadata-result-rejects-both-nonnull-branches"
+    },
+    {
+      "valid": true,
+      "json": "{\"operation\":{\"scope\":\"management.actor.v1.fixture\",\"name\":\"management-metadata\",\"key\":\"original-key\"},\"resultSource\":\"found\",\"originalCompletion\":\"committed\",\"rejection\":{\"code\":\"business declined!\",\"message\":\"Original\\nreason\"}}",
+      "schema": "MetadataResult",
+      "direction": "response",
+      "schemaValid": true,
+      "id": "metadata-native-rejection-preserves-native-message-control"
+    },
+    {
+      "id": "control-ready-exact-opaque-revision",
+      "schema": "ControlConfirmation",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"authorityId\":\"33333333-3333-4333-8333-333333333333\",\"registrationId\":\"22222222-2222-4222-8222-222222222222\",\"controlRevision\":\"opaque/Cafe\\u0301/9007199254740993\",\"admissionAllowed\":true,\"validForMs\":15000,\"attemptId\":\"44444444-4444-4444-8444-444444444444\"}",
+      "expected": {
+        "controlRevision": "opaque/Café/9007199254740993",
+        "validForMs": 15000
+      }
+    },
+    {
+      "id": "control-refused-is-still-current-control-data",
+      "schema": "ControlConfirmation",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"authorityId\":\"33333333-3333-4333-8333-333333333333\",\"registrationId\":\"22222222-2222-4222-8222-222222222222\",\"controlRevision\":\"opaque-v1\",\"admissionAllowed\":false,\"validForMs\":1,\"attemptId\":\"44444444-4444-4444-8444-444444444444\"}"
+    },
+    {
+      "id": "control-response-additions-remain-compatible",
+      "schema": "ControlConfirmation",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"authorityId\":\"33333333-3333-4333-8333-333333333333\",\"registrationId\":\"22222222-2222-4222-8222-222222222222\",\"controlRevision\":\"v1\",\"admissionAllowed\":true,\"validForMs\":5000,\"attemptId\":\"44444444-4444-4444-8444-444444444444\",\"future\":{\"reason\":\"unknown\"}}"
+    },
+    {
+      "id": "control-missing-attempt-is-invalid",
+      "schema": "ControlConfirmation",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"authorityId\":\"33333333-3333-4333-8333-333333333333\",\"registrationId\":\"22222222-2222-4222-8222-222222222222\",\"controlRevision\":\"v1\",\"admissionAllowed\":true,\"validForMs\":5000}"
+    },
+    {
+      "id": "control-null-authority-is-invalid",
+      "schema": "ControlConfirmation",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"authorityId\":null,\"registrationId\":\"22222222-2222-4222-8222-222222222222\",\"controlRevision\":\"v1\",\"admissionAllowed\":true,\"validForMs\":5000,\"attemptId\":\"44444444-4444-4444-8444-444444444444\"}"
+    },
+    {
+      "id": "control-empty-authority-is-runtime-rule",
+      "schema": "ControlConfirmation",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"authorityId\":\"00000000-0000-0000-0000-000000000000\",\"registrationId\":\"22222222-2222-4222-8222-222222222222\",\"controlRevision\":\"v1\",\"admissionAllowed\":true,\"validForMs\":5000,\"attemptId\":\"44444444-4444-4444-8444-444444444444\"}"
+    },
+    {
+      "id": "control-invalid-attempt-identifier-is-rejected",
+      "schema": "ControlConfirmation",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"authorityId\":\"33333333-3333-4333-8333-333333333333\",\"registrationId\":\"22222222-2222-4222-8222-222222222222\",\"controlRevision\":\"v1\",\"admissionAllowed\":true,\"validForMs\":5000,\"attemptId\":\"not-an-attempt-uuid\"}"
+    },
+    {
+      "id": "control-zero-lifetime-is-rejected",
+      "schema": "ControlConfirmation",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"authorityId\":\"33333333-3333-4333-8333-333333333333\",\"registrationId\":\"22222222-2222-4222-8222-222222222222\",\"controlRevision\":\"v1\",\"admissionAllowed\":true,\"validForMs\":0,\"attemptId\":\"44444444-4444-4444-8444-444444444444\"}"
+    },
+    {
+      "id": "control-excessive-lifetime-is-rejected",
+      "schema": "ControlConfirmation",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"authorityId\":\"33333333-3333-4333-8333-333333333333\",\"registrationId\":\"22222222-2222-4222-8222-222222222222\",\"controlRevision\":\"v1\",\"admissionAllowed\":true,\"validForMs\":15001,\"attemptId\":\"44444444-4444-4444-8444-444444444444\"}"
+    },
+    {
+      "id": "control-string-lifetime-is-rejected",
+      "schema": "ControlConfirmation",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"authorityId\":\"33333333-3333-4333-8333-333333333333\",\"registrationId\":\"22222222-2222-4222-8222-222222222222\",\"controlRevision\":\"v1\",\"admissionAllowed\":true,\"validForMs\":\"5000\",\"attemptId\":\"44444444-4444-4444-8444-444444444444\"}"
+    },
+    {
+      "id": "control-fractional-integer-lexeme-is-runtime-rule",
+      "schema": "ControlConfirmation",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"authorityId\":\"33333333-3333-4333-8333-333333333333\",\"registrationId\":\"22222222-2222-4222-8222-222222222222\",\"controlRevision\":\"v1\",\"admissionAllowed\":true,\"validForMs\":5000.0,\"attemptId\":\"44444444-4444-4444-8444-444444444444\"}"
+    },
+    {
+      "id": "control-exponent-integer-lexeme-is-runtime-rule",
+      "schema": "ControlConfirmation",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"authorityId\":\"33333333-3333-4333-8333-333333333333\",\"registrationId\":\"22222222-2222-4222-8222-222222222222\",\"controlRevision\":\"v1\",\"admissionAllowed\":true,\"validForMs\":5e3,\"attemptId\":\"44444444-4444-4444-8444-444444444444\"}"
+    },
+    {
+      "id": "control-whitespace-revision-is-runtime-rule",
+      "schema": "ControlConfirmation",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"authorityId\":\"33333333-3333-4333-8333-333333333333\",\"registrationId\":\"22222222-2222-4222-8222-222222222222\",\"controlRevision\":\"   \",\"admissionAllowed\":true,\"validForMs\":5000,\"attemptId\":\"44444444-4444-4444-8444-444444444444\"}"
+    },
+    {
+      "id": "control-boolean-admission-is-required",
+      "schema": "ControlConfirmation",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"authorityId\":\"33333333-3333-4333-8333-333333333333\",\"registrationId\":\"22222222-2222-4222-8222-222222222222\",\"controlRevision\":\"v1\",\"admissionAllowed\":\"true\",\"validForMs\":5000,\"attemptId\":\"44444444-4444-4444-8444-444444444444\"}"
+    },
+    {
+      "id": "control-duplicate-admission-is-runtime-rule",
+      "schema": "ControlConfirmation",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"authorityId\":\"33333333-3333-4333-8333-333333333333\",\"registrationId\":\"22222222-2222-4222-8222-222222222222\",\"controlRevision\":\"v1\",\"admissionAllowed\":false,\"admissionAllowed\":true,\"validForMs\":5000,\"attemptId\":\"44444444-4444-4444-8444-444444444444\"}"
+    },
+    {
+      "id": "service-info-legacy-v1-remains-readable",
+      "schema": "ServiceInfo",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"serviceVersion\":\"1\",\"protocolMajors\":[1],\"features\":[]}"
+    },
+    {
+      "id": "service-info-effective-inventory-bound",
+      "schema": "ServiceInfo",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"serviceVersion\":\"1\",\"protocolMajors\":[1],\"features\":[],\"maximumInventoryRequestBytes\":4194304}",
+      "expected": {
+        "maximumInventoryRequestBytes": 4194304
+      }
+    },
+    {
+      "id": "service-info-effective-bound-null-is-invalid",
+      "schema": "ServiceInfo",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"serviceVersion\":\"1\",\"protocolMajors\":[1],\"features\":[],\"maximumInventoryRequestBytes\":null}"
+    },
+    {
+      "id": "service-info-effective-bound-over-ceiling-is-invalid",
+      "schema": "ServiceInfo",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"serviceVersion\":\"1\",\"protocolMajors\":[1],\"features\":[],\"maximumInventoryRequestBytes\":16777217}"
+    },
+    {
+      "id": "service-info-effective-bound-zero-is-invalid",
+      "schema": "ServiceInfo",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"serviceVersion\":\"1\",\"protocolMajors\":[1],\"features\":[],\"maximumInventoryRequestBytes\":0}"
+    },
+    {
+      "id": "service-info-effective-bound-integer-lexeme-is-runtime-rule",
+      "schema": "ServiceInfo",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"serviceVersion\":\"1\",\"protocolMajors\":[1],\"features\":[],\"maximumInventoryRequestBytes\":4194304.0}"
+    }
+  ]
+}

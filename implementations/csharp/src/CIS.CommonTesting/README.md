@@ -17,6 +17,22 @@ poisons a transaction and proves no SQL atomicity, broker delivery or archive.
 Use trusted local capture to obtain a `CapturedAuditRecord`; decoding external
 data does not confer source eligibility.
 
+`ScriptedManagementClient` supplies bounded typed management results, original
+faults and controlled pending calls. `ScriptedManagementObservationSource` and
+`ScriptedManagementInventorySource` supply finite content/fault captures through
+the public snapshot ports. Their Kind-only records retain no catalog, payload or
+credentials; pre-cancellation consumes nothing and exhaustion fails explicitly.
+Use them with `ManualHeartbeat` and `ManualTimeProvider` for ordinary application
+tests. See [optional management reporting](../../../../docs/modules/management/registration.md)
+for the actual lifecycle, snapshot bounds and native-proof distinctions.
+
+The v1.1 control step records the safe registration and attempt IDs separately
+from durable operation keys. `ManualManagedWorkAdmission` holds one explicit
+caller-selected local snapshot and synchronous Changed event, with a saturating
+check count. It starts closed, performs no clock, reconciliation, authority or
+lifecycle policy, and never cancels admitted work. Use the actual managed host
+and real provider fixtures for bootstrap, expiry and failover evidence.
+
 - ManualHeartbeat creates public owners and records active registrations by
   subscriber reference. TriggerAsync explicitly awaits condition, callback,
   OnError and public monitor reporting. No background timer or dispatch queue runs.

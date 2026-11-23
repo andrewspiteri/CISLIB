@@ -33,17 +33,28 @@ dotnet build CisLib.slnx -c Release --no-restore
 
 ## Fast regression
 
-This selection uses no Docker, including discovery and assembly cleanup. It also
-excludes performance observations and extended stress tests:
+This selection uses no Docker or Node, including discovery and assembly cleanup.
+It also excludes performance observations and extended stress tests:
 
 ```powershell
-dotnet test CisLib.slnx -c Release --no-build --no-restore --filter "TestCategory!=RequiresDocker&TestCategory!=PerformanceObservation&TestCategory!=ExtendedStress"
+dotnet test CisLib.slnx -c Release --no-build --no-restore --filter "TestCategory!=RequiresDocker&TestCategory!=RequiresNode&TestCategory!=PerformanceObservation&TestCategory!=ExtendedStress"
 ```
 
 The whole-solution command includes Compatibility, so its ApiCompat tool and
 8.0.31 tool-host prerequisite below still apply. HTTP, file, scripted consumer and
 passive package tests remain available without Docker. An unfiltered run or IDE
-Run All also selects service, performance and extended stress cases.
+Run All also selects service, native Node, performance and extended stress cases.
+
+## Native Management fetch integration
+
+`RequiresNode` selects actual default-fetch HTTPS body disconnect, deadline and
+caller-cancellation cases without Docker. First build the
+[TypeScript workspace](../../typescript/README.md) using its pinned Node
+24.15.0/npm 11.12.1 setup. Then select the existing integration project with
+`--filter "TestCategory=RequiresNode"`. `CIS_TEST_NODE_EXECUTABLE` may explicitly
+select that native Node executable; otherwise it must be on PATH. Missing Node or
+unbuilt packages fail the selected test. The existing service CI job already
+provisions these prerequisites and includes this category alongside service tests.
 
 ## PostgreSQL and RabbitMQ integration
 
@@ -150,8 +161,8 @@ continues to support ordinary scripted consumer tests without Docker.
 The [service workflow](../../../.github/workflows/service-tests.yml) defines one
 stable `PostgreSQL and RabbitMQ integration` check on Ubuntu 24.04 for pull
 requests and manual dispatch. It installs/checks the exact SDK/shared frameworks,
-uses locked restore and the same build/service selection, and lets Testcontainers
-own services. It has a 45-minute job bound and keeps one TRX, including capped
+uses locked restore and the same build with service and native Node selections,
+and lets Testcontainers own services. It has a 45-minute job bound and keeps one TRX, including capped
 redacted fixture diagnostics, for seven days. Private handoffs and container
 filesystems are not artifacts. The service job does not need ApiCompat's older
 runtime because it does not execute the whole-solution fast selection.

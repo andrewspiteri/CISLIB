@@ -10,15 +10,24 @@ internal sealed partial class HealthStateCoordinator : IHealthCollectionState, I
     private readonly Dictionary<Guid, CollectionOperation> operations = [];
     private readonly Dictionary<Guid, ExecutionBinding> bindings = [];
     private readonly HealthApplicationIdentity application;
+    private readonly IReadOnlyList<IHealthReadinessSource> readinessSources;
     private readonly TaskCompletionSource disposal = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly CancellationTokenSource stoppingCancellation = new();
-    private BigInteger revision, ordinal;
-    private bool startupCompleted, stopping, disposalStarted, disposed, runnerClaimed;
+    private BigInteger revision;
+    private BigInteger ordinal;
+    private bool startupCompleted;
+    private bool stopping;
+    private bool disposalStarted;
+    private bool disposed;
+    private bool runnerClaimed;
+    private bool observedReadinessPrerequisites = true;
 
-    internal HealthStateCoordinator(HealthcheckOptions options, HealthApplicationIdentity? identity, TimeProvider clock)
+    internal HealthStateCoordinator(HealthcheckOptions options, HealthApplicationIdentity? identity, TimeProvider clock,
+        IReadOnlyList<IHealthReadinessSource>? readinessSources = null)
     {
         Options = options;
         Clock = clock;
+        this.readinessSources = readinessSources ?? [];
         identity ??= new HealthApplicationIdentity
         {
             Name = EnvironmentOptions.ApplicationName,
@@ -33,7 +42,10 @@ internal sealed partial class HealthStateCoordinator : IHealthCollectionState, I
         CheckText(identity.ServiceVersion, 512, nameof(identity.ServiceVersion));
         CheckText(identity.HostName, 255, nameof(identity.HostName));
         CheckText(identity.OsDescription, 1024, nameof(identity.OsDescription));
-        if (identity.InstanceId == Guid.Empty) { throw new ArgumentException("An application instance identity is required.", nameof(identity)); }
+        if (identity.InstanceId == Guid.Empty)
+        {
+            throw new ArgumentException("An application instance identity is required.", nameof(identity));
+        }
         application = new HealthApplicationIdentity
         {
             Name = identity.Name,
@@ -45,8 +57,14 @@ internal sealed partial class HealthStateCoordinator : IHealthCollectionState, I
         };
     }
 
-    internal HealthcheckOptions Options { get; }
-    internal TimeProvider Clock { get; }
+    internal HealthcheckOptions Options
+    {
+        get;
+    }
+    internal TimeProvider Clock
+    {
+        get;
+    }
     internal Task Disposal => disposal.Task;
     public CancellationToken Stopping => stoppingCancellation.Token;
     private DateTimeOffset Now() => Clock.GetUtcNow().ToUniversalTime();
@@ -54,7 +72,9 @@ internal sealed partial class HealthStateCoordinator : IHealthCollectionState, I
     private static void CheckText(string? text, int maximum, string parameter, bool required = false)
     {
         if ((required && string.IsNullOrWhiteSpace(text)) || (text is not null && !UnicodeScalarText.IsValid(text, maximum, allowControls: false)))
-        { throw new ArgumentException("Supply bounded, valid Unicode identity text without controls.", parameter); }
+        {
+            throw new ArgumentException("Supply bounded, valid Unicode identity text without controls.", parameter);
+        }
     }
 
     internal static void ValidatePolicy(HealthMonitorOptions options)
@@ -67,13 +87,18 @@ internal sealed partial class HealthStateCoordinator : IHealthCollectionState, I
                 throw new ArgumentOutOfRangeException(nameof(options), "A failure threshold must be positive.");
             case NumericThresholdMonitorOptions numeric:
                 if (!Enum.IsDefined(numeric.Comparison) || !double.IsFinite(numeric.Threshold))
-                { throw new ArgumentException("Supply a defined comparison and finite threshold.", nameof(options)); }
+                {
+                    throw new ArgumentException("Supply a defined comparison and finite threshold.", nameof(options));
+                }
                 if (string.IsNullOrWhiteSpace(numeric.Unit) || !UnicodeScalarText.IsValid(numeric.Unit, 32, allowControls: true))
-                { throw new ArgumentException("Supply an explicit bounded unit.", nameof(options)); }
+                {
+                    throw new ArgumentException("Supply an explicit bounded unit.", nameof(options));
+                }
                 break;
             case ConditionMonitorOptions or ConsecutiveFailureMonitorOptions or AvailabilityMonitorOptions:
                 break;
-            default: throw new ArgumentException("The monitor policy is unsupported.", nameof(options));
+            default:
+                throw new ArgumentException("The monitor policy is unsupported.", nameof(options));
         }
     }
 
@@ -96,7 +121,10 @@ internal sealed partial class HealthStateCoordinator : IHealthCollectionState, I
 
     private IHealthMonitor CreateLocked(HealthMonitorOptions options, DateTimeOffset now)
     {
-        if (active.Count >= Options.MaxMonitors) { throw new HealthcheckCapacityException(Options.MaxMonitors); }
+        if (active.Count >= Options.MaxMonitors)
+        {
+            throw new HealthcheckCapacityException(Options.MaxMonitors);
+        }
         var entry = new HealthMonitorEntry
         {
             Ordinal = ++ordinal,
@@ -135,7 +163,10 @@ internal sealed partial class HealthStateCoordinator : IHealthCollectionState, I
     private void EnsureAdmission()
     {
         ObjectDisposedException.ThrowIf(disposalStarted, typeof(HealthcheckService));
-        if (stopping) { throw new InvalidOperationException("Healthcheck is stopping."); }
+        if (stopping)
+        {
+            throw new InvalidOperationException("Healthcheck is stopping.");
+        }
     }
 
     private void EnsureActive(HealthMonitorEntry entry)
@@ -148,7 +179,10 @@ internal sealed partial class HealthStateCoordinator : IHealthCollectionState, I
         lock (gate)
         {
             EnsureAdmission();
-            if (runnerClaimed) { throw new InvalidOperationException("A collector runner already belongs to this service."); }
+            if (runnerClaimed)
+            {
+                throw new InvalidOperationException("A collector runner already belongs to this service.");
+            }
             runnerClaimed = true;
         }
     }
@@ -158,24 +192,37 @@ internal sealed partial class HealthStateCoordinator : IHealthCollectionState, I
         lock (gate)
         {
             EnsureAdmission();
-            if (!startupCompleted) { startupCompleted = true; revision++; }
+            if (!startupCompleted)
+            {
+                startupCompleted = true;
+                revision++;
+            }
         }
     }
 
     internal void BeginStopping()
     {
         var effects = new Effects();
-        lock (gate) { StopLocked(effects); }
+        lock (gate)
+        {
+            StopLocked(effects);
+        }
         Dispatch(effects);
     }
 
     private void StopLocked(Effects effects)
     {
-        if (stopping) { return; }
+        if (stopping)
+        {
+            return;
+        }
         stopping = true;
         revision++;
         effects.SignalStopping = true;
-        foreach (var operation in operations.Values) { RequestCancellation(operation, effects); }
+        foreach (var operation in operations.Values)
+        {
+            RequestCancellation(operation, effects);
+        }
     }
 
     internal Task Dispose()
@@ -187,7 +234,10 @@ internal sealed partial class HealthStateCoordinator : IHealthCollectionState, I
             {
                 StopLocked(effects);
                 disposalStarted = true;
-                foreach (var entry in active.Values.ToArray()) { WithdrawLocked(entry, effects); }
+                foreach (var entry in active.Values.ToArray())
+                {
+                    WithdrawLocked(entry, effects);
+                }
                 FinishService(effects);
             }
         }
@@ -198,45 +248,76 @@ internal sealed partial class HealthStateCoordinator : IHealthCollectionState, I
     internal void Withdraw(HealthMonitorEntry entry)
     {
         var effects = new Effects();
-        lock (gate) { WithdrawLocked(entry, effects); }
+        lock (gate)
+        {
+            WithdrawLocked(entry, effects);
+        }
         Dispatch(effects);
     }
 
     private void SweepDead(Effects effects)
     {
         foreach (var entry in active.Values.ToArray())
-        { if (!entry.Handle.TryGetTarget(out _)) { WithdrawLocked(entry, effects); } }
+        {
+            if (!entry.Handle.TryGetTarget(out _))
+            {
+                WithdrawLocked(entry, effects);
+            }
+        }
     }
 
     private void WithdrawLocked(HealthMonitorEntry entry, Effects effects)
     {
-        if (entry.Withdrawn) { return; }
+        if (entry.Withdrawn)
+        {
+            return;
+        }
         entry.Withdrawn = true;
         active.Remove(entry.Id);
-        if (entry.Generation < long.MaxValue) { entry.Generation++; }
-        if (entry.Collection is not null) { CloseAttachmentLocked(attachments.GetValue(entry.Collection, _ => throw new InvalidOperationException()), effects); }
+        if (entry.Generation < long.MaxValue)
+        {
+            entry.Generation++;
+        }
+        if (entry.Collection is not null)
+        {
+            CloseAttachmentLocked(attachments.GetValue(entry.Collection, _ => throw new InvalidOperationException()), effects);
+        }
         entry.Collection = null;
         RetireBindingsLocked(entry);
-        foreach (var operation in operations.Values.Where(operation => ReferenceEquals(operation.Entry, entry))) { RequestCancellation(operation, effects); }
+        foreach (var operation in operations.Values.Where(operation => ReferenceEquals(operation.Entry, entry)))
+        {
+            RequestCancellation(operation, effects);
+        }
         revision++;
-        if (!HasPendingCollectionSettlement(entry)) { effects.Complete.Add(entry.Disposal); }
+        if (!HasPendingCollectionSettlement(entry))
+        {
+            effects.Complete.Add(entry.Disposal);
+        }
     }
 
     private void FinishService(Effects effects)
     {
         if (disposalStarted && operations.Count == 0 && retiringCollections.Count == 0 && !disposed)
-        { disposed = true; effects.Complete.Add(disposal); }
+        {
+            disposed = true;
+            effects.Complete.Add(disposal);
+        }
     }
 
     internal void ReportMeasurement(HealthMonitorEntry entry, HealthMeasurement measurement)
     {
         ArgumentNullException.ThrowIfNull(measurement);
-        if (!measurement.IsDiagnostic) { throw new ArgumentException("Common measurements must be diagnostic.", nameof(measurement)); }
+        if (!measurement.IsDiagnostic)
+        {
+            throw new ArgumentException("Common measurements must be diagnostic.", nameof(measurement));
+        }
         lock (gate)
         {
             EnsureActive(entry);
             if (!entry.Measurements.ContainsKey(measurement.Key) && entry.Measurements.Count == 32)
-            { throw new ArgumentException("A monitor supports at most 32 metric keys.", nameof(measurement)); }
+            {
+                throw new ArgumentException("A monitor supports at most 32 metric keys.", nameof(measurement));
+            }
             entry.Measurements[measurement.Key] = new(measurement, ++revision);
         }
     }
@@ -244,22 +325,36 @@ internal sealed partial class HealthStateCoordinator : IHealthCollectionState, I
     internal void ReportCondition(HealthMonitorEntry entry, bool flagged, HealthDiagnostic? diagnostic)
     {
         DateTimeOffset now = Now();
-        lock (gate) { EnsureActive(entry); SetCondition(entry, flagged, diagnostic, now); }
+        lock (gate)
+        {
+            EnsureActive(entry);
+            SetCondition(entry, flagged, diagnostic, now);
+        }
     }
 
     private void SetCondition(HealthMonitorEntry entry, bool flagged, HealthDiagnostic? diagnostic, DateTimeOffset now)
     {
         entry.State = flagged ? MonitorState.Unhealthy : MonitorState.Healthy;
-        if (entry.Policy == HealthPolicyKind.FirstSuccessAvailability && flagged) { entry.HasUsableData = false; }
+        if (entry.Policy == HealthPolicyKind.FirstSuccessAvailability && flagged)
+        {
+            entry.HasUsableData = false;
+        }
         entry.Diagnostic = flagged ? diagnostic : null;
         Observe(entry, now);
     }
 
     internal void ReportNumber(HealthMonitorEntry entry, double value, HealthDiagnostic? diagnostic)
     {
-        if (!double.IsFinite(value)) { throw new ArgumentOutOfRangeException(nameof(value)); }
+        if (!double.IsFinite(value))
+        {
+            throw new ArgumentOutOfRangeException(nameof(value));
+        }
         DateTimeOffset now = Now();
-        lock (gate) { EnsureActive(entry); SetNumber(entry, value, diagnostic, now); }
+        lock (gate)
+        {
+            EnsureActive(entry);
+            SetNumber(entry, value, diagnostic, now);
+        }
     }
 
     private void SetNumber(HealthMonitorEntry entry, double value, HealthDiagnostic? diagnostic, DateTimeOffset now)
@@ -280,7 +375,11 @@ internal sealed partial class HealthStateCoordinator : IHealthCollectionState, I
     internal void ReportOutcome(HealthMonitorEntry entry, HealthExecutionOutcome outcome, HealthDiagnostic? diagnostic)
     {
         DateTimeOffset now = Now();
-        lock (gate) { EnsureActive(entry); SetOutcome(entry, outcome, diagnostic, now); }
+        lock (gate)
+        {
+            EnsureActive(entry);
+            SetOutcome(entry, outcome, diagnostic, now);
+        }
     }
 
     private void SetOutcome(HealthMonitorEntry entry, HealthExecutionOutcome outcome, HealthDiagnostic? diagnostic, DateTimeOffset now)
@@ -306,21 +405,44 @@ internal sealed partial class HealthStateCoordinator : IHealthCollectionState, I
                     ? (entry.ConsecutiveFailures >= entry.FailureThreshold ? MonitorState.Unhealthy : MonitorState.Healthy)
                     : (entry.HasUsableData ? MonitorState.Healthy : MonitorState.Unhealthy);
                 break;
-            case HealthExecutionOutcome.Skipped: Increment(ref entry.Skipped, entry); break;
-            case HealthExecutionOutcome.ExpectedCancellation: Increment(ref entry.ExpectedCanceled, entry); break;
-            default: throw new ArgumentOutOfRangeException(nameof(outcome));
+            case HealthExecutionOutcome.Skipped:
+                Increment(ref entry.Skipped, entry);
+                break;
+            case HealthExecutionOutcome.ExpectedCancellation:
+                Increment(ref entry.ExpectedCanceled, entry);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(outcome));
         }
         Observe(entry, now);
     }
 
     private static void Increment(ref long counter, HealthMonitorEntry entry)
-    { if (counter < long.MaxValue) { counter++; } if (counter == long.MaxValue) { entry.Saturated = true; } }
+    {
+        if (counter < long.MaxValue)
+        {
+            counter++;
+        }
+        if (counter == long.MaxValue)
+        {
+            entry.Saturated = true;
+        }
+    }
 
     private void Observe(HealthMonitorEntry entry, DateTimeOffset now)
-    { entry.LastObservation = now; entry.HealthRevision = ++revision; }
+    {
+        entry.LastObservation = now;
+        entry.HealthRevision = ++revision;
+    }
 
     internal HealthSnapshot CaptureSnapshot()
     {
+        lock (gate)
+        {
+            ObjectDisposedException.ThrowIf(disposed, typeof(HealthcheckService));
+        }
+        // Module callbacks can inspect their own locks or publish admission changes. Never invoke them under the health lock.
+        bool prerequisitesReady = ReadinessPrerequisitesSatisfied();
         DateTimeOffset now = Now();
         var effects = new Effects();
         List<(BigInteger Ordinal, HealthMonitorSnapshotData Data)> copies;
@@ -335,6 +457,11 @@ internal sealed partial class HealthStateCoordinator : IHealthCollectionState, I
             {
                 ObjectDisposedException.ThrowIf(disposed, typeof(HealthcheckService));
                 SweepDead(effects);
+                if (observedReadinessPrerequisites != prerequisitesReady)
+                {
+                    observedReadinessPrerequisites = prerequisitesReady;
+                    revision++;
+                }
                 copies = active.Values.Select(entry => (entry.Ordinal, Copy(entry))).ToList();
                 int critical = active.Values.Count(entry => entry.IsCritical);
                 int failing = active.Values.Count(entry => entry.State == MonitorState.Unhealthy);
@@ -354,10 +481,23 @@ internal sealed partial class HealthStateCoordinator : IHealthCollectionState, I
             CapturedAtUtc = now,
             Application = app,
             HealthStatus = health,
-            Ready = ready,
+            Ready = ready && prerequisitesReady,
+            RequestsAllowed = ready,
             MonitorCounts = counts,
             Monitors = monitors
         });
+    }
+
+    private bool ReadinessPrerequisitesSatisfied()
+    {
+        foreach (IHealthReadinessSource source in readinessSources)
+        {
+            if (!source.IsReady)
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static HealthMonitorSnapshotData CopyWithOrderedMetrics(HealthMonitorSnapshotData data) => new()
@@ -420,12 +560,27 @@ internal sealed partial class HealthStateCoordinator : IHealthCollectionState, I
     {
         if (effects.SignalStopping)
         {
-            try { stoppingCancellation.Cancel(); }
+            try
+            {
+                stoppingCancellation.Cancel();
+            }
             catch (Exception) { /* An internal observer must not prevent operation cancellation or settlement. */ }
         }
-        foreach (var attachment in effects.Retire) { CancelRetirement(attachment); }
-        foreach (var operation in effects.Cancel) { CancelOperation(operation); }
-        foreach (var source in effects.Complete) { source.TrySetResult(); }
-        foreach (var source in effects.Dispose) { source.Dispose(); }
+        foreach (var attachment in effects.Retire)
+        {
+            CancelRetirement(attachment);
+        }
+        foreach (var operation in effects.Cancel)
+        {
+            CancelOperation(operation);
+        }
+        foreach (var source in effects.Complete)
+        {
+            source.TrySetResult();
+        }
+        foreach (var source in effects.Dispose)
+        {
+            source.Dispose();
+        }
     }
 }

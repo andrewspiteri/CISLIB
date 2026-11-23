@@ -1,0 +1,95 @@
+{
+  "DatabaseConnectionEnvironment": "CIS_MANAGEMENT_POSTGRES",
+  "CursorKeyEnvironment": "CIS_MANAGEMENT_CURSOR_KEY",
+  "BasePath": "/platform",
+  "Security": {
+    "Mode": "certificate",
+    "Profile": "management-security",
+    "AuthenticationScheme": "management-security",
+    "BusinessAddress": "172.28.7.10",
+    "BusinessPort": 7443,
+    "OperationalPort": 7080,
+    "ServerCertificateFile": "/run/cis/pem/server.pem",
+    "ServerPrivateKeyFile": "/run/cis/pem/server-key.pem",
+    "ServerTrustBundleFile": "/run/cis/pem/server-root.pem",
+    "ClientTrustDomain": "management-client-ca",
+    "ClientRootBundleFile": "/run/cis/pem/client-roots.pem",
+    "ClientIssuingAuthorityBundleFile": "/run/cis/pem/client-issuers.pem",
+    "CertificateRevocation": "ShortLived",
+    "MaximumShortLivedLifetime": "1.00:00:00",
+    "PolicyVersion": "management-local-v1",
+    "IdentityMappings": [
+      {
+        "Issuer": "management-client-ca",
+        "Subject": "https://identity.example.test/applications/country-data/environments/development",
+        "Application": "CountryData",
+        "Environment": "Development",
+        "ActorKind": "Application"
+      },
+      {
+        "Issuer": "management-client-ca",
+        "Subject": "https://identity.example.test/applications/management-automation/environments/development",
+        "Application": "management-automation",
+        "Environment": "Development",
+        "ActorKind": "Application"
+      }
+    ],
+    "Grants": [
+      {
+        "Capability": "management.registrations.write",
+        "TargetApplication": "CIS.Management.Service",
+        "TargetEnvironment": "Development",
+        "Issuer": "management-client-ca",
+        "Subject": "https://identity.example.test/applications/country-data/environments/development",
+        "ResourceSelection": "TargetOnly"
+      },
+      {
+        "Capability": "management.applications.read",
+        "TargetApplication": "CIS.Management.Service",
+        "TargetEnvironment": "Development",
+        "Issuer": "management-client-ca",
+        "Subject": "https://identity.example.test/applications/management-automation/environments/development",
+        "ResourceSelection": "AllOfType",
+        "ResourceType": "management.application"
+      },
+      {
+        "Capability": "management.applications.metadata.write",
+        "TargetApplication": "CIS.Management.Service",
+        "TargetEnvironment": "Development",
+        "Issuer": "management-client-ca",
+        "Subject": "https://identity.example.test/applications/management-automation/environments/development",
+        "ResourceSelection": "AllOfType",
+        "ResourceType": "management.application"
+      },
+      {
+        "Capability": "management.operations.read",
+        "TargetApplication": "CIS.Management.Service",
+        "TargetEnvironment": "Development",
+        "Issuer": "management-client-ca",
+        "Subject": "https://identity.example.test/applications/management-automation/environments/development",
+        "ResourceSelection": "AllOfType",
+        "ResourceType": "management.application"
+      }
+    ]
+  },
+  "Delivery": {
+    "RequireLiveBrokerForReadiness": false,
+    "MaximumRetainedEnvelopeBytes": 67108864,
+    "Broker": {
+      "HostName": "broker.example.test",
+      "Port": 5671,
+      "ServerName": "broker.example.test",
+      "VirtualHost": "/cis-management",
+      "UserName": "management-publisher",
+      "PasswordEnvironment": "CIS_MANAGEMENT_RABBIT_PASSWORD",
+      "SetupUserName": "management-topology-setup",
+      "SetupPasswordEnvironment": "CIS_MANAGEMENT_RABBIT_SETUP_PASSWORD",
+      "SubjectIssuer": "management-broker",
+      "Namespace": "cis.management.local",
+      "ApplicationNamespaceAlias": "management",
+      "MaximumQueueBytes": 67108864,
+      "MaximumQueueMessages": 10000,
+      "SafeDeadLetteringVerified": false
+    }
+  }
+}

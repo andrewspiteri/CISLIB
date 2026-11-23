@@ -1,4 +1,5 @@
 using CIS.Coordination;
+using CIS.Management;
 using CIS.Security;
 using CIS.Startup;
 
@@ -39,6 +40,16 @@ public sealed partial class JobRuntime : IStartable, IAsyncDisposable
     public JobRuntime(IJobCatalog catalog, IJobExecutionScopeFactory executionScopes,
         JobConfigurationSnapshot? configuration = null, IJobRunSource? runSource = null,
         IJobScheduleEvaluator? scheduleEvaluator = null, TimeProvider? timeProvider = null)
+        : this(catalog, executionScopes, configuration, runSource, scheduleEvaluator, timeProvider, null)
+    {
+    }
+
+    /// <summary>Captures an explicitly selected managed-admission port without changing already admitted work or ownership.</summary>
+    /// <remarks>The original constructor remains an unmanaged composition. A null port preserves that behavior.
+    /// Gate publications only wake existing waiters; every new admission checks the port again.</remarks>
+    public JobRuntime(IJobCatalog catalog, IJobExecutionScopeFactory executionScopes,
+        JobConfigurationSnapshot? configuration, IJobRunSource? runSource,
+        IJobScheduleEvaluator? scheduleEvaluator, TimeProvider? timeProvider, IManagedWorkAdmission? managedAdmission)
     {
         ArgumentNullException.ThrowIfNull(catalog);
         ArgumentNullException.ThrowIfNull(executionScopes);
@@ -56,6 +67,11 @@ public sealed partial class JobRuntime : IStartable, IAsyncDisposable
         evaluator = scheduleEvaluator;
         clock = timeProvider ?? TimeProvider.System;
         application = LocalApplicationIdentity.Capture();
+        this.managedAdmission = managedAdmission;
+        if (managedAdmission is not null)
+        {
+            managedAdmission.Changed += ManagedAdmissionChanged;
+        }
     }
 
     /// <summary>Gets the last completely validated immutable local settings revision.</summary>
@@ -380,7 +396,17 @@ public sealed partial class JobRuntime : IStartable, IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         await StopAsync().ConfigureAwait(false);
-        admissionStopping.Dispose();
+        try
+        {
+            if (managedAdmission is not null && Interlocked.Exchange(ref managedAdmissionDetached, 1) == 0)
+            {
+                managedAdmission.Changed -= ManagedAdmissionChanged;
+            }
+        }
+        finally
+        {
+            admissionStopping.Dispose();
+        }
     }
 
     internal Task WaitForChangeAsync(long observedVersion, CancellationToken cancellationToken)

@@ -4,6 +4,12 @@ CisLib implements Logging, Type Manager, Healthcheck, Heartbeat, Startup, Config
 
 The single maintained runnable tutorial is [CountryData](implementations/csharp/examples/CountryData/README.md), using real CIS REST and normal CISApplication startup. Small dedicated test fixtures retain assembly, protocol, ownership and package boundaries; ordinary Git history retains retired application source.
 
+[Central Management](docs/modules/management/README.md) is a separately deployed
+product application with portable C# and TypeScript clients and explicit process
+reporting. Its database and native identity/delivery dependencies remain outside
+Core. The [TypeScript workspace](implementations/typescript/README.md) contains
+only the small client foundation and management SDK.
+
 Run commands from `implementations/csharp` so `global.json` selects SDK **10.0.401**. The selected qualification runtime is **10.0.12**; install its ASP.NET Core shared framework as well.
 
 The full Compatibility suite also needs **.NET 8.0.31** for the pinned ApiCompat tool. `CIS_COMPAT_API_DOTNET` explicitly selects its host. Without an override, the fixture uses a complete repository-local `.artifacts/tool-host-8.0.31/` installation when present, then ordinary `dotnet`; the exact runtime pin remains enforced. This machine has that private installation, so IDE runs can use it automatically. SDK and product commands continue to use ordinary `dotnet`.
@@ -15,12 +21,12 @@ cd implementations/csharp
 dotnet tool restore --configfile eng/Tools.NuGet.config
 dotnet restore CisLib.slnx --locked-mode
 dotnet build CisLib.slnx -c Release --no-restore
-dotnet test CisLib.slnx -c Release --no-build --no-restore --filter "TestCategory!=RequiresDocker&TestCategory!=PerformanceObservation&TestCategory!=ExtendedStress"
+dotnet test CisLib.slnx -c Release --no-build --no-restore --filter "TestCategory!=RequiresDocker&TestCategory!=RequiresNode&TestCategory!=PerformanceObservation&TestCategory!=ExtendedStress"
 ```
 
-This fast selection needs no Docker and excludes service, performance and extended
-stress cases. Real PostgreSQL/RabbitMQ integration provisions its own isolated
-Testcontainers services when selected:
+This fast selection needs no Docker or Node and excludes service, native Node,
+performance and extended stress cases. Real PostgreSQL/RabbitMQ integration
+provisions its own isolated Testcontainers services when selected:
 
 ```powershell
 dotnet test tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj -c Release --no-build --no-restore --settings tests/CIS.Core.IntegrationTests/service-tests.runsettings --filter "TestCategory=RequiresDocker&TestCategory!=PerformanceObservation&TestCategory!=ExtendedStress" --logger "trx;LogFileName=service-tests.trx"
@@ -32,6 +38,16 @@ connection files are required. See the [canonical testing guide](implementations
 for endpoint ownership, result validation, PostgreSQL-only selection and the Linux
 CI job. An unfiltered solution run or IDE Run All also includes performance and
 extended stress categories; full release qualification remains separate.
+
+The Management same-service and native-fetch HTTPS cases also need the built
+TypeScript packages.
+Before selecting those cases, run `npm ci`, `npm run build`, `npm test` and
+`npm run check:browser` from `implementations/typescript`, using Node **24.15.0**
+and npm **11.12.1**. The existing service CI job performs these steps and selects
+both `RequiresDocker` and `RequiresNode` cases. The native-fetch `RequiresNode`
+cases need no Docker. Set
+`CIS_TEST_NODE_EXECUTABLE` only when the native Node executable is absent from
+the test process's PATH.
 
 Open the same solution in the IDE. To run a focused test selection:
 
@@ -54,6 +70,7 @@ A local development package is not a published release. Scoped checks and curren
 | Product | Current reference |
 | --- | --- |
 | Application | [CISApplication](docs/modules/application/core.md), [CountryData](implementations/csharp/examples/CountryData/README.md) |
+| Central Management | [Service and clients](docs/modules/management/README.md), [portable v1](contracts/management/v1/README.md), [C# client](docs/modules/management/csharp-client.md), [optional reporting](docs/modules/management/registration.md), [TypeScript](implementations/typescript/README.md) |
 | Audit | [Capture, publication and receiving](docs/modules/audit/README.md), [portable contract](contracts/audit/README.md), [Security bridge](docs/modules/security/audit.md), [capture metric](contracts/metrics/audit.md) |
 | Security | [Caller and capability contracts](docs/modules/security/README.md), [Entra](docs/modules/security/entra.md), [certificate trust](docs/modules/security/certificates.md), [credential renewal](docs/modules/security/credentials.md), [isolated local setup](docs/modules/security/local-development.md), [CountryData service/caller](docs/modules/security/consumer.md) |
 | Environment and Logging | [EnvironmentOptions](docs/modules/logging/environment-options.md), [runtime ownership](docs/modules/logging/runtime-contract.md), [incoming frontend](docs/modules/logging/incoming-pipeline.md), [processing policies](docs/modules/logging/processing-policies.md), [interpolation](docs/modules/logging/interpolation.md) |

@@ -10,7 +10,10 @@ internal sealed partial class HealthStateCoordinator
 
     internal void AttachMetrics(MetricsRuntime runtime)
     {
-        if (!metricsAttachment.Attach(runtime)) { return; }
+        if (!metricsAttachment.Attach(runtime))
+        {
+            return;
+        }
         var created = new HealthcheckMetrics(runtime);
         runtime.RegisterObservableGauge(new("cis.healthcheck.ready", description: "Existing application readiness, without executing collectors."), CaptureMetricReadiness);
         runtime.RegisterObservableGauge(new("cis.healthcheck.monitors", description: "Active monitors grouped by existing policy state.",
@@ -20,20 +23,27 @@ internal sealed partial class HealthStateCoordinator
 
     private IReadOnlyList<MetricObservation> CaptureMetricReadiness()
     {
+        bool ready;
         lock (gate)
         {
-            if (disposed) { return []; }
-            bool ready = startupCompleted && !stopping && !active.Values.Any(entry =>
+            if (disposed)
+            {
+                return [];
+            }
+            ready = startupCompleted && !stopping && !active.Values.Any(entry =>
                 entry.Handle.TryGetTarget(out _) && entry.IsCritical && entry.State == MonitorState.Unhealthy);
-            return [new(ready ? 1 : 0)];
         }
+        return [new(ready && ReadinessPrerequisitesSatisfied() ? 1 : 0)];
     }
 
     private IReadOnlyList<MetricObservation> CaptureMetricStates()
     {
         lock (gate)
         {
-            if (disposed) { return []; }
+            if (disposed)
+            {
+                return [];
+            }
             return [new(active.Values.Count(entry => entry.Handle.TryGetTarget(out _) && entry.State == MonitorState.Healthy), new(("state", "healthy"))),
                 new(active.Values.Count(entry => entry.Handle.TryGetTarget(out _) && entry.State == MonitorState.Unhealthy), new(("state", "unhealthy"))),
                 new(active.Values.Count(entry => entry.Handle.TryGetTarget(out _) && entry.State == MonitorState.Pending), new(("state", "pending")))];

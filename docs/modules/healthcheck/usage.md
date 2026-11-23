@@ -79,7 +79,21 @@ HealthSnapshot snapshot = health.CaptureSnapshot();
 
 `IsCritical` is an explicit owner decision on every policy. Aggregate health is Unhealthy exactly when an active critical monitor is Unhealthy. Noncritical failures remain visible in details and counts. Pending is distinct from failure; a fresh availability, numeric, or consecutive-failure monitor is Pending. A healthy aggregate alone does not prove initialization completed.
 
-`Ready = StartupCompleted && !IsStopping && HealthStatus == Healthy` is evaluated in the same snapshot. `MarkStartupCompleted()` is explicit and idempotent. `BeginStopping()` is terminal: readiness becomes false, new admission closes, and existing live monitors may still accept final direct observations. Startup cannot be reopened after stopping.
+By default, `Ready = StartupCompleted && !IsStopping && HealthStatus == Healthy`.
+An explicitly selected local `IHealthReadinessSource` can additionally close
+readiness while aggregate health remains Healthy. Sources are captured once
+(at most 32), perform no I/O during their current prerequisite check, and retain
+their owning module's lifetime. A true Ready value still requires completed
+startup, no terminal stopping and Healthy aggregate health. With no selected
+sources, existing reports and behavior remain unchanged.
+
+The matching v1 report reader accepts Healthy with Ready false for that optional
+profile and continues to reject impossible Ready true states. Health/details
+still select aggregate health; readiness selects Ready. Existing GET/HEAD status
+mapping remains 200 for selected success and 500 for selected failure.
+`MarkStartupCompleted()` is explicit and idempotent. `BeginStopping()` is terminal:
+readiness becomes false, new admission closes, and existing live monitors may
+still accept final direct observations. Startup cannot be reopened after stopping.
 
 | Policy | Reporting and evaluation |
 | --- | --- |

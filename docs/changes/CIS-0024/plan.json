@@ -1,0 +1,412 @@
+{
+  "authorizationId": "cislib:CIS-0024:outcome:e274768c237d45a5b9d0851dd5e27551",
+  "actor": "Codex",
+  "workItems": [
+    {
+      "id": "WORK-001",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-001.md",
+      "title": "Freeze portable management v1 and validated public contracts",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [],
+      "acceptanceCriteria": "AC11 and shared API freeze: one OpenAPI3.1.1/schema/independent fixture set, all12typed requests/results, exact UUID/decimal/timestamp/metadata/ETag/problem/durable facts and actor/resource semantics. Public CSharp wire/model boundaries permit clients without CLR coupling; ordinary source readers preserve additive/unknown responses and strict closed commands.",
+      "validation": "Focused schema/wire and CSharp unit cases: above2^53, precise timestamps, Unicode/no normalization, absent/null/unknown/duplicate/invalid/oversized, status/key/ETag/replay/conflict fixture semantics. Existing schema subset only, no new engine/package; affectedbuild/scopedformat\u002Bverify and independent client/service contract review.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:75fb253aa90942b7af5f8e91e64a7895",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "contracts"
+      ],
+      "authorizationScopeBasis": "sha256:301997828a71773dd13be0984849ee59aa6848eca40af58250216676e4ba7409",
+      "workPaths": [],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "AC11 and shared API freeze: one OpenAPI3.1.1/schema/independent fixture set, all12typed requests/results, exact UUID/decimal/timestamp/metadata/ETag/problem/durable facts and actor/resource semantics. Public CSharp wire/model boundaries permit clients without CLR coupling; ordinary source readers preserve additive/unknown responses and strict closed commands."
+          ],
+          "description": "Focused schema/wire and CSharp unit cases: above2^53, precise timestamps, Unicode/no normalization, absent/null/unknown/duplicate/invalid/oversized, status/key/ETag/replay/conflict fixture semantics. Existing schema subset only, no new engine/package; affectedbuild/scopedformat\u002Bverify and independent client/service contract review.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Focused schema/wire and CSharp unit cases: above2^53, precise timestamps, Unicode/no normalization, absent/null/unknown/duplicate/invalid/oversized, status/key/ETag/replay/conflict fixture semantics. Existing schema subset only, no new engine/package; affectedbuild/scopedformat\u002Bverify and independent client/service contract review."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-002",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-002.md",
+      "title": "Deliver independent authenticated service and authorized read APIs",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "acceptanceCriteria": "AC01/02/06: real product CISApplication service, passive single-provider composition, configured native workload/human seams and complete target/resource authorization. Typed routes/service-info/catalog/list/detail/instances/inventory/capabilities use actual stored resources, opaque actor-bound pages, finite admission/body/response bounds and restricted operational listeners.",
+      "validation": "Native host/startup/readiness, real certificate/JWT validation/projection and invalid/unmapped/wrongenv/forged actor coverage; list/page/lookup isolation and known/unknown auth evidence. No header auth evaluator, anonymous business API or new lifecycle framework. Affected existing hosting/dependency behavior, builds and format.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:72a1ec1b3ae24280806604d5fa270e6f",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "service-host"
+      ],
+      "authorizationScopeBasis": "sha256:202929a3fcbeda0fc3717a6e84bfc281afc6f587f874f44785d2e8c084b18809",
+      "workPaths": [],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "AC01/02/06: real product CISApplication service, passive single-provider composition, configured native workload/human seams and complete target/resource authorization. Typed routes/service-info/catalog/list/detail/instances/inventory/capabilities use actual stored resources, opaque actor-bound pages, finite admission/body/response bounds and restricted operational listeners."
+          ],
+          "description": "Native host/startup/readiness, real certificate/JWT validation/projection and invalid/unmapped/wrongenv/forged actor coverage; list/page/lookup isolation and known/unknown auth evidence. No header auth evaluator, anonymous business API or new lifecycle framework. Affected existing hosting/dependency behavior, builds and format.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Native host/startup/readiness, real certificate/JWT validation/projection and invalid/unmapped/wrongenv/forged actor coverage; list/page/lookup isolation and known/unknown auth evidence. No header auth evaluator, anonymous business API or new lifecycle framework. Affected existing hosting/dependency behavior, builds and format."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-003",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-003.md",
+      "title": "Persist sequenced registration, presence and complete inventory",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "acceptanceCriteria": "AC03/04/05/15: application-owned PostgreSQL schema/version/explicit installation, stable exact app identities, immutable bound registration, cross-replica newer/equal/older sequence behavior and DB receipt time, terminal close/purge/re-register, complete per-instance inventory, byte/count capacity and bounded telemetry-only retention.",
+      "validation": "Real shared-DB two-root uniqueness/sequence/capacity/replay tests; rejection preserves previous full snapshot, reported precision and no freshness replay. Hundreds of jobs/multibyte bounds, read reconstruction/restart and schema readiness. Existing realPG/Testcontainers only, no process lock authority or new idempotency store; native build/format/docs.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:cb8c17e636b044b2a05e9aec04ae0a52",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "management-store"
+      ],
+      "authorizationScopeBasis": "sha256:29e72b1c253845558e6cf0ad251f61ce33a3721f6d122a19eb82a91fa24b43ec",
+      "workPaths": [],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "AC03/04/05/15: application-owned PostgreSQL schema/version/explicit installation, stable exact app identities, immutable bound registration, cross-replica newer/equal/older sequence behavior and DB receipt time, terminal close/purge/re-register, complete per-instance inventory, byte/count capacity and bounded telemetry-only retention."
+          ],
+          "description": "Real shared-DB two-root uniqueness/sequence/capacity/replay tests; rejection preserves previous full snapshot, reported precision and no freshness replay. Hundreds of jobs/multibyte bounds, read reconstruction/restart and schema readiness. Existing realPG/Testcontainers only, no process lock authority or new idempotency store; native build/format/docs.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Real shared-DB two-root uniqueness/sequence/capacity/replay tests; rejection preserves previous full snapshot, reported precision and no freshness replay. Hundreds of jobs/multibyte bounds, read reconstruction/restart and schema readiness. Existing realPG/Testcontainers only, no process lock authority or new idempotency store; native build/format/docs."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-004",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-004.md",
+      "title": "Implement recoverable metadata command with atomic Audit",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-001",
+        "WORK-003"
+      ],
+      "acceptanceCriteria": "AC07/08/09/10/15: actual-resource/current-actor scoped RM03 command and lookup; strong metadata-only ETag; canonical exact key/input; conditional update, original result and required RM06 Audit staged in original RM02 owner. Matching replay bypasses stale original ETag and repeats neither effect nor success Audit. Preserve original commit/Unknown/Found facts and validated human attribution.",
+      "validation": "Real PG concurrent same-ETag different-key edits, original-key same-input replay/changed conflict, actual commit/lost-response lookup, Audit refusal rollback, independent caller/human/delegation scope and forged headers, result expiry/no reexecution, reconstruction and late-cleanup fact preservation. No foundation coordinator redesign; focused source/build/format/docs/review.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:fdb3756821e84c5d964f4bbcbe97e05d",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "metadata-command"
+      ],
+      "authorizationScopeBasis": "sha256:8908ecc862e7ae522f80ab1984700c7fa2c51429e257c2120bf5ccb915de99f1",
+      "workPaths": [],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "AC07/08/09/10/15: actual-resource/current-actor scoped RM03 command and lookup; strong metadata-only ETag; canonical exact key/input; conditional update, original result and required RM06 Audit staged in original RM02 owner. Matching replay bypasses stale original ETag and repeats neither effect nor success Audit. Preserve original commit/Unknown/Found facts and validated human attribution."
+          ],
+          "description": "Real PG concurrent same-ETag different-key edits, original-key same-input replay/changed conflict, actual commit/lost-response lookup, Audit refusal rollback, independent caller/human/delegation scope and forged headers, result expiry/no reexecution, reconstruction and late-cleanup fact preservation. No foundation coordinator redesign; focused source/build/format/docs/review.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Real PG concurrent same-ETag different-key edits, original-key same-input replay/changed conflict, actual commit/lost-response lookup, Audit refusal rollback, independent caller/human/delegation scope and forged headers, result expiry/no reexecution, reconstruction and late-cleanup fact preservation. No foundation coordinator redesign; focused source/build/format/docs/review."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-005",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-005.md",
+      "title": "Deliver CSharp keyed REST client and public substitutes",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "acceptanceCriteria": "AC11/12/15: typed IManagementClient all APIs, real keyed REST/auth owner and one entry deadline including codec decode; original RestResult and safe typed HTTP/problem/durable facts, exact caller key/cancellation. Bounded CommonTesting scripts and safe public observations support outside-friend consumers; no registration from plain read usage.",
+      "validation": "Prefix/origin/option/env, strict/adaptive wire, bounded body, normal failure/security evidence, explicit no-mutation-retry and held cancellation/cleanup tests. Public Core/CommonTesting packageconsumer, key recovery/no fresh rerun and dependency boundaries, affectedbuild/format and concise consumer docs. Real same-service calls are delivery acceptance.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:a3a1b0c7055d418b9527dcefa39704b5",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "csharp-client"
+      ],
+      "authorizationScopeBasis": "sha256:2c9f9910fdeb6cd108ad3745658e322e04ed6cba45004113688a3ae9b04c54c2",
+      "workPaths": [],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "AC11/12/15: typed IManagementClient all APIs, real keyed REST/auth owner and one entry deadline including codec decode; original RestResult and safe typed HTTP/problem/durable facts, exact caller key/cancellation. Bounded CommonTesting scripts and safe public observations support outside-friend consumers; no registration from plain read usage."
+          ],
+          "description": "Prefix/origin/option/env, strict/adaptive wire, bounded body, normal failure/security evidence, explicit no-mutation-retry and held cancellation/cleanup tests. Public Core/CommonTesting packageconsumer, key recovery/no fresh rerun and dependency boundaries, affectedbuild/format and concise consumer docs. Real same-service calls are delivery acceptance.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Prefix/origin/option/env, strict/adaptive wire, bounded body, normal failure/security evidence, explicit no-mutation-retry and held cancellation/cleanup tests. Public Core/CommonTesting packageconsumer, key recovery/no fresh rerun and dependency boundaries, affectedbuild/format and concise consumer docs. Real same-service calls are delivery acceptance."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-006",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-006.md",
+      "title": "Integrate optional registration and actual Jobs inventory lifecycle",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-001",
+        "WORK-005"
+      ],
+      "acceptanceCriteria": "AC05/14: opt-in direct initial Startup registration and distinct required/optional outage policies; one existing Heartbeat owner/coalesced 30s observation\u002Bcatalog and5..60s reconnect, bounded current state, trusted Jobs paged projection without handler construction. Preserve sequential credential startup and accepted dependency drain/failed-Build ownership.",
+      "validation": "Controlled public client/Heartbeat tests for initial required/optional deadlines, purged vs conflict/closed reconnect IDs, high transition coalescing, hundreds-of-jobs complete pages, cancellation/held callback actual drain and quiet diagnostics. Actual GenericHost/facade/REST-before-Heartbeat order tests, no new lifecycle/readiness framework or duplicate metrics.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:f683b44cf6314d4cb5b44278cc0dd3f0",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "registration-host",
+        "csharp-client"
+      ],
+      "authorizationScopeBasis": "sha256:d62cdf9f580c3fb23ebf050d2bbada8e1ed7fff345a0f639b1e066a89600d7e5",
+      "workPaths": [],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "AC05/14: opt-in direct initial Startup registration and distinct required/optional outage policies; one existing Heartbeat owner/coalesced 30s observation\u002Bcatalog and5..60s reconnect, bounded current state, trusted Jobs paged projection without handler construction. Preserve sequential credential startup and accepted dependency drain/failed-Build ownership."
+          ],
+          "description": "Controlled public client/Heartbeat tests for initial required/optional deadlines, purged vs conflict/closed reconnect IDs, high transition coalescing, hundreds-of-jobs complete pages, cancellation/held callback actual drain and quiet diagnostics. Actual GenericHost/facade/REST-before-Heartbeat order tests, no new lifecycle/readiness framework or duplicate metrics.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Controlled public client/Heartbeat tests for initial required/optional deadlines, purged vs conflict/closed reconnect IDs, high transition coalescing, hundreds-of-jobs complete pages, cancellation/held callback actual drain and quiet diagnostics. Actual GenericHost/facade/REST-before-Heartbeat order tests, no new lifecycle/readiness framework or duplicate metrics."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-007",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-007.md",
+      "title": "Deliver portable TypeScript clients and server-only examples",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "acceptanceCriteria": "AC11/12/13: compiler/lock pinned small client-core and management-client with runtime validation/all12typed methods, per-request credentials, HTTPS prefix/no redirects, finite one deadline/retry/body/cleanup semantics and immutable original operation identity. Browser imports omit Node/React/Next; explicit Node/server-only examples select safe DTOs; Kotlin note derives from protocol alone.",
+      "validation": "Built-in Node conformance/cancellation/held-cleanup/read retry/user-isolation and safe-projection tests, browser TypeScript build with DOM/types:[], package export checks and actual same-service Node HTTP consumer through existing MSTest owner in delivery. No new runner/bundler/framework runtime, global credentials or full TS CISLIB port.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:22f3614a945a4b6b822f1267de52891c",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "typescript-clients"
+      ],
+      "authorizationScopeBasis": "sha256:07a63c0234b4a0678586c72c3c9f60b3d99cee08a6f67beef3e4c63982318569",
+      "workPaths": [],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "AC11/12/13: compiler/lock pinned small client-core and management-client with runtime validation/all12typed methods, per-request credentials, HTTPS prefix/no redirects, finite one deadline/retry/body/cleanup semantics and immutable original operation identity. Browser imports omit Node/React/Next; explicit Node/server-only examples select safe DTOs; Kotlin note derives from protocol alone."
+          ],
+          "description": "Built-in Node conformance/cancellation/held-cleanup/read retry/user-isolation and safe-projection tests, browser TypeScript build with DOM/types:[], package export checks and actual same-service Node HTTP consumer through existing MSTest owner in delivery. No new runner/bundler/framework runtime, global credentials or full TS CISLIB port.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Built-in Node conformance/cancellation/held-cleanup/read retry/user-isolation and safe-projection tests, browser TypeScript build with DOM/types:[], package export checks and actual same-service Node HTTP consumer through existing MSTest owner in delivery. No new runner/bundler/framework runtime, global credentials or full TS CISLIB port."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-008",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-008.md",
+      "title": "Deliver deployable cross-language composition and focused native proof",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-002",
+        "WORK-003",
+        "WORK-004",
+        "WORK-005",
+        "WORK-006",
+        "WORK-007"
+      ],
+      "acceptanceCriteria": "AC01-15 integrated: one explicit migrate/container/local deployment and guides, actual independently built service reconstruction, same authenticated service used by CSharp\u002BTypeScript for reads/metadata/recovery, real PG originals/atomic Audit and selected Rabbit delivery. Public package/CommonTesting consumers, module skill/routing and accurate current evidence close the handoffs.",
+      "validation": "Existing strict Testcontainers fixtures, real native TLS/JWT and operator isolation, two replicas/old-ETag concurrency/lost response/restart/outages/cancellation/cleanup, zero skipped required cases. Relevant source/package/dependency/default/Ubuntu-managed checks, no broad unchanged module qualification or new harness. Independent review explicitly rejects responsibility/tooling expansion; only acceptance-demonstrated fixes within these approved scopes, preserve costs/hashes/limits.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:1e7514bce29a41c0b09cedef909b3baa",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "contracts",
+        "service-host",
+        "management-store",
+        "metadata-command",
+        "csharp-client",
+        "registration-host",
+        "typescript-clients",
+        "delivery"
+      ],
+      "authorizationScopeBasis": "sha256:3aa05fa02730847fbb351d6a94e6cf93a2a28696047d2ae0c6198dda2b23dece",
+      "workPaths": [],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "AC01-15 integrated: one explicit migrate/container/local deployment and guides, actual independently built service reconstruction, same authenticated service used by CSharp\u002BTypeScript for reads/metadata/recovery, real PG originals/atomic Audit and selected Rabbit delivery. Public package/CommonTesting consumers, module skill/routing and accurate current evidence close the handoffs."
+          ],
+          "description": "Existing strict Testcontainers fixtures, real native TLS/JWT and operator isolation, two replicas/old-ETag concurrency/lost response/restart/outages/cancellation/cleanup, zero skipped required cases. Relevant source/package/dependency/default/Ubuntu-managed checks, no broad unchanged module qualification or new harness. Independent review explicitly rejects responsibility/tooling expansion; only acceptance-demonstrated fixes within these approved scopes, preserve costs/hashes/limits.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Existing strict Testcontainers fixtures, real native TLS/JWT and operator isolation, two replicas/old-ETag concurrency/lost response/restart/outages/cancellation/cleanup, zero skipped required cases. Relevant source/package/dependency/default/Ubuntu-managed checks, no broad unchanged module qualification or new harness. Independent review explicitly rejects responsibility/tooling expansion; only acceptance-demonstrated fixes within these approved scopes, preserve costs/hashes/limits."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    }
+  ],
+  "source": null
+}

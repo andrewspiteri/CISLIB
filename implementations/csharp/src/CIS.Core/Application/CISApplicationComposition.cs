@@ -6,6 +6,7 @@ using CIS.Heartbeat;
 using CIS.Heartbeat.Hosting;
 using CIS.Logging;
 using CIS.Logging.MicrosoftLogger;
+using CIS.Management.Hosting;
 using CIS.Metrics;
 using CIS.Messaging;
 using CIS.Messaging.Hosting;
@@ -40,6 +41,10 @@ internal sealed class CISApplicationComposition
         get; private set;
     }
     internal MessagingRuntime? Messaging
+    {
+        get; private set;
+    }
+    internal ManagementRegistrationLifetime? Management
     {
         get; private set;
     }
@@ -111,7 +116,7 @@ internal sealed class CISApplicationComposition
                 ServiceVersion = EnvironmentOptions.ServiceVersion,
                 HostName = EnvironmentOptions.HostName,
                 OsDescription = EnvironmentOptions.OperatingSystemDescription
-            }, root.GetService<TimeProvider>());
+            }, root.GetService<TimeProvider>(), root.GetServices<IHealthReadinessSource>());
         }));
         Add(services, healthDefaults, ServiceDescriptor.Singleton<IHealthMonitorFactory>(root =>
             root.GetRequiredService<HealthcheckService>()));
@@ -125,6 +130,7 @@ internal sealed class CISApplicationComposition
 
     internal void Seal()
     {
+        CaptureManagement();
         CaptureAudit();
         CaptureCoordination();
         workflows = setup.Services.LastOrDefault(item => !item.IsKeyedService
@@ -187,6 +193,7 @@ internal sealed class CISApplicationComposition
         {
             integration.ConfigureServices(setup.Services);
         }
+        CaptureManagement();
         CaptureAudit();
         CaptureCoordination();
         setup.Services.TryAddSingleton<IMetrics>(DisabledMetrics.Instance);
@@ -256,6 +263,12 @@ internal sealed class CISApplicationComposition
     {
         Audit = setup.Services.LastOrDefault(item => !item.IsKeyedService
             && item.ServiceType == typeof(AuditHostingRegistration))?.ImplementationInstance as AuditHostingRegistration;
+    }
+
+    private void CaptureManagement()
+    {
+        Management = setup.Services.LastOrDefault(item => !item.IsKeyedService
+            && item.ServiceType == typeof(ManagementRegistrationLifetime))?.ImplementationInstance as ManagementRegistrationLifetime;
     }
 
     private void CaptureCoordination()

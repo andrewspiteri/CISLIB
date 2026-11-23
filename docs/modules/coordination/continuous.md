@@ -21,6 +21,11 @@ enablement/capacity refusal; unknown registrations and denied permissions return
 Unsupported and Unauthorized respectively. Actual required startup failure still
 propagates through the runtime's sequential start.
 
+When [managed admission](managed-admission.md) is selected, a closed gate also
+returns Deferred for a new duty and pauses the next finite iteration or
+acquisition attempt. It does not cancel an already entered callback or remove a
+still-valid existing grant. Reconciliation wakes the existing runtime condition.
+
 The initial caller token covers initialization and eligibility only. Once Started
 is returned, cancelling it does not stop the duty. Use `StopAsync`, configuration
 disablement or the owning runtime's stop. These initiate bounded graceful drain;

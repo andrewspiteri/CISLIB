@@ -72,3 +72,13 @@ prove no SQL commit, authentication or destination persistence. The
 actual Windows native services from Ubuntu managed-runtime units; it establishes
 neither a Linux-client service pass nor full release qualification. No additional
 test project, lane or harness is introduced.
+
+Central Management uses these same MSTest projects and owned service fixtures.
+Its real HTTPS/SQL/broker and same-service C#/Node cases carry `RequiresDocker`.
+Build the pinned Node24.15.0/npm11.12.1 TypeScript workspace first, as described
+in its [guide](../../implementations/typescript/README.md); the existing service
+workflow does so before running the native service selection. Browser type checks
+and native Node behavior use that workspace's compiler and `node:test`, without
+a new runner or CIS suite. Package/CommonTesting cases remain Docker-free.
+The [RM-07 verification](../changes/CIS-0024/verification.md) distinguishes actual
+Windows services, Ubuntu managed execution and unexecuted deployment claims.
