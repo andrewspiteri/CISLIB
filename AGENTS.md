@@ -91,6 +91,19 @@ Destination persistence and AuditId conflict enforcement remain deferred.
 Use bounded public CommonTesting plus the existing native/provider/package
 fixtures, and preserve CountryData's explicit opt-in/database-free default.
 
+## Central Management service and clients
+
+For `CIS.Management`, its independent product application or process/Jobs
+reporting, read the [Management skill](.github/skills/cislib-management/SKILL.md),
+[portable contract](contracts/management/README.md) and
+[module guide](docs/modules/management/README.md). Preserve actual native
+resource/actor authority, whole bounded inventory, original-key/ETag recovery
+and one original Transactions/Operations/Audit commit. Reporting is explicit and
+quiet; signal it before dependency barriers and drain REST before awaiting its
+Heartbeat work. Keep the coordinator independent and both clients' actual
+cleanup owned. Reuse current public/native fixtures; portal UI, configuration
+publication, schedulers and an Audit archive remain separate.
+
 ## Explicit local transactions
 
 For `CIS.Transactions` implementation, consumer use, tests or observations, read

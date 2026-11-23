@@ -1,0 +1,130 @@
+# Select a fresh project name and private inputs before using this explicit local recipe.
+name: ${CIS_MANAGEMENT_COMPOSE_PROJECT:?Select a fresh local management project name}
+
+x-management-image: &management-image
+  image: cislib-management:rm07-local
+  platform: linux/amd64
+  build:
+    context: ../../../../..
+    dockerfile: implementations/csharp/applications/CIS.Management.Service/Dockerfile
+  read_only: true
+  tmpfs:
+    - /tmp:size=64m,mode=1777
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  mem_limit: 512m
+  cpus: 1
+  pids_limit: 128
+  stop_grace_period: 120s
+  restart: "no"
+  logging:
+    driver: json-file
+    options:
+      max-size: 10m
+      max-file: "2"
+  volumes:
+    - type: bind
+      source: ${CIS_MANAGEMENT_SETTINGS_FILE:-./private/settings.json}
+      target: /run/cis/settings.json
+      read_only: true
+      bind:
+        create_host_path: false
+
+services:
+  postgres:
+    # Same immutable PostgreSQL 18 image as the existing native acceptance fixture.
+    image: postgres@sha256:68e33adb18d9962952f00d5e3b8644305e10e375f98dd652bf6ee6a1836314ba
+    platform: linux/amd64
+    environment:
+      POSTGRES_DB: cis_management
+      POSTGRES_USER: cis_management_setup
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_setup_password
+    secrets: [postgres_setup_password]
+    volumes:
+      - management-postgres:/var/lib/postgresql
+    command: [postgres, -c, fsync=on, -c, full_page_writes=on, -c, synchronous_commit=on, -c, max_connections=16, -c, shared_buffers=32MB, -c, max_wal_size=128MB, -c, min_wal_size=32MB]
+    mem_limit: 256m
+    cpus: 1
+    pids_limit: 128
+    stop_grace_period: 60s
+    restart: "no"
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U cis_management_setup -d cis_management]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    networks: [management]
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "2"
+
+  migrate:
+    <<: *management-image
+    profiles: [deployment]
+    env_file: ["${CIS_MANAGEMENT_MIGRATION_ENV_FILE:-./private/migration.env}"]
+    environment:
+      CORE_SERVICE_NAME: CIS.Management.Service
+      CORE_ENVIRONMENT: Development
+      CIS_HEALTHCHECK_PIPE_ENABLED: "false"
+    command: [--migrate, --settings, /run/cis/settings.json]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      disable: true
+    networks: [management]
+
+  topology:
+    <<: *management-image
+    profiles: [deployment]
+    env_file: ["${CIS_MANAGEMENT_TOPOLOGY_ENV_FILE:-./private/topology.env}"]
+    environment:
+      CORE_SERVICE_NAME: CIS.Management.Service
+      CORE_ENVIRONMENT: Development
+      CIS_HEALTHCHECK_PIPE_ENABLED: "false"
+    command: [--install-topology, --settings, /run/cis/settings.json]
+    healthcheck:
+      disable: true
+    networks: [management]
+
+  management:
+    <<: *management-image
+    env_file: ["${CIS_MANAGEMENT_RUNTIME_ENV_FILE:-./private/runtime.env}"]
+    environment:
+      CORE_SERVICE_NAME: CIS.Management.Service
+      CORE_ENVIRONMENT: Development
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports: ["127.0.0.1:7443:7443"]
+    volumes:
+      - type: bind
+        source: ${CIS_MANAGEMENT_SETTINGS_FILE:-./private/settings.json}
+        target: /run/cis/settings.json
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${CIS_MANAGEMENT_PEM_DIRECTORY:-./private/pem}
+        target: /run/cis/pem
+        read_only: true
+        bind:
+          create_host_path: false
+    networks:
+      management:
+        ipv4_address: 172.28.7.10
+
+networks:
+  management:
+    ipam:
+      config:
+        - subnet: 172.28.7.0/24
+
+volumes:
+  management-postgres:
+
+secrets:
+  postgres_setup_password:
+    file: ${CIS_MANAGEMENT_POSTGRES_PASSWORD_FILE:-./private/postgres-setup-password.txt}

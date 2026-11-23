@@ -1,0 +1,129 @@
+{
+  "tasks": [
+    {
+      "title": "Freeze portable management v1 and validated public contracts",
+      "category": "implementation",
+      "complexity": "medium",
+      "scopeIds": [
+        "contracts"
+      ],
+      "dependsOn": [],
+      "assignee": "Codex",
+      "acceptanceCriteria": "AC11 and shared API freeze: one OpenAPI3.1.1/schema/independent fixture set, all12typed requests/results, exact UUID/decimal/timestamp/metadata/ETag/problem/durable facts and actor/resource semantics. Public CSharp wire/model boundaries permit clients without CLR coupling; ordinary source readers preserve additive/unknown responses and strict closed commands.",
+      "validation": "Focused schema/wire and CSharp unit cases: above2^53, precise timestamps, Unicode/no normalization, absent/null/unknown/duplicate/invalid/oversized, status/key/ETag/replay/conflict fixture semantics. Existing schema subset only, no new engine/package; affectedbuild/scopedformat+verify and independent client/service contract review."
+    },
+    {
+      "title": "Deliver independent authenticated service and authorized read APIs",
+      "category": "implementation",
+      "complexity": "medium",
+      "scopeIds": [
+        "service-host"
+      ],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "assignee": "Codex",
+      "acceptanceCriteria": "AC01/02/06: real product CISApplication service, passive single-provider composition, configured native workload/human seams and complete target/resource authorization. Typed routes/service-info/catalog/list/detail/instances/inventory/capabilities use actual stored resources, opaque actor-bound pages, finite admission/body/response bounds and restricted operational listeners.",
+      "validation": "Native host/startup/readiness, real certificate/JWT validation/projection and invalid/unmapped/wrongenv/forged actor coverage; list/page/lookup isolation and known/unknown auth evidence. No header auth evaluator, anonymous business API or new lifecycle framework. Affected existing hosting/dependency behavior, builds and format."
+    },
+    {
+      "title": "Persist sequenced registration, presence and complete inventory",
+      "category": "implementation",
+      "complexity": "medium",
+      "scopeIds": [
+        "management-store"
+      ],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "assignee": "Codex",
+      "acceptanceCriteria": "AC03/04/05/15: application-owned PostgreSQL schema/version/explicit installation, stable exact app identities, immutable bound registration, cross-replica newer/equal/older sequence behavior and DB receipt time, terminal close/purge/re-register, complete per-instance inventory, byte/count capacity and bounded telemetry-only retention.",
+      "validation": "Real shared-DB two-root uniqueness/sequence/capacity/replay tests; rejection preserves previous full snapshot, reported precision and no freshness replay. Hundreds of jobs/multibyte bounds, read reconstruction/restart and schema readiness. Existing realPG/Testcontainers only, no process lock authority or new idempotency store; native build/format/docs."
+    },
+    {
+      "title": "Implement recoverable metadata command with atomic Audit",
+      "category": "implementation",
+      "complexity": "medium",
+      "scopeIds": [
+        "metadata-command"
+      ],
+      "dependsOn": [
+        "WORK-001",
+        "WORK-003"
+      ],
+      "assignee": "Codex",
+      "acceptanceCriteria": "AC07/08/09/10/15: actual-resource/current-actor scoped RM03 command and lookup; strong metadata-only ETag; canonical exact key/input; conditional update, original result and required RM06 Audit staged in original RM02 owner. Matching replay bypasses stale original ETag and repeats neither effect nor success Audit. Preserve original commit/Unknown/Found facts and validated human attribution.",
+      "validation": "Real PG concurrent same-ETag different-key edits, original-key same-input replay/changed conflict, actual commit/lost-response lookup, Audit refusal rollback, independent caller/human/delegation scope and forged headers, result expiry/no reexecution, reconstruction and late-cleanup fact preservation. No foundation coordinator redesign; focused source/build/format/docs/review."
+    },
+    {
+      "title": "Deliver CSharp keyed REST client and public substitutes",
+      "category": "implementation",
+      "complexity": "medium",
+      "scopeIds": [
+        "csharp-client"
+      ],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "assignee": "Codex",
+      "acceptanceCriteria": "AC11/12/15: typed IManagementClient all APIs, real keyed REST/auth owner and one entry deadline including codec decode; original RestResult and safe typed HTTP/problem/durable facts, exact caller key/cancellation. Bounded CommonTesting scripts and safe public observations support outside-friend consumers; no registration from plain read usage.",
+      "validation": "Prefix/origin/option/env, strict/adaptive wire, bounded body, normal failure/security evidence, explicit no-mutation-retry and held cancellation/cleanup tests. Public Core/CommonTesting packageconsumer, key recovery/no fresh rerun and dependency boundaries, affectedbuild/format and concise consumer docs. Real same-service calls are delivery acceptance."
+    },
+    {
+      "title": "Integrate optional registration and actual Jobs inventory lifecycle",
+      "category": "implementation",
+      "complexity": "medium",
+      "scopeIds": [
+        "registration-host",
+        "csharp-client"
+      ],
+      "dependsOn": [
+        "WORK-001",
+        "WORK-005"
+      ],
+      "assignee": "Codex",
+      "acceptanceCriteria": "AC05/14: opt-in direct initial Startup registration and distinct required/optional outage policies; one existing Heartbeat owner/coalesced 30s observation+catalog and5..60s reconnect, bounded current state, trusted Jobs paged projection without handler construction. Preserve sequential credential startup and accepted dependency drain/failed-Build ownership.",
+      "validation": "Controlled public client/Heartbeat tests for initial required/optional deadlines, purged vs conflict/closed reconnect IDs, high transition coalescing, hundreds-of-jobs complete pages, cancellation/held callback actual drain and quiet diagnostics. Actual GenericHost/facade/REST-before-Heartbeat order tests, no new lifecycle/readiness framework or duplicate metrics."
+    },
+    {
+      "title": "Deliver portable TypeScript clients and server-only examples",
+      "category": "implementation",
+      "complexity": "medium",
+      "scopeIds": [
+        "typescript-clients"
+      ],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "assignee": "Codex",
+      "acceptanceCriteria": "AC11/12/13: compiler/lock pinned small client-core and management-client with runtime validation/all12typed methods, per-request credentials, HTTPS prefix/no redirects, finite one deadline/retry/body/cleanup semantics and immutable original operation identity. Browser imports omit Node/React/Next; explicit Node/server-only examples select safe DTOs; Kotlin note derives from protocol alone.",
+      "validation": "Built-in Node conformance/cancellation/held-cleanup/read retry/user-isolation and safe-projection tests, browser TypeScript build with DOM/types:[], package export checks and actual same-service Node HTTP consumer through existing MSTest owner in delivery. No new runner/bundler/framework runtime, global credentials or full TS CISLIB port."
+    },
+    {
+      "title": "Deliver deployable cross-language composition and focused native proof",
+      "category": "implementation",
+      "complexity": "medium",
+      "scopeIds": [
+        "contracts",
+        "service-host",
+        "management-store",
+        "metadata-command",
+        "csharp-client",
+        "registration-host",
+        "typescript-clients",
+        "delivery"
+      ],
+      "dependsOn": [
+        "WORK-002",
+        "WORK-003",
+        "WORK-004",
+        "WORK-005",
+        "WORK-006",
+        "WORK-007"
+      ],
+      "assignee": "Codex",
+      "acceptanceCriteria": "AC01-15 integrated: one explicit migrate/container/local deployment and guides, actual independently built service reconstruction, same authenticated service used by CSharp+TypeScript for reads/metadata/recovery, real PG originals/atomic Audit and selected Rabbit delivery. Public package/CommonTesting consumers, module skill/routing and accurate current evidence close the handoffs.",
+      "validation": "Existing strict Testcontainers fixtures, real native TLS/JWT and operator isolation, two replicas/old-ETag concurrency/lost response/restart/outages/cancellation/cleanup, zero skipped required cases. Relevant source/package/dependency/default/Ubuntu-managed checks, no broad unchanged module qualification or new harness. Independent review explicitly rejects responsibility/tooling expansion; only acceptance-demonstrated fixes within these approved scopes, preserve costs/hashes/limits."
+    }
+  ]
+}

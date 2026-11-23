@@ -4,6 +4,7 @@ using CIS.Metrics;
 using CIS.Messaging;
 using CIS.Startup.Hosting;
 using CIS.Coordination.Hosting;
+using CIS.Management.Hosting;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -20,6 +21,7 @@ internal sealed class RestHostedService(IRestClientRuntime runtime, IServiceProv
     private readonly MessagingRuntime? messaging = root.GetService<MessagingRuntime>();
     private readonly CoordinationHostLifetime? coordination = root.GetService<CoordinationHostLifetime>();
     private readonly AuditRuntime? audit = root.GetService<AuditRuntime>();
+    private readonly ManagementRegistrationLifetime? management = root.GetService<ManagementRegistrationLifetime>();
     private CancellationTokenRegistration stopping;
     private CancellationTokenRegistration startupStopping;
     private CancellationTokenRegistration dependencyStopping;
@@ -48,6 +50,7 @@ internal sealed class RestHostedService(IRestClientRuntime runtime, IServiceProv
 
     private void BeginStopping()
     {
+        management?.BeginStopping();
         if (audit is not null && !audit.IsDrained)
         {
             audit.BeginStopping();
@@ -69,6 +72,7 @@ internal sealed class RestHostedService(IRestClientRuntime runtime, IServiceProv
     }
     private async Task StopCoreAsync()
     {
+        management?.BeginStopping();
         Exception? coordinationFailure = await AuditRuntime.CaptureStopAsync(audit, coordination).ConfigureAwait(false);
         BeginStopping();
         Task messagingDrain = messaging?.StopAsync() ?? Task.CompletedTask;
@@ -80,7 +84,17 @@ internal sealed class RestHostedService(IRestClientRuntime runtime, IServiceProv
         {
             // The original fault remains joined below; it cannot skip REST or Metrics cleanup.
         }
-        await Task.WhenAll(messagingDrain, runtime.StopAsync(), metrics?.StopAsync() ?? Task.CompletedTask,
+        Task restDrain = runtime.StopAsync();
+        try
+        {
+            await restDrain.ConfigureAwait(false);
+        }
+        catch (Exception)
+        {
+            // A settled REST fault does not skip actual reporting cleanup.
+        }
+        await Task.WhenAll(messagingDrain, restDrain, management?.StopAsync() ?? Task.CompletedTask,
+            metrics?.StopAsync() ?? Task.CompletedTask,
             coordinationFailure is null ? Task.CompletedTask : Task.FromException(coordinationFailure)).ConfigureAwait(false);
     }
     public async ValueTask DisposeAsync()

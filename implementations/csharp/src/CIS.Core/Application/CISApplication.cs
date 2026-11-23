@@ -373,6 +373,11 @@ public sealed class CISApplication : IAsyncDisposable
                 await CaptureAsync(rest.StopAsync, errors).ConfigureAwait(false);
             }
 
+            if (composition.Management is { } management)
+            {
+                await CaptureAsync(management.StopAsync, errors).ConfigureAwait(false);
+            }
+
             if (composition.Metrics is { } metrics)
             {
                 await CaptureAsync(metrics.StopAsync, errors).ConfigureAwait(false);
@@ -558,6 +563,15 @@ public sealed class CISApplication : IAsyncDisposable
 
     private void CloseModuleAdmission(List<Exception> errors)
     {
+        try
+        {
+            // Signal the reporter before dependency barriers, without joining a callback that may still need REST cancellation.
+            composition.Management?.BeginStopping();
+        }
+        catch (Exception exception)
+        {
+            errors.Add(exception);
+        }
         if (composition.Coordination is { IsDrained: false } coordination)
         {
             try
