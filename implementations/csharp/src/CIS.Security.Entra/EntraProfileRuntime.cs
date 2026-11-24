@@ -26,6 +26,8 @@ internal sealed class EntraProfileRuntime : IAsyncDisposable, ISecurityCredentia
     private readonly IHeartbeatOwnerFactory? heartbeat;
     private readonly ILogger<EntraProfileRuntime>? logger;
     private readonly Func<WorkloadIdentityCredential>? borrowedCredential;
+    private readonly bool bootstrap;
+    private readonly Action? beforeActivation;
     private readonly CancellationTokenSource stopping = new();
     private readonly SemaphoreSlim acquisitionGate = new(1, 1);
     private readonly TaskCompletionSource cutoffSettled = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -56,7 +58,7 @@ internal sealed class EntraProfileRuntime : IAsyncDisposable, ISecurityCredentia
     internal EntraProfileRuntime(EntraOptionsSnapshot options, ISecurityProfileStatusReporter reporter,
         TimeProvider clock, IHealthMonitorFactory? health, IHeartbeatOwnerFactory? heartbeat, ILogger<EntraProfileRuntime>? logger,
         IHostApplicationLifetime? lifetime, Func<WorkloadIdentityCredential>? borrowedCredential,
-        CoordinationHostLifetime? coordination = null)
+        CoordinationHostLifetime? coordination = null, bool bootstrap = false, Action? beforeActivation = null)
     {
         this.options = options;
         this.reporter = reporter;
@@ -66,6 +68,8 @@ internal sealed class EntraProfileRuntime : IAsyncDisposable, ISecurityCredentia
         this.logger = logger;
         this.borrowedCredential = borrowedCredential;
         this.coordination = coordination;
+        this.bootstrap = bootstrap;
+        this.beforeActivation = beforeActivation;
         CancellationToken cutoff = coordination?.DependencyStopping ?? lifetime?.ApplicationStopping ?? default;
         stopRegistration = cutoff.Register(BeginStopping);
     }
@@ -123,7 +127,8 @@ internal sealed class EntraProfileRuntime : IAsyncDisposable, ISecurityCredentia
             lock (gate)
             {
                 stopping.Token.ThrowIfCancellationRequested();
-                if (options.Profile.RequiredForReadiness)
+                beforeActivation?.Invoke();
+                if (options.Profile.RequiredForReadiness && !bootstrap)
                 {
                     monitor = (health ?? throw new InvalidOperationException("A readiness-required Entra profile needs the host Healthcheck integration."))
                         .CreateCondition(new ConditionMonitorOptions { Name = "Security: " + Profile, IsCritical = true, InitiallyFlagged = true });
@@ -142,7 +147,7 @@ internal sealed class EntraProfileRuntime : IAsyncDisposable, ISecurityCredentia
                 if ((options.Profile.Roles & SecurityProfileRoles.Outbound) != 0)
                 {
                     credential = borrowedCredential is not null ? borrowedCredential()
-                        : new WorkloadIdentityCredential(CreateCredentialOptions());
+                        : new WorkloadIdentityCredential(CreateCredentialOptions(options));
                     if (credential is null)
                     {
                         throw new InvalidOperationException("The borrowed workload credential factory returned null.");
@@ -158,7 +163,7 @@ internal sealed class EntraProfileRuntime : IAsyncDisposable, ISecurityCredentia
             else
             {
                 Publish(SecurityProfileAvailability.Unavailable, Unavailable("Workload acquisition has not yet established a usable credential."));
-                if (options.Profile.RequiredForReadiness)
+                if (options.Profile.RequiredForReadiness && !bootstrap)
                 {
                     // Required warmup uses existing sequential Startup and its cancellation budget.
                     _ = await AcquireAsync(cancellationToken).ConfigureAwait(false);
@@ -172,7 +177,7 @@ internal sealed class EntraProfileRuntime : IAsyncDisposable, ISecurityCredentia
         }
     }
 
-    private WorkloadIdentityCredentialOptions CreateCredentialOptions()
+    internal static WorkloadIdentityCredentialOptions CreateCredentialOptions(EntraOptionsSnapshot options)
     {
         var native = new WorkloadIdentityCredentialOptions
         {
@@ -190,6 +195,9 @@ internal sealed class EntraProfileRuntime : IAsyncDisposable, ISecurityCredentia
         }
         return native;
     }
+
+    internal async Task<SecurityFailure?> CheckPreparedCredentialAsync(CancellationToken cancellationToken)
+        => (await AcquireAsync(cancellationToken).ConfigureAwait(false)).Failure;
 
     internal async Task AuthenticateAsync(RestAuthenticationContext context, CancellationToken cancellationToken)
     {

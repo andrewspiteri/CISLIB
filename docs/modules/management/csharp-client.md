@@ -6,6 +6,10 @@ status: Draft
 
 # C# management client
 
+For the separate RM-08 publication, snapshot and adoption port, see the
+[configuration client and retained-root store](configuration-client.md).
+Ordinary metadata client behavior and limits remain unchanged.
+
 `CIS.Management` supplies the typed v1 APIs in the existing Core package.
 It borrows the application's selected keyed REST client. Reading applications
 does not register this process or start Heartbeat. The optional reporting

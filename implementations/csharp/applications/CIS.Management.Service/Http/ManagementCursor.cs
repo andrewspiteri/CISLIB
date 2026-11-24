@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text;
 using CIS.Management.Wire;
 using CIS.Management.Service.Backends;
+using CIS.Management.Service.Persistence;
 
 namespace CIS.Management.Service.Http;
 
@@ -11,14 +12,32 @@ internal sealed class ManagementCursor(ManagementServiceOptions options, Func<Ma
     private readonly byte[] key = options.CopyCursorSigningKey();
 
     internal string Encode(string endpoint, string actor, int size, string last)
+        => EncodeCore(endpoint, actor, size, last, configurationAdoption: false);
+
+    internal string EncodeConfigurationAdoption(string endpoint, string actor, int size, string last)
+    {
+        if (!IsAdoptionPosition(last))
+        {
+            throw new ArgumentException("Use the exact configuration adoption page position.", nameof(last));
+        }
+        return EncodeCore(endpoint, actor, size, last, configurationAdoption: true);
+    }
+
+    private string EncodeCore(string endpoint, string actor, int size, string last, bool configurationAdoption)
     {
         ManagementAuthoritySnapshot authority = currentAuthority();
         byte[] payload = JsonSerializer.SerializeToUtf8Bytes(new CursorPayload(2, NamespaceStamp(authority.NamespaceName), authority.AuthorityId,
-            authority.RecoveryEpoch, endpoint, actor, size, "uuid-ordinal", last));
+            authority.RecoveryEpoch, endpoint, actor, size, configurationAdoption ? "configuration-adoption-ordinal" : "uuid-ordinal", last));
         return EncodeBase64(payload) + "." + EncodeBase64(HMACSHA256.HashData(key, payload));
     }
 
     internal bool TryDecode(string? value, string endpoint, string actor, int size, out string? after)
+        => TryDecodeCore(value, endpoint, actor, size, configurationAdoption: false, out after);
+
+    internal bool TryDecodeConfigurationAdoption(string? value, string endpoint, string actor, int size, out string? after)
+        => TryDecodeCore(value, endpoint, actor, size, configurationAdoption: true, out after);
+
+    private bool TryDecodeCore(string? value, string endpoint, string actor, int size, bool configurationAdoption, out string? after)
     {
         after = null;
         if (value is null)
@@ -47,7 +66,8 @@ internal sealed class ManagementCursor(ManagementServiceOptions options, Func<Ma
             if (cursor is null || cursor.Version != 2 || cursor.NamespaceName != NamespaceStamp(authority.NamespaceName)
                 || cursor.AuthorityId != authority.AuthorityId || cursor.RecoveryEpoch != authority.RecoveryEpoch
                 || cursor.Endpoint != endpoint || cursor.Actor != actor
-                || cursor.Size != size || cursor.Order != "uuid-ordinal" || !ManagementWire.IsUuid(cursor.Last))
+                || cursor.Size != size || cursor.Order != (configurationAdoption ? "configuration-adoption-ordinal" : "uuid-ordinal")
+                || !(configurationAdoption ? IsAdoptionPosition(cursor.Last) : ManagementWire.IsUuid(cursor.Last)))
             {
                 return false;
             }
@@ -61,6 +81,19 @@ internal sealed class ManagementCursor(ManagementServiceOptions options, Func<Ma
     }
 
     public void Dispose() => CryptographicOperations.ZeroMemory(key);
+
+    private static bool IsAdoptionPosition(string value)
+    {
+        if (value is null || value.Length > 1024)
+        {
+            return false;
+        }
+        string[] parts = value.Split('/');
+        return parts.Length == 4 && PostgreSqlManagementStore.SnapshotPortableId(parts[0])
+            && ManagementWire.IsOrderedInteger(parts[1])
+            && (parts[2].Length == 0 || PostgreSqlManagementStore.SnapshotPortableId(parts[2]))
+            && (parts[3].Length == 0 || ManagementWire.IsUuid(parts[3]));
+    }
 
     private static string NamespaceStamp(string value) => Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
 

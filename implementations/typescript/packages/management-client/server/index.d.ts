@@ -1,6 +1,6 @@
 import type { ClientTransport } from "@cislib/client-core";
-import { ManagementClient } from "../dist/index.js";
-import type { ManagementClientOptions } from "../dist/index.js";
+import { ManagementClient, ManagementConfigurationClient } from "../dist/index.js";
+import type { ManagementClientOptions, ManagementConfigurationClientOptions } from "../dist/index.js";
 
 /** Native TLS validation stays enabled. No accepting validation callback is supported. */
 export interface NodeHttpsTransportOptions {
@@ -18,3 +18,8 @@ export interface NodeManagementClientOptions extends Omit<ManagementClientOption
 }
 export function createNodeHttpsTransport(options: NodeHttpsTransportOptions): ClientTransport;
 export function createNodeManagementClient(options: NodeManagementClientOptions): ManagementClient;
+export interface NodeManagementConfigurationClientOptions extends Omit<ManagementConfigurationClientOptions, "baseUrl"> {
+  readonly baseUrl?: string;
+  readonly ca?: string | Uint8Array;
+}
+export function createNodeManagementConfigurationClient(options: NodeManagementConfigurationClientOptions): ManagementConfigurationClient;

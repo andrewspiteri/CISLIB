@@ -12,6 +12,21 @@ later work. Gate closure has no revocation token and does not cancel a callback
 already admitted with its immutable settings, valid credentials, lease and
 deadline. Owning modules retain configuration adoption and transaction cleanup.
 
+Starting a control renewal also checks the previous confirmed authority window
+before replacing its state with `Reconciling`. A scheduling pause therefore
+detects expiry or an untrusted clock gap even when no admission, status or health
+query ran first, including a gate closed only by reporting refusal. That gap is
+published before the new control-attempt observation and requires Configuration's
+existing authoritative reconciliation epoch. Successful control cannot reopen
+work while that read is incomplete. Repeated attempts share the same old-window
+gap; only a newly completed ready confirmation resets that recognition. Healthy
+renewals do not create epochs or force another configuration sweep. Reporting
+refusal retains the clock sample needed for this check; explicit host
+`Invalidate()` keeps its existing gap and revalidation behavior.
+When another prerequisite also refuses, an observed untrusted clock or expired
+window takes precedence so that consuming the clock sample cannot erase the
+required Configuration gap.
+
 The existing [Jobs adapter](../coordination/managed-admission.md) checks new duty
 acquisition, scheduled occurrences and each continuous iteration. Existing lease
 renewals and fencing keep their original rules. A lost duty cannot be reacquired

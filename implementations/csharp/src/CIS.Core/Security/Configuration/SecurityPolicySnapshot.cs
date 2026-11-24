@@ -154,6 +154,12 @@ public sealed class SecurityPolicySnapshot
         return capabilities.Contains(capability);
     }
 
+    /// <summary>Captures validated immutable independent bootstrap policy without acquiring credentials or creating a provider.</summary>
+    /// <remarks>Register this exact snapshot with AddCisSecurity when adopting native preparations into the final host.
+    /// Outgoing profiles still require the already established canonical local application/environment identity.</remarks>
+    public static SecurityPolicySnapshot Create(SecurityOptions options, int profileCapacity = 16)
+        => Capture(options, profileCapacity);
+
     internal static SecurityPolicySnapshot Capture(SecurityOptions options, int profileCapacity) => new(options, profileCapacity);
     internal static string PolicyName(string profile) => "cis.security." + SecurityText.Alias(profile, nameof(profile));
 

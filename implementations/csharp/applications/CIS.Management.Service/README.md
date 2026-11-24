@@ -9,6 +9,13 @@ Linux image, external dependencies, secret/trust references and separate
 migration/topology commands. The [module guide](../../../../docs/modules/management/README.md)
 links both clients and optional process reporting.
 
+For selected RM-08 publication, supply `Configuration.ManifestFile` as an absolute
+trusted deployment file and an explicit `Configuration.QuotaBytes`, then use the
+authenticated catalog GET/apply workflow. Migration seeds an empty catalog; it
+does not apply that file. The [configuration service recipe](../../../../docs/modules/management/configuration-service.md)
+describes the manifest, source discovery, native capabilities and original-key
+publication/recovery without exposing defaults through metadata-only grants.
+
 The service uses one native provider and sequential Startup. Registration and
 constructors perform no database, broker or credential I/O. Server certificate
 preparation and read-only schema checks finish before readiness and listeners.

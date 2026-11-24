@@ -1,6 +1,7 @@
 using CIS.Management.Service.Security;
 using CIS.Management.Service.Metadata;
 using CIS.Management.Service.Backends;
+using CIS.Management.Service.Configuration;
 
 namespace CIS.Management.Service;
 
@@ -43,7 +44,8 @@ internal static class Program
             options = new(connection, cursorKey, basePath: configuration["BasePath"] ?? "",
                 delivery: migrate ? null
                     : ManagementDeliveryOptions.FromConfiguration(configuration.GetSection("Delivery")),
-                backend: ManagementBackendOptions.FromConfiguration(configuration.GetSection("Backend")));
+                backend: ManagementBackendOptions.FromConfiguration(configuration.GetSection("Backend")),
+                configuration: ManagementConfigurationOptions.FromConfiguration(configuration.GetSection("Configuration")));
         }
         finally
         {

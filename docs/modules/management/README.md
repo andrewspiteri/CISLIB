@@ -1,17 +1,19 @@
 # Central Management
 
-RM-07 supplies a separately deployed management service and typed C# and
-TypeScript clients. The service stores admitted application identities,
-registration/presence and complete inventory snapshots, and implements one
-administrative command: replace application display metadata. CountryData
-remains the maintained tutorial application; this service is a product with its
-own deployment, database and operational ownership.
+The separately deployed Management service supplies typed C# and TypeScript
+clients, admitted application identities, registration/presence, complete
+inventory and guarded display metadata. RM-08 adds trusted configuration catalog
+provisioning, immutable publication/releases, explicit assignment and adoption
+over the same authority and durable store. CountryData remains the maintained
+tutorial application; this service is a product with its own deployment,
+database and operational ownership.
 
 Start with the [portable v1 contract](../../../contracts/management/v1/README.md)
 and its checked-in [OpenAPI](../../../contracts/management/v1/openapi.json) and
 [schema](../../../contracts/management/v1/contract.schema.json). They define the
-thirteen installed APIs, finite wire limits, exact identities, decimal revision
-and sequence strings, closed requests and compatible response additions.
+thirteen foundation APIs and nineteen configuration APIs, finite wire limits,
+exact identities, decimal revision/sequence strings, closed requests and
+compatible response additions.
 
 - [Product service](../../../implementations/csharp/applications/CIS.Management.Service/README.md):
   actual `CISApplication` composition, trusted bootstrap, security/listeners,
@@ -25,6 +27,31 @@ and sequence strings, closed requests and compatible response additions.
 - [Metadata command and recovery](../../../implementations/csharp/applications/CIS.Management.Service/Metadata/README.md):
   original-context Transactions/Operations/Audit integration, ETag concurrency,
   required Audit staging and original-key result recovery.
+- [Configuration contract](configuration-contract.md): exact source-scoped
+  discovery, versions, integrity, explicit absence and finite portable APIs.
+- [Configuration service recipe](configuration-service.md): explicit trusted
+  `Configuration.ManifestFile`/`QuotaBytes`, authenticated catalog apply, source
+  discovery, immutable publication and original-key recovery. Discovery advertises
+  only the selected, initialized handlers actually implemented by the backend.
+- [Configuration distribution](configuration-distribution.md): immutable coherent
+  releases, explicit whole-map promotion/rollback, scoped preview, original-key
+  recovery and authoritative self snapshots/conditional reads.
+- [Configuration retention](configuration-retention.md): shared logical quota,
+  protected references and bounded release/publication history on the existing
+  maintenance owner, independent of original result and Audit retention.
+- [Configuration adoption](configuration-adoption.md): separately sequenced
+  complete reporting, current-assignment convergence and independent freshness
+  on the existing reporting and persistence owners.
+- [Central root acceptance](../configuration/central-snapshots.md) and
+  [C# configuration client/store](configuration-client.md): explicit local
+  enrollment, strict whole-pair reads, provenance, synchronized retained-root
+  acceptance and locally selected HotReload/RestartRequired behavior.
+- [Same-session facade bootstrap](../application/core.md#preparation-and-readiness):
+  native credential preparation, pre-constructor loading, final provider
+  activation, live control and actual failed-Build/stop cleanup.
+- [CountryData configuration recipe](countrydata-configuration.md): the existing
+  CountrySettings opt-in, common/application publication, staged restart,
+  rejection and controlled rollback; the default tutorial stays unmanaged.
 - [C# consumer guide](csharp-client.md) and
   [typed client](../../../implementations/csharp/src/CIS.Core/Management/Client/ManagementClient.cs):
   existing REST/security ownership, typed outcomes and bounded CommonTesting
@@ -36,6 +63,8 @@ and sequence strings, closed requests and compatible response additions.
 - [TypeScript workspace](../../../implementations/typescript/README.md) and
   [management package](../../../implementations/typescript/packages/management-client/README.md):
   portable ES modules, per-call credentials and explicit server-only adapters.
+- [TypeScript configuration client](typescript.md): matching portable contracts,
+  awaited native integrity, scoped conditional reads and actual transport results.
 
 Validated native credentials and trusted server mappings establish identity.
 Current grants authorize the management service's actual application/environment
@@ -47,10 +76,19 @@ Validated operator/delegation identity remains distinct from workload identity.
 The product owns its data source, schemas and sole transaction completion.
 Module constructors and registration remain passive, and existing Startup stays
 sequential. Presence/inventory retention is disposable telemetry policy;
-metadata operation duplicate protection belongs to the existing durable journal.
-The original metadata effect, native decision and required outgoing Audit commit
-in one original transaction. The existing Messaging runtime owns broker delivery;
-Central Management supplies no destination Audit archive or new delivery queue.
+metadata and configuration operation duplicate protection belong to the existing
+durable journal. Original effects, native decisions and required outgoing Audit
+commit in one original transaction. Configuration retention protects current and
+pinned references; deleting eligible content does not erase original decisions.
+The existing Messaging runtime owns broker delivery; Central Management supplies
+no destination Audit archive or new delivery queue.
+
+An immutable publication identifies source bytes; a release pins the exact pair;
+an assignment generation identifies a new controlled map decision. A root's
+local revision starts at zero and advances only for accepted effective changes.
+New central provenance can therefore be accepted without changing that revision.
+Adoption compares those actual facts against the current target while keeping
+freshness and historical success separate.
 
 Keep the HTTP exchange, business decision, original persistence and current
 attempt cleanup separate. A prepared mutation needs known commit before success.

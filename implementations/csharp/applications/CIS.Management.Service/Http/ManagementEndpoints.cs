@@ -85,8 +85,8 @@ internal static partial class ManagementEndpoints
         });
 
         RouteGroupBuilder group = web.MapGroup(prefix.Value!);
-        group.MapGet("/service-info", (IManagementBackend backend) => ManagementHttp.Json(new ManagementServiceInfo(
-            EnvironmentOptions.ServiceVersion, [1], Features)
+        group.MapGet("/service-info", async (HttpContext context, IManagementBackend backend, IManagementConfigurationBackend configuration) => ManagementHttp.Json(new ManagementServiceInfo(
+            EnvironmentOptions.ServiceVersion, [1], Array.AsReadOnly(Features.Concat(await ConfigurationFeatures(configuration, context.RequestAborted)).ToArray()))
         {
             MaximumInventoryRequestBytes = backend.MaximumInventoryRequestBytes
         }, limits: backend.WireLimits));
@@ -101,6 +101,7 @@ internal static partial class ManagementEndpoints
         group.MapGet("/applications/{applicationId}/inventory", Inventories);
         group.MapGet("/applications/{applicationId}/capabilities", Capabilities);
         MapMetadata(group);
+        MapConfiguration(group, options);
     }
 
     private static async Task<IResult> Control(HttpContext context, string registrationId, IManagementBackend store)
@@ -357,7 +358,11 @@ internal static partial class ManagementEndpoints
             }
             hints.Add(new(feature.OperationId, allowed));
         }
-        return ManagementHttp.Json(new ManagementCapabilities(applicationId, Features, hints.AsReadOnly()), limits: store.WireLimits);
+        IReadOnlyList<ManagementFeature> configuration = await ConfigurationFeatures(
+            context.RequestServices.GetRequiredService<IManagementConfigurationBackend>(), context.RequestAborted);
+        // Source-scoped hints require a discovered actual source; application grants cannot synthesize them.
+        return ManagementHttp.Json(new ManagementCapabilities(applicationId, Array.AsReadOnly(Features.Concat(configuration).ToArray()),
+            hints.AsReadOnly()), limits: store.WireLimits);
     }
 
     static partial void MapMetadata(RouteGroupBuilder group);

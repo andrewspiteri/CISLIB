@@ -72,11 +72,20 @@ export async function executeRequest<T, TProblem>(options: ExecuteRequestOptions
   };
   try {
     aborted();
-    const prepared = options.prepare(controller.signal);
+    const prepared = await options.prepare(controller.signal);
+    aborted();
     if (!Number.isSafeInteger(prepared.maximumResponseBytes) || prepared.maximumResponseBytes < 1 || prepared.maximumResponseBytes > 33554432) {
       throw new RangeError("Select a response byte bound of at most 32 MiB.");
     }
     method = prepared.method;
+    if (prepared.mutating !== undefined && typeof prepared.mutating !== "boolean"
+      || prepared.allowNotModified !== undefined && typeof prepared.allowNotModified !== "boolean") {
+      throw new TypeError("Explicit request effects and conditional response selection must be booleans.");
+    }
+    if (prepared.allowNotModified === true && (method !== "GET"
+      || !Object.entries(prepared.headers).some(([name, value]) => name.toLowerCase() === "if-none-match" && value.length > 0))) {
+      throw new TypeError("A 304 selection requires a typed conditional GET.");
+    }
     const destination = new URL(prepared.url);
     if (destination.protocol !== "https:" || destination.username !== "" || destination.password !== "") {
       throw new TypeError("The typed endpoint must use HTTPS without URI credentials.");
@@ -93,13 +102,14 @@ export async function executeRequest<T, TProblem>(options: ExecuteRequestOptions
       let failed = false;
       const attemptStarted = performance.now();
       attempts++;
-      sentMutation ||= method !== "GET";
+      sentMutation ||= prepared.mutating ?? (method !== "GET");
       try {
         response = await options.transport.send({ ...prepared, authentication, signal: controller.signal });
         status = response.status;
         aborted();
         const final = new URL(response.url);
         if (response.redirected || response.status >= 300 && response.status < 400
+            && !(response.status === 304 && prepared.allowNotModified === true && method === "GET")
           || final.origin !== destination.origin || final.pathname !== destination.pathname || final.search !== destination.search) {
           throw new ClientProtocolFailure("http.redirect_blocked");
         }
@@ -108,10 +118,15 @@ export async function executeRequest<T, TProblem>(options: ExecuteRequestOptions
         }
         const bytes = await readBody(response, prepared, controller.signal);
         aborted();
-        decoded = options.decode(response, bytes);
+        decoded = await options.decode(response, bytes, controller.signal);
         aborted();
       } catch (error) {
+        // Expected decode rejection cannot outrank the operation's owned cutoff
+        // while asynchronous integrity work settles. Programming faults remain original.
         primary = error;
+        if (error instanceof ClientProtocolFailure) {
+          try { aborted(); } catch (cutoff) { primary = cutoff; }
+        }
         failed = true;
       } finally {
         if (response !== undefined) {

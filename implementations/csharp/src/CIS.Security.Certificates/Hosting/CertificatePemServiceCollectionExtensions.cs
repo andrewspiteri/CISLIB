@@ -4,6 +4,7 @@ using CIS.RestClient.Http;
 using CIS.Startup;
 using Microsoft.AspNetCore.Server.Kestrel.Https;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace CIS.Security.Certificates.Hosting;
 
@@ -16,6 +17,26 @@ public static class CertificatePemServiceCollectionExtensions
     public static IServiceCollection AddCisCertificatePemSecurity(this IServiceCollection services, string profile,
         Func<IServiceProvider, CertificatePemSecurityOptions> optionsFactory, string? authenticationScheme = null,
         Func<IServiceProvider, RestHttpNativeKeyScope>? borrowedNativeKeys = null)
+        => Register(services, profile, optionsFactory, authenticationScheme, borrowedNativeKeys, null);
+
+    /// <summary>Adopts settled pre-provider trust/binding into the ordinary native certificate runtime.</summary>
+    /// <remarks>Register the exact preparation.Policy with AddCisSecurity and retire borrowing bootstrap clients/transport
+    /// before sequential Startup activates it. Startup acquires fresh current leaf material into the final metered transport;
+    /// only that runtime's existing Heartbeat renews it. The preparation remains owned through failed Build cleanup.</remarks>
+    public static IServiceCollection AddCisCertificatePemSecurity(this IServiceCollection services,
+        CertificatePemBootstrapPreparation preparation, string? authenticationScheme = null)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(preparation);
+        SecurityProfile selected = preparation.Policy.GetProfile(preparation.Profile);
+        string? scheme = authenticationScheme ?? selected.AuthenticationScheme;
+        services.TryAddSingleton<TimeProvider>(preparation.TimeProvider);
+        return Register(services, preparation.Profile, _ => preparation.Options, scheme, null, preparation);
+    }
+
+    private static IServiceCollection Register(IServiceCollection services, string profile,
+        Func<IServiceProvider, CertificatePemSecurityOptions> optionsFactory, string? authenticationScheme,
+        Func<IServiceProvider, RestHttpNativeKeyScope>? borrowedNativeKeys, CertificatePemBootstrapPreparation? preparation)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(optionsFactory);
@@ -29,8 +50,19 @@ public static class CertificatePemServiceCollectionExtensions
         CertificateProfileAvailability.Register(services, alias);
         services.AddMetrics();
         services.AddSingleton(new CertificatePemRegistration(alias));
+        if (preparation is not null)
+        {
+            // A factory records actual container ownership; ImplementationInstance alone is externally owned.
+            services.AddKeyedSingleton<CertificatePemBootstrapPreparation>(alias, (provider, _) =>
+            {
+                // Reject another provider before it can acquire disposal ownership of this instance.
+                preparation.ClaimProvider(provider, provider.GetRequiredService<SecurityPolicySnapshot>());
+                return preparation;
+            });
+        }
         services.AddKeyedSingleton<CertificatePemRuntime>(alias,
-            (provider, _) => new(provider, alias, authenticationScheme, optionsFactory, borrowedNativeKeys));
+            (provider, _) => new(provider, alias, authenticationScheme, optionsFactory, borrowedNativeKeys,
+                preparation is null ? null : provider.GetRequiredKeyedService<CertificatePemBootstrapPreparation>(alias)));
         services.AddKeyedSingleton<ISecurityCredentialControl>(alias, (provider, _) =>
             new CertificatePemControl(provider.GetRequiredKeyedService<CertificatePemRuntime>(alias)));
         if (!services.Any(descriptor => descriptor.ServiceType == typeof(IStartable)

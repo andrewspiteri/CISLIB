@@ -202,6 +202,12 @@ presence expires normally. A remote close is never a prerequisite for local
 teardown or evidence that all business callbacks physically stopped. Always stop
 the host/application before disposing its provider and borrowed dependencies.
 
+Selected central Configuration adds a [complete adoption stream](configuration-adoption.md)
+on this same reporting owner and interval. It has independent sequence and receipt
+freshness, one uncertain capture, and the same actual cancellation/drain barrier.
+Its per-root acceptance facts contain no values or checksums; reporting does not
+renew authoritative control or registration presence.
+
 `ScriptedManagementObservationSource` and `ScriptedManagementInventorySource`
 join the existing bounded `ScriptedManagementClient`, `ManualHeartbeat`,
 `ManualTimeProvider` and recording monitors in CommonTesting. The client's

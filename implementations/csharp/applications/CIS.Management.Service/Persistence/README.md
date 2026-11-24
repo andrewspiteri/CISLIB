@@ -82,6 +82,17 @@ telemetry and releases its capacity; stable application metadata and Operations
 duplicate/result protection remain. No leader, permanent presence tombstone or
 Audit destination store is introduced.
 
+The version-three configuration catalog shares one logical content/metadata
+quota. The same bounded cleanup allowance now also removes eligible releases
+and orphan publications after expired registrations. Current default/cohort
+references and explicit pins protect releases; all retained releases protect
+their publications. The applied deployment's N retains the newest N eligible
+unreferenced releases per binding and N eligible orphan publications per source.
+Exact deleted session/adoption/content charges are subtracted under the original
+capacity → catalog → row locks in the same native commit. Stable schema/source
+metadata, required outgoing Audit and operation duplicate/result protection are
+independent. See the [retention guide](../../../../../docs/modules/management/configuration-retention.md).
+
 Provider cases in the existing IntegrationTests Management directory reuse owned
 PostgreSQL Testcontainers, real durability, two independent RM-02 roots and the
 existing native commit-boundary seam. Their authored source alone is not passing

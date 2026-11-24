@@ -16,6 +16,7 @@ using CIS.Management.Service;
 using CIS.Management.Service.Persistence;
 using CIS.Management.Service.Metadata;
 using CIS.Management.Service.Backends;
+using CIS.Management.Service.Configuration;
 using CIS.Management.Service.Security;
 using CIS.Messaging.RabbitMQ;
 using CIS.Metrics.OpenTelemetry;
@@ -83,7 +84,8 @@ internal sealed class ManagementHostFixture : IAsyncDisposable
     }
 
     internal static async Task<ManagementHostFixture> CreateAsync(int replicas = 2, bool start = true,
-        long maximumRetainedEnvelopeBytes = 64L * 1024 * 1024, ManagementBackendOptions? backendOptions = null)
+        long maximumRetainedEnvelopeBytes = 64L * 1024 * 1024, ManagementBackendOptions? backendOptions = null,
+        ManagementConfigurationOptions? configuration = null)
     {
         var fixture = new ManagementHostFixture();
         try
@@ -118,7 +120,8 @@ internal sealed class ManagementHostFixture : IAsyncDisposable
             fixture.Options = new(database.CreateConnectionString(4), RandomNumberGenerator.GetBytes(32),
                 new("rm07_" + suffix), basePath: "/platform", operationsSchema: "rm07_op_" + suffix,
                 messagingSchema: "rm07_msg_" + suffix, delivery: delivery,
-                backend: backendOptions ?? new(mode: replicas > 1 ? ManagementDeploymentMode.Shared : ManagementDeploymentMode.Standalone));
+                backend: backendOptions ?? new(mode: replicas > 1 ? ManagementDeploymentMode.Shared : ManagementDeploymentMode.Standalone),
+                configuration: configuration);
             var services = new ServiceCollection();
             services.AddCisAdoNetDatabase("management", _ => fixture.Source, new()
             {
@@ -163,9 +166,9 @@ internal sealed class ManagementHostFixture : IAsyncDisposable
 
     internal async Task StartReplicaAsync(Func<ManagementSecurityOptions, ManagementSecurityOptions>? selectSecurity = null,
         string? hostEnvironment = null, Action<CISApplicationBuilder>? configure = null,
-        ManagementServiceOptions? serviceOptions = null)
+        ManagementServiceOptions? serviceOptions = null, int? requestedBusinessPort = null)
     {
-        using var business = new TcpListener(IPAddress.Loopback, 0);
+        using var business = new TcpListener(IPAddress.Loopback, requestedBusinessPort ?? 0);
         using var operational = new TcpListener(IPAddress.Loopback, 0);
         business.Start();
         operational.Start();
@@ -344,6 +347,30 @@ internal sealed class ManagementHostFixture : IAsyncDisposable
                 grants.Add(new(Profile, capability, EnvironmentOptions.ApplicationName, EnvironmentOptions.EnvironmentName,
                     subject: new(Issuer, subject), resourceSelection: CapabilityResourceSelection.ExactResource,
                     resourceType: "management.application", resourceIdentifier: application));
+            }
+        }
+        if (Options.Configuration is not null)
+        {
+            grants.Add(new(Profile, ManagementConfigurationCapabilities.AdoptionRead, EnvironmentOptions.ApplicationName,
+                EnvironmentOptions.EnvironmentName, subject: new(Issuer, "operator-a"),
+                resourceSelection: CapabilityResourceSelection.ExactResource, resourceType: "management.application", resourceIdentifier: ApplicationA));
+            foreach (string capability in ManagementConfigurationCapabilities.All)
+            {
+                foreach (string type in new[] { ManagementConfigurationCapabilities.CatalogResource, ManagementConfigurationCapabilities.SourceResource,
+                    ManagementConfigurationCapabilities.BindingResource, ManagementConfigurationCapabilities.ReleaseResource })
+                {
+                    grants.Add(new(Profile, capability, EnvironmentOptions.ApplicationName, EnvironmentOptions.EnvironmentName,
+                        subject: new(Issuer, "operator-a"), resourceSelection: CapabilityResourceSelection.AllOfType, resourceType: type));
+                }
+            }
+            grants.Add(new(Profile, ManagementConfigurationCapabilities.DefinitionsRead, EnvironmentOptions.ApplicationName,
+                EnvironmentOptions.EnvironmentName, subject: new(Issuer, "operator-b"),
+                resourceSelection: CapabilityResourceSelection.AllOfType, resourceType: ManagementConfigurationCapabilities.SourceResource));
+            foreach (string capability in new[] { ManagementConfigurationCapabilities.DefinitionsRead, ManagementConfigurationCapabilities.Preview })
+            {
+                grants.Add(new(Profile, capability, EnvironmentOptions.ApplicationName, EnvironmentOptions.EnvironmentName,
+                    subject: new(Issuer, "operator-b"), resourceSelection: CapabilityResourceSelection.AllOfType,
+                    resourceType: ManagementConfigurationCapabilities.BindingResource));
             }
         }
         return grants.AsReadOnly();

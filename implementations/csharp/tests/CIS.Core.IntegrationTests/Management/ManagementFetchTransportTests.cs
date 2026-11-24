@@ -57,18 +57,36 @@ public sealed class ManagementFetchTransportTests
         Assert.IsTrue(report.RootElement.GetProperty("nativeFetch").GetBoolean());
         Assert.IsTrue(report.RootElement.GetProperty("socketsDrained").GetBoolean());
         JsonElement cases = report.RootElement.GetProperty("cases");
-        Assert.AreEqual(6, cases.GetArrayLength());
+        Assert.AreEqual(12, cases.GetArrayLength());
+        var combinations = new HashSet<string>(StringComparer.Ordinal);
         foreach (JsonElement item in cases.EnumerateArray())
         {
             Assert.IsTrue(item.GetProperty("headersReceived").GetBoolean());
             Assert.IsTrue(item.GetProperty("originalKeyReceived").GetBoolean());
             Assert.IsTrue(item.GetProperty("responseDrained").GetBoolean());
             Assert.AreEqual(1, item.GetProperty("attempts").GetInt32());
-            bool mutation = item.GetProperty("method").GetString() == "PUT";
+            string operation = item.GetProperty("operation").GetString()!;
+            string method = operation switch
+            {
+                "GET" => "GET",
+                "PUT" => "PUT",
+                "POST_VALIDATE" or "POST_PUBLISH" => "POST",
+                _ => throw new AssertFailedException("The native fixture returned an undeclared operation.")
+            };
+            Assert.AreEqual(method, item.GetProperty("method").GetString());
+            Assert.IsTrue(combinations.Add(operation + ":" + item.GetProperty("failure").GetString()));
+            bool mutation = operation is "PUT" or "POST_PUBLISH";
             Assert.AreEqual(mutation, item.GetProperty("mutationUncertain").GetBoolean());
             string expected = item.GetProperty("failure").GetString() == "disconnect"
                 ? "transportFailure" : item.GetProperty("failure").GetString()!;
             Assert.AreEqual(expected, item.GetProperty("kind").GetString());
+        }
+        foreach (string operation in new[] { "GET", "PUT", "POST_VALIDATE", "POST_PUBLISH" })
+        {
+            foreach (string failure in new[] { "disconnect", "timeout", "canceled" })
+            {
+                Assert.Contains(operation + ":" + failure, combinations);
+            }
         }
     }
 

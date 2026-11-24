@@ -6,7 +6,8 @@ boundary. No C# reflection model or TypeScript runtime is required.
 
 Keep sequences, metadata revisions, generations and configuration revisions as
 validated decimal strings or exact signed 64-bit values serialized as strings.
-Allow zero only for effective job configuration revision. Preserve canonical
+Allow zero only for effective job configuration revision and local accepted
+Configuration revision. Preserve canonical
 lowercase UUID D text, seven-digit UTC timestamp fractions and original Unicode
 without NFC conversion. Disable duplicate-key acceptance in the chosen JSON
 reader, reject malformed Unicode and bound UTF-8 bytes, depth and inventory
@@ -25,7 +26,8 @@ bounded read-retry waits. Join owned native work and cleanup in structured
 concurrency instead of detaching a timed-out request. A canceled HTTP call does
 not prove rollback. Default to no retry; an explicit read policy permits at most
 two selected transient GET retries inside that deadline. Never automatically
-replay PUT/DELETE or Commit.
+replay POST/PUT/DELETE or Commit. Explicit validation/preview POSTs are read-only
+for uncertainty classification; they still do not retry automatically.
 
 The typed registration control GET always disables retries, even under a selected
 read policy. Require the exact echoed registration/attempt UUIDs, a canonical
@@ -47,3 +49,21 @@ original committed decision even if the new read/arbitration attempt rolls back
 or cleanup fails. Preserve the original metadata key, exact command and ETag when
 the response is lost; query the original-key endpoint. NotFound is not evidence
 of rollback and does not authorize inventing a replacement key.
+
+The nineteen RM-08 configuration operations and their independent
+`conformance/management/v1/configuration-cases.json` vectors extend this same
+boundary. Use portable configuration IDs/schema strings and discover authorized
+source IDs through definition pages. Respect redacted defaults, exact source
+references or explicit absence, immutable releases and whole-map preconditions.
+Source text is exact: compute SHA-256 over its decoded UTF-8 without trimming,
+normalizing or reserializing it, before exposing usable content. Include digest
+work in the existing coroutine deadline and join its actual settlement.
+
+A conditional304 requires the complete retained snapshot for the independently
+expected authority/application/environment/registration/cohort/host/schema,
+exact ETag and empty response. It grants no control freshness. Content rejection
+may identify a desired release only after that outer identity fence; foreign or
+malformed outer data has no identified desired fact. Preserve payload-free
+desired/applied/historical status and separate freshness, and use the four typed
+original-key recovery families without another mutation. A Kotlin acceptance
+runtime remains deferred; these requirements introduce no Kotlin framework.

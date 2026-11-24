@@ -1,19 +1,21 @@
 using CIS.Management.Service.Metadata;
 using CIS.Management.Service.Persistence;
 using CIS.Management.Wire;
+using CIS.Management.Service.Configuration;
 
 namespace CIS.Management.Service.Backends;
 
 // One complete product adapter. Its participants, journal and outbox all use the original management RM-02 capability.
-internal sealed class PostgreSqlManagementBackend : IManagementBackend
+internal sealed partial class PostgreSqlManagementBackend : IManagementBackend
 {
     private readonly PostgreSqlManagementStore store;
     private readonly PostgreSqlManagementAuthority authority;
     private readonly ManagementMetadataService metadata;
     private readonly ManagementServiceOptions options;
+    private readonly ManagementConfigurationService configuration;
 
     public PostgreSqlManagementBackend(PostgreSqlManagementStore store, PostgreSqlManagementAuthority authority,
-        ManagementMetadataService metadata, ManagementServiceOptions options)
+        ManagementMetadataService metadata, ManagementServiceOptions options, ManagementConfigurationService configuration)
     {
         if (!store.UsesAuthority(authority))
         {
@@ -24,6 +26,7 @@ internal sealed class PostgreSqlManagementBackend : IManagementBackend
         this.authority = authority;
         this.metadata = metadata;
         this.options = options;
+        this.configuration = configuration;
     }
 
     public ManagementBackendCapabilities Capabilities

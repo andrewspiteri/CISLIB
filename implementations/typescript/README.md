@@ -70,7 +70,7 @@ project. `CIS_TEST_NODE_EXECUTABLE` can explicitly select that installed executa
 Calls make no retry by default. Deliberately setting `readRetries` to 1 or 2
 permits only GET retries for 408, 429, 502, 503 and 504, with bounded Retry-After or
 200/400 ms delays inside the same deadline. Authentication rejection, failed body
-decode and transport failures do not trigger replay. PUT and DELETE never retry.
+decode and transport failures do not trigger replay. POST, PUT and DELETE never retry.
 For an uncertain metadata PUT retain `operationKey` and the original command and
 ETag. Use `getMetadataOperation` with that key; a 404 does not prove an earlier
 transaction rolled back. Do not generate another key or retry Commit.
@@ -98,3 +98,9 @@ per-request credential owner, then selects a small response DTO. Its compile-onl
 declaration does not install a Next runtime or implement login; production UI and
 identity/session flows remain RM-09. See [the Kotlin protocol note](KOTLIN.md) for
 another language implementation.
+
+The additive configuration client exposes nineteen publication/distribution APIs;
+see the [configuration guide](../../docs/modules/management/typescript.md).
+Validation and preview POSTs are explicitly non-mutating, while publication,
+release, assignment and catalog commands retain original-key uncertainty. Native
+WebCrypto preparation/decoding is awaited inside the existing request owner.

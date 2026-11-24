@@ -10,6 +10,34 @@ internal sealed class ManagementRegistrationLifetime
     private Task? stop;
     private int constructors;
     private bool closing;
+    internal ManagementBootstrapSession? Bootstrap
+    {
+        get; private set;
+    }
+
+    internal void BindBootstrap(ManagementBootstrapSession session)
+    {
+        lock (gate)
+        {
+            if (Bootstrap is not null || runtime is not null || closing)
+            {
+                throw new InvalidOperationException("Bind one live bootstrap session before final provider construction.");
+            }
+            Bootstrap = session;
+        }
+        BindAdmission(session.Admission);
+    }
+
+    internal ManagedWorkAdmission? PreparedAdmission
+    {
+        get
+        {
+            lock (gate)
+            {
+                return admission;
+            }
+        }
+    }
 
     internal IDisposable EnterConstruction()
     {

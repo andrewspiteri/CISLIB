@@ -86,6 +86,37 @@ emergency removal. Local development reset has the same adoption requirement.
 
 ## Bounded capture and adoption
 
+For authenticated configuration loading before the application's provider exists,
+capture an independent policy with `SecurityPolicySnapshot.Create(options)`, then
+call `CertificatePemBootstrapPreparation.PrepareAsync(policy, profile, pemOptions)`.
+This explicit asynchronous operation validates fixed trust, captures a coherent
+PEM pair and prepares the actual native TLS leaf. It fails when no usable initial
+credential exists. Expected file/material failures expose a safe authentication
+error; actual cancellation and unexpected faults retain their own outcomes.
+
+The application owns the preparation through failed preparation/Build cleanup.
+Construct standalone `HttpRestClient` instances with `preparation.Binding` and
+borrow `preparation.Transport`. Dispose those clients and await
+`RetireBootstrapAsync()` before activating final Startup. Retirement closes new
+bootstrap dispatch and joins actual response/body/native-key cleanup; cancellation
+of a caller's wait cannot replace that barrier. No temporary service provider is
+needed. An explicitly supplied native key scope remains caller-owned.
+
+Register the exact policy object using `services.AddCisSecurity(preparation.Policy)`
+and `services.AddCisCertificatePemSecurity(preparation)`, followed by ordinary
+`AddCisCertificateRestClient` registrations. When preparation uses an explicit
+clock, register that exact `TimeProvider` before common Security registration.
+Passive construction may precede
+bootstrap retirement, but activation refuses it until retirement has settled.
+Only one final provider can claim the preparation; a rejected provider does not
+acquire disposal ownership. The final native transport uses that provider's actual
+`IMeterFactory`, the same binding and captured fixed trust. It reads a fresh current
+leaf at activation and uses its existing Heartbeat source owner to rotate into
+that final transport. The retired bootstrap transport is never registered as a
+hosted borrowed transport. A newly owned key scope transfers once to the final
+runtime; failed Build leaves it with the preparation. Dispose both through their
+actual owners. This local handoff proves no AKS or cert-manager deployment.
+
 The default file-check interval is thirty seconds, using existing Heartbeat.
 An explicitly selected interval is bounded from one second to one hour. No
 source work runs from a metric scrape. One paired capture permits at most
@@ -194,6 +225,12 @@ validation and successful adoption establish the local credential's validity,
 not a remote peer's issuer inventory or a successful TLS exchange. Qualify each
 deployment's actual peer trust and platform arrangement; adding more certificates
 to the caller's PEM file alone does not remove the Windows prerequisite.
+
+`CertificatePemBootstrapPreparation.ActivateFinalAsync(provider, token)` supports
+the facade's explicit sequential handoff. It requires completed bootstrap drain,
+the same captured policy and clock, and its one actual keyed native runtime.
+Ordinary later Startup joins that activation; renewal continues into the final
+transport created with the actual provider's meter factory.
 
 See the [cert-manager recipe](cert-manager.md) for deployment responsibilities.
 Local native adoption tests cannot establish real cert-manager issuance/mount

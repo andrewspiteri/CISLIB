@@ -1,0 +1,21 @@
+{
+  "tasks": [
+    {
+      "title": "Support same-epoch authoritative recovery after confirmed connectivity",
+      "category": "implementation",
+      "complexity": "medium",
+      "assignee": "Codex",
+      "workOwnerTaskId": "WORK-006",
+      "scopeIds": [
+        "configuration",
+        "records"
+      ],
+      "dependsOn": [
+        "WORK-004",
+        "WORK-007"
+      ],
+      "acceptanceCriteria": "A newly confirmed native control can request exactly one same-epoch retry on the existing queued Configuration owner after an offline failure, including an old read still draining. Ordinary cached behavior and root/session/epoch fencing remain intact; no new timer, owner or allocation.",
+      "validation": "Focused completed-and-draining offline failure regressions, existing Configuration units and the WORK006 actual native reconnect fixture with a one-hour poll interval; all source/native/docs/review costs remain with WORK006."
+    }
+  ]
+}

@@ -33,7 +33,9 @@ public static partial class ManagementServiceApplication
             frozenSecurity = ManagementSecurityComposition.Configure(builder, security,
                 policy => ConfigureMetadataSecurity(policy, options));
             ConfigureMetadata(builder, options);
-            builder.Services.AddScoped<IManagementBackend, PostgreSqlManagementBackend>();
+            builder.Services.AddScoped<PostgreSqlManagementBackend>();
+            builder.Services.AddScoped<IManagementBackend>(root => root.GetRequiredService<PostgreSqlManagementBackend>());
+            builder.Services.AddScoped<IManagementConfigurationBackend>(root => root.GetRequiredService<PostgreSqlManagementBackend>());
             builder.Services.AddSingleton<IHealthReadinessSource>(root => root.GetRequiredService<PostgreSqlManagementAuthority>());
             builder.Services.AddSingleton(root => new ManagementCursor(options,
                 () => root.GetRequiredService<PostgreSqlManagementAuthority>().Current));
@@ -89,6 +91,7 @@ public static partial class ManagementServiceApplication
 
     static partial void ConfigureMetadata(CISApplicationBuilder builder, ManagementServiceOptions options);
     static partial void ConfigureMetadataSecurity(SecurityOptions policy, ManagementServiceOptions options);
+    static partial void ConfigureConfiguration(CISApplicationBuilder builder, ManagementServiceOptions options);
 
     private sealed class Migration(ILocalTransactionFactory transactions, ManagementServiceOptions options) : IStartable
     {

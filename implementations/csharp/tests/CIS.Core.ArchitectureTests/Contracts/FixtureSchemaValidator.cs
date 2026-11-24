@@ -10,7 +10,7 @@ internal sealed class FixtureSchemaValidator
     private static readonly HashSet<string> SupportedKeywords = new(StringComparer.Ordinal)
     {
         "$schema", "$id", "title", "description", "$defs", "$ref", "type", "required",
-        "properties", "additionalProperties", "items", "anyOf", "enum", "const",
+        "properties", "additionalProperties", "items", "anyOf", "oneOf", "not", "enum", "const",
         "minLength", "maxLength", "pattern", "minimum", "maximum", "minItems", "maxItems"
     };
 
@@ -40,11 +40,11 @@ internal sealed class FixtureSchemaValidator
                     CheckKeywords(child.Value);
                 }
             }
-            else if (property.Name is "items" || property.Name == "additionalProperties" && property.Value.ValueKind == JsonValueKind.Object)
+            else if (property.Name is "items" or "not" || property.Name == "additionalProperties" && property.Value.ValueKind == JsonValueKind.Object)
             {
                 CheckKeywords(property.Value);
             }
-            else if (property.Name == "anyOf")
+            else if (property.Name is "anyOf" or "oneOf")
             {
                 foreach (JsonElement child in property.Value.EnumerateArray())
                 {
@@ -71,6 +71,19 @@ internal sealed class FixtureSchemaValidator
         }
 
         if (schema.TryGetProperty("anyOf", out JsonElement choices) && !choices.EnumerateArray().Any(choice => Evaluate(choice, value, producer)))
+        {
+            return false;
+        }
+
+        if (schema.TryGetProperty("oneOf", out JsonElement exclusiveChoices)
+            && exclusiveChoices.EnumerateArray().Count(choice => Evaluate(choice, value, false)) != 1)
+        {
+            return false;
+        }
+
+        // Partial branch constraints do not redeclare the complete object's fields.
+        // Request closure is checked on its declared object schema, including nested commands.
+        if (schema.TryGetProperty("not", out JsonElement forbidden) && Evaluate(forbidden, value, false))
         {
             return false;
         }

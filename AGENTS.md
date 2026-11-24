@@ -93,16 +93,27 @@ fixtures, and preserve CountryData's explicit opt-in/database-free default.
 
 ## Central Management service and clients
 
-For `CIS.Management`, its independent product application or process/Jobs
-reporting, read the [Management skill](.github/skills/cislib-management/SKILL.md),
+For `CIS.Management`, its independent product application, process/Jobs reporting
+or central Configuration publication/distribution, read the
+[Management skill](.github/skills/cislib-management/SKILL.md),
 [portable contract](contracts/management/README.md) and
 [module guide](docs/modules/management/README.md). Preserve actual native
 resource/actor authority, whole bounded inventory, original-key/ETag recovery
-and one original Transactions/Operations/Audit commit. Reporting is explicit and
-quiet; signal it before dependency barriers and drain REST before awaiting its
-Heartbeat work. Keep the coordinator independent and both clients' actual
-cleanup owned. Reuse current public/native fixtures; portal UI, configuration
-publication, schedulers and an Audit archive remain separate.
+and one original Transactions/Operations/Audit commit. RM-08 uses trusted catalog
+provisioning, exact immutable source/release references, explicit whole-map
+assignment and the same qualified backend. Keep central enrollment and
+`HotReload`/`RestartRequired` local, retain strict whole-pair integrity and current
+session checks, and distinguish source versions, assignment generation and local
+accepted revision. Read [central acceptance](docs/modules/configuration/central-snapshots.md)
+and the [CountryData opt-in](docs/modules/management/countrydata-configuration.md).
+Native bootstrap loads roots before constructors, adopts one session/provider
+and uses the final meter/clock owners; the Startup coordinator stays independent.
+Reporting is explicit and quiet, with separate adoption sequencing/freshness;
+signal it before dependency barriers and drain REST before awaiting Heartbeat.
+Retention shares the original bounded cleanup and logical quota while preserving
+assigned/pinned references and independent operation/Audit retention. Reuse
+current public/native fixtures; portal UI, schedulers, an Audit archive and
+external deployment qualification remain separate.
 
 ## Explicit local transactions
 

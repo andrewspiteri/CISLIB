@@ -81,6 +81,53 @@ public sealed class ManagementBoundaryTests
     }
 
     [TestMethod]
+    public void AdoptionCursorKeepsItsStrictCompositeOrderInsideTheOriginalAuthorityActorAndResourceEnvelope()
+    {
+        byte[] key = Enumerable.Range(0, 32).Select(value => (byte)value).ToArray();
+        var options = new ManagementServiceOptions("Host=localhost;Database=unused", key);
+        var authority = new ManagementAuthoritySnapshot("management", "33333333-3333-4333-8333-333333333333", "opaque-v1", 1, false);
+        using var first = new ManagementCursor(options, () => authority);
+        using var second = new ManagementCursor(options, () => authority);
+        const string app = "11111111-1111-4111-8111-111111111111";
+        const string position = "sample.settings/1/canary/22222222-2222-4222-8222-222222222222";
+        string actor = ManagementActorScope.Create(Caller(), app);
+        string cursor = first.EncodeConfigurationAdoption("configuration.adoption", actor, 1, position);
+        Assert.IsTrue(second.TryDecodeConfigurationAdoption(cursor, "configuration.adoption", actor, 1, out string? after));
+        Assert.AreEqual(position, after);
+        Assert.IsFalse(second.TryDecode(cursor, "configuration.adoption", actor, 1, out _));
+        Assert.IsFalse(second.TryDecodeConfigurationAdoption(first.Encode("configuration.adoption", actor, 1, app),
+            "configuration.adoption", actor, 1, out _));
+        Assert.IsFalse(second.TryDecodeConfigurationAdoption(cursor, "inventory", actor, 1, out _));
+        Assert.IsFalse(second.TryDecodeConfigurationAdoption(cursor, "configuration.adoption", actor, 2, out _));
+        Assert.IsFalse(second.TryDecodeConfigurationAdoption(cursor, "configuration.adoption",
+            ManagementActorScope.Create(Caller(subject: "other"), app), 1, out _));
+        Assert.IsFalse(second.TryDecodeConfigurationAdoption(cursor, "configuration.adoption", ManagementActorScope.Create(Caller()), 1, out _));
+        foreach (string invalid in new[] { "settings/0//", "../1//", "settings/1/canary/not-uuid", "settings/1///extra" })
+        {
+            Assert.ThrowsExactly<ArgumentException>(() => first.EncodeConfigurationAdoption("configuration.adoption", actor, 1, invalid));
+        }
+        Assert.IsTrue(second.TryDecodeConfigurationAdoption(first.EncodeConfigurationAdoption("configuration.adoption", actor, 1, "settings/1//"),
+            "configuration.adoption", actor, 1, out _), "A no-instance default target has two explicit empty suffixes.");
+        authority = authority with
+        {
+            RecoveryEpoch = 2
+        };
+        Assert.IsFalse(second.TryDecodeConfigurationAdoption(cursor, "configuration.adoption", actor, 1, out _));
+        authority = authority with
+        {
+            RecoveryEpoch = 1,
+            AuthorityId = "44444444-4444-4444-8444-444444444444"
+        };
+        Assert.IsFalse(second.TryDecodeConfigurationAdoption(cursor, "configuration.adoption", actor, 1, out _));
+        authority = authority with
+        {
+            AuthorityId = "33333333-3333-4333-8333-333333333333",
+            NamespaceName = "another"
+        };
+        Assert.IsFalse(second.TryDecodeConfigurationAdoption(cursor, "configuration.adoption", actor, 1, out _));
+    }
+
+    [TestMethod]
     public void DeploymentOptionsDetachSecretsAndRejectUnboundedOrAmbiguousPrefixes()
     {
         byte[] key = new byte[32];

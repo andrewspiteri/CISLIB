@@ -1790,6 +1790,2622 @@
       "additionalProperties": true,
       "x-cis-freshness-origin": "Local monotonic request start, including actual response cleanup; never response arrival.",
       "x-cis-authority": "A current backend confirmation, not business permission, presence or RM-05 ownership."
+    },
+    "ConfigurationMember": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "maxLength": 256,
+          "type": "string",
+          "minLength": 1
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "shape": {
+          "$ref": "#/$defs/ConfigurationShape"
+        }
+      },
+      "required": [
+        "name",
+        "required",
+        "shape"
+      ],
+      "additionalProperties": true
+    },
+    "ConfigurationShape": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "object",
+            "array",
+            "dictionary",
+            "string",
+            "number",
+            "integer",
+            "boolean"
+          ]
+        },
+        "nullable": {
+          "type": "boolean"
+        },
+        "members": {
+          "items": {
+            "$ref": "#/$defs/ConfigurationMember"
+          },
+          "type": "array",
+          "maxItems": 256
+        },
+        "element": {
+          "$ref": "#/$defs/ConfigurationShape"
+        },
+        "allowedValues": {
+          "items": {
+            "x-cis-max-utf8-bytes": 65536,
+            "maxLength": 65536,
+            "type": "string"
+          },
+          "type": "array",
+          "maxItems": 4096,
+          "minItems": 1
+        }
+      },
+      "required": [
+        "kind",
+        "nullable"
+      ],
+      "additionalProperties": true,
+      "x-cis-max-materialization-depth": 16,
+      "x-cis-max-value-nodes": 65536,
+      "x-cis-max-collection-elements": 4096,
+      "oneOf": [
+        {
+          "required": [
+            "members"
+          ],
+          "properties": {
+            "kind": {
+              "const": "object"
+            }
+          },
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "element"
+                ]
+              },
+              {
+                "required": [
+                  "allowedValues"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "required": [
+            "element"
+          ],
+          "properties": {
+            "kind": {
+              "enum": [
+                "array",
+                "dictionary"
+              ]
+            }
+          },
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "members"
+                ]
+              },
+              {
+                "required": [
+                  "allowedValues"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "members"
+                ]
+              },
+              {
+                "required": [
+                  "element"
+                ]
+              }
+            ]
+          },
+          "properties": {
+            "kind": {
+              "const": "string"
+            }
+          }
+        },
+        {
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "members"
+                ]
+              },
+              {
+                "required": [
+                  "element"
+                ]
+              },
+              {
+                "required": [
+                  "allowedValues"
+                ]
+              }
+            ]
+          },
+          "properties": {
+            "kind": {
+              "enum": [
+                "number",
+                "integer",
+                "boolean"
+              ]
+            }
+          }
+        }
+      ],
+      "x-cis-unique-member-names-and-allowed-values": true
+    },
+    "ConfigurationDefinition": {
+      "type": "object",
+      "properties": {
+        "configurationId": {
+          "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9._~-]{1,128}$",
+          "maxLength": 128,
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaVersion": {
+          "pattern": "^[1-9][0-9]{0,18}$",
+          "x-cis-int64-maximum": "9223372036854775807",
+          "maxLength": 19,
+          "type": "string",
+          "minLength": 1
+        },
+        "hostApplicationName": {
+          "x-cis-exact-ordinal": true,
+          "maxLength": 255,
+          "type": "string",
+          "minLength": 1
+        },
+        "shape": {
+          "$ref": "#/$defs/ConfigurationShape"
+        },
+        "defaultsJson": {
+          "minLength": 2,
+          "type": "string",
+          "x-cis-max-utf8-bytes": 262144,
+          "x-cis-no-bom-or-duplicate-decoded-names": true,
+          "x-cis-sha256-over-decoded-utf8": true,
+          "x-cis-json-object-text": true,
+          "x-cis-max-depth": 16,
+          "maxLength": 262144,
+          "description": "Exact declared defaults, omitted unless actual source-content-read authority permits disclosure. Omission is redaction, never an empty or changed defaults contract."
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "sourceId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "environment": {
+          "x-cis-exact-ordinal": true,
+          "maxLength": 255,
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "common",
+            "application"
+          ]
+        },
+        "applicationId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "bindingId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        }
+      },
+      "required": [
+        "configurationId",
+        "schemaVersion",
+        "shape",
+        "sourceId",
+        "environment",
+        "kind"
+      ],
+      "additionalProperties": true,
+      "oneOf": [
+        {
+          "required": [
+            "applicationId",
+            "bindingId",
+            "hostApplicationName"
+          ],
+          "properties": {
+            "kind": {
+              "const": "application"
+            }
+          }
+        },
+        {
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "applicationId"
+                ]
+              },
+              {
+                "required": [
+                  "bindingId"
+                ]
+              },
+              {
+                "required": [
+                  "hostApplicationName"
+                ]
+              }
+            ]
+          },
+          "properties": {
+            "kind": {
+              "const": "common"
+            }
+          }
+        }
+      ],
+      "x-cis-source-qualified-discovery": "One authorized source stream per row. Global immutable schema/defaults are repeated without making host scope a schema identity. Authorization filters rows before pagination."
+    },
+    "ConfigurationDefinitionPage": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/ConfigurationDefinition"
+          },
+          "type": "array",
+          "maxItems": 500
+        },
+        "nextCursor": {
+          "x-cis-opaque-authenticated-cursor": true,
+          "maxLength": 2048,
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "additionalProperties": true
+    },
+    "ConfigurationCatalog": {
+      "type": "object",
+      "properties": {
+        "catalogId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "eTag": {
+          "pattern": "^\"[\\u0021\\u0023-\\u007e]+\"$",
+          "maxLength": 256,
+          "type": "string",
+          "minLength": 3
+        },
+        "loadedManifestDigest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "maxLength": 64,
+          "type": "string",
+          "minLength": 64
+        },
+        "appliedManifestDigest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "maxLength": 64,
+          "type": "string",
+          "minLength": 64
+        },
+        "ready": {
+          "type": "boolean"
+        },
+        "definitionCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647
+        },
+        "sourceCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647
+        },
+        "bindingCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647
+        },
+        "quotaBytes": {
+          "maximum": 9007199254740991,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "usedBytes": {
+          "minimum": 0,
+          "maximum": 9007199254740991,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "catalogId",
+        "eTag",
+        "loadedManifestDigest",
+        "ready",
+        "definitionCount",
+        "sourceCount",
+        "bindingCount",
+        "quotaBytes",
+        "usedBytes"
+      ],
+      "additionalProperties": true,
+      "x-cis-used-bytes-not-greater-than-quota": true
+    },
+    "ConfigurationCatalogCommand": {
+      "type": "object",
+      "properties": {
+        "commandVersion": {
+          "type": "integer",
+          "enum": [
+            1
+          ]
+        },
+        "manifestDigest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "maxLength": 64,
+          "type": "string",
+          "minLength": 64
+        },
+        "reason": {
+          "x-cis-valid-unicode": true,
+          "x-cis-max-utf8-bytes": 1024,
+          "maxLength": 1024,
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "commandVersion",
+        "manifestDigest",
+        "reason"
+      ],
+      "additionalProperties": false,
+      "x-cis-max-body-bytes": 1048576,
+      "x-cis-default-max-body-bytes": 1048576
+    },
+    "ConfigurationSourceReference": {
+      "type": "object",
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "present",
+            "absent"
+          ]
+        },
+        "publicationId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        }
+      },
+      "required": [
+        "state"
+      ],
+      "additionalProperties": true,
+      "oneOf": [
+        {
+          "required": [
+            "publicationId"
+          ],
+          "properties": {
+            "state": {
+              "const": "present"
+            }
+          }
+        },
+        {
+          "not": {
+            "required": [
+              "publicationId"
+            ]
+          },
+          "properties": {
+            "state": {
+              "const": "absent"
+            }
+          }
+        }
+      ]
+    },
+    "ConfigurationCommandSourceReference": {
+      "type": "object",
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "present",
+            "absent"
+          ]
+        },
+        "publicationId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        }
+      },
+      "required": [
+        "state"
+      ],
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "publicationId"
+          ],
+          "properties": {
+            "state": {
+              "const": "present"
+            }
+          }
+        },
+        {
+          "not": {
+            "required": [
+              "publicationId"
+            ]
+          },
+          "properties": {
+            "state": {
+              "const": "absent"
+            }
+          }
+        }
+      ]
+    },
+    "ConfigurationPublicationMetadata": {
+      "type": "object",
+      "properties": {
+        "publicationId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "sourceId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "configurationId": {
+          "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9._~-]{1,128}$",
+          "maxLength": 128,
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaVersion": {
+          "pattern": "^[1-9][0-9]{0,18}$",
+          "x-cis-int64-maximum": "9223372036854775807",
+          "maxLength": 19,
+          "type": "string",
+          "minLength": 1
+        },
+        "environment": {
+          "x-cis-exact-ordinal": true,
+          "maxLength": 255,
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "common",
+            "application"
+          ]
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "maxLength": 64,
+          "type": "string",
+          "minLength": 64
+        },
+        "actor": {
+          "minLength": 1,
+          "type": "string",
+          "maxLength": 256
+        },
+        "createdAtUtc": {
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{7}Z$",
+          "x-cis-valid-utc-calendar": true,
+          "maxLength": 28,
+          "type": "string",
+          "minLength": 28
+        },
+        "reason": {
+          "x-cis-valid-unicode": true,
+          "x-cis-max-utf8-bytes": 1024,
+          "maxLength": 1024,
+          "type": "string",
+          "minLength": 1
+        },
+        "applicationId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        }
+      },
+      "required": [
+        "publicationId",
+        "sourceId",
+        "configurationId",
+        "schemaVersion",
+        "environment",
+        "kind",
+        "sha256",
+        "actor",
+        "createdAtUtc",
+        "reason"
+      ],
+      "additionalProperties": true,
+      "oneOf": [
+        {
+          "not": {
+            "required": [
+              "applicationId"
+            ]
+          },
+          "properties": {
+            "kind": {
+              "const": "common"
+            }
+          }
+        },
+        {
+          "required": [
+            "applicationId"
+          ],
+          "properties": {
+            "kind": {
+              "const": "application"
+            }
+          }
+        }
+      ]
+    },
+    "ConfigurationPublication": {
+      "type": "object",
+      "properties": {
+        "publicationId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "sourceId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "configurationId": {
+          "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9._~-]{1,128}$",
+          "maxLength": 128,
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaVersion": {
+          "pattern": "^[1-9][0-9]{0,18}$",
+          "x-cis-int64-maximum": "9223372036854775807",
+          "maxLength": 19,
+          "type": "string",
+          "minLength": 1
+        },
+        "environment": {
+          "x-cis-exact-ordinal": true,
+          "maxLength": 255,
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "common",
+            "application"
+          ]
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "maxLength": 64,
+          "type": "string",
+          "minLength": 64
+        },
+        "actor": {
+          "minLength": 1,
+          "type": "string",
+          "maxLength": 256
+        },
+        "createdAtUtc": {
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{7}Z$",
+          "x-cis-valid-utc-calendar": true,
+          "maxLength": 28,
+          "type": "string",
+          "minLength": 28
+        },
+        "reason": {
+          "x-cis-valid-unicode": true,
+          "x-cis-max-utf8-bytes": 1024,
+          "maxLength": 1024,
+          "type": "string",
+          "minLength": 1
+        },
+        "applicationId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "payloadJson": {
+          "minLength": 2,
+          "type": "string",
+          "x-cis-max-utf8-bytes": 262144,
+          "x-cis-no-bom-or-duplicate-decoded-names": true,
+          "x-cis-sha256-over-decoded-utf8": true,
+          "x-cis-json-object-text": true,
+          "x-cis-max-depth": 16,
+          "maxLength": 262144
+        }
+      },
+      "required": [
+        "publicationId",
+        "sourceId",
+        "configurationId",
+        "schemaVersion",
+        "environment",
+        "kind",
+        "sha256",
+        "actor",
+        "createdAtUtc",
+        "reason",
+        "payloadJson"
+      ],
+      "additionalProperties": true,
+      "oneOf": [
+        {
+          "not": {
+            "required": [
+              "applicationId"
+            ]
+          },
+          "properties": {
+            "kind": {
+              "const": "common"
+            }
+          }
+        },
+        {
+          "required": [
+            "applicationId"
+          ],
+          "properties": {
+            "kind": {
+              "const": "application"
+            }
+          }
+        }
+      ]
+    },
+    "ConfigurationPublicationCommand": {
+      "type": "object",
+      "properties": {
+        "commandVersion": {
+          "type": "integer",
+          "enum": [
+            1
+          ]
+        },
+        "payloadJson": {
+          "minLength": 2,
+          "type": "string",
+          "x-cis-max-utf8-bytes": 262144,
+          "x-cis-no-bom-or-duplicate-decoded-names": true,
+          "x-cis-sha256-over-decoded-utf8": true,
+          "x-cis-json-object-text": true,
+          "x-cis-max-depth": 16,
+          "maxLength": 262144
+        },
+        "reason": {
+          "x-cis-valid-unicode": true,
+          "x-cis-max-utf8-bytes": 1024,
+          "maxLength": 1024,
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "commandVersion",
+        "payloadJson",
+        "reason"
+      ],
+      "additionalProperties": false,
+      "x-cis-max-body-bytes": 1048576,
+      "x-cis-default-max-body-bytes": 1048576
+    },
+    "ConfigurationPublicationPage": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/ConfigurationPublicationMetadata"
+          },
+          "type": "array",
+          "maxItems": 500
+        },
+        "nextCursor": {
+          "x-cis-opaque-authenticated-cursor": true,
+          "maxLength": 2048,
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "additionalProperties": true
+    },
+    "ConfigurationSource": {
+      "type": "object",
+      "properties": {
+        "sourceId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "configurationId": {
+          "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9._~-]{1,128}$",
+          "maxLength": 128,
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaVersion": {
+          "pattern": "^[1-9][0-9]{0,18}$",
+          "x-cis-int64-maximum": "9223372036854775807",
+          "maxLength": 19,
+          "type": "string",
+          "minLength": 1
+        },
+        "environment": {
+          "x-cis-exact-ordinal": true,
+          "maxLength": 255,
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "common",
+            "application"
+          ]
+        },
+        "eTag": {
+          "pattern": "^\"[\\u0021\\u0023-\\u007e]+\"$",
+          "maxLength": 256,
+          "type": "string",
+          "minLength": 3
+        },
+        "applicationId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "publications": {
+          "$ref": "#/$defs/ConfigurationPublicationPage"
+        }
+      },
+      "required": [
+        "sourceId",
+        "configurationId",
+        "schemaVersion",
+        "environment",
+        "kind",
+        "eTag",
+        "publications"
+      ],
+      "additionalProperties": true,
+      "oneOf": [
+        {
+          "not": {
+            "required": [
+              "applicationId"
+            ]
+          },
+          "properties": {
+            "kind": {
+              "const": "common"
+            }
+          }
+        },
+        {
+          "required": [
+            "applicationId"
+          ],
+          "properties": {
+            "kind": {
+              "const": "application"
+            }
+          }
+        }
+      ]
+    },
+    "ConfigurationReleaseCommand": {
+      "type": "object",
+      "properties": {
+        "commandVersion": {
+          "type": "integer",
+          "enum": [
+            1
+          ]
+        },
+        "commonSource": {
+          "$ref": "#/$defs/ConfigurationCommandSourceReference"
+        },
+        "applicationSource": {
+          "$ref": "#/$defs/ConfigurationCommandSourceReference"
+        },
+        "reason": {
+          "x-cis-valid-unicode": true,
+          "x-cis-max-utf8-bytes": 1024,
+          "maxLength": 1024,
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "commandVersion",
+        "commonSource",
+        "applicationSource",
+        "reason"
+      ],
+      "additionalProperties": false,
+      "x-cis-max-body-bytes": 1048576,
+      "x-cis-default-max-body-bytes": 1048576
+    },
+    "ConfigurationRelease": {
+      "type": "object",
+      "properties": {
+        "releaseId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "applicationId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "configurationId": {
+          "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9._~-]{1,128}$",
+          "maxLength": 128,
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaVersion": {
+          "pattern": "^[1-9][0-9]{0,18}$",
+          "x-cis-int64-maximum": "9223372036854775807",
+          "maxLength": 19,
+          "type": "string",
+          "minLength": 1
+        },
+        "environment": {
+          "x-cis-exact-ordinal": true,
+          "maxLength": 255,
+          "type": "string",
+          "minLength": 1
+        },
+        "commonSource": {
+          "$ref": "#/$defs/ConfigurationSourceReference"
+        },
+        "applicationSource": {
+          "$ref": "#/$defs/ConfigurationSourceReference"
+        },
+        "actor": {
+          "minLength": 1,
+          "type": "string",
+          "maxLength": 256
+        },
+        "createdAtUtc": {
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{7}Z$",
+          "x-cis-valid-utc-calendar": true,
+          "maxLength": 28,
+          "type": "string",
+          "minLength": 28
+        },
+        "reason": {
+          "x-cis-valid-unicode": true,
+          "x-cis-max-utf8-bytes": 1024,
+          "maxLength": 1024,
+          "type": "string",
+          "minLength": 1
+        },
+        "eTag": {
+          "pattern": "^\"[\\u0021\\u0023-\\u007e]+\"$",
+          "maxLength": 256,
+          "type": "string",
+          "minLength": 3
+        }
+      },
+      "required": [
+        "releaseId",
+        "applicationId",
+        "configurationId",
+        "schemaVersion",
+        "environment",
+        "commonSource",
+        "applicationSource",
+        "actor",
+        "createdAtUtc",
+        "reason",
+        "eTag"
+      ],
+      "additionalProperties": true
+    },
+    "ConfigurationOverride": {
+      "type": "object",
+      "properties": {
+        "cohortId": {
+          "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9._~-]{1,128}$",
+          "maxLength": 128,
+          "type": "string",
+          "minLength": 1
+        },
+        "releaseId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        }
+      },
+      "required": [
+        "cohortId",
+        "releaseId"
+      ],
+      "additionalProperties": true
+    },
+    "ConfigurationCommandOverride": {
+      "type": "object",
+      "properties": {
+        "cohortId": {
+          "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9._~-]{1,128}$",
+          "maxLength": 128,
+          "type": "string",
+          "minLength": 1
+        },
+        "releaseId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        }
+      },
+      "required": [
+        "cohortId",
+        "releaseId"
+      ],
+      "additionalProperties": false
+    },
+    "ConfigurationAssignmentCommand": {
+      "type": "object",
+      "properties": {
+        "commandVersion": {
+          "type": "integer",
+          "enum": [
+            1
+          ]
+        },
+        "intent": {
+          "type": "string",
+          "enum": [
+            "replace",
+            "promote",
+            "rollback"
+          ]
+        },
+        "defaultReleaseId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "overrides": {
+          "items": {
+            "$ref": "#/$defs/ConfigurationCommandOverride"
+          },
+          "type": "array",
+          "maxItems": 16
+        },
+        "reason": {
+          "x-cis-valid-unicode": true,
+          "x-cis-max-utf8-bytes": 1024,
+          "maxLength": 1024,
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "commandVersion",
+        "intent",
+        "defaultReleaseId",
+        "overrides",
+        "reason"
+      ],
+      "additionalProperties": false,
+      "x-cis-distinct-cohort-ids": true,
+      "x-cis-max-body-bytes": 1048576,
+      "x-cis-default-max-body-bytes": 1048576
+    },
+    "ConfigurationAssignmentMap": {
+      "type": "object",
+      "properties": {
+        "bindingId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "applicationId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "configurationId": {
+          "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9._~-]{1,128}$",
+          "maxLength": 128,
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaVersion": {
+          "pattern": "^[1-9][0-9]{0,18}$",
+          "x-cis-int64-maximum": "9223372036854775807",
+          "maxLength": 19,
+          "type": "string",
+          "minLength": 1
+        },
+        "environment": {
+          "x-cis-exact-ordinal": true,
+          "maxLength": 255,
+          "type": "string",
+          "minLength": 1
+        },
+        "eTag": {
+          "pattern": "^\"[\\u0021\\u0023-\\u007e]+\"$",
+          "maxLength": 256,
+          "type": "string",
+          "minLength": 3
+        },
+        "overrides": {
+          "items": {
+            "$ref": "#/$defs/ConfigurationOverride"
+          },
+          "type": "array",
+          "maxItems": 16
+        },
+        "defaultReleaseId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "generation": {
+          "pattern": "^[1-9][0-9]{0,18}$",
+          "x-cis-int64-maximum": "9223372036854775807",
+          "maxLength": 19,
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "bindingId",
+        "applicationId",
+        "configurationId",
+        "schemaVersion",
+        "environment",
+        "eTag",
+        "overrides"
+      ],
+      "additionalProperties": true,
+      "oneOf": [
+        {
+          "required": [
+            "defaultReleaseId",
+            "generation"
+          ]
+        },
+        {
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "defaultReleaseId"
+                ]
+              },
+              {
+                "required": [
+                  "generation"
+                ]
+              }
+            ]
+          },
+          "properties": {
+            "overrides": {
+              "maxItems": 0
+            }
+          }
+        }
+      ]
+    },
+    "ConfigurationDesiredContext": {
+      "type": "object",
+      "properties": {
+        "authorityId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "applicationId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "environment": {
+          "x-cis-exact-ordinal": true,
+          "maxLength": 255,
+          "type": "string",
+          "minLength": 1
+        },
+        "registrationId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "configurationId": {
+          "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9._~-]{1,128}$",
+          "maxLength": 128,
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaVersion": {
+          "pattern": "^[1-9][0-9]{0,18}$",
+          "x-cis-int64-maximum": "9223372036854775807",
+          "maxLength": 19,
+          "type": "string",
+          "minLength": 1
+        },
+        "hostApplicationName": {
+          "x-cis-exact-ordinal": true,
+          "maxLength": 255,
+          "type": "string",
+          "minLength": 1
+        },
+        "releaseId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "generation": {
+          "pattern": "^[1-9][0-9]{0,18}$",
+          "x-cis-int64-maximum": "9223372036854775807",
+          "maxLength": 19,
+          "type": "string",
+          "minLength": 1
+        },
+        "cohortId": {
+          "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9._~-]{1,128}$",
+          "maxLength": 128,
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "authorityId",
+        "applicationId",
+        "environment",
+        "registrationId",
+        "configurationId",
+        "schemaVersion",
+        "hostApplicationName",
+        "releaseId",
+        "generation"
+      ],
+      "additionalProperties": true
+    },
+    "ConfigurationSourceContent": {
+      "type": "object",
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "present",
+            "absent"
+          ]
+        },
+        "sourceId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "publicationId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "configurationId": {
+          "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9._~-]{1,128}$",
+          "maxLength": 128,
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaVersion": {
+          "pattern": "^[1-9][0-9]{0,18}$",
+          "x-cis-int64-maximum": "9223372036854775807",
+          "maxLength": 19,
+          "type": "string",
+          "minLength": 1
+        },
+        "environment": {
+          "x-cis-exact-ordinal": true,
+          "maxLength": 255,
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "common",
+            "application"
+          ]
+        },
+        "applicationId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "maxLength": 64,
+          "type": "string",
+          "minLength": 64
+        },
+        "payloadJson": {
+          "minLength": 2,
+          "type": "string",
+          "x-cis-max-utf8-bytes": 262144,
+          "x-cis-no-bom-or-duplicate-decoded-names": true,
+          "x-cis-sha256-over-decoded-utf8": true,
+          "x-cis-json-object-text": true,
+          "x-cis-max-depth": 16,
+          "maxLength": 262144
+        }
+      },
+      "required": [
+        "state"
+      ],
+      "additionalProperties": true,
+      "oneOf": [
+        {
+          "properties": {
+            "state": {
+              "const": "present"
+            }
+          },
+          "oneOf": [
+            {
+              "not": {
+                "required": [
+                  "applicationId"
+                ]
+              },
+              "properties": {
+                "kind": {
+                  "const": "common"
+                }
+              }
+            },
+            {
+              "required": [
+                "applicationId"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "application"
+                }
+              }
+            }
+          ],
+          "required": [
+            "sourceId",
+            "publicationId",
+            "configurationId",
+            "schemaVersion",
+            "environment",
+            "kind",
+            "sha256",
+            "payloadJson"
+          ]
+        },
+        {
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "sourceId"
+                ]
+              },
+              {
+                "required": [
+                  "publicationId"
+                ]
+              },
+              {
+                "required": [
+                  "configurationId"
+                ]
+              },
+              {
+                "required": [
+                  "schemaVersion"
+                ]
+              },
+              {
+                "required": [
+                  "environment"
+                ]
+              },
+              {
+                "required": [
+                  "kind"
+                ]
+              },
+              {
+                "required": [
+                  "applicationId"
+                ]
+              },
+              {
+                "required": [
+                  "sha256"
+                ]
+              },
+              {
+                "required": [
+                  "payloadJson"
+                ]
+              }
+            ]
+          },
+          "properties": {
+            "state": {
+              "const": "absent"
+            }
+          }
+        }
+      ]
+    },
+    "ConfigurationSnapshot": {
+      "type": "object",
+      "properties": {
+        "desired": {
+          "$ref": "#/$defs/ConfigurationDesiredContext"
+        },
+        "eTag": {
+          "pattern": "^\"[\\u0021\\u0023-\\u007e]+\"$",
+          "maxLength": 256,
+          "type": "string",
+          "minLength": 3
+        },
+        "commonSource": {
+          "$ref": "#/$defs/ConfigurationSourceContent"
+        },
+        "applicationSource": {
+          "$ref": "#/$defs/ConfigurationSourceContent"
+        }
+      },
+      "required": [
+        "desired",
+        "eTag",
+        "commonSource",
+        "applicationSource"
+      ],
+      "additionalProperties": true,
+      "x-cis-max-body-bytes": 1048576,
+      "x-cis-default-max-body-bytes": 1048576
+    },
+    "ConfigurationIssue": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "x-cis-safe-code": true,
+          "maxLength": 128,
+          "type": "string",
+          "minLength": 1
+        },
+        "path": {
+          "type": "string",
+          "maxLength": 1024,
+          "x-cis-max-utf8-bytes": 1024
+        }
+      },
+      "required": [
+        "code"
+      ],
+      "additionalProperties": true
+    },
+    "ConfigurationValidationCommand": {
+      "type": "object",
+      "properties": {
+        "commandVersion": {
+          "type": "integer",
+          "enum": [
+            1
+          ]
+        },
+        "sourceId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "payloadJson": {
+          "minLength": 2,
+          "type": "string",
+          "x-cis-max-utf8-bytes": 262144,
+          "x-cis-no-bom-or-duplicate-decoded-names": true,
+          "x-cis-sha256-over-decoded-utf8": true,
+          "x-cis-json-object-text": true,
+          "x-cis-max-depth": 16,
+          "maxLength": 262144
+        }
+      },
+      "required": [
+        "commandVersion",
+        "sourceId",
+        "payloadJson"
+      ],
+      "additionalProperties": false,
+      "x-cis-max-body-bytes": 1048576,
+      "x-cis-default-max-body-bytes": 1048576
+    },
+    "ConfigurationValidationResult": {
+      "type": "object",
+      "properties": {
+        "valid": {
+          "type": "boolean"
+        },
+        "issues": {
+          "items": {
+            "$ref": "#/$defs/ConfigurationIssue"
+          },
+          "type": "array",
+          "maxItems": 64
+        }
+      },
+      "required": [
+        "valid",
+        "issues"
+      ],
+      "additionalProperties": true
+    },
+    "ConfigurationPreviewCommand": {
+      "type": "object",
+      "properties": {
+        "commandVersion": {
+          "type": "integer",
+          "enum": [
+            1
+          ]
+        },
+        "applicationId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "configurationId": {
+          "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9._~-]{1,128}$",
+          "maxLength": 128,
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaVersion": {
+          "pattern": "^[1-9][0-9]{0,18}$",
+          "x-cis-int64-maximum": "9223372036854775807",
+          "maxLength": 19,
+          "type": "string",
+          "minLength": 1
+        },
+        "commonSource": {
+          "$ref": "#/$defs/ConfigurationCommandSourceReference"
+        },
+        "applicationSource": {
+          "$ref": "#/$defs/ConfigurationCommandSourceReference"
+        },
+        "assignment": {
+          "$ref": "#/$defs/ConfigurationAssignmentCommand"
+        }
+      },
+      "required": [
+        "commandVersion",
+        "applicationId",
+        "configurationId",
+        "schemaVersion"
+      ],
+      "additionalProperties": false,
+      "x-cis-max-body-bytes": 1048576,
+      "x-cis-default-max-body-bytes": 1048576,
+      "oneOf": [
+        {
+          "required": [
+            "commonSource",
+            "applicationSource"
+          ],
+          "not": {
+            "required": [
+              "assignment"
+            ]
+          }
+        },
+        {
+          "required": [
+            "assignment"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "commonSource"
+                ]
+              },
+              {
+                "required": [
+                  "applicationSource"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "ConfigurationChange": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "maxLength": 1024,
+          "x-cis-max-utf8-bytes": 1024
+        },
+        "kind": {
+          "x-known-values": [
+            "added",
+            "removed",
+            "overridden",
+            "unchanged"
+          ],
+          "maxLength": 64,
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "path",
+        "kind"
+      ],
+      "additionalProperties": true
+    },
+    "ConfigurationPreview": {
+      "type": "object",
+      "properties": {
+        "applicationId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "configurationId": {
+          "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9._~-]{1,128}$",
+          "maxLength": 128,
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaVersion": {
+          "pattern": "^[1-9][0-9]{0,18}$",
+          "x-cis-int64-maximum": "9223372036854775807",
+          "maxLength": 19,
+          "type": "string",
+          "minLength": 1
+        },
+        "structurallyValid": {
+          "type": "boolean"
+        },
+        "redacted": {
+          "type": "boolean"
+        },
+        "changes": {
+          "items": {
+            "$ref": "#/$defs/ConfigurationChange"
+          },
+          "type": "array",
+          "maxItems": 256
+        },
+        "issues": {
+          "items": {
+            "$ref": "#/$defs/ConfigurationIssue"
+          },
+          "type": "array",
+          "maxItems": 64
+        },
+        "currentAssignment": {
+          "$ref": "#/$defs/ConfigurationAssignmentMap"
+        },
+        "recipients": {
+          "$ref": "#/$defs/ConfigurationPreviewRecipientPage"
+        },
+        "commonSource": {
+          "$ref": "#/$defs/ConfigurationSourceReference"
+        },
+        "applicationSource": {
+          "$ref": "#/$defs/ConfigurationSourceReference"
+        },
+        "proposedAssignment": {
+          "$ref": "#/$defs/ConfigurationAssignmentProposal"
+        }
+      },
+      "required": [
+        "applicationId",
+        "configurationId",
+        "schemaVersion",
+        "structurallyValid",
+        "redacted",
+        "changes",
+        "issues",
+        "currentAssignment",
+        "recipients"
+      ],
+      "additionalProperties": true,
+      "oneOf": [
+        {
+          "required": [
+            "commonSource",
+            "applicationSource"
+          ],
+          "not": {
+            "required": [
+              "proposedAssignment"
+            ]
+          }
+        },
+        {
+          "required": [
+            "proposedAssignment"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "commonSource"
+                ]
+              },
+              {
+                "required": [
+                  "applicationSource"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "ConfigurationVersion": {
+      "type": "object",
+      "properties": {
+        "releaseId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "generation": {
+          "pattern": "^[1-9][0-9]{0,18}$",
+          "x-cis-int64-maximum": "9223372036854775807",
+          "maxLength": 19,
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "releaseId",
+        "generation"
+      ],
+      "additionalProperties": true
+    },
+    "ConfigurationAppliedVersion": {
+      "type": "object",
+      "properties": {
+        "releaseId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "generation": {
+          "pattern": "^[1-9][0-9]{0,18}$",
+          "x-cis-int64-maximum": "9223372036854775807",
+          "maxLength": 19,
+          "type": "string",
+          "minLength": 1
+        },
+        "localRevision": {
+          "pattern": "^(0|[1-9][0-9]{0,18})$",
+          "x-cis-int64-maximum": "9223372036854775807",
+          "maxLength": 19,
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "releaseId",
+        "generation",
+        "localRevision"
+      ],
+      "additionalProperties": true
+    },
+    "ConfigurationStatusEntry": {
+      "type": "object",
+      "properties": {
+        "configurationId": {
+          "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9._~-]{1,128}$",
+          "maxLength": 128,
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaVersion": {
+          "pattern": "^[1-9][0-9]{0,18}$",
+          "x-cis-int64-maximum": "9223372036854775807",
+          "maxLength": 19,
+          "type": "string",
+          "minLength": 1
+        },
+        "updateMode": {
+          "x-known-values": [
+            "HotReload",
+            "RestartRequired"
+          ],
+          "type": "string",
+          "maxLength": 64,
+          "minLength": 1
+        },
+        "state": {
+          "x-known-values": [
+            "Pending",
+            "Applied",
+            "AppliedUnchanged",
+            "Rejected",
+            "PendingRestart",
+            "Faulted"
+          ],
+          "maxLength": 64,
+          "type": "string",
+          "minLength": 1
+        },
+        "liveStateValid": {
+          "type": "boolean"
+        },
+        "desired": {
+          "$ref": "#/$defs/ConfigurationVersion"
+        },
+        "applied": {
+          "$ref": "#/$defs/ConfigurationAppliedVersion"
+        },
+        "lastSuccessful": {
+          "$ref": "#/$defs/ConfigurationAppliedVersion"
+        },
+        "candidateFailureCode": {
+          "x-cis-safe-code": true,
+          "maxLength": 128,
+          "type": "string",
+          "minLength": 1
+        },
+        "notificationFailureCode": {
+          "x-cis-safe-code": true,
+          "maxLength": 128,
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "configurationId",
+        "schemaVersion",
+        "updateMode",
+        "state",
+        "liveStateValid"
+      ],
+      "additionalProperties": true
+    },
+    "ConfigurationCommandStatusEntry": {
+      "type": "object",
+      "properties": {
+        "configurationId": {
+          "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9._~-]{1,128}$",
+          "maxLength": 128,
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaVersion": {
+          "pattern": "^[1-9][0-9]{0,18}$",
+          "x-cis-int64-maximum": "9223372036854775807",
+          "maxLength": 19,
+          "type": "string",
+          "minLength": 1
+        },
+        "updateMode": {
+          "type": "string",
+          "enum": [
+            "HotReload",
+            "RestartRequired"
+          ]
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "Pending",
+            "Applied",
+            "AppliedUnchanged",
+            "Rejected",
+            "PendingRestart",
+            "Faulted"
+          ]
+        },
+        "liveStateValid": {
+          "type": "boolean"
+        },
+        "desired": {
+          "$ref": "#/$defs/ConfigurationCommandVersion"
+        },
+        "applied": {
+          "$ref": "#/$defs/ConfigurationCommandAppliedVersion"
+        },
+        "lastSuccessful": {
+          "$ref": "#/$defs/ConfigurationCommandAppliedVersion"
+        },
+        "candidateFailureCode": {
+          "x-cis-safe-code": true,
+          "maxLength": 128,
+          "type": "string",
+          "minLength": 1
+        },
+        "notificationFailureCode": {
+          "x-cis-safe-code": true,
+          "maxLength": 128,
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "configurationId",
+        "schemaVersion",
+        "updateMode",
+        "state",
+        "liveStateValid"
+      ],
+      "additionalProperties": false
+    },
+    "ConfigurationCommandVersion": {
+      "type": "object",
+      "properties": {
+        "releaseId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "generation": {
+          "pattern": "^[1-9][0-9]{0,18}$",
+          "x-cis-int64-maximum": "9223372036854775807",
+          "maxLength": 19,
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "releaseId",
+        "generation"
+      ],
+      "additionalProperties": false
+    },
+    "ConfigurationCommandAppliedVersion": {
+      "type": "object",
+      "properties": {
+        "releaseId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "generation": {
+          "pattern": "^[1-9][0-9]{0,18}$",
+          "x-cis-int64-maximum": "9223372036854775807",
+          "maxLength": 19,
+          "type": "string",
+          "minLength": 1
+        },
+        "localRevision": {
+          "pattern": "^(0|[1-9][0-9]{0,18})$",
+          "x-cis-int64-maximum": "9223372036854775807",
+          "maxLength": 19,
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "releaseId",
+        "generation",
+        "localRevision"
+      ],
+      "additionalProperties": false
+    },
+    "ConfigurationStatusReport": {
+      "type": "object",
+      "properties": {
+        "sequence": {
+          "pattern": "^[1-9][0-9]{0,18}$",
+          "x-cis-int64-maximum": "9223372036854775807",
+          "maxLength": 19,
+          "type": "string",
+          "minLength": 1
+        },
+        "observedAtUtc": {
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{7}Z$",
+          "x-cis-valid-utc-calendar": true,
+          "maxLength": 28,
+          "type": "string",
+          "minLength": 28
+        },
+        "entries": {
+          "items": {
+            "$ref": "#/$defs/ConfigurationCommandStatusEntry"
+          },
+          "type": "array",
+          "maxItems": 256
+        }
+      },
+      "required": [
+        "sequence",
+        "observedAtUtc",
+        "entries"
+      ],
+      "additionalProperties": false,
+      "x-cis-distinct-definition-schema": true,
+      "x-cis-max-body-bytes": 1048576,
+      "x-cis-default-max-body-bytes": 1048576
+    },
+    "ConfigurationAdoptionEntry": {
+      "type": "object",
+      "properties": {
+        "applicationId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "environment": {
+          "x-cis-exact-ordinal": true,
+          "maxLength": 255,
+          "type": "string",
+          "minLength": 1
+        },
+        "configurationId": {
+          "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9._~-]{1,128}$",
+          "maxLength": 128,
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaVersion": {
+          "pattern": "^[1-9][0-9]{0,18}$",
+          "x-cis-int64-maximum": "9223372036854775807",
+          "maxLength": 19,
+          "type": "string",
+          "minLength": 1
+        },
+        "cohortId": {
+          "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9._~-]{1,128}$",
+          "maxLength": 128,
+          "type": "string",
+          "minLength": 1
+        },
+        "registrationId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "reportedInstanceId": {
+          "maxLength": 1024,
+          "type": "string",
+          "minLength": 1
+        },
+        "applicationVersion": {
+          "maxLength": 512,
+          "type": "string",
+          "minLength": 1
+        },
+        "desired": {
+          "$ref": "#/$defs/ConfigurationVersion"
+        },
+        "reported": {
+          "$ref": "#/$defs/ConfigurationStatusEntry"
+        },
+        "observedAtUtc": {
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{7}Z$",
+          "x-cis-valid-utc-calendar": true,
+          "maxLength": 28,
+          "type": "string",
+          "minLength": 28
+        },
+        "receivedAtUtc": {
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{7}Z$",
+          "x-cis-valid-utc-calendar": true,
+          "maxLength": 28,
+          "type": "string",
+          "minLength": 28
+        },
+        "registrationFreshness": {
+          "x-known-values": [
+            "fresh",
+            "stale",
+            "offline",
+            "unknown",
+            "noInstances"
+          ],
+          "maxLength": 64,
+          "type": "string",
+          "minLength": 1
+        },
+        "adoptionFreshness": {
+          "x-known-values": [
+            "fresh",
+            "stale",
+            "offline",
+            "unknown",
+            "noInstances"
+          ],
+          "maxLength": 64,
+          "type": "string",
+          "minLength": 1
+        },
+        "convergence": {
+          "x-known-values": [
+            "pending",
+            "applied",
+            "rejected",
+            "pendingRestart",
+            "faulted",
+            "unknown",
+            "noInstances"
+          ],
+          "maxLength": 64,
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "applicationId",
+        "environment",
+        "configurationId",
+        "schemaVersion",
+        "registrationFreshness",
+        "adoptionFreshness",
+        "convergence"
+      ],
+      "additionalProperties": true
+    },
+    "ConfigurationAdoptionPage": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/ConfigurationAdoptionEntry"
+          },
+          "type": "array",
+          "maxItems": 500
+        },
+        "nextCursor": {
+          "x-cis-opaque-authenticated-cursor": true,
+          "maxLength": 2048,
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "additionalProperties": true
+    },
+    "ConfigurationDecision": {
+      "type": "object",
+      "properties": {
+        "commandVersion": {
+          "type": "integer",
+          "enum": [
+            1
+          ]
+        },
+        "kind": {
+          "x-known-values": [
+            "catalogApplied",
+            "sourcePublished",
+            "releaseCreated",
+            "assignmentsReplaced"
+          ],
+          "maxLength": 64,
+          "type": "string",
+          "minLength": 1
+        },
+        "decision": {
+          "x-known-values": [
+            "applied",
+            "rejected"
+          ],
+          "maxLength": 64,
+          "type": "string",
+          "minLength": 1
+        },
+        "code": {
+          "x-cis-safe-code": true,
+          "maxLength": 128,
+          "type": "string",
+          "minLength": 1
+        },
+        "decidedAtUtc": {
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{7}Z$",
+          "x-cis-valid-utc-calendar": true,
+          "maxLength": 28,
+          "type": "string",
+          "minLength": 28
+        },
+        "catalogId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "manifestDigest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "maxLength": 64,
+          "type": "string",
+          "minLength": 64
+        },
+        "sourceId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "publicationId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "maxLength": 64,
+          "type": "string",
+          "minLength": 64
+        },
+        "applicationId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "configurationId": {
+          "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9._~-]{1,128}$",
+          "maxLength": 128,
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaVersion": {
+          "pattern": "^[1-9][0-9]{0,18}$",
+          "x-cis-int64-maximum": "9223372036854775807",
+          "maxLength": 19,
+          "type": "string",
+          "minLength": 1
+        },
+        "releaseId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "generation": {
+          "pattern": "^[1-9][0-9]{0,18}$",
+          "x-cis-int64-maximum": "9223372036854775807",
+          "maxLength": 19,
+          "type": "string",
+          "minLength": 1
+        },
+        "eTag": {
+          "pattern": "^\"[\\u0021\\u0023-\\u007e]+\"$",
+          "maxLength": 256,
+          "type": "string",
+          "minLength": 3
+        },
+        "intent": {
+          "x-known-values": [
+            "replace",
+            "promote",
+            "rollback"
+          ],
+          "maxLength": 64,
+          "type": "string",
+          "minLength": 1
+        },
+        "assignment": {
+          "$ref": "#/$defs/ConfigurationAssignmentMap"
+        }
+      },
+      "required": [
+        "commandVersion",
+        "kind",
+        "decision",
+        "code",
+        "decidedAtUtc"
+      ],
+      "additionalProperties": true,
+      "x-cis-kind-required-fields": {
+        "sourcePublished": [
+          "sourceId",
+          "publicationId",
+          "sha256",
+          "eTag"
+        ],
+        "catalogApplied": [
+          "catalogId",
+          "manifestDigest",
+          "eTag"
+        ],
+        "releaseCreated": [
+          "applicationId",
+          "configurationId",
+          "schemaVersion",
+          "releaseId",
+          "eTag"
+        ],
+        "assignmentsReplaced": [
+          "applicationId",
+          "configurationId",
+          "schemaVersion",
+          "generation",
+          "eTag",
+          "intent",
+          "assignment"
+        ]
+      }
+    },
+    "ConfigurationOperationResult": {
+      "type": "object",
+      "properties": {
+        "operation": {
+          "$ref": "#/$defs/OperationReference"
+        },
+        "resultSource": {
+          "x-known-values": [
+            "prepared",
+            "replayed",
+            "found"
+          ],
+          "maxLength": 64,
+          "type": "string",
+          "minLength": 1
+        },
+        "originalCompletion": {
+          "x-known-values": [
+            "committed",
+            "notCommitted",
+            "unknown"
+          ],
+          "maxLength": 64,
+          "type": "string",
+          "minLength": 1
+        },
+        "result": {
+          "$ref": "#/$defs/ConfigurationDecision"
+        },
+        "rejection": {
+          "$ref": "#/$defs/OperationRejection"
+        },
+        "attemptCompletion": {
+          "$ref": "#/$defs/TransactionFacts"
+        }
+      },
+      "required": [
+        "operation",
+        "resultSource",
+        "originalCompletion"
+      ],
+      "additionalProperties": true,
+      "oneOf": [
+        {
+          "required": [
+            "result"
+          ],
+          "not": {
+            "required": [
+              "rejection"
+            ]
+          }
+        },
+        {
+          "required": [
+            "rejection"
+          ],
+          "not": {
+            "required": [
+              "result"
+            ]
+          }
+        }
+      ]
+    },
+    "ConfigurationProblem": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "maxLength": 2048,
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "maxLength": 256,
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "minimum": 400,
+          "maximum": 599,
+          "type": "integer"
+        },
+        "code": {
+          "x-cis-safe-code": true,
+          "maxLength": 128,
+          "type": "string",
+          "minLength": 1
+        },
+        "detail": {
+          "type": "string",
+          "maxLength": 1024
+        },
+        "correlationId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "operation": {
+          "$ref": "#/$defs/OperationReference"
+        },
+        "result": {
+          "$ref": "#/$defs/ConfigurationOperationResult"
+        }
+      },
+      "required": [
+        "type",
+        "title",
+        "status",
+        "code"
+      ],
+      "additionalProperties": true
+    },
+    "ConfigurationPreviewRecipient": {
+      "type": "object",
+      "properties": {
+        "registrationId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "compatibility": {
+          "x-known-values": [
+            "reportedCompatible",
+            "unknown"
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "type": "string"
+        },
+        "cohortId": {
+          "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9._~-]{1,128}$",
+          "maxLength": 128,
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "registrationId",
+        "compatibility"
+      ],
+      "additionalProperties": true
+    },
+    "ConfigurationPreviewRecipientPage": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/ConfigurationPreviewRecipient"
+          },
+          "maxItems": 500,
+          "type": "array"
+        },
+        "nextCursor": {
+          "maxLength": 2048,
+          "x-cis-opaque-authenticated-cursor": true,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "additionalProperties": true
+    },
+    "ConfigurationAssignmentProposal": {
+      "type": "object",
+      "properties": {
+        "commandVersion": {
+          "type": "integer",
+          "enum": [
+            1
+          ]
+        },
+        "intent": {
+          "minLength": 1,
+          "x-known-values": [
+            "replace",
+            "promote",
+            "rollback"
+          ],
+          "maxLength": 64,
+          "type": "string"
+        },
+        "defaultReleaseId": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true,
+          "maxLength": 36,
+          "type": "string",
+          "minLength": 36
+        },
+        "overrides": {
+          "items": {
+            "$ref": "#/$defs/ConfigurationOverride"
+          },
+          "type": "array",
+          "maxItems": 16
+        },
+        "reason": {
+          "x-cis-valid-unicode": true,
+          "x-cis-max-utf8-bytes": 1024,
+          "maxLength": 1024,
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "commandVersion",
+        "intent",
+        "defaultReleaseId",
+        "overrides",
+        "reason"
+      ],
+      "additionalProperties": true,
+      "x-cis-distinct-cohort-ids": true,
+      "x-cis-max-body-bytes": 1048576,
+      "x-cis-default-max-body-bytes": 1048576
     }
   },
   "description": "Canonical DTO schemas. Requests are closed; response readers tolerate optional additions and preserve unknown raw values. x-cis annotations document runtime lexical/semantic/byte requirements not all expressible in JSON Schema or the existing evaluator.",

@@ -24,6 +24,7 @@ public sealed class ManagedWorkAdmission : IManagedWorkAdmission
     private DateTimeOffset lastUtc;
     private bool hasClockSample;
     private bool bootstrapped;
+    private bool confirmationGapObserved;
 
     /// <summary>Captures one clock without starting timers, reading credentials or resolving modules.</summary>
     public ManagedWorkAdmission(TimeProvider? timeProvider = null)
@@ -73,17 +74,17 @@ public sealed class ManagedWorkAdmission : IManagedWorkAdmission
                 if (current.State == ManagedWorkAdmissionState.Ready)
                 {
                     ClockSample now = ReadClockUnderLock();
-                    if (!ready)
-                    {
-                        publication = CloseUnderLock("management.prerequisite.unavailable");
-                    }
-                    else if (!now.Trusted)
+                    if (!now.Trusted)
                     {
                         publication = CloseUnderLock("management.control.clock_gap");
                     }
                     else if (!FreshUnderLock(confirmationStarted, validForMs, now.Timestamp))
                     {
                         publication = CloseUnderLock("management.control.expired");
+                    }
+                    else if (!ready)
+                    {
+                        publication = CloseUnderLock("management.prerequisite.unavailable");
                     }
                 }
                 snapshot = current;
@@ -126,6 +127,18 @@ public sealed class ManagedWorkAdmission : IManagedWorkAdmission
         Publish(publication);
     }
 
+    // Reporting refusal still closes RM-07 admission, but is not an explicit host/control-connectivity gap.
+    internal void InvalidateReporting()
+    {
+        ManagedWorkAdmissionSnapshot? publication;
+        lock (gate)
+        {
+            // Reporting refusal does not invalidate clock evidence; retain it for the next control-entry gap check.
+            publication = CloseUnderLock("management.reporting.unavailable");
+        }
+        Publish(publication);
+    }
+
     internal void BindPrerequisites(Func<bool> selected)
     {
         ArgumentNullException.ThrowIfNull(selected);
@@ -152,6 +165,11 @@ public sealed class ManagedWorkAdmission : IManagedWorkAdmission
             {
                 return;
             }
+            if (registrationId != id)
+            {
+                // A replacement session has no usable authority window from the prior registration.
+                confirmationGapObserved = true;
+            }
             registrationId = id;
             publication = CloseUnderLock("management.bootstrap.registration_required");
         }
@@ -165,6 +183,7 @@ public sealed class ManagedWorkAdmission : IManagedWorkAdmission
             throw new ArgumentException("Select canonical control registration and attempt UUIDs.");
         }
         ManagedWorkAdmissionSnapshot? publication;
+        ManagedWorkAdmissionSnapshot? gap = null;
         ManagedControlAttempt result;
         lock (gate)
         {
@@ -174,10 +193,21 @@ public sealed class ManagedWorkAdmission : IManagedWorkAdmission
             }
             // Revalidation starts at this sample, even if the previous sample exposed a resume gap.
             ClockSample started = ReadClockUnderLock();
+            if (bootstrapped && !confirmationGapObserved)
+            {
+                string? reason = !started.Trusted ? "management.control.clock_gap"
+                    : !FreshUnderLock(confirmationStarted, validForMs, started.Timestamp) ? "management.control.expired" : null;
+                if (reason is not null)
+                {
+                    // Retain the old window's gap before Reconciling replaces it, even without an admission/status observer.
+                    gap = CloseUnderLock(reason);
+                }
+            }
             generation = checked(generation + 1);
             result = new(generation, id, attemptId, started.Timestamp);
             publication = UpdateUnderLock(ManagedWorkAdmissionState.Reconciling, false, "management.control.checking");
         }
+        Publish(gap);
         Publish(publication);
         return result;
     }
@@ -276,6 +306,7 @@ public sealed class ManagedWorkAdmission : IManagedWorkAdmission
                     confirmationStarted = attempt.Started;
                     validForMs = confirmation.ValidForMs;
                     bootstrapped = true;
+                    confirmationGapObserved = false;
                     publication = UpdateUnderLock(ManagedWorkAdmissionState.Ready, true, null);
                     accepted = true;
                 }
@@ -332,6 +363,12 @@ public sealed class ManagedWorkAdmission : IManagedWorkAdmission
         if (current.State == ManagedWorkAdmissionState.Stopping)
         {
             return null;
+        }
+        if (reason is "management.control.expired" or "management.control.clock_gap"
+            or "management.control.clock_unavailable" or "management.control.revalidation_required")
+        {
+            // One failed window can span several control attempts while module reconciliation is incomplete.
+            confirmationGapObserved = true;
         }
         generation = checked(generation + 1);
         return UpdateUnderLock(bootstrapped ? ManagedWorkAdmissionState.ContinuingOnly : ManagedWorkAdmissionState.AwaitingBootstrap,

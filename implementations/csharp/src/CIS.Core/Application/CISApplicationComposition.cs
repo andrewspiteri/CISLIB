@@ -77,6 +77,10 @@ internal sealed class CISApplicationComposition
     {
         get; set;
     }
+    internal CISApplicationCentralConfiguration? CentralConfiguration
+    {
+        get; private set;
+    }
     internal IRestClientRuntime? Rest
     {
         get; private set;
@@ -130,6 +134,16 @@ internal sealed class CISApplicationComposition
 
     internal void Seal()
     {
+        if (setup.CentralConfiguration is { } central)
+        {
+            if (setup.Configuration is not { Enrollments.Count: > 0, SnapshotTarget: null }
+                || setup.RestClients.Any(client => client.ClientName == central.Management.RestClientName
+                    || client.ClientName == central.Configuration.RestClientName))
+            {
+                throw new ArgumentException("Central facade bootstrap requires explicit enrollments, independent target discovery and distinct native profile registration.");
+            }
+            CentralConfiguration = new(central);
+        }
         CaptureManagement();
         CaptureAudit();
         CaptureCoordination();
@@ -172,14 +186,68 @@ internal sealed class CISApplicationComposition
 
     internal async Task<ICISApplicationIntegration[]> PrepareAsync(CancellationToken token)
     {
-        ITypeManager manager = await TypeManager.CreateAsync(setup.TypeManager, token).ConfigureAwait(false);
-        Configuration = await ConfigurationRuntime.PrepareAsync(manager,
-            setup.Configuration ?? new ConfigurationOptions(setup.TypeManager.HostAssembly.GetName().Name!)
+        using var budget = CentralConfiguration is { } central
+            ? new CancellationTokenSource(central.Timeout, central.Clock) : null;
+        using var bounded = budget is null ? null : CancellationTokenSource.CreateLinkedTokenSource(token, budget.Token);
+        CancellationToken preparationToken = bounded?.Token ?? token;
+        ICISApplicationIntegration[] integrations;
+        try
+        {
+            integrations = await PrepareCoreAsync(preparationToken).ConfigureAwait(false);
+        }
+        catch (Exception original)
+        {
+            try
             {
-                IsHealthCritical = true
-            }, token).ConfigureAwait(false);
+                if (CentralConfiguration is { } failed)
+                {
+                    await failed.RetireBootstrapAsync().ConfigureAwait(false);
+                }
+            }
+            catch (Exception cleanup)
+            {
+                throw new AggregateException("Application preparation and actual native bootstrap cleanup failed.", original, cleanup);
+            }
+            if (original is OperationCanceledException cancelled && cancelled.CancellationToken == preparationToken
+                && !token.IsCancellationRequested && budget?.IsCancellationRequested == true)
+            {
+                throw new TimeoutException("The bounded central Configuration bootstrap did not complete.", original);
+            }
+            throw;
+        }
+        if (CentralConfiguration is { } prepared)
+        {
+            await prepared.RetireBootstrapAsync().ConfigureAwait(false);
+        }
+        token.ThrowIfCancellationRequested();
+        if (budget?.IsCancellationRequested == true)
+        {
+            throw new TimeoutException("The bounded central Configuration bootstrap did not complete.");
+        }
+        return integrations;
+    }
+
+    private async Task<ICISApplicationIntegration[]> PrepareCoreAsync(CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();
+        if (CentralConfiguration is { } central)
+        {
+            await central.PrepareCredentialsAsync(token).ConfigureAwait(false);
+        }
+        ITypeManager manager = await TypeManager.CreateAsync(setup.TypeManager, token).ConfigureAwait(false);
+        ConfigurationOptions selected = setup.Configuration ?? new ConfigurationOptions(setup.TypeManager.HostAssembly.GetName().Name!)
+        {
+            IsHealthCritical = true
+        };
+        if (CentralConfiguration is { } bootstrap)
+        {
+            selected = await bootstrap.PrepareTargetAsync(selected, token).ConfigureAwait(false);
+        }
+        Configuration = await ConfigurationRuntime.PrepareAsync(manager,
+            selected, token).ConfigureAwait(false);
         setup.Services.AddSingleton(manager);
         Configuration.Register(setup.Services, prependStartup: true);
+        CentralConfiguration?.ConfigureFinal(setup.Services, Configuration);
 
         foreach (RestClientOptions client in setup.RestClients)
         {
@@ -218,6 +286,7 @@ internal sealed class CISApplicationComposition
             setup.Services.Remove(coordinationStartup);
             setup.Services.Add(coordinationStartup);
         }
+        PreserveCentralConfigurationStartupOrder();
 
         if (setup.HealthcheckEnabled)
         {
@@ -244,6 +313,25 @@ internal sealed class CISApplicationComposition
         NormalizeDefaultAlias(heartbeatDefaults, typeof(IHeartbeatOwnerFactory), typeof(HeartbeatRuntime));
         CaptureLoggingRegistration();
         return integrations;
+    }
+
+    private void PreserveCentralConfigurationStartupOrder()
+    {
+        if (CentralConfiguration is null)
+        {
+            return;
+        }
+        ServiceDescriptor[] participants = setup.Services.Where(item => !item.IsKeyedService
+            && item.ServiceType == typeof(CIS.Startup.IStartable)).ToArray();
+        ServiceDescriptor configuration = participants.Single(item => item.ImplementationType == typeof(CIS.Configuration.Hosting.ConfigurationStartable));
+        if (!ReferenceEquals(participants[0], configuration))
+        {
+            // Native prepared credentials were explicitly activated before host.Start.
+            // Restore only Configuration's existing first-participant invariant; all other order stays intact.
+            int first = setup.Services.IndexOf(participants[0]);
+            setup.Services.Remove(configuration);
+            setup.Services.Insert(first, configuration);
+        }
     }
 
     internal void BindBuiltRoot(IServiceProvider root)

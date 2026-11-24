@@ -7,7 +7,7 @@ namespace CIS.Management.Service.Persistence;
 /// <summary>Explicit application deployment migration and read-only schema readiness.</summary>
 public static class ManagementSchema
 {
-    public const int Version = 2;
+    public const int Version = 3;
 
     /// <summary>Explicitly installs or upgrades version one without changing retained metadata, results or audit intent.</summary>
     public static Task InstallAsync(ILocalTransactionContext context, string schema,
@@ -36,14 +36,14 @@ public static class ManagementSchema
                         $"SELECT COUNT(*)::integer,COALESCE(min(version),0) FROM {T("management_schema_version")}");
                     await using var reader = await version.ExecuteReaderAsync(token).ConfigureAwait(false);
                     if (!await reader.ReadAsync(token).ConfigureAwait(false) || reader.GetInt32(0) != 1
-                        || reader.GetInt32(1) is not (1 or Version))
+                        || reader.GetInt32(1) is not (1 or 2 or Version))
                     {
                         throw new ManagementSchemaException("An existing management schema has an unsupported version.");
                     }
                     existingVersion = reader.GetInt32(1);
                 }
             }
-            if (existingVersion == Version)
+            if (existingVersion >= 2)
             {
                 // A missing/corrupt authority is recovery, not permission to mint a new namespace.
                 await using var validate = ManagementSql.Command(connection, transaction,
@@ -55,10 +55,24 @@ public static class ManagementSchema
                 {
                     throw new ManagementSchemaException("The installed authority must be reconciled explicitly, not reset by migration.");
                 }
-                return;
+                await reader.DisposeAsync();
+                if (existingVersion == Version)
+                {
+                    await using var catalog = ManagementSql.Command(connection, transaction,
+                        $"SELECT catalog_id,revision FROM {T("configuration_catalog")} WHERE singleton=true");
+                    await using var catalogReader = await catalog.ExecuteReaderAsync(token).ConfigureAwait(false);
+                    if (!await catalogReader.ReadAsync(token).ConfigureAwait(false) || catalogReader.GetGuid(0) == Guid.Empty
+                        || catalogReader.GetInt64(1) <= 0)
+                    {
+                        throw new ManagementSchemaException("The installed configuration catalog requires explicit recovery.");
+                    }
+                    return;
+                }
             }
 
-            await using var command = ManagementSql.Command(connection, transaction, $"""
+            if (existingVersion < 2)
+            {
+                await using var command = ManagementSql.Command(connection, transaction, $"""
                 CREATE SCHEMA IF NOT EXISTS "{schema}";
                 CREATE TABLE IF NOT EXISTS {T("management_schema_version")} (version integer PRIMARY KEY CHECK (version=2));
                 ALTER TABLE {T("management_schema_version")} DROP CONSTRAINT IF EXISTS management_schema_version_version_check;
@@ -93,18 +107,28 @@ public static class ManagementSchema
                 INSERT INTO {T("management_authority")}(singleton,namespace_name,authority_id,control_revision,recovery_epoch,recovery_hold)
                     VALUES(true,@namespace,@authority,@revision,@epoch,@hold);
                 """);
-            foreach ((string name, object value) in new (string, object)[]
-            {
+                foreach ((string name, object value) in new (string, object)[]
+                {
                 ("namespace", backend.NamespaceName), ("authority", Guid.NewGuid()),
                 ("revision", "control." + Guid.NewGuid().ToString("D")), ("epoch", backend.ExpectedRecoveryEpoch), ("hold", backend.RecoveryHold)
-            })
-            {
-                var parameter = command.CreateParameter();
-                parameter.ParameterName = name;
-                parameter.Value = value;
-                command.Parameters.Add(parameter);
+                })
+                {
+                    var parameter = command.CreateParameter();
+                    parameter.ParameterName = name;
+                    parameter.Value = value;
+                    command.Parameters.Add(parameter);
+                }
+                await command.ExecuteNonQueryAsync(token).ConfigureAwait(false);
             }
-            await command.ExecuteNonQueryAsync(token).ConfigureAwait(false);
+            await using var configuration = ManagementSql.Command(connection, transaction,
+                ManagementConfigurationSchemaSql.Installation(schema), ("catalog_id", Guid.NewGuid()));
+            await configuration.ExecuteNonQueryAsync(token).ConfigureAwait(false);
+            await using var advance = ManagementSql.Command(connection, transaction, $"""
+                ALTER TABLE {T("management_schema_version")} DROP CONSTRAINT IF EXISTS management_schema_version_version_check;
+                UPDATE {T("management_schema_version")} SET version=3;
+                ALTER TABLE {T("management_schema_version")} ADD CONSTRAINT management_schema_version_version_check CHECK(version=3)
+                """);
+            await advance.ExecuteNonQueryAsync(token).ConfigureAwait(false);
         }, cancellationToken);
     }
 

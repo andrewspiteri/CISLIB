@@ -196,6 +196,62 @@ REST path. No client secret or `DefaultAzureCredential` chain is used.
 
 ## Acquisition, status and stopping
 
+### Explicit preparation before DI
+
+Central configuration bootstrap can use `EntraPreparedProfile.PrepareAsync` when
+authenticated calls must complete before consumer construction. Supply one
+`SecurityPolicySnapshot.Create(...)` result, the selected profile and detached
+`EntraSecurityOptions`. The explicit asynchronous call captures provider setup
+once and establishes a usable credential through the existing native SDK
+acquisition owner. Expected unavailable, invalid or expired acquisition fails
+closed with a safe `AuthenticationException`; it does not return a usable prepared
+owner or disclose provider response text. Unexpected SDK programming faults and
+caller cancellation preserve their original identities after cleanup settles.
+
+The prepared owner exposes that exact `Policy`, its policy-owned `Binding` and
+`AuthenticateAsync` for a standalone `HttpRestClient`. Set the standalone client's
+`SecurityBinding` and authentication callback together. It retains ordinary
+origin, finalized destination, deadline, cancellation and actual cleanup checks.
+Preparation has no temporary service provider, extra token cache, timer, host
+Healthcheck condition or Heartbeat registration. A readiness-required profile is
+still required; its normal host observations begin only at final activation.
+
+Retain the prepared owner before Build so a failed Build can dispose it even if
+DI never resolved the profile. After all initial authenticated reads, close and
+join standalone REST, dispose its transport, then await `RetireBootstrapAsync()`.
+This cleanup has no cancelable wait that can abandon an SDK operation. Register
+`AddCisSecurity(prepared.Policy)` and `AddCisEntraSecurity(prepared)` in the single
+final service collection. The existing `AddCisEntraRestClient` uses the same
+prepared binding; create the final transport using that provider's actual
+`IMeterFactory`. A bootstrap transport is retired, not installed as a final
+unmetered borrowed transport.
+
+Final DI construction is passive and can claim the prepared credential before
+retirement finishes. Actual final Startup refuses activation until bootstrap
+retirement has completed successfully, before creating host observers or
+selecting the credential. The ordinary final runtime then borrows the same
+native `WorkloadIdentityCredential`, captured options and exact policy; it
+retains normal required readiness, Heartbeat availability checks and shutdown.
+No bootstrap/final acquisition owners overlap. The supported SDK's own cache
+can serve both phases; preparation does not create durable authentication or
+Management authority. Later changes to input options are not adopted.
+
+One prepared owner can be adopted by one final provider only. An equal-looking
+replacement policy or another provider is rejected before it can take disposal
+ownership from the legitimate host. The final provider tracks the same
+idempotent prepared owner through a factory registration. The application still
+retains it for construction failures and drains REST before cleanup. Disposal
+joins bootstrap and final runtime work, including SDK calls ignoring
+cancellation, before retiring a constructed credential. A supplied typed
+`WorkloadIdentityCredential` and native SDK transport remain externally owned;
+they are never disposed by preparation or the final runtime.
+
+The native prepared-profile tests execute the actual SDK projected assertion and
+cache, real local TLS before/after Build, exact policy/binding reuse, late option
+mutation, provider-claim guards and held-operation drain. Controlled SDK failure
+and cancellation cases establish ownership facts. These remain local native
+evidence and do not establish AKS federation.
+
 Registration and constructors perform no credential acquisition or network
 checks. Existing sequential Startup creates one reused
 `WorkloadIdentityCredential` per selected outbound profile. The supported SDK
@@ -352,6 +408,13 @@ the actual WorkloadIdentityCredential, projected-file read, SDK cache and final
 REST hook over real local TLS. Their token endpoint is controlled test transport;
 they are **not AKS/Entra federation evidence**. AC-02 remains explicitly unverified
 until suitable authorized infrastructure supplies the deployment proof above.
+
+An explicitly prepared profile also exposes `ActivateFinalAsync(provider, token)`
+for the facade's sequential handoff before Configuration and fresh Management
+control. It resolves only that preparation's actual keyed runtime, validates its
+exact policy and clock, and requires actual bootstrap retirement. Later ordinary
+Startup joins the same activation. The preparation's `TimeProvider` is retained
+for that shared clock; this adds no credential cache or provider.
 
 Primary platform references: [AKS workload identity](https://learn.microsoft.com/en-us/azure/aks/workload-identity-overview),
 [application permissions](https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-client-creds-grant-flow),

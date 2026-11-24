@@ -21,6 +21,14 @@ existing Operations and Messaging contracts in its actual atomic provider
 boundary. An independent Redis/Cosmos state write beside a PostgreSQL journal or
 outbox would not satisfy this contract. That work is not delivered here.
 
+RM-08 adds `IManagementConfigurationBackend` beside the existing interface. The
+PostgreSQL product resolves both to the same scoped adapter and original
+authority/journal/outbox graph. Select `Configuration.ManifestFile` and an explicit
+`Configuration.QuotaBytes`; the [catalog/apply recipe](../../../../../docs/modules/management/configuration-service.md)
+describes the guarded deployment step and actual installed source handlers.
+An unloaded/uninitialized configuration capability does not advertise release,
+assignment or adoption behavior merely because portable DTOs exist.
+
 ## Frozen startup selection
 
 The executable reads this public `Backend` section along with the existing
@@ -48,7 +56,8 @@ all replicas, not a local flag on only one node.
 
 One configured schema corresponds to one persisted namespace. Explicit
 `--migrate` initializes its stable canonical authority UUID and opaque control
-revision, or upgrades the old management schema to version two. Normal startup
+revision, or upgrades the old management schema to version three, including an
+empty stable configuration catalog. Normal startup
 does not create or replace an authority. Repeating migration checks a current
 authority instead of minting another UUID. A corrupt/missing current authority
 or incompatible dependency schema requires explicit operator recovery.

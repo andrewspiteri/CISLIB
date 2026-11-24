@@ -353,7 +353,11 @@ public sealed class ManagementPersistenceTests
         await using ManagementDatabaseFixture database = await ManagementDatabaseFixture.CreateAsync();
         string id = Id();
         _ = await database.Store.RegisterAsync(Owner(), id, Registration());
-        await database.SqlAsync($"DROP TABLE {database.Table("management_registration")}");
+        await database.SqlAsync($"""
+            DROP TABLE {database.Table("configuration_adoption")};
+            DROP TABLE {database.Table("configuration_session")};
+            DROP TABLE {database.Table("management_registration")}
+            """);
         ManagementStoreResult<ManagementRegistrationReceipt> result = await database.Replica.RegisterAsync(Owner(), id, Registration());
         Assert.AreEqual("management.unavailable", result.Code);
         Assert.IsNull(result.Value);

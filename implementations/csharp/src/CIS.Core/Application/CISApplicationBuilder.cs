@@ -54,6 +54,11 @@ public sealed class CISApplicationBuilder
     {
         get; set;
     }
+    /// <summary>Gets or sets explicit native same-session pre-Build central Configuration bootstrap; null preserves ordinary composition.</summary>
+    public CISApplicationCentralConfigurationOptions? CentralConfiguration
+    {
+        get; set;
+    }
     /// <summary>Gets or sets existing Healthcheck options, with the module's environment precedence.</summary>
     public HealthcheckOptions Healthcheck { get; set; } = new();
     /// <summary>Gets or sets the native predicate for detailed health reports; omitted access is denied.</summary>

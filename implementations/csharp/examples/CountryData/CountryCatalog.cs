@@ -68,30 +68,8 @@ public sealed class CountryCatalog : IStartable, IHeartbeatSubscriber, IAsyncDis
         var captured = reader.Read(settings,
             value => (value.SourceUrl, value.RefreshInterval, value.RequestTimeout, value.RetryPolicyName));
 
-        if (!Uri.TryCreate(captured.SourceUrl, UriKind.Absolute, out Uri? uri)
-            || uri.Scheme is not ("http" or "https")
-            || !string.IsNullOrEmpty(uri.UserInfo))
-        {
-            throw new ArgumentException("Country SourceUrl must be an absolute HTTP(S) URL without user information.");
-        }
-
-        if (captured.RefreshInterval <= TimeSpan.Zero
-            || captured.RefreshInterval > HeartbeatRegistrationOptions.MaximumDuration
-            || captured.RequestTimeout <= TimeSpan.Zero
-            || captured.RequestTimeout > HeartbeatRegistrationOptions.MaximumDuration)
-        {
-            throw new ArgumentException("Country refresh and request durations must be positive supported timer durations.");
-        }
-
-        string? policyName = captured.RetryPolicyName;
-        if (policyName is not null && !retryPolicies.Any(policy => policy.Name == policyName))
-        {
-            throw new ArgumentException("The configured country retry policy is not registered.");
-        }
-
-        RestRetrySelection selection = policyName is null
-            ? RestRetrySelection.None
-            : RestRetrySelection.Named(policyName);
+        RestRetrySelection selection = CountrySettingsValidation.Validate(captured.SourceUrl, captured.RefreshInterval,
+            captured.RequestTimeout, captured.RetryPolicyName, retryPolicies);
         return (captured.SourceUrl, captured.RefreshInterval, captured.RequestTimeout, selection);
     }
 

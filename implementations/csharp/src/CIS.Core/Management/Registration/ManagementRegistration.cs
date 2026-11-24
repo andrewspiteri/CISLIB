@@ -166,10 +166,7 @@ public sealed partial class ManagementRegistration : IStartable, IHeartbeatSubsc
                 using (token.UnsafeRegister(_ => cancellationNotification.Signal(), null))
                 {
                     token.ThrowIfCancellationRequested();
-                    request = new(1, options.ReportedInstanceId ?? EnvironmentOptions.InstanceId,
-                        Timestamp(options.ProcessStartedAtUtc ?? EnvironmentOptions.ProcessStartedAtUtc
-                            ?? throw new ArgumentException("Select an actual process start when the native fact is unavailable.")),
-                        options.ApplicationVersion ?? EnvironmentOptions.ServiceVersion);
+                    request ??= BootstrapRequest(options);
                     _ = ManagementWire.EncodeRequest(request, options.WireLimits);
                     admission.BindRegistration(registrationId);
                     PrepareLatest(initial: true, token);
@@ -186,7 +183,7 @@ public sealed partial class ManagementRegistration : IStartable, IHeartbeatSubsc
                     {
                         try
                         {
-                            initialRegistered = await RegisterAsync(initial.Token,
+                            initialRegistered = registered || await RegisterAsync(initial.Token,
                                 new ManagementCallOptions(options.InitialRegistrationTimeout)).ConfigureAwait(false);
                             initial.Token.ThrowIfCancellationRequested();
                         }
@@ -457,7 +454,7 @@ public sealed partial class ManagementRegistration : IStartable, IHeartbeatSubsc
                 inventoryError = error.Code;
                 connected = false;
             }
-            admission.Invalidate();
+            admission.InvalidateReporting();
             Flag(error.Code);
             Diagnose(error.Code);
             if (initial)
@@ -465,6 +462,7 @@ public sealed partial class ManagementRegistration : IStartable, IHeartbeatSubsc
                 throw;
             }
         }
+        PrepareConfigurationStatus(token);
     }
 
     private async Task<bool> RegisterAsync(CancellationToken token, ManagementCallOptions? callOptions = null)
@@ -549,6 +547,10 @@ public sealed partial class ManagementRegistration : IStartable, IHeartbeatSubsc
                 inventoryUnconfirmed = false;
             }
         }
+        if (!await ReportConfigurationStatusAsync(token).ConfigureAwait(false))
+        {
+            return false;
+        }
         bool recovered;
         lock (gate)
         {
@@ -614,6 +616,7 @@ public sealed partial class ManagementRegistration : IStartable, IHeartbeatSubsc
                 inventoryRefused = false;
                 inventoryUnconfirmed = false;
                 presenceAttempted = false;
+                ResetConfigurationStatus();
             }
         }
         if (replacement is not null)
@@ -646,7 +649,12 @@ public sealed partial class ManagementRegistration : IStartable, IHeartbeatSubsc
         }
         if (closeAdmission)
         {
-            admission.Invalidate();
+            admission.InvalidateReporting();
+        }
+        if (code is "management.control.unavailable" or "management.control.timeout"
+            or "management.not_found" or "management.registration.not_found")
+        {
+            configurationGap?.Invoke();
         }
         Flag(code);
         Diagnose(code);

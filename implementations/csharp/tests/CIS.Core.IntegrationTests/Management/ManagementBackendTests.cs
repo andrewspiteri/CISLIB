@@ -287,6 +287,17 @@ public sealed class ManagementBackendTests
         ManagementMetadataResult original = await Decode<ManagementMetadataResult>(applied);
         await fixture.StopReplicasAsync();
         await Sql(fixture, $"""
+            DROP TABLE {Table(fixture, "configuration_adoption")};
+            DROP TABLE {Table(fixture, "configuration_session")};
+            DROP TABLE {Table(fixture, "configuration_cohort")};
+            DROP TABLE {Table(fixture, "configuration_override")};
+            DROP TABLE {Table(fixture, "configuration_assignment")};
+            DROP TABLE {Table(fixture, "configuration_release")};
+            DROP TABLE {Table(fixture, "configuration_publication")};
+            DROP TABLE {Table(fixture, "configuration_source")};
+            DROP TABLE {Table(fixture, "configuration_binding")};
+            DROP TABLE {Table(fixture, "configuration_definition")};
+            DROP TABLE {Table(fixture, "configuration_catalog")};
             DROP TABLE {Table(fixture, "management_authority")};
             ALTER TABLE {Table(fixture, "management_schema_version")} DROP CONSTRAINT management_schema_version_version_check;
             UPDATE {Table(fixture, "management_schema_version")} SET version=1;

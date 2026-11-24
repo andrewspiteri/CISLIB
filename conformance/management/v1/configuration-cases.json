@@ -1,0 +1,385 @@
+{
+  "contract": "cis.management.configuration",
+  "version": 1,
+  "caseCount": 45,
+  "validationBoundary": "Independent canonical examples distinguish structural JSON Schema acceptance from exact Unicode/duplicate-name/Int64/payload-integrity and native target/authority semantics. These vectors alone prove no provider or deployment behavior.",
+  "cases": [
+    {
+      "id": "configuration-definitionpage-valid",
+      "schema": "ConfigurationDefinitionPage",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"items\":[{\"configurationId\":\"sample.settings\",\"schemaVersion\":\"1\",\"hostApplicationName\":\"ExampleHost\",\"shape\":{\"kind\":\"object\",\"nullable\":false,\"members\":[{\"shape\":{\"kind\":\"string\",\"nullable\":false},\"name\":\"Greeting\",\"required\":false},{\"shape\":{\"kind\":\"boolean\",\"nullable\":false},\"name\":\"Enabled\",\"required\":false}]},\"defaultsJson\":\"{\\\"Greeting\\\":\\\"default\\\",\\\"Enabled\\\":true}\",\"description\":\"Finite shape and deterministic defaults; local cross-property validation remains with Configuration.\",\"sourceId\":\"55555555-5555-5555-5555-555555555555\",\"environment\":\"Development\",\"kind\":\"application\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"bindingId\":\"99999999-9999-9999-9999-999999999999\"}]}"
+    },
+    {
+      "id": "configuration-catalog-valid",
+      "schema": "ConfigurationCatalog",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"loadedManifestDigest\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"catalogId\":\"33333333-3333-3333-3333-333333333333\",\"usedBytes\":4096,\"ready\":true,\"definitionCount\":1,\"bindingCount\":1,\"eTag\":\"\\\"catalog-1\\\"\",\"appliedManifestDigest\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"quotaBytes\":33554432,\"sourceCount\":1}"
+    },
+    {
+      "id": "configuration-catalogcommand-valid",
+      "schema": "ConfigurationCatalogCommand",
+      "direction": "request",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"reason\":\"Apply the deployment manifest\",\"commandVersion\":1,\"manifestDigest\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}"
+    },
+    {
+      "id": "configuration-validationcommand-valid",
+      "schema": "ConfigurationValidationCommand",
+      "direction": "request",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"commandVersion\":1,\"payloadJson\":\"{\\\"Greeting\\\":\\\"Café — 日本語\\\",\\\"Enabled\\\":false}\",\"sourceId\":\"44444444-4444-4444-4444-444444444444\"}"
+    },
+    {
+      "id": "configuration-validationresult-valid",
+      "schema": "ConfigurationValidationResult",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"issues\":[],\"valid\":true}"
+    },
+    {
+      "id": "configuration-previewcommand-valid",
+      "schema": "ConfigurationPreviewCommand",
+      "direction": "request",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"commonSource\":{\"state\":\"present\",\"publicationId\":\"66666666-6666-6666-6666-666666666666\"},\"commandVersion\":1,\"applicationSource\":{\"state\":\"absent\"},\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"schemaVersion\":\"1\",\"configurationId\":\"sample.settings\"}"
+    },
+    {
+      "id": "configuration-preview-valid",
+      "schema": "ConfigurationPreview",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"issues\":[],\"structurallyValid\":true,\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"changes\":[{\"path\":\"commonSource\",\"kind\":\"overridden\"}],\"schemaVersion\":\"1\",\"configurationId\":\"sample.settings\",\"redacted\":true,\"currentAssignment\":{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"sample.settings\",\"schemaVersion\":\"1\",\"environment\":\"Development\",\"eTag\":\"\\\"assignment-9007199254740993\\\"\",\"overrides\":[],\"defaultReleaseId\":\"77777777-7777-7777-7777-777777777777\",\"generation\":\"9007199254740993\"},\"recipients\":{\"items\":[{\"cohortId\":\"canary\",\"compatibility\":\"reportedCompatible\",\"registrationId\":\"22222222-2222-2222-2222-222222222222\"}]},\"commonSource\":{\"state\":\"present\",\"publicationId\":\"66666666-6666-6666-6666-666666666666\"},\"applicationSource\":{\"state\":\"absent\"}}"
+    },
+    {
+      "id": "configuration-source-valid",
+      "schema": "ConfigurationSource",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"sourceId\":\"44444444-4444-4444-4444-444444444444\",\"configurationId\":\"sample.settings\",\"schemaVersion\":\"1\",\"environment\":\"Development\",\"kind\":\"common\",\"eTag\":\"\\\"source-2\\\"\",\"publications\":{\"items\":[{\"publicationId\":\"66666666-6666-6666-6666-666666666666\",\"sourceId\":\"44444444-4444-4444-4444-444444444444\",\"configurationId\":\"sample.settings\",\"schemaVersion\":\"1\",\"environment\":\"Development\",\"kind\":\"common\",\"sha256\":\"6b22cc1785a4a64b26ce415be9c4a3cfbe21aa5b7127644f87004d92192429d9\",\"actor\":\"validated-operator\",\"createdAtUtc\":\"2026-11-24T00:12:34.1234567Z\",\"reason\":\"Publish a common greeting\"}]}}"
+    },
+    {
+      "id": "configuration-publicationcommand-valid",
+      "schema": "ConfigurationPublicationCommand",
+      "direction": "request",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"reason\":\"Publish a common greeting\",\"commandVersion\":1,\"payloadJson\":\"{\\\"Greeting\\\":\\\"Café — 日本語\\\",\\\"Enabled\\\":false}\"}"
+    },
+    {
+      "id": "configuration-publication-valid",
+      "schema": "ConfigurationPublication",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"publicationId\":\"66666666-6666-6666-6666-666666666666\",\"sourceId\":\"44444444-4444-4444-4444-444444444444\",\"configurationId\":\"sample.settings\",\"schemaVersion\":\"1\",\"environment\":\"Development\",\"kind\":\"common\",\"sha256\":\"6b22cc1785a4a64b26ce415be9c4a3cfbe21aa5b7127644f87004d92192429d9\",\"actor\":\"validated-operator\",\"createdAtUtc\":\"2026-11-24T00:12:34.1234567Z\",\"reason\":\"Publish a common greeting\",\"payloadJson\":\"{\\\"Greeting\\\":\\\"Café — 日本語\\\",\\\"Enabled\\\":false}\"}"
+    },
+    {
+      "id": "configuration-releasecommand-valid",
+      "schema": "ConfigurationReleaseCommand",
+      "direction": "request",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"commonSource\":{\"state\":\"present\",\"publicationId\":\"66666666-6666-6666-6666-666666666666\"},\"reason\":\"Pin the exact common source\",\"commandVersion\":1,\"applicationSource\":{\"state\":\"absent\"}}"
+    },
+    {
+      "id": "configuration-release-valid",
+      "schema": "ConfigurationRelease",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"releaseId\":\"77777777-7777-7777-7777-777777777777\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"sample.settings\",\"schemaVersion\":\"1\",\"environment\":\"Development\",\"commonSource\":{\"state\":\"present\",\"publicationId\":\"66666666-6666-6666-6666-666666666666\"},\"applicationSource\":{\"state\":\"absent\"},\"actor\":\"validated-operator\",\"createdAtUtc\":\"2026-11-24T00:12:34.1234567Z\",\"reason\":\"Pin the exact common source\",\"eTag\":\"\\\"release-1\\\"\"}"
+    },
+    {
+      "id": "configuration-assignmentcommand-valid",
+      "schema": "ConfigurationAssignmentCommand",
+      "direction": "request",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"overrides\":[],\"commandVersion\":1,\"reason\":\"Promote and remove the participating canary override\",\"intent\":\"promote\",\"defaultReleaseId\":\"77777777-7777-7777-7777-777777777777\"}"
+    },
+    {
+      "id": "configuration-assignmentmap-valid",
+      "schema": "ConfigurationAssignmentMap",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"sample.settings\",\"schemaVersion\":\"1\",\"environment\":\"Development\",\"eTag\":\"\\\"assignment-9007199254740993\\\"\",\"overrides\":[],\"defaultReleaseId\":\"77777777-7777-7777-7777-777777777777\",\"generation\":\"9007199254740993\"}"
+    },
+    {
+      "id": "configuration-snapshot-valid",
+      "schema": "ConfigurationSnapshot",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"desired\":{\"authorityId\":\"88888888-8888-8888-8888-888888888888\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"environment\":\"Development\",\"registrationId\":\"22222222-2222-2222-2222-222222222222\",\"configurationId\":\"sample.settings\",\"schemaVersion\":\"1\",\"hostApplicationName\":\"ExampleHost\",\"releaseId\":\"77777777-7777-7777-7777-777777777777\",\"generation\":\"9007199254740993\",\"cohortId\":\"canary\"},\"eTag\":\"\\\"snapshot-1\\\"\",\"commonSource\":{\"state\":\"present\",\"sourceId\":\"44444444-4444-4444-4444-444444444444\",\"publicationId\":\"66666666-6666-6666-6666-666666666666\",\"configurationId\":\"sample.settings\",\"schemaVersion\":\"1\",\"environment\":\"Development\",\"kind\":\"common\",\"sha256\":\"6b22cc1785a4a64b26ce415be9c4a3cfbe21aa5b7127644f87004d92192429d9\",\"payloadJson\":\"{\\\"Greeting\\\":\\\"Café — 日本語\\\",\\\"Enabled\\\":false}\"},\"applicationSource\":{\"state\":\"absent\"}}"
+    },
+    {
+      "id": "configuration-statusreport-valid",
+      "schema": "ConfigurationStatusReport",
+      "direction": "request",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"entries\":[{\"configurationId\":\"sample.settings\",\"schemaVersion\":\"1\",\"updateMode\":\"HotReload\",\"state\":\"Applied\",\"liveStateValid\":true,\"desired\":{\"releaseId\":\"77777777-7777-7777-7777-777777777777\",\"generation\":\"9007199254740993\"},\"applied\":{\"releaseId\":\"77777777-7777-7777-7777-777777777777\",\"generation\":\"9007199254740993\",\"localRevision\":\"0\"},\"lastSuccessful\":{\"releaseId\":\"77777777-7777-7777-7777-777777777777\",\"generation\":\"9007199254740993\",\"localRevision\":\"0\"}}],\"observedAtUtc\":\"2026-11-24T00:12:34.1234567Z\",\"sequence\":\"9007199254740993\"}"
+    },
+    {
+      "id": "configuration-adoptionpage-valid",
+      "schema": "ConfigurationAdoptionPage",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"items\":[{\"registrationFreshness\":\"fresh\",\"convergence\":\"applied\",\"schemaVersion\":\"1\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"reported\":{\"configurationId\":\"sample.settings\",\"schemaVersion\":\"1\",\"updateMode\":\"HotReload\",\"state\":\"Applied\",\"liveStateValid\":true,\"desired\":{\"releaseId\":\"77777777-7777-7777-7777-777777777777\",\"generation\":\"9007199254740993\"},\"applied\":{\"releaseId\":\"77777777-7777-7777-7777-777777777777\",\"generation\":\"9007199254740993\",\"localRevision\":\"0\"},\"lastSuccessful\":{\"releaseId\":\"77777777-7777-7777-7777-777777777777\",\"generation\":\"9007199254740993\",\"localRevision\":\"0\"}},\"receivedAtUtc\":\"2026-11-24T00:12:34.1234567Z\",\"desired\":{\"releaseId\":\"77777777-7777-7777-7777-777777777777\",\"generation\":\"9007199254740993\"},\"configurationId\":\"sample.settings\",\"applicationVersion\":\"1.0.0\",\"reportedInstanceId\":\"reported-label-only\",\"environment\":\"Development\",\"observedAtUtc\":\"2026-11-24T00:12:34.1234567Z\",\"cohortId\":\"canary\",\"registrationId\":\"22222222-2222-2222-2222-222222222222\",\"adoptionFreshness\":\"fresh\"}]}"
+    },
+    {
+      "id": "configuration-operationresult-valid",
+      "schema": "ConfigurationOperationResult",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"operation\":{\"scope\":\"v1:binding:99999999-9999-9999-9999-999999999999:actor:opaque\",\"key\":\"promote-1\",\"name\":\"management.configuration.assignment.replace\"},\"attemptCompletion\":{\"cleanupCodes\":[\"transaction.cleanup.failed\"],\"cleanupSucceeded\":false,\"outcome\":\"notCommitted\"},\"originalCompletion\":\"committed\",\"resultSource\":\"replayed\",\"result\":{\"intent\":\"promote\",\"configurationId\":\"sample.settings\",\"decision\":\"applied\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"generation\":\"9007199254740993\",\"schemaVersion\":\"1\",\"code\":\"configuration.assignment.applied\",\"assignment\":{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"sample.settings\",\"schemaVersion\":\"1\",\"environment\":\"Development\",\"eTag\":\"\\\"assignment-9007199254740993\\\"\",\"overrides\":[],\"defaultReleaseId\":\"77777777-7777-7777-7777-777777777777\",\"generation\":\"9007199254740993\"},\"eTag\":\"\\\"assignment-9007199254740993\\\"\",\"decidedAtUtc\":\"2026-11-24T00:12:34.1234567Z\",\"commandVersion\":1,\"kind\":\"assignmentsReplaced\"}}"
+    },
+    {
+      "id": "configuration-closed-publication-command",
+      "schema": "ConfigurationPublicationCommand",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"reason\":\"Publish a common greeting\",\"commandVersion\":1,\"payloadJson\":\"{\\\"Greeting\\\":\\\"Café — 日本語\\\",\\\"Enabled\\\":false}\",\"extra\":\"refused\"}"
+    },
+    {
+      "id": "configuration-absence-cannot-name-publication",
+      "schema": "ConfigurationReleaseCommand",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"commonSource\":{\"state\":\"present\",\"publicationId\":\"66666666-6666-6666-6666-666666666666\"},\"reason\":\"Pin the exact common source\",\"commandVersion\":1,\"applicationSource\":{\"publicationId\":\"66666666-6666-6666-6666-666666666666\",\"state\":\"absent\"}}"
+    },
+    {
+      "id": "configuration-assigned-map-needs-generation",
+      "schema": "ConfigurationAssignmentMap",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"sample.settings\",\"schemaVersion\":\"1\",\"environment\":\"Development\",\"eTag\":\"\\\"assignment-9007199254740993\\\"\",\"overrides\":[],\"defaultReleaseId\":\"77777777-7777-7777-7777-777777777777\"}"
+    },
+    {
+      "id": "configuration-int64-overflow-runtime-bound",
+      "schema": "ConfigurationStatusReport",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"entries\":[{\"configurationId\":\"sample.settings\",\"schemaVersion\":\"1\",\"updateMode\":\"HotReload\",\"state\":\"Applied\",\"liveStateValid\":true,\"desired\":{\"releaseId\":\"77777777-7777-7777-7777-777777777777\",\"generation\":\"9007199254740993\"},\"applied\":{\"releaseId\":\"77777777-7777-7777-7777-777777777777\",\"generation\":\"9007199254740993\",\"localRevision\":\"0\"},\"lastSuccessful\":{\"releaseId\":\"77777777-7777-7777-7777-777777777777\",\"generation\":\"9007199254740993\",\"localRevision\":\"0\"}}],\"observedAtUtc\":\"2026-11-24T00:12:34.1234567Z\",\"sequence\":\"9223372036854775808\"}"
+    },
+    {
+      "id": "configuration-payload-digest-mismatch",
+      "schema": "ConfigurationSnapshot",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"desired\":{\"authorityId\":\"88888888-8888-8888-8888-888888888888\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"environment\":\"Development\",\"registrationId\":\"22222222-2222-2222-2222-222222222222\",\"configurationId\":\"sample.settings\",\"schemaVersion\":\"1\",\"hostApplicationName\":\"ExampleHost\",\"releaseId\":\"77777777-7777-7777-7777-777777777777\",\"generation\":\"9007199254740993\",\"cohortId\":\"canary\"},\"eTag\":\"\\\"snapshot-1\\\"\",\"commonSource\":{\"state\":\"present\",\"sourceId\":\"44444444-4444-4444-4444-444444444444\",\"publicationId\":\"66666666-6666-6666-6666-666666666666\",\"configurationId\":\"sample.settings\",\"schemaVersion\":\"1\",\"environment\":\"Development\",\"kind\":\"common\",\"sha256\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"payloadJson\":\"{\\\"Greeting\\\":\\\"Café — 日本語\\\",\\\"Enabled\\\":false}\"},\"applicationSource\":{\"state\":\"absent\"}}",
+      "expected": {
+        "code": "configuration.integrity",
+        "identifiedDesired": true
+      }
+    },
+    {
+      "id": "configuration-duplicate-decoded-payload-name",
+      "schema": "ConfigurationSnapshot",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"desired\":{\"authorityId\":\"88888888-8888-8888-8888-888888888888\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"environment\":\"Development\",\"registrationId\":\"22222222-2222-2222-2222-222222222222\",\"configurationId\":\"sample.settings\",\"schemaVersion\":\"1\",\"hostApplicationName\":\"ExampleHost\",\"releaseId\":\"77777777-7777-7777-7777-777777777777\",\"generation\":\"9007199254740993\",\"cohortId\":\"canary\"},\"eTag\":\"\\\"snapshot-1\\\"\",\"commonSource\":{\"state\":\"present\",\"sourceId\":\"44444444-4444-4444-4444-444444444444\",\"publicationId\":\"66666666-6666-6666-6666-666666666666\",\"configurationId\":\"sample.settings\",\"schemaVersion\":\"1\",\"environment\":\"Development\",\"kind\":\"common\",\"sha256\":\"f66a19bf89a08b720c74a841be46a845ae1a449e2ff65592d8c44ccbc40651d3\",\"payloadJson\":\"{\\\"Greeting\\\":\\\"first\\\",\\\"\\\\u0047reeting\\\":\\\"second\\\"}\"},\"applicationSource\":{\"state\":\"absent\"}}",
+      "expected": {
+        "identifiedDesired": true
+      }
+    },
+    {
+      "id": "configuration-payload-bom-refused",
+      "schema": "ConfigurationSnapshot",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"desired\":{\"authorityId\":\"88888888-8888-8888-8888-888888888888\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"environment\":\"Development\",\"registrationId\":\"22222222-2222-2222-2222-222222222222\",\"configurationId\":\"sample.settings\",\"schemaVersion\":\"1\",\"hostApplicationName\":\"ExampleHost\",\"releaseId\":\"77777777-7777-7777-7777-777777777777\",\"generation\":\"9007199254740993\",\"cohortId\":\"canary\"},\"eTag\":\"\\\"snapshot-1\\\"\",\"commonSource\":{\"state\":\"present\",\"sourceId\":\"44444444-4444-4444-4444-444444444444\",\"publicationId\":\"66666666-6666-6666-6666-666666666666\",\"configurationId\":\"sample.settings\",\"schemaVersion\":\"1\",\"environment\":\"Development\",\"kind\":\"common\",\"sha256\":\"6b22cc1785a4a64b26ce415be9c4a3cfbe21aa5b7127644f87004d92192429d9\",\"payloadJson\":\"﻿{\\\"Greeting\\\":\\\"Café — 日本語\\\",\\\"Enabled\\\":false}\"},\"applicationSource\":{\"state\":\"absent\"}}",
+      "expected": {
+        "identifiedDesired": true
+      }
+    },
+    {
+      "id": "configuration-unknown-adoption-is-not-success-default",
+      "schema": "ConfigurationAdoptionPage",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"items\":[{\"registrationFreshness\":\"fresh\",\"convergence\":\"future-convergence\",\"schemaVersion\":\"1\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"reported\":{\"configurationId\":\"sample.settings\",\"schemaVersion\":\"1\",\"updateMode\":\"HotReload\",\"state\":\"FutureState\",\"liveStateValid\":true,\"desired\":{\"releaseId\":\"77777777-7777-7777-7777-777777777777\",\"generation\":\"9007199254740993\"},\"applied\":{\"releaseId\":\"77777777-7777-7777-7777-777777777777\",\"generation\":\"9007199254740993\",\"localRevision\":\"0\"},\"lastSuccessful\":{\"releaseId\":\"77777777-7777-7777-7777-777777777777\",\"generation\":\"9007199254740993\",\"localRevision\":\"0\"}},\"receivedAtUtc\":\"2026-11-24T00:12:34.1234567Z\",\"desired\":{\"releaseId\":\"77777777-7777-7777-7777-777777777777\",\"generation\":\"9007199254740993\"},\"configurationId\":\"sample.settings\",\"applicationVersion\":\"1.0.0\",\"reportedInstanceId\":\"reported-label-only\",\"environment\":\"Development\",\"observedAtUtc\":\"2026-11-24T00:12:34.1234567Z\",\"cohortId\":\"canary\",\"registrationId\":\"22222222-2222-2222-2222-222222222222\",\"adoptionFreshness\":\"fresh\",\"futureOptional\":{\"bounded\":\"observation\"}}]}",
+      "expected": {
+        "knownState": false,
+        "knownConvergence": false
+      }
+    },
+    {
+      "id": "configuration-unknown-command-state-refused",
+      "schema": "ConfigurationStatusReport",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"entries\":[{\"configurationId\":\"sample.settings\",\"schemaVersion\":\"1\",\"updateMode\":\"HotReload\",\"state\":\"FutureState\",\"liveStateValid\":true,\"desired\":{\"releaseId\":\"77777777-7777-7777-7777-777777777777\",\"generation\":\"9007199254740993\"},\"applied\":{\"releaseId\":\"77777777-7777-7777-7777-777777777777\",\"generation\":\"9007199254740993\",\"localRevision\":\"0\"},\"lastSuccessful\":{\"releaseId\":\"77777777-7777-7777-7777-777777777777\",\"generation\":\"9007199254740993\",\"localRevision\":\"0\"}}],\"observedAtUtc\":\"2026-11-24T00:12:34.1234567Z\",\"sequence\":\"9007199254740993\"}"
+    },
+    {
+      "id": "configuration-result-and-rejection-exclusive",
+      "schema": "ConfigurationOperationResult",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"operation\":{\"scope\":\"v1:binding:99999999-9999-9999-9999-999999999999:actor:opaque\",\"key\":\"promote-1\",\"name\":\"management.configuration.assignment.replace\"},\"attemptCompletion\":{\"cleanupCodes\":[\"transaction.cleanup.failed\"],\"cleanupSucceeded\":false,\"outcome\":\"notCommitted\"},\"originalCompletion\":\"committed\",\"resultSource\":\"replayed\",\"result\":{\"intent\":\"promote\",\"configurationId\":\"sample.settings\",\"decision\":\"applied\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"generation\":\"9007199254740993\",\"schemaVersion\":\"1\",\"code\":\"configuration.assignment.applied\",\"assignment\":{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"sample.settings\",\"schemaVersion\":\"1\",\"environment\":\"Development\",\"eTag\":\"\\\"assignment-9007199254740993\\\"\",\"overrides\":[],\"defaultReleaseId\":\"77777777-7777-7777-7777-777777777777\",\"generation\":\"9007199254740993\"},\"eTag\":\"\\\"assignment-9007199254740993\\\"\",\"decidedAtUtc\":\"2026-11-24T00:12:34.1234567Z\",\"commandVersion\":1,\"kind\":\"assignmentsReplaced\"},\"rejection\":{\"code\":\"rejected\",\"message\":\"Original native rejection\"}}"
+    },
+    {
+      "id": "configuration-native-rejection-no-fabricated-value",
+      "schema": "ConfigurationOperationResult",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"operation\":{\"scope\":\"v1:binding:99999999-9999-9999-9999-999999999999:actor:opaque\",\"key\":\"promote-1\",\"name\":\"management.configuration.assignment.replace\"},\"attemptCompletion\":{\"cleanupCodes\":[\"transaction.cleanup.failed\"],\"cleanupSucceeded\":false,\"outcome\":\"notCommitted\"},\"originalCompletion\":\"committed\",\"resultSource\":\"replayed\",\"rejection\":{\"code\":\"resource.capacity\",\"message\":\"Pinned content prevents publication\"}}"
+    },
+    {
+      "id": "configuration-explicit-null-reason-refused",
+      "schema": "ConfigurationAssignmentCommand",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"overrides\":[],\"commandVersion\":1,\"reason\":null,\"intent\":\"promote\",\"defaultReleaseId\":\"77777777-7777-7777-7777-777777777777\"}"
+    },
+    {
+      "id": "configuration-duplicate-command-name",
+      "schema": "ConfigurationCatalogCommand",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"reason\":\"Apply the deployment manifest\",\"commandVersion\":1,\"commandVersion\":1,\"manifestDigest\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}"
+    },
+    {
+      "json": "{\"configurationId\":\"sample.settings\",\"assignment\":{\"overrides\":[],\"commandVersion\":1,\"reason\":\"Promote and remove the participating canary override\",\"intent\":\"promote\",\"defaultReleaseId\":\"77777777-7777-7777-7777-777777777777\"},\"schemaVersion\":\"1\",\"commandVersion\":1,\"applicationId\":\"11111111-1111-1111-1111-111111111111\"}",
+      "schema": "ConfigurationPreviewCommand",
+      "direction": "request",
+      "id": "configuration-assignment-preview-command-valid",
+      "schemaValid": true,
+      "valid": true
+    },
+    {
+      "json": "{\"issues\":[],\"structurallyValid\":true,\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"changes\":[{\"path\":\"defaultReleaseId\",\"kind\":\"overridden\"},{\"path\":\"overrides/canary\",\"kind\":\"removed\"}],\"schemaVersion\":\"1\",\"configurationId\":\"sample.settings\",\"redacted\":true,\"currentAssignment\":{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"sample.settings\",\"schemaVersion\":\"1\",\"environment\":\"Development\",\"eTag\":\"\\\"assignment-9007199254740993\\\"\",\"overrides\":[],\"defaultReleaseId\":\"77777777-7777-7777-7777-777777777777\",\"generation\":\"9007199254740993\"},\"recipients\":{\"items\":[{\"cohortId\":\"canary\",\"compatibility\":\"reportedCompatible\",\"registrationId\":\"22222222-2222-2222-2222-222222222222\"}]},\"proposedAssignment\":{\"overrides\":[],\"commandVersion\":1,\"reason\":\"Promote and remove the participating canary override\",\"intent\":\"promote\",\"defaultReleaseId\":\"77777777-7777-7777-7777-777777777777\"}}",
+      "schema": "ConfigurationPreview",
+      "direction": "response",
+      "id": "configuration-assignment-preview-complete-scope",
+      "schemaValid": true,
+      "valid": true
+    },
+    {
+      "json": "{\"commonSource\":{\"state\":\"present\",\"publicationId\":\"66666666-6666-6666-6666-666666666666\"},\"commandVersion\":1,\"applicationSource\":{\"state\":\"absent\"},\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"schemaVersion\":\"1\",\"configurationId\":\"sample.settings\",\"assignment\":{\"overrides\":[],\"commandVersion\":1,\"reason\":\"Promote and remove the participating canary override\",\"intent\":\"promote\",\"defaultReleaseId\":\"77777777-7777-7777-7777-777777777777\"}}",
+      "schema": "ConfigurationPreviewCommand",
+      "direction": "request",
+      "id": "configuration-preview-refuses-ambiguous-source-and-map",
+      "schemaValid": false,
+      "valid": false
+    },
+    {
+      "valid": false,
+      "schemaValid": false,
+      "direction": "response",
+      "id": "configuration-issues-have-sixty-four-entry-bound",
+      "json": "{\"valid\":false,\"issues\":[{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"},{\"code\":\"configuration.validation\"}]}",
+      "schema": "ConfigurationValidationResult"
+    },
+    {
+      "valid": false,
+      "schemaValid": false,
+      "direction": "response",
+      "id": "configuration-problem-detail-bound",
+      "json": "{\"title\":\"Refused\",\"type\":\"https://cislib.dev/problems/configuration\",\"code\":\"configuration.invalid\",\"detail\":\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\",\"status\":400}",
+      "schema": "ConfigurationProblem"
+    },
+    {
+      "valid": true,
+      "json": "{\"operation\":{\"scope\":\"v1:binding:99999999-9999-9999-9999-999999999999:actor:opaque\",\"key\":\"promote-1\",\"name\":\"management.configuration.assignment.replace\"},\"attemptCompletion\":{\"cleanupCodes\":[\"transaction.cleanup.failed\"],\"cleanupSucceeded\":false,\"outcome\":\"notCommitted\"},\"originalCompletion\":\"committed\",\"resultSource\":\"replayed\",\"result\":{\"intent\":\"future-intent\",\"configurationId\":\"sample.settings\",\"decision\":\"applied\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"generation\":\"9007199254740993\",\"schemaVersion\":\"1\",\"code\":\"configuration.assignment.applied\",\"assignment\":{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"sample.settings\",\"schemaVersion\":\"1\",\"environment\":\"Development\",\"eTag\":\"\\\"assignment-9007199254740993\\\"\",\"overrides\":[],\"defaultReleaseId\":\"77777777-7777-7777-7777-777777777777\",\"generation\":\"9007199254740993\"},\"eTag\":\"\\\"assignment-9007199254740993\\\"\",\"decidedAtUtc\":\"2026-11-24T00:12:34.1234567Z\",\"commandVersion\":1,\"kind\":\"assignmentsReplaced\"}}",
+      "schemaValid": true,
+      "direction": "response",
+      "id": "configuration-future-response-intent-is-explicit",
+      "expected": {
+        "knownIntent": false
+      },
+      "schema": "ConfigurationOperationResult"
+    },
+    {
+      "valid": true,
+      "schemaValid": true,
+      "direction": "response",
+      "id": "configuration-catalog-count-is-global-not-local-enrollment",
+      "json": "{\"loadedManifestDigest\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"catalogId\":\"33333333-3333-3333-3333-333333333333\",\"usedBytes\":4096,\"ready\":true,\"definitionCount\":257,\"bindingCount\":1,\"eTag\":\"\\\"catalog-1\\\"\",\"appliedManifestDigest\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"quotaBytes\":33554432,\"sourceCount\":1}",
+      "schema": "ConfigurationCatalog"
+    },
+    {
+      "valid": false,
+      "schemaValid": false,
+      "direction": "response",
+      "id": "configuration-catalog-count-int32-bound",
+      "json": "{\"loadedManifestDigest\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"catalogId\":\"33333333-3333-3333-3333-333333333333\",\"usedBytes\":4096,\"ready\":true,\"definitionCount\":257,\"bindingCount\":1,\"eTag\":\"\\\"catalog-1\\\"\",\"appliedManifestDigest\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"quotaBytes\":33554432,\"sourceCount\":2147483648}",
+      "schema": "ConfigurationCatalog"
+    },
+    {
+      "valid": false,
+      "direction": "response",
+      "id": "configuration-object-declaration-needs-members",
+      "json": "{\"items\":[{\"configurationId\":\"sample.settings\",\"schemaVersion\":\"1\",\"hostApplicationName\":\"ExampleHost\",\"shape\":{\"kind\":\"object\",\"nullable\":false},\"defaultsJson\":\"{\\\"Greeting\\\":\\\"default\\\",\\\"Enabled\\\":true}\",\"description\":\"Finite shape and deterministic defaults; local cross-property validation remains with Configuration.\",\"sourceId\":\"55555555-5555-5555-5555-555555555555\",\"environment\":\"Development\",\"kind\":\"application\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"bindingId\":\"99999999-9999-9999-9999-999999999999\"}]}",
+      "schemaValid": false,
+      "schema": "ConfigurationDefinitionPage"
+    },
+    {
+      "valid": false,
+      "direction": "response",
+      "id": "configuration-string-choice-declaration-cannot-be-empty",
+      "json": "{\"items\":[{\"configurationId\":\"sample.settings\",\"schemaVersion\":\"1\",\"hostApplicationName\":\"ExampleHost\",\"shape\":{\"kind\":\"object\",\"nullable\":false,\"members\":[{\"shape\":{\"kind\":\"string\",\"nullable\":false,\"allowedValues\":[]},\"name\":\"Greeting\",\"required\":false},{\"shape\":{\"kind\":\"boolean\",\"nullable\":false},\"name\":\"Enabled\",\"required\":false}]},\"defaultsJson\":\"{\\\"Greeting\\\":\\\"default\\\",\\\"Enabled\\\":true}\",\"description\":\"Finite shape and deterministic defaults; local cross-property validation remains with Configuration.\",\"sourceId\":\"55555555-5555-5555-5555-555555555555\",\"environment\":\"Development\",\"kind\":\"application\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"bindingId\":\"99999999-9999-9999-9999-999999999999\"}]}",
+      "schemaValid": false,
+      "schema": "ConfigurationDefinitionPage"
+    },
+    {
+      "direction": "response",
+      "schemaValid": true,
+      "json": "{\"items\":[{\"configurationId\":\"sample.settings\",\"schemaVersion\":\"1\",\"shape\":{\"kind\":\"object\",\"nullable\":false,\"members\":[{\"shape\":{\"kind\":\"string\",\"nullable\":false},\"name\":\"Greeting\",\"required\":false},{\"shape\":{\"kind\":\"boolean\",\"nullable\":false},\"name\":\"Enabled\",\"required\":false}]},\"defaultsJson\":\"{\\\"Greeting\\\":\\\"default\\\",\\\"Enabled\\\":true}\",\"description\":\"Finite shape and deterministic defaults; local cross-property validation remains with Configuration.\",\"sourceId\":\"44444444-4444-4444-4444-444444444444\",\"environment\":\"Development\",\"kind\":\"common\"}]}",
+      "schema": "ConfigurationDefinitionPage",
+      "id": "configuration-common-source-discovery-without-application-identity",
+      "valid": true
+    },
+    {
+      "direction": "response",
+      "schemaValid": false,
+      "json": "{\"items\":[{\"configurationId\":\"sample.settings\",\"schemaVersion\":\"1\",\"shape\":{\"kind\":\"object\",\"nullable\":false,\"members\":[{\"shape\":{\"kind\":\"string\",\"nullable\":false},\"name\":\"Greeting\",\"required\":false},{\"shape\":{\"kind\":\"boolean\",\"nullable\":false},\"name\":\"Enabled\",\"required\":false}]},\"defaultsJson\":\"{\\\"Greeting\\\":\\\"default\\\",\\\"Enabled\\\":true}\",\"description\":\"Finite shape and deterministic defaults; local cross-property validation remains with Configuration.\",\"sourceId\":\"44444444-4444-4444-4444-444444444444\",\"environment\":\"Development\",\"kind\":\"common\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\"}]}",
+      "schema": "ConfigurationDefinitionPage",
+      "id": "configuration-common-discovery-cannot-leak-application-binding",
+      "valid": false
+    },
+    {
+      "direction": "response",
+      "id": "configuration-metadata-discovery-does-not-require-default-values",
+      "json": "{\"items\":[{\"configurationId\":\"sample.settings\",\"schemaVersion\":\"1\",\"shape\":{\"kind\":\"object\",\"nullable\":false,\"members\":[{\"shape\":{\"kind\":\"string\",\"nullable\":false},\"name\":\"Greeting\",\"required\":false},{\"shape\":{\"kind\":\"boolean\",\"nullable\":false},\"name\":\"Enabled\",\"required\":false}]},\"description\":\"Finite shape and deterministic defaults; local cross-property validation remains with Configuration.\",\"sourceId\":\"44444444-4444-4444-4444-444444444444\",\"environment\":\"Development\",\"kind\":\"common\"}]}",
+      "schemaValid": true,
+      "schema": "ConfigurationDefinitionPage",
+      "valid": true
+    },
+    {
+      "direction": "response",
+      "id": "configuration-definition-explicit-null-defaults-refused",
+      "json": "{\"items\":[{\"configurationId\":\"sample.settings\",\"schemaVersion\":\"1\",\"shape\":{\"kind\":\"object\",\"nullable\":false,\"members\":[{\"shape\":{\"kind\":\"string\",\"nullable\":false},\"name\":\"Greeting\",\"required\":false},{\"shape\":{\"kind\":\"boolean\",\"nullable\":false},\"name\":\"Enabled\",\"required\":false}]},\"description\":\"Finite shape and deterministic defaults; local cross-property validation remains with Configuration.\",\"sourceId\":\"44444444-4444-4444-4444-444444444444\",\"environment\":\"Development\",\"kind\":\"common\",\"defaultsJson\":null}]}",
+      "schemaValid": false,
+      "schema": "ConfigurationDefinitionPage",
+      "valid": false
+    }
+  ]
+}

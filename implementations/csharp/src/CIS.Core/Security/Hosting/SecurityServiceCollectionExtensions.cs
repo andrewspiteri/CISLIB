@@ -12,6 +12,16 @@ namespace CIS.Security.Hosting;
 /// <summary>Explicit native security registration; collecting setup performs no credential I/O or premature resolution.</summary>
 public static class SecurityServiceCollectionExtensions
 {
+    /// <summary>Registers the exact independently captured policy used by authenticated pre-provider preparation.</summary>
+    /// <remarks>The snapshot remains immutable. Reusing its exact identity permits supported native resource adoption;
+    /// this overload performs no credential work and creates no temporary provider.</remarks>
+    public static IServiceCollection AddCisSecurity(this IServiceCollection services, SecurityPolicySnapshot snapshot)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(snapshot);
+        return Register(services, _ => snapshot, snapshot.ProfileCapacity);
+    }
+
     /// <summary>Captures directly supplied setup as immutable startup policy.</summary>
     public static IServiceCollection AddCisSecurity(this IServiceCollection services, SecurityOptions options,
         int profileCapacity = 16)

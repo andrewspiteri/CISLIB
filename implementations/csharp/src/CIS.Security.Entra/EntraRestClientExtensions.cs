@@ -26,6 +26,11 @@ public static class EntraRestClientExtensions
             {
                 throw new InvalidOperationException("An Entra REST client requires the selected Entra workload profile.");
             }
+            if (provider.GetKeyedService<EntraPreparedProfile>(alias) is { } prepared)
+            {
+                prepared.Binding.ValidateForPolicy(policy);
+                return prepared.Binding;
+            }
             return new RestSecurityBinding(policy, alias, RestSecurityCredentialKind.RequestAuthentication);
         }, provider =>
         {

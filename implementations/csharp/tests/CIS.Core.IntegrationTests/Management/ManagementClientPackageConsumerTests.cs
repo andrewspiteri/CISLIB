@@ -47,6 +47,12 @@ public sealed class ManagementClientPackageConsumerTests
         {
             Assert.IsTrue(report[fact]!.GetValue<bool>(), fact);
         }
+        foreach (string fact in new[] { "configurationPort", "configurationOperationResults", "configurationOriginalKey",
+            "noImplicitConfigurationRecovery", "boundedConfigurationRecords", "centralPairedRead", "oldConfigurationRouting",
+            "configurationWireRoundtrip", "passiveConfigurationProfile" })
+        {
+            Assert.IsTrue(report[fact]!.GetValue<bool>(), fact);
+        }
         RestPackage.SamePath(Path.Combine(output, "CIS.Core.dll"), report["corePath"]!.GetValue<string>());
         RestPackage.SamePath(Path.Combine(output, "CIS.CommonTesting.dll"), report["testingPath"]!.GetValue<string>());
     }
@@ -55,8 +61,10 @@ public sealed class ManagementClientPackageConsumerTests
         using System.Reflection;
         using System.Text.Json;
         using CIS.CommonTesting;
+        using CIS.Configuration;
         using CIS.Management;
         using CIS.Management.Hosting;
+        using CIS.Management.Wire;
         using CIS.RestClient;
         using CIS.RestClient.Hosting;
         using CIS.Startup;
@@ -123,6 +131,64 @@ public sealed class ManagementClientPackageConsumerTests
         services.AddCisRestClient(nativeOptions);
         services.AddCisManagementClient(options);
         services.AddCisManagementRegistration(registration);
+        const string configurationKey = "configuration-original-key";
+        const string configurationPayload = " {\"Greeting\":\"Café — 日本語\",\"Enabled\":false} ";
+        const string publicationId = "33333333-3333-4333-8333-333333333333";
+        const string releaseId = "44444444-4444-4444-8444-444444444444";
+        var configurationTarget = new ManagementConfigurationSnapshotTarget(id, id, "Production", attemptId,
+            "public.settings", "1", "PublicHost");
+        string digest = ManagementConfigurationWire.ComputePayloadSha256(configurationPayload);
+        var configurationSnapshot = new ManagementConfigurationSnapshot(
+            new(id, id, "Production", attemptId, "public.settings", "1", "PublicHost", releaseId, "9007199254740993"),
+            "\"public-snapshot\"", new("present", PublicationId: publicationId, Sha256: digest, PayloadJson: configurationPayload,
+                SourceId: id, ConfigurationId: "public.settings", SchemaVersion: "1", Environment: "Production", Kind: "common"), new("absent"));
+        var configurationResult = new ManagementConfigurationCallResult<ManagementConfigurationSnapshot>(
+            RestResult<ManagementConfigurationSnapshot>.FromValue(configurationSnapshot, new RestResultContext(200, hasValue: true)));
+        var configurationScript = new ScriptedManagementConfigurationClient(2);
+        configurationScript.EnqueueSnapshot(expected => expected == configurationTarget ? configurationResult
+            : throw new InvalidOperationException("The independent expected target must remain exact."));
+        IManagementConfigurationClient configurationPort = configurationScript;
+        ManagementConfigurationCallResult<ManagementConfigurationSnapshot> configurationRead =
+            await configurationPort.GetRegistrationConfigurationAsync(configurationTarget);
+        configurationScript.EnqueueResult(ScriptedManagementConfigurationCallKind.Snapshot, configurationResult);
+        await using var legacyStore = new LegacyConfigurationStore();
+        var centralStore = new ManagementConfigurationStore(configurationPort, legacyStore);
+        var enrollment = new ConfigurationEnrollment(typeof(PublicSettings), "public.settings", "1", ConfigurationUpdateMode.HotReload);
+        var localTarget = new ConfigurationSnapshotTarget(id, id, "Production", attemptId, "PublicHost");
+        IConfigurationSnapshotStore pairedPort = centralStore;
+        ConfigurationSnapshotReadResult pair = await pairedPort.ReadSnapshotAsync(new(
+            new("CommonConfiguration", enrollment.PersistedDefinition), new("PublicHost", enrollment.PersistedDefinition),
+            enrollment: enrollment, expectedTarget: localTarget), CancellationToken.None);
+        IConfigurationStore oldPort = centralStore;
+        var oldKey = new ConfigurationRecordKey("PublicHost", "old.definition");
+        ConfigurationReadResult oldRead = await oldPort.ReadAsync(oldKey, null, CancellationToken.None);
+        await using (IAsyncDisposable subscription = await oldPort.WatchAsync([oldKey], _ => { }, CancellationToken.None))
+        {
+            // The subscription is owned while its supplied legacy store stays borrowed.
+        }
+        var configurationUnknown = new ManagementConfigurationCallResult<ManagementConfigurationOperationResult>(
+            RestResult<ManagementConfigurationOperationResult>.Failed("client.transport_failed", "Original completion unknown",
+                new RestResultContext(failureKind: RestFailureKind.Transport)), operationKey: configurationKey);
+        configurationScript.EnqueueResult(ScriptedManagementConfigurationCallKind.ApplyCatalog, configurationUnknown);
+        ManagementConfigurationCallResult<ManagementConfigurationOperationResult> configurationDecision = await configurationPort.ApplyCatalogAsync(
+            configurationKey, "\"catalog-1\"", new(1, digest, "Reviewed manifest"));
+        bool noImplicitConfigurationRecovery = configurationScript.TotalCalls == 3;
+        var originalConfigurationResult = new ManagementConfigurationOperationResult(
+            new("management.configuration.catalog.apply", "actual-public-catalog-scope", configurationKey), "found",
+            new(1, "catalogApplied", "applied", "configuration.catalog.applied", "2026-11-24T00:00:00.0000000Z",
+                CatalogId: id, ManifestDigest: digest, ETag: "\"catalog-2\""), "committed");
+        configurationScript.EnqueueResult(ScriptedManagementConfigurationCallKind.CatalogOperation,
+            new ManagementConfigurationCallResult<ManagementConfigurationOperationResult>(RestResult<ManagementConfigurationOperationResult>.FromValue(
+                originalConfigurationResult, new RestResultContext(200, hasValue: true)), operationKey: configurationKey));
+        ManagementConfigurationCallResult<ManagementConfigurationOperationResult> configurationRecovery =
+            await configurationPort.GetCatalogOperationAsync(configurationKey);
+        var configurationOptions = new ManagementConfigurationClientOptions("configuration") { BaseUrl = "https://management.invalid/tenant/control" };
+        var configurationNative = new RestClientOptions("configuration") { LogCalls = false };
+        configurationNative.ConfigureCisManagementConfigurationRestClient(configurationOptions);
+        services.AddCisRestClient(configurationNative);
+        services.AddCisManagementConfigurationClient(configurationOptions);
+        ManagementConfigurationSnapshotRead decodedSnapshot = ManagementConfigurationWire.DecodeSnapshot(
+            ManagementConfigurationWire.EncodeResponse(configurationSnapshot), configurationTarget);
         string[] assemblies = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetName().Name ?? "").ToArray();
         bool nativeProvider = assemblies.Any(name => name == "Npgsql" || name.StartsWith("RabbitMQ", StringComparison.Ordinal)
             || name.StartsWith("CIS.Security.Entra", StringComparison.Ordinal) || name.StartsWith("CIS.Security.Certificates", StringComparison.Ordinal));
@@ -154,6 +220,33 @@ public sealed class ManagementClientPackageConsumerTests
                 && services.Count(item => item.ServiceType == typeof(IStartable)) == 1
                 && observationScript.TotalCaptures == 1 && inventoryScript.TotalCaptures == 1
                 && !registration.RequireInitialRegistration && registration.ReportingInterval == TimeSpan.FromSeconds(30),
+            configurationPort = ReferenceEquals(configurationResult, configurationRead)
+                && configurationRead.Exchange.Value!.Desired.Generation == "9007199254740993",
+            configurationOperationResults = ReferenceEquals(originalConfigurationResult, configurationRecovery.Exchange.Value)
+                && configurationRecovery.Exchange.Value!.KnownBusinessDecision.IsKnown
+                && configurationRecovery.Exchange.Value.KnownBusinessDecision.Value == "applied",
+            configurationOriginalKey = ReferenceEquals(configurationUnknown, configurationDecision)
+                && configurationDecision.OperationKey == configurationKey
+                && configurationScript.Calls.Last().OperationKey == configurationKey,
+            noImplicitConfigurationRecovery,
+            boundedConfigurationRecords = configurationScript.Calls.Count == 2 && configurationScript.TotalCalls == 4
+                && configurationScript.DroppedCalls == 2
+                && typeof(ScriptedManagementConfigurationCall).GetProperty("Payload") is null
+                && typeof(ScriptedManagementConfigurationCall).GetProperty("ETag") is null,
+            centralPairedRead = pair.Kind == ConfigurationSnapshotReadKind.Complete
+                && pair.Common!.Payload!.Value.GetProperty("Greeting").GetString() == "Café — 日本語"
+                && pair.Application!.Kind == ConfigurationReadKind.Missing
+                && pair.Provenance!.Desired.AssignmentGeneration == "9007199254740993"
+                && pair.Provenance.CommonSource!.Sha256 == digest,
+            oldConfigurationRouting = oldRead.Kind == ConfigurationReadKind.Missing && legacyStore.Reads == 1
+                && legacyStore.Watches == 1 && legacyStore.SubscriptionDisposals == 1 && legacyStore.Disposals == 0
+                && oldPort.NotificationMode == ConfigurationNotificationMode.RequiresReconciliation,
+            configurationWireRoundtrip = decodedSnapshot.Snapshot?.CommonSource.PayloadJson == configurationPayload
+                && decodedSnapshot.Desired?.RegistrationId == attemptId,
+            passiveConfigurationProfile = configurationNative.Codec is ManagementConfigurationContentCodec
+                && configurationNative.Operations.SequenceEqual(new[] { "configuration" })
+                && configurationNative.RetryPolicy.PolicyName is null
+                && services.Count(item => item.ServiceType == typeof(IStartable)) == 1,
             corePath = typeof(IManagementClient).Assembly.Location,
             testingPath = typeof(ScriptedManagementClient).Assembly.Location
         }));
@@ -165,6 +258,47 @@ public sealed class ManagementClientPackageConsumerTests
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 return Task.FromResult(confirmation.AdmissionAllowed && confirmation.ControlRevision == "opaque-public-revision");
+            }
+        }
+
+        sealed class PublicSettings : ConfigurationObject
+        {
+            public string Greeting { get; set; } = "default";
+            public bool Enabled { get; set; } = true;
+        }
+
+        sealed class LegacyConfigurationStore : IConfigurationStore, IAsyncDisposable
+        {
+            public int Reads { get; private set; }
+            public int Watches { get; private set; }
+            public int SubscriptionDisposals { get; private set; }
+            public int Disposals { get; private set; }
+            public ConfigurationNotificationMode NotificationMode => ConfigurationNotificationMode.Reliable;
+            public ValueTask<ConfigurationReadResult> ReadAsync(ConfigurationRecordKey key, string? token, CancellationToken cancellationToken)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                Reads++;
+                return ValueTask.FromResult(ConfigurationReadResult.Missing());
+            }
+            public ValueTask<IAsyncDisposable> WatchAsync(IReadOnlyList<ConfigurationRecordKey> keys,
+                Action<ConfigurationInvalidation> invalidated, CancellationToken cancellationToken)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                Watches++;
+                return ValueTask.FromResult<IAsyncDisposable>(new Subscription(this));
+            }
+            public ValueTask DisposeAsync()
+            {
+                Disposals++;
+                return ValueTask.CompletedTask;
+            }
+            private sealed class Subscription(LegacyConfigurationStore owner) : IAsyncDisposable
+            {
+                public ValueTask DisposeAsync()
+                {
+                    owner.SubscriptionDisposals++;
+                    return ValueTask.CompletedTask;
+                }
             }
         }
         """";

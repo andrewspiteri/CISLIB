@@ -11,8 +11,22 @@ public sealed record ManagementStoreResult<T>(T? Value, string? Code, Transactio
         && (PreviouslyCommitted || AttemptCompletion?.Outcome == TransactionOutcome.Committed);
 }
 
-/// <summary>A completed bounded telemetry cleanup, never an operation-journal purge.</summary>
-public sealed record ManagementCleanupResult(int RemovedRegistrations, long ReleasedInventoryBytes);
+/// <summary>A completed bounded telemetry/configuration cleanup, never an operation-journal purge.</summary>
+public sealed record ManagementCleanupResult(int RemovedRegistrations, long ReleasedInventoryBytes)
+{
+    public int RemovedConfigurationReleases
+    {
+        get; init;
+    }
+    public int RemovedConfigurationPublications
+    {
+        get; init;
+    }
+    public long ReleasedConfigurationBytes
+    {
+        get; init;
+    }
+}
 
 /// <summary>Safe explicit deployment/schema readiness failure.</summary>
 public sealed class ManagementSchemaException(string message) : InvalidOperationException(message)
