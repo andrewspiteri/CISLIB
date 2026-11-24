@@ -125,6 +125,10 @@ public sealed partial class PostgreSqlManagementStore
             {
                 await increment.ExecuteNonQueryAsync(sqlToken).ConfigureAwait(false);
             }
+            if (!await CaptureConfigurationSessionAsync(connection, transaction, id, applicationId, owner, sqlToken))
+            {
+                return Candidate<ManagementRegistrationReceipt>.Refused("management.capacity.exceeded");
+            }
 
             return Candidate<ManagementRegistrationReceipt>.Written(new(registrationId, applicationId.ToString("D"), registeredAt));
         }, token).ConfigureAwait(false), cancellationToken, requireReady: true);
@@ -258,7 +262,9 @@ public sealed partial class PostgreSqlManagementStore
                 return new(default, completion.Outcome == TransactionOutcome.Unknown ? "management.transaction_unknown" : "management.not_committed",
                     completion, false);
             }
-            if (completion.CleanupErrors.Count != 0 || requireCleanRead && !completion.RollbackConfirmed)
+            // A written candidate settles by commit; a read/refusal settles by rollback.
+            // Both strict paths still require actual clean native completion.
+            if (completion.CleanupErrors.Count != 0 || requireCleanRead && !result.Write && !completion.RollbackConfirmed)
             {
                 authority?.MarkUnavailable();
                 if (requireCleanRead)

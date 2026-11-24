@@ -95,6 +95,62 @@ classes as singleton workers.
 
 ## Preparation and readiness
 
+For explicit RM-08 pre-Build central loading, set `builder.CentralConfiguration`
+to `CISApplicationCentralConfigurationOptions` with separate Management and
+configuration client options, existing registration options and a trusted native
+credential preparation factory. Keep enrollments, fixed host scope, validators,
+factories, optional noncentral store and a positive polling interval in
+`builder.Configuration`; leave its `SnapshotTarget` unset. The facade obtains
+that target from a real authenticated registration/control exchange. The expected
+environment must match `EnvironmentOptions`. `ExpectedCohortId` is an independent
+exact expectation, including null; it never selects a server cohort or learns one
+from an unchecked response.
+
+The factory returns one `CISApplicationCentralConfigurationPreparation` containing
+the actual native credential owner, two dedicated authenticated REST profiles,
+optional borrowed bootstrap transports, passive final registration, explicit
+final activation and credential retirement callbacks. A failed factory joins its
+resources before throwing; after return the facade retains the owner before
+another await or constructor. Both profiles use the same actual policy-owned
+security binding, distinct aliases, `LogCalls=false` and no retry. The facade
+installs their codecs and constructs ordinary standalone `HttpRestClient` owners.
+No temporary provider is built.
+
+The final-registration callback captures that same native preparation and uses
+ordinary `AddCisSecurity`, prepared PEM/Entra registration, security-bound REST and
+both typed client registrations. Preserve the captured endpoint, wire-limit
+instances and aliases. The facade adds registration itself; do not add a second
+reporter. Prepared PEM and Entra owners expose `ActivateFinalAsync(provider,
+token)` for their one known keyed runtime. This is explicit application
+composition, not Startup discovery. Final transports use the actual final
+provider's `IMeterFactory`; an unmetered bootstrap transport cannot be their
+hosted borrowed transport.
+
+One 120-second default budget, configurable to a positive value of at most 300
+seconds, covers credentials, Type Manager, direct no-retry registration/control
+and all initial root loads. Cancellation or expiry joins actual native work. The
+facade closes and disposes both bootstrap REST owners, then retires bootstrap
+credentials before Build. It hands the original request, registration UUID,
+receipt, namespace and still-closed admission gate to the final reporter. It does
+not register another session or grant work from the bootstrap control response.
+
+After Build and route setup it verifies the final clock and binding, activates
+native credentials, adopts the final typed configuration client,
+activates/reconciles Configuration and performs fresh Management control before
+ordinary sequential Startup. Initial retained values exist before constructors.
+Slow Build cannot extend old control. Later ordinary participants join their
+already owned activation operations.
+
+Real connectivity, freshness or session gaps coalesce through Configuration's
+existing serialized owner. Short control callbacks read retained readiness;
+healthy control and an incomplete reconciler do not create epochs. A new native
+registration rebinds the session and preserves assignment high-water protection.
+Stop closes admission and REST before relevant owner drains, preserving existing
+Jobs and Audit dependency barriers. Failed Build disposes its captured provider
+before unclaimed native preparation cleanup. Borrowed stores, SDK credentials and
+transports retain their existing owners. A null `CentralConfiguration` preserves
+the ordinary path below.
+
 StartAsync completes real Type Manager preparation, initial Configuration,
 final registration and one Build before required startup. Constructors of
 configuration-consuming roots see initially loaded values. Stage 1 of the existing

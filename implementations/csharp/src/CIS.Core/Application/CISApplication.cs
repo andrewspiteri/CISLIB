@@ -210,6 +210,11 @@ public sealed class CISApplication : IAsyncDisposable
             }
 
             operation.Token.ThrowIfCancellationRequested();
+            if (composition.CentralConfiguration is { } central)
+            {
+                await central.ActivateFinalAsync(built.Services, composition.Configuration!, operation.Token).ConfigureAwait(false);
+                operation.Token.ThrowIfCancellationRequested();
+            }
             await built.StartAsync(operation.Token).ConfigureAwait(false);
             operation.Token.ThrowIfCancellationRequested();
             completion.TrySetResult();
@@ -498,6 +503,10 @@ public sealed class CISApplication : IAsyncDisposable
             {
                 await CaptureAsync(() => configuration.DisposeAsync().AsTask(), errors).ConfigureAwait(false);
             }
+            if (composition.CentralConfiguration is { } central)
+            {
+                await CaptureAsync(central.DisposeAsync, errors).ConfigureAwait(false);
+            }
 
             stopping.Dispose();
             ThrowErrors(errors);
@@ -563,6 +572,14 @@ public sealed class CISApplication : IAsyncDisposable
 
     private void CloseModuleAdmission(List<Exception> errors)
     {
+        try
+        {
+            composition.CentralConfiguration?.BeginStopping();
+        }
+        catch (Exception exception)
+        {
+            errors.Add(exception);
+        }
         try
         {
             // Signal the reporter before dependency barriers, without joining a callback that may still need REST cancellation.

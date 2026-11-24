@@ -44,3 +44,12 @@ responses while exposing a new server's effective provider/wire byte limit.
 
 See the workspace README for bounds, retry/deadline details, browser compilation,
 examples and the actual same-service native consumer.
+## Configuration publication and reads
+
+The additive `ManagementConfigurationClient` and structural
+`ManagementConfigurationClientPort` cover the nineteen RM-08 configuration APIs.
+They use strict async native WebCrypto decoding, explicit readonly POST semantics
+and narrow same-session conditional snapshot reuse. See the
+[TypeScript configuration guide](../../../../docs/modules/management/typescript.md)
+and canonical Management contract. Existing `ManagementClient` behavior remains
+available.

@@ -71,6 +71,20 @@ captured consistently once for the catalog lifetime; changes require restart.
 Configuration scope is CIS.CountryData even if telemetry application identity
 is overridden.
 
+Central Configuration is an explicit host-composition opt-in through
+`CountryCentralConfiguration.Configure(builder, centralOptions, pollingInterval)`
+inside the existing `CountryApplication.CreateService` callback. Only
+`CountrySettings` is enrolled as `country.settings`, schema `"1"`,
+`RestartRequired`; native bootstrap endpoints/trust/credentials remain independent.
+The helper preserves defaults, legacy store, factories and composed validators.
+URL, duration and installed tutorial retry choices are validated on the detached
+complete candidate before staging. The default program remains unmanaged.
+See the [operator recipe](../../../../docs/modules/management/countrydata-configuration.md)
+for common plus application overrides, original-key publication/recovery,
+PendingRestart/Rejected observations and restart/rollback steps. The public
+[unit examples](../CountryData.UnitTests/Configuration/CountryCentralConfigurationExamples.cs)
+live in the solution's existing example test project and perform no native I/O.
+
 Initial load failure prevents readiness. Later failed/invalid refresh keeps the
 last complete snapshot and last-success time; availability has no expiry.
 Expected application stopping cancels owned REST work without an unexpected

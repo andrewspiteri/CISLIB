@@ -20,7 +20,7 @@ export interface ClientCallContext {
 
 export interface TransportRequest {
   readonly url: string;
-  readonly method: "GET" | "PUT" | "DELETE";
+  readonly method: "GET" | "POST" | "PUT" | "DELETE";
   readonly headers: Readonly<Record<string, string>>;
   readonly body?: Uint8Array;
   readonly authentication: CredentialAttachment;
@@ -78,11 +78,15 @@ export class ClientProtocolFailure extends Error {
 
 export interface PreparedRequest {
   readonly url: string;
-  readonly method: "GET" | "PUT" | "DELETE";
+  readonly method: "GET" | "POST" | "PUT" | "DELETE";
   readonly headers: Readonly<Record<string, string>>;
   readonly body?: Uint8Array;
   readonly maximumResponseBytes: number;
   readonly maximumErrorBytes?: number;
+  /** Explicit effect classification; omitted preserves the legacy non-GET mutation default. */
+  readonly mutating?: boolean;
+  /** Only a typed conditional GET may opt into a bodyless 304; redirects remain forbidden. */
+  readonly allowNotModified?: boolean;
 }
 
 export interface DecodedBody<T, TProblem> {
@@ -95,8 +99,8 @@ export interface ExecuteRequestOptions<T, TProblem> {
   readonly readRetriesAllowed?: boolean;
   readonly operation: string;
   readonly transport: ClientTransport;
-  readonly prepare: (signal: AbortSignal) => PreparedRequest;
-  readonly decode: (response: TransportResponse, bytes: Uint8Array) => DecodedBody<T, TProblem>;
+  readonly prepare: (signal: AbortSignal) => PreparedRequest | Promise<PreparedRequest>;
+  readonly decode: (response: TransportResponse, bytes: Uint8Array, signal: AbortSignal) => DecodedBody<T, TProblem> | Promise<DecodedBody<T, TProblem>>;
   readonly context?: ClientCallContext;
   readonly credentials?: CredentialProvider;
   readonly timeoutMs?: number;

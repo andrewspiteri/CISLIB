@@ -26,6 +26,7 @@ internal sealed class CertificatePemRuntime : IAsyncDisposable, IHeartbeatSubscr
     private readonly ISecurityProfileStatusReporter reporter;
     private readonly ILogger<CertificatePemRuntime>? logger;
     private readonly Func<IServiceProvider, RestHttpNativeKeyScope>? borrowedKeys;
+    private readonly CertificatePemBootstrapPreparation? preparation;
     private readonly CancellationTokenSource stopping = new();
     private readonly CancellationTokenRegistration stopRegistration;
     private readonly CoordinationHostLifetime? coordination;
@@ -34,6 +35,7 @@ internal sealed class CertificatePemRuntime : IAsyncDisposable, IHeartbeatSubscr
     private CertificateTrustPolicy? trust;
     private CertificateInboundOptions? receiving;
     private RestHttpNativeKeyScope? keys;
+    private bool ownsKeys;
     private IHeartbeatOwner? heartbeat;
     private Task? heartbeatDrain;
     private Task? startup;
@@ -53,7 +55,8 @@ internal sealed class CertificatePemRuntime : IAsyncDisposable, IHeartbeatSubscr
 
     internal CertificatePemRuntime(IServiceProvider services, string alias, string? scheme,
         Func<IServiceProvider, CertificatePemSecurityOptions> factory,
-        Func<IServiceProvider, RestHttpNativeKeyScope>? borrowedKeys)
+        Func<IServiceProvider, RestHttpNativeKeyScope>? borrowedKeys,
+        CertificatePemBootstrapPreparation? preparation = null)
     {
         this.services = services;
         SecurityPolicySnapshot policy = services.GetRequiredService<SecurityPolicySnapshot>();
@@ -67,7 +70,12 @@ internal sealed class CertificatePemRuntime : IAsyncDisposable, IHeartbeatSubscr
             throw new ArgumentException("PEM roles, native scheme, profile kind and development gate must agree.");
         }
         this.borrowedKeys = borrowedKeys;
+        this.preparation = preparation;
         clock = services.GetRequiredService<TimeProvider>();
+        if (preparation is not null && !ReferenceEquals(clock, preparation.TimeProvider))
+        {
+            throw new InvalidOperationException("Prepared certificate adoption must retain its exact clock and policy context.");
+        }
         reporter = services.GetRequiredService<ISecurityProfileStatusReporter>();
         availability = services.GetRequiredKeyedService<CertificateProfileAvailability>(alias);
         logger = services.GetService<ILogger<CertificatePemRuntime>>();
@@ -77,7 +85,7 @@ internal sealed class CertificatePemRuntime : IAsyncDisposable, IHeartbeatSubscr
             {
                 throw new ArgumentException("An enabled outgoing certificate profile requires its paired PEM references.");
             }
-            Binding = new(policy, alias, RestSecurityCredentialKind.ClientCertificate);
+            Binding = preparation?.Binding ?? new(policy, alias, RestSecurityCredentialKind.ClientCertificate);
             transport = RestHttpTransport.CreateCertificateBoundUninitializedTrust(Binding,
                 services.GetRequiredService<IMeterFactory>(), clock: clock);
             availability.BindOutboundTransport(transport);
@@ -85,6 +93,7 @@ internal sealed class CertificatePemRuntime : IAsyncDisposable, IHeartbeatSubscr
         coordination = services.GetService<CoordinationHostLifetime>();
         CancellationToken nativeStopping = services.GetService<IHostApplicationLifetime>()?.ApplicationStopping ?? default;
         stopRegistration = CoordinationHostLifetime.DependencyToken(services, nativeStopping).Register(BeginStopping);
+        preparation?.ClaimRuntime(this, policy, alias, options);
     }
 
     internal string Profile => profile.Alias;
@@ -134,13 +143,15 @@ internal sealed class CertificatePemRuntime : IAsyncDisposable, IHeartbeatSubscr
             using var operation = CancellationTokenSource.CreateLinkedTokenSource(caller, stopping.Token);
             CancellationToken token = operation.Token;
             token.ThrowIfCancellationRequested();
+            preparation?.RequireBootstrapRetired();
             options.Development?.Validate(services.GetService<IHostEnvironment>());
             if (options.Development is { } development && (profile.Roles & SecurityProfileRoles.Outbound) != 0
                 && (options.ServerTrustBundleFile is null || profile.AllowedOrigins.Any(origin => !development.PermitsOrigin(new Uri(origin)))))
             {
                 throw new ArgumentException("Development outgoing clients require isolated server trust and loopback or explicitly allowed private IP origins.");
             }
-            CertificateTrustPolicy selected = await LoadTrustAsync(token).ConfigureAwait(false);
+            CertificateTrustPolicy selected = preparation is null
+                ? await LoadTrustAsync(options, token).ConfigureAwait(false) : preparation.ClientTrust;
             selected.ValidateAuthorities(clock.GetUtcNow());
             token.ThrowIfCancellationRequested();
             Volatile.Write(ref trust, selected);
@@ -153,29 +164,25 @@ internal sealed class CertificatePemRuntime : IAsyncDisposable, IHeartbeatSubscr
             if (transport is not null)
             {
                 availability.SetOutboundTrust(selected.AuthorityExpiresAtUtc);
-                RestHttpServerTrust? serverTrust = null;
-                if (options.ServerTrustBundleFile is { } path)
+                (RestHttpServerTrust? serverTrust, DateTimeOffset? serverExpiry) = preparation is null
+                    ? await LoadServerTrustAsync(options, clock, token).ConfigureAwait(false)
+                    : (preparation.ServerTrust, preparation.ServerTrustExpiry);
+                if (serverExpiry is { } expiry)
                 {
-                    X509Certificate2Collection roots = await CertificatePemFiles.ReadCertificatesAsync(path, token).ConfigureAwait(false);
-                    try
-                    {
-                        var validation = new CertificateTrustPolicy("native-server-trust", roots.Cast<X509Certificate2>().ToArray(),
-                            roots.Cast<X509Certificate2>().ToArray(), revocation: CertificateRevocationPolicy.ShortLived);
-                        validation.ValidateAuthorities(clock.GetUtcNow());
-                        serverTrust = new(roots.Cast<X509Certificate2>().ToArray(), options.ServerRevocationMode);
-                        availability.SetOutboundTrust(validation.AuthorityExpiresAtUtc);
-                    }
-                    finally
-                    {
-                        foreach (X509Certificate2 root in roots)
-                        {
-                            root.Dispose();
-                        }
-                    }
+                    availability.SetOutboundTrust(expiry);
                 }
                 transport.InitializeServerTrustOnce(serverTrust);
-                keys = borrowedKeys is null ? new(2) : borrowedKeys(services)
-                    ?? throw new InvalidOperationException("The borrowed native key scope factory returned null.");
+                if (preparation is null)
+                {
+                    keys = borrowedKeys is null ? new(2) : borrowedKeys(services)
+                        ?? throw new InvalidOperationException("The borrowed native key scope factory returned null.");
+                    ownsKeys = borrowedKeys is null;
+                }
+                else
+                {
+                    keys = preparation.TransferKeys(this);
+                    ownsKeys = preparation.OwnsKeys;
+                }
                 heartbeat = services.GetRequiredService<IHeartbeatOwnerFactory>().CreateOwner();
                 lock (gate)
                 {
@@ -184,6 +191,10 @@ internal sealed class CertificatePemRuntime : IAsyncDisposable, IHeartbeatSubscr
                 }
                 await CheckAsync(token).ConfigureAwait(false);
                 token.ThrowIfCancellationRequested();
+                if (preparation is not null && transport.CertificateExpiresAtUtc is null)
+                {
+                    throw new System.Security.Authentication.AuthenticationException("The prepared certificate profile has no usable current leaf.");
+                }
                 heartbeat.Service.Register(this, new()
                 {
                     Name = "Certificate source: " + profile.Alias,
@@ -206,7 +217,7 @@ internal sealed class CertificatePemRuntime : IAsyncDisposable, IHeartbeatSubscr
         }
     }
 
-    private async Task<CertificateTrustPolicy> LoadTrustAsync(CancellationToken token)
+    internal static async Task<CertificateTrustPolicy> LoadTrustAsync(CertificatePemSecurityOptions options, CancellationToken token)
     {
         var loaded = new List<X509Certificate2>();
         try
@@ -231,6 +242,30 @@ internal sealed class CertificatePemRuntime : IAsyncDisposable, IHeartbeatSubscr
             X509Certificate2Collection value = await CertificatePemFiles.ReadCertificatesAsync(path, token).ConfigureAwait(false);
             loaded.AddRange(value.Cast<X509Certificate2>());
             return value.Cast<X509Certificate2>().ToArray();
+        }
+    }
+
+    internal static async Task<(RestHttpServerTrust? Trust, DateTimeOffset? Expiry)> LoadServerTrustAsync(
+        CertificatePemSecurityOptions options, TimeProvider clock, CancellationToken token)
+    {
+        if (options.ServerTrustBundleFile is not { } path)
+        {
+            return (null, null);
+        }
+        X509Certificate2Collection roots = await CertificatePemFiles.ReadCertificatesAsync(path, token).ConfigureAwait(false);
+        try
+        {
+            var validation = new CertificateTrustPolicy("native-server-trust", roots.Cast<X509Certificate2>().ToArray(),
+                roots.Cast<X509Certificate2>().ToArray(), revocation: CertificateRevocationPolicy.ShortLived);
+            validation.ValidateAuthorities(clock.GetUtcNow());
+            return (new(roots.Cast<X509Certificate2>().ToArray(), options.ServerRevocationMode), validation.AuthorityExpiresAtUtc);
+        }
+        finally
+        {
+            foreach (X509Certificate2 root in roots)
+            {
+                root.Dispose();
+            }
         }
     }
 
@@ -316,7 +351,8 @@ internal sealed class CertificatePemRuntime : IAsyncDisposable, IHeartbeatSubscr
                 {
                     RestHttpCertificateAdoption adopted = await transport!.TryAdoptCertificateAsync(token =>
                     {
-                        RestHttpCertificateMaterial material = CreateMaterial(candidate, token, out DateTimeOffset actualExpiry);
+                        RestHttpCertificateMaterial material = CreateMaterial(candidate, token, trust!, Binding!, keys!, clock,
+                            options.PollInterval, out DateTimeOffset actualExpiry);
                         expiry = actualExpiry;
                         return ValueTask.FromResult(material);
                     }, token).ConfigureAwait(false);
@@ -379,7 +415,9 @@ internal sealed class CertificatePemRuntime : IAsyncDisposable, IHeartbeatSubscr
         }
     }
 
-    private RestHttpCertificateMaterial CreateMaterial(PemCandidate candidate, CancellationToken token, out DateTimeOffset expiry)
+    internal static RestHttpCertificateMaterial CreateMaterial(PemCandidate candidate, CancellationToken token,
+        CertificateTrustPolicy trust, RestSecurityBinding binding, RestHttpNativeKeyScope keys, TimeProvider clock,
+        TimeSpan pollInterval, out DateTimeOffset expiry)
     {
         token.ThrowIfCancellationRequested();
         var publicChain = new X509Certificate2Collection();
@@ -401,13 +439,13 @@ internal sealed class CertificatePemRuntime : IAsyncDisposable, IHeartbeatSubscr
                     throw new PemCredentialRejection(new(SecurityFailureKind.CredentialInvalid,
                         "The candidate certificate is not valid yet."), leaf.NotBefore.ToUniversalTime());
                 }
-                CertificateValidationResult validation = CertificateTrustValidator.Validate(leaf, trust!, clock.GetUtcNow());
+                CertificateValidationResult validation = CertificateTrustValidator.Validate(leaf, trust, clock.GetUtcNow());
                 token.ThrowIfCancellationRequested();
-                if (!validation.Succeeded || validation.Subject != Binding!.CredentialIdentity)
+                if (!validation.Succeeded || validation.Subject != binding.CredentialIdentity)
                 {
                     throw new PemCredentialRejection(validation.Failure ?? new(SecurityFailureKind.CredentialInvalid,
                         "The certificate candidate does not match the fixed local credential mapping."),
-                        validation.Failure?.Kind == SecurityFailureKind.ValidationUnavailable ? clock.GetUtcNow().Add(options.PollInterval) : null);
+                        validation.Failure?.Kind == SecurityFailureKind.ValidationUnavailable ? clock.GetUtcNow().Add(pollInterval) : null);
                 }
                 expiry = validation.ExpiresAtUtc!.Value;
             }
@@ -421,7 +459,7 @@ internal sealed class CertificatePemRuntime : IAsyncDisposable, IHeartbeatSubscr
             leaf = null;
             try
             {
-                native.PrepareForTls(keys!);
+                native.PrepareForTls(keys);
                 token.ThrowIfCancellationRequested();
                 if (expiry <= clock.GetUtcNow())
                 {
@@ -610,7 +648,7 @@ internal sealed class CertificatePemRuntime : IAsyncDisposable, IHeartbeatSubscr
         }).ConfigureAwait(false);
         await Capture(() =>
         {
-            if (borrowedKeys is null)
+            if (ownsKeys)
             {
                 keys?.Dispose();
             }

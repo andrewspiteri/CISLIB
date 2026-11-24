@@ -1,7 +1,7 @@
 import https from "node:https";
 import { Readable } from "node:stream";
 import { ClientProtocolFailure, ClientTransportFailure } from "@cislib/client-core";
-import { ManagementClient, captureBaseUrl } from "../dist/index.js";
+import { ManagementClient, ManagementConfigurationClient, captureBaseUrl } from "../dist/index.js";
 
 /** Node server only. Trust is host configuration; a client key is attached per call. */
 export function createNodeHttpsTransport(options) {
@@ -52,6 +52,16 @@ export function createNodeManagementClient(options) {
   if (baseUrl === undefined) { throw new TypeError("Configure CIS_MANAGEMENT_URL or an explicit management endpoint."); }
   const captured = captureBaseUrl(baseUrl);
   return new ManagementClient({ ...options, baseUrl: captured, transport: options.transport ?? createNodeHttpsTransport({
+    origin: new URL(captured).origin, ...(options.ca === undefined ? {} : { ca: options.ca })
+  }) });
+}
+
+/** The same explicit native HTTPS profile for the separate configuration port. */
+export function createNodeManagementConfigurationClient(options) {
+  const baseUrl = options.baseUrl ?? process.env.CIS_MANAGEMENT_URL;
+  if (baseUrl === undefined) { throw new TypeError("Configure CIS_MANAGEMENT_URL or an explicit management endpoint."); }
+  const captured = captureBaseUrl(baseUrl);
+  return new ManagementConfigurationClient({ ...options, baseUrl: captured, transport: options.transport ?? createNodeHttpsTransport({
     origin: new URL(captured).origin, ...(options.ca === undefined ? {} : { ca: options.ca })
   }) });
 }

@@ -174,8 +174,90 @@ or global user state. Host-specific access remains explicitly server-only.
 A new module installs explicit typed handlers, schemas, actual resource and
 capability requirements, finite limits and documented result/retry behavior.
 Feature discovery derives from installed handlers. Presence and inventory never
-become a remote execution engine. Configuration publication, portal/login,
+become a remote execution engine or confer publication authority. The configuration
+addition below uses its own fixed resource-scoped APIs; portal/login,
 recurrence/rules and destination Audit persistence remain separate roadmap work.
+
+## Central configuration contract addition
+
+RM-08 adds nineteen fixed typed operations to the same canonical OpenAPI and
+schema. The addition is being implemented under CIS-0027; discovery continues to
+describe actually installed, initialized handlers. A schema or client method is
+not evidence that an uninitialized backend can publish configuration. The portal,
+rollout automation, secret resolution and destination Audit persistence remain
+separate work.
+
+Explicit portable configuration IDs and cohort IDs use the existing safe
+operation-key character profile, including rejection of the complete dot
+segments. Schema identities, assignment generations and adoption sequences are
+canonical positive Int64 strings. Local accepted revisions additionally allow
+zero. No central generation replaces Configuration's local revision.
+
+Each source retains exact decoded `payloadJson` UTF-8 and its lowercase SHA-256.
+Whitespace, non-ASCII text and Unicode normalization are not rewritten. The
+digest covers the decoded source string, not its escaped transport envelope.
+Invalid JSON/Unicode, BOM, duplicate decoded names and excess depth/bytes refuse
+the content. Configuration payload properties retain the mapper's existing
+unknown-member policy; administrative command wrappers are closed.
+
+The configuration profile permits at most one MiB per complete encoded command
+or resolved snapshot and 256 KiB per decoded source. Ordinary Management remains
+64 KiB by default. Escaping and both sources count toward the snapshot limit.
+Configuration clients use one `configuration` metric operation alias plus their
+ordinary `request` fallback; wire operation IDs and authorization actions remain
+distinct. Two existing Management profiles and two configuration profiles fit the
+unchanged 32-pair composition ceiling.
+
+Publications and releases are immutable. Release creation takes the current
+binding assignment-map ETag, including its initialized unassigned token, under
+the original binding lock after operation arbitration. It changes neither the
+assignment ETag nor generation and activates nothing. A complete assignment
+command deliberately replaces the default and named cohort entries under its
+own original key/precondition. Promotion and rollback record their complete map
+and intent; rollback advances the generation. Original results retain identifiers
+and decisions without payloads, including after eligible content pruning.
+
+Preview has two fixed forms: an exact common/application source pair, or a
+complete proposed assignment command. Mixing them refuses the request. The
+response retains the selected pair or complete proposed map, current assignment
+and its precondition, and a page of recipient observations. Reported compatibility
+is advisory, not proof of every local validator. Continuation binds the actual
+actor, binding, selected intent and current-map token; a changed map requires a
+fresh preview. The later mutation independently reauthorizes and checks its ETag.
+
+A conditional runtime read is specific to a registration, trusted cohort,
+authority, fixed host scope and exact enrolled schema. A 304 is usable only with
+the complete matching retained session snapshot. Source-content failures can
+identify a rejected release only after the complete desired identity and outer
+metadata pass independent expected-target checks. Unidentified failures preserve
+previous desired/applied facts. Neither content nor a 304 renews managed-work
+authority.
+
+The separate complete configuration-status stream preserves original sequences,
+receipt freshness and uncertainty. Desired, actually accepted, pending restart,
+rejected, terminal fault and connectivity remain separate facts. A historical
+acceptance is not proof of current convergence or intact state after a broken
+live setter. Status and original results carry no payload or typed checksum;
+metric labels contain only fixed dimensions and application/environment identity.
+
+The independent [configuration vectors](../../../conformance/management/v1/configuration-cases.json)
+separate schema acceptance from runtime integrity, lexical, target and native
+authority obligations. Known optional fields are omitted rather than null;
+responses permit additive unknown members and retain explicit unknown status
+values. These vectors establish no database, deployment or lifecycle proof.
+
+`GET /configuration/definitions` pages authorized source-qualified descriptors.
+Each row has its actual source ID, environment, kind and shared immutable schema/
+defaults. Application rows also identify the actual application, stable binding
+and fixed host scope. Common rows expose none of those application facts. Thus
+an authorized operator can discover a source, read its current catalog ETag and
+publish through HTTP; source IDs do not require SQL or private service-file access.
+The same schema can serve bindings with different host scopes. Native resource
+authorization filters each row before pagination, and IDs confer no authority.
+Raw `defaultsJson` is optional in this view and requires separate actual source
+content-read authority. Metadata discovery works without it. Omission redacts
+values; it never means that the immutable schema/defaults contract is empty or
+changed. Trusted deployment provisioning still validates the complete defaults.
 
 ## Native rejected results
 

@@ -30,6 +30,7 @@ test("server-only export retains native TLS and exposes no portable ambient Node
   const server = await import("@cislib/management-client/server");
   assert.equal(typeof server.createNodeHttpsTransport, "function");
   assert.equal(typeof server.createNodeManagementClient, "function");
+  assert.equal(typeof server.createNodeManagementConfigurationClient, "function");
   const declaration = await readFile(new URL("../packages/management-client/server/index.d.ts", import.meta.url), "utf8");
   assert.doesNotMatch(declaration, /node:|NodeJS|Buffer|rejectUnauthorized\??\s*:/u);
   assert.throws(() => server.createNodeHttpsTransport({ origin: "http://example.test/" }), TypeError);

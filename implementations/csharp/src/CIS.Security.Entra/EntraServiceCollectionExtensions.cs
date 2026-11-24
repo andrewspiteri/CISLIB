@@ -18,6 +18,24 @@ namespace CIS.Security.Entra;
 /// <summary>Explicit Entra integration for one already-selected common security profile.</summary>
 public static class EntraServiceCollectionExtensions
 {
+    /// <summary>Adopts the same prepared workload credential and exact captured policy into the one final provider.</summary>
+    /// <remarks>Retain the prepared owner before Build, drain bootstrap REST and await its retirement before
+    /// starting this profile. Passive final construction performs no I/O; actual activation requires completed retirement.
+    /// Final activation retains ordinary Healthcheck, Heartbeat, Startup and native cleanup.</remarks>
+    public static IServiceCollection AddCisEntraSecurity(this IServiceCollection services, EntraPreparedProfile prepared)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(prepared);
+        string alias = prepared.Profile;
+        Register(services, alias, prepared.AuthenticationScheme,
+            provider => prepared.CaptureForPolicy(provider.GetRequiredService<SecurityPolicySnapshot>()), null, prepared);
+        // A factory registration tracks the same actual disposable owner in the final
+        // provider. The application also retains it for failures before resolution.
+        services.AddKeyedSingleton<EntraPreparedProfile>(alias, (provider, _) =>
+            prepared.ClaimForProvider(provider.GetRequiredService<SecurityPolicySnapshot>(), provider));
+        return services;
+    }
+
     /// <summary>Defers detached provider setup until ordinary root activation, after initial Configuration preparation.</summary>
     /// <param name="services">The application's one native service collection.</param>
     /// <param name="profile">The exact selected common Entra profile alias.</param>
@@ -53,7 +71,7 @@ public static class EntraServiceCollectionExtensions
 
     private static IServiceCollection Register(IServiceCollection services, string alias, string? scheme,
         Func<IServiceProvider, EntraOptionsSnapshot> capture,
-        Func<IServiceProvider, WorkloadIdentityCredential>? borrowedCredential)
+        Func<IServiceProvider, WorkloadIdentityCredential>? borrowedCredential, EntraPreparedProfile? prepared = null)
     {
         ArgumentNullException.ThrowIfNull(services);
         if (scheme is not null)
@@ -66,13 +84,24 @@ public static class EntraServiceCollectionExtensions
             throw new InvalidOperationException("Register each Entra profile once.");
         }
         services.AddSingleton(new EntraRegistration(alias));
-        services.AddKeyedSingleton<EntraProfileRuntime>(alias, (provider, _) => new(capture(provider),
-            provider.GetRequiredService<ISecurityProfileStatusReporter>(),
-            provider.GetService<TimeProvider>() ?? TimeProvider.System,
-            provider.GetService<IHealthMonitorFactory>(), provider.GetService<IHeartbeatOwnerFactory>(), provider.GetService<ILogger<EntraProfileRuntime>>(),
-            provider.GetService<IHostApplicationLifetime>(),
-            borrowedCredential is null ? null : () => borrowedCredential(provider),
-            provider.GetService<CIS.Coordination.Hosting.CoordinationHostLifetime>()));
+        services.AddKeyedSingleton<EntraProfileRuntime>(alias, (provider, _) =>
+        {
+            EntraOptionsSnapshot captured = capture(provider);
+            if (prepared is not null)
+            {
+                return provider.GetRequiredKeyedService<EntraPreparedProfile>(alias).CreateHostedRuntime(captured.Policy,
+                    provider.GetRequiredService<ISecurityProfileStatusReporter>(), provider.GetService<TimeProvider>() ?? TimeProvider.System,
+                    provider.GetService<IHealthMonitorFactory>(), provider.GetService<IHeartbeatOwnerFactory>(),
+                    provider.GetService<ILogger<EntraProfileRuntime>>(), provider.GetService<IHostApplicationLifetime>(),
+                    provider.GetService<CIS.Coordination.Hosting.CoordinationHostLifetime>());
+            }
+            return new EntraProfileRuntime(captured, provider.GetRequiredService<ISecurityProfileStatusReporter>(),
+                provider.GetService<TimeProvider>() ?? TimeProvider.System,
+                provider.GetService<IHealthMonitorFactory>(), provider.GetService<IHeartbeatOwnerFactory>(), provider.GetService<ILogger<EntraProfileRuntime>>(),
+                provider.GetService<IHostApplicationLifetime>(),
+                borrowedCredential is null ? null : () => borrowedCredential(provider),
+                provider.GetService<CIS.Coordination.Hosting.CoordinationHostLifetime>());
+        });
         services.AddKeyedSingleton<ISecurityCredentialControl>(alias, (provider, _) =>
             new EntraCredentialControl(provider.GetRequiredKeyedService<EntraProfileRuntime>(alias)));
         services.AddSingleton<IStartable>(provider => new EntraStartable(provider.GetRequiredKeyedService<EntraProfileRuntime>(alias),

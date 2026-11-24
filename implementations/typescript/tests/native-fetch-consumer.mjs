@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import https from "node:https";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { ManagementClient } from "@cislib/management-client";
+import { ManagementClient, ManagementConfigurationClient } from "@cislib/management-client";
 
 const directory = process.argv[2];
 assert.ok(directory, "The parent supplies a newly owned private TLS directory.");
@@ -56,7 +56,7 @@ const results = [];
 let runFailed = false;
 let runFailure;
 try {
-  for (const method of ["GET", "PUT"]) {
+  for (const method of ["GET", "PUT", "POST_VALIDATE", "POST_PUBLISH"]) {
     for (const failure of ["disconnect", "timeout", "canceled"]) {
       results.push(await run(method, failure));
     }
@@ -77,20 +77,31 @@ if (tlsFailure !== undefined) {
   throw tlsFailure;
 }
 if (runFailed) { throw runFailure; }
-assert.ok(observedIntentionalResets <= 6);
+assert.ok(observedIntentionalResets <= 12);
 process.stdout.write(JSON.stringify({ cases: results, socketsDrained: true, nativeFetch: true, observedIntentionalResets }));
 
-async function run(method, failure) {
+async function run(operation, failure) {
+  const method = operation.startsWith("POST_") ? "POST" : operation;
+  const mutating = operation === "PUT" || operation === "POST_PUBLISH";
   const state = {
-    method, failure, count: 0, headersReceived: deferred(), responseClosed: deferred(), response: undefined,
-    operationKey: method === "PUT" ? "native-original-" + failure : undefined
+    method, operation, mutating, failure, count: 0, headersReceived: deferred(), responseClosed: deferred(), response: undefined,
+    operationKey: mutating ? "native-original-" + operation.toLowerCase() + "-" + failure : undefined
   };
   current = state;
   const controller = new AbortController();
   const client = new ManagementClient({ baseUrl, timeoutMs: 1000, readRetries: 2 });
-  const call = method === "PUT"
-    ? client.replaceMetadata(applicationId, state.operationKey, '"metadata-1"', { commandVersion: 1, displayName: "Native body failure" }, { signal: controller.signal })
-    : client.getServiceInfo({ signal: controller.signal });
+  const configuration = new ManagementConfigurationClient({ baseUrl, timeoutMs: 1000, readRetries: 2 });
+  let call;
+  if (operation === "POST_VALIDATE") {
+    call = configuration.validate({ commandVersion: 1, sourceId: "44444444-4444-4444-4444-444444444444", payloadJson: "{}" }, { signal: controller.signal });
+  } else if (operation === "POST_PUBLISH") {
+    call = configuration.publishSource("44444444-4444-4444-4444-444444444444", state.operationKey, '"source-1"',
+      { commandVersion: 1, payloadJson: "{}", reason: "Native body failure" }, { signal: controller.signal });
+  } else if (method === "PUT") {
+    call = client.replaceMetadata(applicationId, state.operationKey, '"metadata-1"', { commandVersion: 1, displayName: "Native body failure" }, { signal: controller.signal });
+  } else {
+    call = client.getServiceInfo({ signal: controller.signal });
+  }
   // Observe faults immediately while the test waits for actual native response headers.
   void call.catch(() => undefined);
   try {
@@ -110,12 +121,12 @@ async function run(method, failure) {
     assert.equal(result.status, 200, "Actual response headers arrived before the response-body failure.");
     assert.equal(result.attempts, 1);
     assert.equal(result.operationKey, state.operationKey);
-    assert.equal(result.mutationUncertain, method === "PUT");
+    assert.equal(result.mutationUncertain, mutating);
     assert.equal(typeof result.cleanupSucceeded, "boolean");
     await state.responseClosed.promise;
     if (state.failure instanceof Error) { throw state.failure; }
     assert.equal(state.count, 1, "A response-body failure cannot resubmit the request.");
-    return { method, failure, kind: result.kind, originalKeyReceived: method !== "PUT" || state.originalKeyReceived,
+    return { method, operation, failure, kind: result.kind, originalKeyReceived: !mutating || state.originalKeyReceived,
       headersReceived: true, attempts: result.attempts, mutationUncertain: result.mutationUncertain,
       cleanupSucceeded: result.cleanupSucceeded, responseDrained: true };
   } finally {
@@ -130,8 +141,9 @@ async function receive(request, response, state) {
   state.count++;
   response.once("close", () => { state.responseClosed.resolve(); });
   assert.equal(request.method, state.method);
-  assert.equal(request.url, state.method === "PUT"
-    ? `/management/v1/applications/${applicationId}/metadata` : "/management/v1/service-info");
+  assert.equal(request.url, state.operation === "POST_VALIDATE" ? "/management/v1/configuration/validate"
+    : state.operation === "POST_PUBLISH" ? "/management/v1/configuration/sources/44444444-4444-4444-4444-444444444444/publications"
+      : state.method === "PUT" ? `/management/v1/applications/${applicationId}/metadata` : "/management/v1/service-info");
   let bytes = 0;
   const chunks = [];
   for await (const chunk of request) {
@@ -144,6 +156,14 @@ async function receive(request, response, state) {
     assert.equal(request.headers["if-match"], '"metadata-1"');
     assert.deepEqual(JSON.parse(Buffer.concat(chunks).toString("utf8")), { commandVersion: 1, displayName: "Native body failure" });
     state.originalKeyReceived = true;
+  } else if (state.operation === "POST_PUBLISH") {
+    assert.equal(request.headers["idempotency-key"], state.operationKey);
+    assert.equal(request.headers["if-match"], '"source-1"');
+    assert.deepEqual(JSON.parse(Buffer.concat(chunks).toString("utf8")), { commandVersion: 1, payloadJson: "{}", reason: "Native body failure" });
+    state.originalKeyReceived = true;
+  } else if (state.operation === "POST_VALIDATE") {
+    assert.equal(request.headers["idempotency-key"], undefined);
+    assert.deepEqual(JSON.parse(Buffer.concat(chunks).toString("utf8")), { commandVersion: 1, sourceId: "44444444-4444-4444-4444-444444444444", payloadJson: "{}" });
   }
   state.response = response;
   response.writeHead(200, { "content-type": "application/json", "content-length": "1000", connection: "close" });

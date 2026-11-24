@@ -17,4 +17,28 @@ internal interface IConfigurationValuePipeline
 
 internal sealed record ConfigurationAssignment(PropertyInfo Property, object? Value);
 
-internal sealed record ConfigurationPreparedValues(string Checksum, IReadOnlyList<ConfigurationAssignment> Assignments);
+internal sealed record ConfigurationPreparedValues(string Checksum, IReadOnlyList<ConfigurationAssignment> Assignments)
+{
+    internal IDisposable? Ownership
+    {
+        get; init;
+    }
+}
+
+// Optional only for centrally enrolled entries; existing custom test pipelines
+// and independent-record stores acquire no compulsory member.
+internal interface IConfigurationSnapshotValuePipeline
+{
+    ConfigurationSnapshotCommit ApplySnapshot(ConfigurationEntry entry, ConfigurationPreparedValues prepared,
+        ConfigurationSnapshotProvenance provenance, long sessionEpoch, CancellationToken cancellationToken, bool initial);
+}
+
+internal sealed record ConfigurationSnapshotCommit(bool Changed, ConfigurationAcceptanceStatus Acceptance);
+
+internal sealed class ConfigurationSnapshotAdmission
+{
+    internal int Closed;
+    internal int Faulted;
+    internal bool IsClosed => Volatile.Read(ref Closed) != 0;
+    internal bool IsFaulted => Volatile.Read(ref Faulted) != 0;
+}

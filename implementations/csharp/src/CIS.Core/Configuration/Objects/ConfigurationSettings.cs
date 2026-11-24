@@ -7,7 +7,8 @@ internal sealed class ConfigurationSettings
 {
     private ConfigurationSettings(string hostApplicationName, IConfigurationStore store, ConfigurationNotificationMode notificationMode,
         TimeSpan? pollingInterval, bool? isHealthCritical,
-        IReadOnlyDictionary<Type, Func<IConfigurationObject>> factories, IReadOnlyDictionary<Type, Action<IConfigurationObject>> validators)
+        IReadOnlyDictionary<Type, Func<IConfigurationObject>> factories, IReadOnlyDictionary<Type, Action<IConfigurationObject>> validators,
+        IReadOnlyDictionary<Type, ConfigurationEnrollment> enrollments, ConfigurationSnapshotTarget? snapshotTarget)
     {
         HostApplicationName = hostApplicationName;
         Store = store;
@@ -16,15 +17,47 @@ internal sealed class ConfigurationSettings
         IsHealthCritical = isHealthCritical;
         Factories = factories;
         Validators = validators;
+        Enrollments = enrollments;
+        SnapshotTarget = snapshotTarget;
     }
 
-    internal string HostApplicationName { get; }
-    internal IConfigurationStore Store { get; }
-    internal ConfigurationNotificationMode NotificationMode { get; }
-    internal TimeSpan? PollingInterval { get; }
-    internal bool? IsHealthCritical { get; }
-    internal IReadOnlyDictionary<Type, Func<IConfigurationObject>> Factories { get; }
-    internal IReadOnlyDictionary<Type, Action<IConfigurationObject>> Validators { get; }
+    internal string HostApplicationName
+    {
+        get;
+    }
+    internal IConfigurationStore Store
+    {
+        get;
+    }
+    internal ConfigurationNotificationMode NotificationMode
+    {
+        get;
+    }
+    internal TimeSpan? PollingInterval
+    {
+        get;
+    }
+    internal bool? IsHealthCritical
+    {
+        get;
+    }
+    internal IReadOnlyDictionary<Type, Func<IConfigurationObject>> Factories
+    {
+        get;
+    }
+    internal IReadOnlyDictionary<Type, Action<IConfigurationObject>> Validators
+    {
+        get;
+    }
+    internal IReadOnlyDictionary<Type, ConfigurationEnrollment> Enrollments
+    {
+        get;
+    }
+    internal ConfigurationSnapshotTarget? SnapshotTarget
+    {
+        get;
+    }
+    internal ConfigurationByteBudget ByteBudget { get; } = new();
 
     internal static ConfigurationSettings Capture(ConfigurationOptions options)
     {
@@ -33,31 +66,87 @@ internal sealed class ConfigurationSettings
         IConfigurationStore store = options.Store;
         TimeSpan? interval = options.PollingInterval;
         bool? isHealthCritical = options.IsHealthCritical;
+        IReadOnlyDictionary<Type, ConfigurationEnrollment> enrollments = CaptureEnrollments(options.Enrollments);
+        ConfigurationSnapshotTarget? target = options.SnapshotTarget;
+        if (enrollments.Count != 0 && (target is null || target.HostApplicationName != hostApplicationName
+            || store is not IConfigurationSnapshotStore || options.IsDefaultsOnly || interval is null))
+        {
+            throw Error("Central enrollment requires a paired store, independently trusted fixed-host target and explicit positive polling interval.");
+        }
         ConfigurationNotificationMode mode;
-        try { mode = store.NotificationMode; }
+        try
+        {
+            mode = store.NotificationMode;
+        }
         catch (Exception)
-        { throw Error("Reading the store notification guarantee failed."); }
-        if (!Enum.IsDefined(mode)) { throw Error("The store notification guarantee is undefined."); }
+        {
+            throw Error("Reading the store notification guarantee failed.");
+        }
+        if (!Enum.IsDefined(mode))
+        {
+            throw Error("The store notification guarantee is undefined.");
+        }
         if (interval is { } selected && (selected <= TimeSpan.Zero || selected > HeartbeatRegistrationOptions.MaximumDuration))
-        { throw Error("Polling requires a positive interval no greater than HeartbeatRegistrationOptions.MaximumDuration."); }
+        {
+            throw Error("Polling requires a positive interval no greater than HeartbeatRegistrationOptions.MaximumDuration.");
+        }
         if (options.IsDefaultsOnly && interval is not null)
-        { throw Error("Defaults-only configuration has no external updates and cannot select polling."); }
+        {
+            throw Error("Defaults-only configuration has no external updates and cannot select polling.");
+        }
         if (!options.IsDefaultsOnly && mode != ConfigurationNotificationMode.Reliable && interval is null)
-        { throw Error("This store guarantee requires an explicit positive polling/reconciliation interval."); }
+        {
+            throw Error("This store guarantee requires an explicit positive polling/reconciliation interval.");
+        }
         return new(hostApplicationName, store, mode, interval, isHealthCritical,
-            Snapshot(options.Factories), Snapshot(options.Validators));
+            Snapshot(options.Factories), Snapshot(options.Validators), enrollments, target);
+    }
+
+    private static IReadOnlyDictionary<Type, ConfigurationEnrollment> CaptureEnrollments(IReadOnlyList<ConfigurationEnrollment> source)
+    {
+        if (source is null || source.Count > 256)
+        {
+            throw Error("Central enrollment requires a nonnull list of at most 256 definitions.");
+        }
+        var types = new Dictionary<Type, ConfigurationEnrollment>();
+        var identifiers = new HashSet<string>(StringComparer.Ordinal);
+        try
+        {
+            foreach (ConfigurationEnrollment enrollment in source)
+            {
+                if (enrollment is null || !types.TryAdd(enrollment.ConfigurationType, enrollment)
+                    || !identifiers.Add(enrollment.ConfigurationId))
+                {
+                    throw Error("Central enrollment requires unique exact CLR types and portable IDs, including across schemas.");
+                }
+            }
+        }
+        catch (CoreConfigurationException)
+        {
+            throw;
+        }
+        catch (Exception)
+        {
+            throw Error("Capturing the explicit central enrollment list failed.");
+        }
+        return new ReadOnlyDictionary<Type, ConfigurationEnrollment>(types);
     }
 
     private static IReadOnlyDictionary<Type, T> Snapshot<T>(IReadOnlyDictionary<Type, T> source) where T : Delegate
     {
-        if (source is null) { throw Error("Factory and validator dictionaries must be nonnull."); }
+        if (source is null)
+        {
+            throw Error("Factory and validator dictionaries must be nonnull.");
+        }
         var copy = new Dictionary<Type, T>();
         try
         {
             foreach ((Type type, T callback) in source)
             {
                 if (type is null || callback is null || !typeof(IConfigurationObject).IsAssignableFrom(type))
-                { throw Error("Factory and validator entries require an exact configuration type and a nonnull callback."); }
+                {
+                    throw Error("Factory and validator entries require an exact configuration type and a nonnull callback.");
+                }
                 copy.Add(type, callback);
             }
         }

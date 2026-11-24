@@ -45,7 +45,7 @@ public static class ManagementRegistrationServiceCollectionExtensions
         services.AddSingleton(root =>
         {
             using IDisposable construction = lifetime.EnterConstruction();
-            var admission = new ManagedWorkAdmission(root.GetService<TimeProvider>());
+            var admission = lifetime.PreparedAdmission ?? new ManagedWorkAdmission(root.GetService<TimeProvider>());
             lifetime.BindAdmission(admission);
             return admission;
         });
@@ -67,6 +67,10 @@ public static class ManagementRegistrationServiceCollectionExtensions
                 root.GetRequiredService<IManagementInventorySource>(), captured,
                 root.GetServices<IManagedStateReconciler>(), root.GetService<TimeProvider>(),
                 root.GetService<IHealthMonitorFactory>(), root.GetService<ILogger<ManagementRegistration>>());
+            if (lifetime.Bootstrap is { } bootstrap)
+            {
+                runtime.AdoptBootstrap(bootstrap);
+            }
             lifetime.Bind(runtime);
             return runtime;
         });

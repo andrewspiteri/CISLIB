@@ -2,6 +2,7 @@ using CIS.Management.Service.Persistence;
 using CIS.Management.Service.Metadata;
 using CIS.Management.Service.Backends;
 using Npgsql;
+using CIS.Management.Service.Configuration;
 
 namespace CIS.Management.Service;
 
@@ -13,7 +14,8 @@ public sealed class ManagementServiceOptions
     public ManagementServiceOptions(string connectionString, ReadOnlySpan<byte> cursorSigningKey,
         ManagementPersistenceOptions? persistence = null, string basePath = "", int maximumConcurrentRequests = 32,
         string operationsSchema = "cis_operations", string messagingSchema = "cis_messaging",
-        ManagementDeliveryOptions? delivery = null, ManagementBackendOptions? backend = null)
+        ManagementDeliveryOptions? delivery = null, ManagementBackendOptions? backend = null,
+        ManagementConfigurationOptions? configuration = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(connectionString);
         if (connectionString.Length > 16384 || cursorSigningKey.Length is < 32 or > 64)
@@ -53,6 +55,7 @@ public sealed class ManagementServiceOptions
         MessagingSchema = Schema(messagingSchema);
         Delivery = delivery;
         Backend = backend ?? new();
+        Configuration = configuration;
     }
 
     public string ConnectionString
@@ -84,6 +87,10 @@ public sealed class ManagementServiceOptions
         get;
     }
     public ManagementBackendOptions Backend
+    {
+        get;
+    }
+    public ManagementConfigurationOptions? Configuration
     {
         get;
     }

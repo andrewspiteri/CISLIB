@@ -1,0 +1,21 @@
+using CIS.Hosting;
+using CIS.Management.Service.Configuration;
+using CIS.Operations.Hosting;
+
+namespace CIS.Management.Service;
+
+public static partial class ManagementServiceApplication
+{
+    static partial void ConfigureConfiguration(CISApplicationBuilder builder, ManagementServiceOptions options)
+    {
+        builder.Services.AddScoped<ManagementConfigurationTarget>();
+        builder.Services.AddScoped<ManagementConfigurationService>();
+        if (options.Configuration is not null)
+        {
+            builder.Services.AddCisOperation(ManagementConfigurationOperations.Catalog());
+            builder.Services.AddCisOperation(ManagementConfigurationOperations.Publication());
+            builder.Services.AddCisOperation(ManagementConfigurationOperations.Release());
+            builder.Services.AddCisOperation(ManagementConfigurationOperations.Assignment());
+        }
+    }
+}

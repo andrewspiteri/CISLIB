@@ -126,6 +126,18 @@ public sealed class ManagedWorkAdmission : IManagedWorkAdmission
         Publish(publication);
     }
 
+    // Reporting refusal still closes RM-07 admission, but is not an explicit host/control-connectivity gap.
+    internal void InvalidateReporting()
+    {
+        ManagedWorkAdmissionSnapshot? publication;
+        lock (gate)
+        {
+            hasClockSample = false;
+            publication = CloseUnderLock("management.reporting.unavailable");
+        }
+        Publish(publication);
+    }
+
     internal void BindPrerequisites(Func<bool> selected)
     {
         ArgumentNullException.ThrowIfNull(selected);

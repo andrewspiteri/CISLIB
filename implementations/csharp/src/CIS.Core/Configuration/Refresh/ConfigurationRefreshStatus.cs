@@ -30,7 +30,14 @@ public enum ConfigurationWatchState
 /// <param name="NotificationFailureCode">A separate safe subscriber-failure code, cleared by the next accepted publication.</param>
 public sealed record ConfigurationEntryRefreshStatus(Type ConfigurationType, bool IsValid, bool Disabled,
     long Revision, DateTimeOffset? LastSuccessfulReconciliationUtc, DateTimeOffset? LastChangeUtc, string? FailureCode,
-    string? NotificationFailureCode);
+    string? NotificationFailureCode)
+{
+    /// <summary>Gets actual central acceptance facts, or null for an ordinary noncentral entry.</summary>
+    public ConfigurationAcceptanceStatus? Acceptance
+    {
+        get; init;
+    }
+}
 
 /// <summary>A detached bounded current observation of this host's Configuration lifetime.</summary>
 /// <param name="ActivationCompleted">Whether the required activation operation completed.</param>

@@ -13,6 +13,7 @@ using CIS.Security;
 using CIS.Management.Service.Backends;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
+using CIS.Management.Service.Configuration;
 
 namespace CIS.Management.Service;
 
@@ -20,6 +21,16 @@ public static partial class ManagementServiceApplication
 {
     static partial void ConfigureMetadataSecurity(SecurityOptions policy, ManagementServiceOptions options)
     {
+        if (options.Configuration is not null)
+        {
+            foreach (string capability in ManagementConfigurationCapabilities.All)
+            {
+                if (!policy.Capabilities.Contains(capability))
+                {
+                    policy.Capabilities.Add(capability);
+                }
+            }
+        }
         RabbitMqSettings broker = options.Delivery!.Broker;
         policy.Profiles.Add(new(broker.SecurityProfile, SecurityProfileKind.Native, SecurityProfileRoles.Inbound,
             ManagementDeliveryOptions.BrokerScheme,
@@ -47,6 +58,7 @@ public static partial class ManagementServiceApplication
             }),
             root.GetRequiredService<PostgreSqlManagementAuthority>()));
         builder.Services.AddCisOperation(ManagementMetadataDefinition.Create());
+        ConfigureConfiguration(builder, options);
         builder.Services.AddCisOperations();
         builder.Services.AddScoped<ManagementMetadataTarget>();
         builder.Services.AddScoped<ManagementMetadataService>();

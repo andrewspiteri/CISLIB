@@ -10,6 +10,24 @@ namespace CIS.Tests.UnitTests.Security;
 public sealed class SecurityPolicyConfigurationTests
 {
     [TestMethod]
+    public void PreProviderCaptureAndRegistrationRetainTheExactDetachedPolicyWithoutAnotherProvider()
+    {
+        SecurityOptions options = SecurityTestSupport.Options();
+        SecurityPolicySnapshot captured = SecurityPolicySnapshot.Create(options);
+        options.Profiles.Clear();
+        options.Capabilities.Clear();
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddCisSecurity(captured);
+        using ServiceProvider root = services.BuildServiceProvider();
+
+        Assert.AreSame(captured, root.GetRequiredService<SecurityPolicySnapshot>());
+        Assert.HasCount(1, captured.Profiles);
+        Assert.IsTrue(captured.IsRegisteredCapability("rules.read"));
+        Assert.IsFalse(services.Any(descriptor => descriptor.ServiceType == typeof(Microsoft.Extensions.Hosting.IHostedService)));
+    }
+
+    [TestMethod]
     public void DirectPolicyIsDetachedAndRetainsExistingCanonicalIdentity()
     {
         SecurityOptions options = SecurityTestSupport.Options();
