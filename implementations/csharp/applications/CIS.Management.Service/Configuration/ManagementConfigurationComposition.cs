@@ -12,20 +12,36 @@ internal static class ManagementConfigurationComposition
     internal static JsonNode Compose(ManagementConfigurationBindingResource binding, ConfigurationSourcePair pair)
     {
         using JsonDocument defaults = JsonDocument.Parse(binding.DefaultsJson);
-        JsonNode result = Project(binding.Shape, defaults.RootElement)!;
-        foreach (ManagementConfigurationSourceContent source in new[] { pair.Common, pair.Application })
+        var templates = new Dictionary<string, JsonElement>(StringComparer.Ordinal) { [""] = defaults.RootElement };
+        foreach (ManagementConfigurationObjectDefault template in binding.ObjectDefaults ?? [])
         {
-            if (source.State == "present")
-            {
-                using JsonDocument document = JsonDocument.Parse(source.PayloadJson!);
-                result = Merge(binding.Shape, result, document.RootElement)!;
-            }
+            using JsonDocument document = JsonDocument.Parse(template.DefaultsJson);
+            templates.Add(template.Path, document.RootElement.Clone());
         }
-        if (!ManagementConfigurationStructure.ValidateComplete(binding.Shape, JsonSerializer.SerializeToElement(result)).Valid)
+        using JsonDocument? common = pair.Common.State == "present" ? JsonDocument.Parse(pair.Common.PayloadJson!) : null;
+        using JsonDocument? application = pair.Application.State == "present" ? JsonDocument.Parse(pair.Application.PayloadJson!) : null;
+        var layers = new List<JsonElement> { defaults.RootElement };
+        if (common is not null)
         {
-            throw new ConfigurationReferenceException("management.configuration.structural_rejection");
+            layers.Add(common.RootElement);
         }
-        return result;
+        if (application is not null)
+        {
+            layers.Add(application.RootElement);
+        }
+        using var output = new CompositionOutput();
+        using (var writer = new Utf8JsonWriter(output))
+        {
+            int nodes = 0;
+            WriteMerged(writer, binding.Shape, layers, "", templates, 1, ref nodes);
+        }
+        byte[] bytes = output.ToArray();
+        using JsonDocument effective = JsonDocument.Parse(bytes);
+        if (!ManagementConfigurationStructure.ValidateComplete(binding.Shape, effective.RootElement).Valid)
+        {
+            throw Invalid();
+        }
+        return JsonNode.Parse(bytes)!;
     }
 
     internal static void Changes(ManagementConfigurationShape shape, JsonNode? before, JsonNode? after,
@@ -63,55 +79,116 @@ internal static class ManagementConfigurationComposition
         changes.Add(new(path, kind));
     }
 
-    private static JsonNode? Merge(ManagementConfigurationShape shape, JsonNode? lower, JsonElement upper)
+    private static void WriteMerged(Utf8JsonWriter writer, ManagementConfigurationShape shape, IReadOnlyList<JsonElement> layers,
+        string path, IReadOnlyDictionary<string, JsonElement> templates, int depth, ref int nodes)
     {
-        if (shape.Kind != "object" || upper.ValueKind != JsonValueKind.Object)
+        if (++nodes > 65_536 || depth > 16)
         {
-            return Project(shape, upper);
+            throw Invalid();
         }
-        JsonObject result = lower as JsonObject ?? new();
-        foreach (ManagementConfigurationMember member in shape.Members!)
+        JsonElement selected = layers[^1];
+        if (selected.ValueKind == JsonValueKind.Null)
         {
-            if (upper.TryGetProperty(member.Name, out JsonElement supplied))
-            {
-                result[member.Name] = Merge(member.Shape, result[member.Name]?.DeepClone(), supplied);
-            }
-        }
-        return result;
-    }
-
-    private static JsonNode? Project(ManagementConfigurationShape shape, JsonElement value)
-    {
-        if (value.ValueKind == JsonValueKind.Null)
-        {
-            return null;
+            writer.WriteNullValue();
+            return;
         }
         if (shape.Kind == "object")
         {
-            var result = new JsonObject();
-            foreach (ManagementConfigurationMember member in shape.Members!)
+            JsonElement fallback = templates.TryGetValue(path, out JsonElement declared) ? declared : throw Invalid();
+            int start = 0;
+            for (int index = 0; index < layers.Count; index++)
             {
-                if (value.TryGetProperty(member.Name, out JsonElement child))
+                if (layers[index].ValueKind == JsonValueKind.Null)
                 {
-                    result.Add(member.Name, Project(member.Shape, child));
+                    start = index + 1;
                 }
             }
-            return result;
+            writer.WriteStartObject();
+            foreach (ManagementConfigurationMember member in shape.Members!)
+            {
+                var children = new List<JsonElement>(layers.Count);
+                if (start > 0 && fallback.TryGetProperty(member.Name, out JsonElement restored))
+                {
+                    children.Add(restored);
+                }
+                for (int index = start; index < layers.Count; index++)
+                {
+                    if (layers[index].TryGetProperty(member.Name, out JsonElement child))
+                    {
+                        children.Add(child);
+                    }
+                }
+                if (children.Count == 0 && fallback.TryGetProperty(member.Name, out JsonElement initial))
+                {
+                    children.Add(initial);
+                }
+                if (children.Count == 0)
+                {
+                    continue;
+                }
+                writer.WritePropertyName(member.Name);
+                WriteMerged(writer, member.Shape, children, ManagementConfigurationDefaultTemplates.MemberPath(path, member.Name),
+                    templates, depth + 1, ref nodes);
+            }
+            writer.WriteEndObject();
+            return;
         }
         if (shape.Kind == "array")
         {
-            return new JsonArray(value.EnumerateArray().Select(child => Project(shape.Element!, child)).ToArray());
+            writer.WriteStartArray();
+            foreach (JsonElement child in selected.EnumerateArray())
+            {
+                WriteMerged(writer, shape.Element!, [child], path + "/element", templates, depth + 1, ref nodes);
+            }
+            writer.WriteEndArray();
+            return;
         }
         if (shape.Kind == "dictionary")
         {
-            var result = new JsonObject();
-            foreach (JsonProperty property in value.EnumerateObject())
+            writer.WriteStartObject();
+            foreach (JsonProperty property in selected.EnumerateObject())
             {
-                result.Add(property.Name, Project(shape.Element!, property.Value));
+                writer.WritePropertyName(property.Name);
+                WriteMerged(writer, shape.Element!, [property.Value], path + "/element", templates, depth + 1, ref nodes);
             }
-            return result;
+            writer.WriteEndObject();
+            return;
         }
-        return JsonNode.Parse(value.GetRawText());
+        selected.WriteTo(writer);
+    }
+
+    private static ConfigurationReferenceException Invalid() => new("management.configuration.structural_rejection");
+
+    // Enforce expansion before buffering: a small replacement collection must not multiply a large default template without a bound.
+    private sealed class CompositionOutput : MemoryStream
+    {
+        private const int MaximumBytes = 16 * 1024 * 1024;
+
+        public override void Write(ReadOnlySpan<byte> buffer)
+        {
+            Admit(buffer.Length);
+            base.Write(buffer);
+        }
+
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+            Admit(count);
+            base.Write(buffer, offset, count);
+        }
+
+        public override void WriteByte(byte value)
+        {
+            Admit(1);
+            base.WriteByte(value);
+        }
+
+        private void Admit(int bytes)
+        {
+            if (bytes > MaximumBytes - Position)
+            {
+                throw Invalid();
+            }
+        }
     }
 
     private static string Escape(string value) => value.Replace("~", "~0", StringComparison.Ordinal).Replace("/", "~1", StringComparison.Ordinal);

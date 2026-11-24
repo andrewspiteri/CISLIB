@@ -154,6 +154,134 @@ public sealed class ConfigurationCentralSessionTests
     }
 
     [TestMethod]
+    [DataRow("release")]
+    [DataRow("common")]
+    [DataRow("application")]
+    [DataRow("absence")]
+    [DataRow("publication")]
+    [DataRow("source")]
+    public async Task SameCohortReregistrationPreservesEqualGenerationDecisionAndSourceReferenceIntegrity(string conflict)
+    {
+        ConfigurationSnapshotTarget original = Target(cohort: "canary");
+        var store = new CentralStore
+        {
+            Current = Snapshot(10, common: "{\"Value\":4}", application: "{\"Value\":10}", target: original)
+        };
+        ConfigurationCatalog catalog = Catalog(store, target: original);
+        ConfigurationEntry entry = catalog.Entries.Single();
+        var retained = (RefreshSettings)entry.Instance;
+        int events = 0;
+        retained.ConfigurationChanged += (_, _) => events++;
+        await using var coordinator = new ConfigurationRefreshCoordinator(catalog, new ConfigurationValuePipeline());
+        await coordinator.LoadAsync(CancellationToken.None);
+        ConfigurationAcceptanceStatus accepted = Acceptance(coordinator);
+        long retainedBytes = entry.ByteBudget!.OwnedBytes;
+        ConfigurationSnapshotTarget replacement = Target(NewRegistration, "canary");
+        ConfigurationSnapshotReadResult changed = conflict switch
+        {
+            "release" => Snapshot(10, common: "{\"Value\":4}", application: "{\"Value\":10}", target: replacement, release: 11),
+            "common" => Snapshot(10, common: "{\"Value\":99}", application: "{\"Value\":10}", target: replacement),
+            "application" => Snapshot(10, common: "{\"Value\":4}", application: "{\"Value\":11}", target: replacement),
+            "absence" => Snapshot(10, application: "{\"Value\":10}", target: replacement),
+            "publication" or "source" => ChangedReference(conflict, replacement),
+            _ => throw new AssertFailedException("Select one declared same-generation conflict.")
+        };
+        store.Current = changed;
+
+        Assert.IsFalse(await coordinator.RebindSnapshotTargetAsync(replacement).WaitAsync(Deadline));
+
+        ConfigurationSnapshotRequest request = store.Requests.Last();
+        ConfigurationSnapshotTarget? actualTarget = request.ExpectedTarget;
+        Assert.AreEqual(replacement, actualTarget);
+        Assert.IsNull(request.SnapshotToken, "Even equal-generation integrity checking needs a fresh current-session response.");
+        Assert.IsNull(request.RetainedPair, "The old session's payload/envelope is not retained as a comparison cache.");
+        Assert.AreSame(accepted, Acceptance(coordinator));
+        Assert.AreEqual(original, accepted.LastAccepted!.Desired.Target);
+        Assert.AreEqual(10, retained.Value);
+        Assert.AreEqual(0L, entry.Revision);
+        Assert.AreEqual(0, events);
+        Assert.AreEqual(10L, entry.HighestGeneration);
+        Assert.AreEqual("Configuration.EqualGenerationConflict", coordinator.CaptureStatus().Entries.Single().FailureCode);
+        Assert.IsFalse(coordinator.CaptureCentralReadiness().IsReady);
+        Assert.IsTrue(entry.ByteBudget.OwnedBytes < retainedBytes,
+            "Only compact metadata survives; the actual serialized read releases the old pair's byte ownership before refusing the conflict.");
+
+        static ConfigurationSnapshotReadResult ChangedReference(string kind, ConfigurationSnapshotTarget target)
+        {
+            ConfigurationSnapshotReadResult complete = Snapshot(10, common: "{\"Value\":4}", application: "{\"Value\":10}", target: target);
+            ConfigurationPublicationReference common = complete.Provenance!.CommonSource!;
+            var changed = new ConfigurationPublicationReference(kind == "source" ? Id(901) : common.SourceId,
+                kind == "publication" ? Id(902) : common.PublicationId, common.Sha256);
+            return ConfigurationSnapshotReadResult.Complete(complete.Common!, complete.Application!, "fresh-session-pair",
+                new(complete.Desired!, changed, complete.Provenance.ApplicationSource));
+        }
+    }
+
+    [TestMethod]
+    public async Task SameCohortReregistrationAcceptsTheSameLogicalPairWithFreshProvenanceWithoutAValueChange()
+    {
+        ConfigurationSnapshotTarget original = Target(cohort: "canary");
+        var store = new CentralStore
+        {
+            Current = Snapshot(10, common: "{\"Value\":4}", application: "{\"Value\":10}", target: original)
+        };
+        ConfigurationCatalog catalog = Catalog(store, target: original);
+        ConfigurationEntry entry = catalog.Entries.Single();
+        var retained = (RefreshSettings)entry.Instance;
+        int events = 0;
+        retained.ConfigurationChanged += (_, _) => events++;
+        await using var coordinator = new ConfigurationRefreshCoordinator(catalog, new ConfigurationValuePipeline());
+        await coordinator.LoadAsync(CancellationToken.None);
+        ConfigurationSnapshotTarget replacement = Target(NewRegistration, "canary");
+        ConfigurationSnapshotReadResult fresh = Snapshot(10, common: "{\"Value\":4}", application: "{\"Value\":10}", target: replacement);
+        store.Current = fresh;
+
+        Assert.IsTrue(await coordinator.RebindSnapshotTargetAsync(replacement).WaitAsync(Deadline));
+
+        ConfigurationSnapshotRequest first = store.Requests.Last();
+        Assert.IsNull(first.SnapshotToken);
+        Assert.IsNull(first.RetainedPair);
+        Assert.AreSame(retained, entry.Instance);
+        Assert.AreEqual(10, retained.Value);
+        Assert.AreEqual(0L, entry.Revision);
+        Assert.AreEqual(0, events);
+        Assert.AreEqual(ConfigurationAcceptanceOutcome.AppliedUnchanged, Acceptance(coordinator).Outcome);
+        Assert.AreEqual(replacement, Acceptance(coordinator).LastAccepted!.Desired.Target);
+        Assert.AreEqual(fresh.Desired, entry.ObservedDesired);
+        Assert.AreEqual(fresh.Provenance, entry.ObservedProvenance);
+        Assert.IsTrue(coordinator.CaptureCentralReadiness().IsReady);
+        Assert.IsTrue(await coordinator.ReconcileAsync(entry));
+        Assert.AreEqual(fresh.SnapshotToken, store.Requests.Last().SnapshotToken);
+        Assert.AreSame(fresh, store.Requests.Last().RetainedPair, "Only the newly validated session's complete pair becomes conditional state.");
+    }
+
+    [TestMethod]
+    public async Task SameCohortReregistrationKeepsAnIdentifiedHigherReleaseButDoesNotInventItsUnknownSourceReferences()
+    {
+        var store = new CentralStore { Current = Snapshot(5, application: "{\"Value\":5}") };
+        ConfigurationCatalog catalog = Catalog(store);
+        ConfigurationEntry entry = catalog.Entries.Single();
+        await using var coordinator = new ConfigurationRefreshCoordinator(catalog, new ConfigurationValuePipeline());
+        await coordinator.LoadAsync(CancellationToken.None);
+        store.Current = ConfigurationSnapshotReadResult.Failure("Configuration.SourceDigest", Desired(10, release: 10));
+        Assert.IsFalse(await coordinator.ReconcileAsync(entry));
+        Assert.IsNull(entry.ObservedProvenance, "A higher identified failure cannot retain the lower release's source fingerprint.");
+        ConfigurationSnapshotTarget replacement = Target(NewRegistration);
+        store.Current = Snapshot(10, application: "{\"Value\":11}", target: replacement, release: 11);
+        Assert.IsFalse(await coordinator.RebindSnapshotTargetAsync(replacement).WaitAsync(Deadline));
+        Assert.AreEqual("Configuration.EqualGenerationConflict", coordinator.CaptureStatus().Entries.Single().FailureCode);
+        Assert.AreEqual(5, ((RefreshSettings)entry.Instance).Value);
+        Assert.IsFalse(coordinator.CaptureCentralReadiness().IsReady);
+
+        store.Current = Snapshot(10, application: "{\"Value\":10}", target: replacement, release: 10);
+        Assert.IsTrue(await coordinator.ReconcileAsync(entry));
+        Assert.AreEqual(10, ((RefreshSettings)entry.Instance).Value);
+        Assert.AreEqual("10", Acceptance(coordinator).LastAccepted!.Desired.AssignmentGeneration);
+        Assert.AreEqual(replacement, Acceptance(coordinator).LastAccepted!.Desired.Target);
+        Assert.IsTrue(coordinator.CaptureCentralReadiness().IsReady);
+    }
+
+    [TestMethod]
     public async Task RebindCancelsAndJoinsIgnoredOldWorkBeforeItsFreshSameGenerationCohortCanAccept()
     {
         var store = new CentralStore { Current = Snapshot(5, application: "{\"Value\":5}") };

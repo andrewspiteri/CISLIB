@@ -45,7 +45,10 @@ public sealed partial class PostgreSqlManagementStore
             ManagementConfigurationOptions.Json) ?? throw new ManagementSchemaException("The immutable configuration schema is unreadable.");
         return new(reader.GetGuid(0).ToString("D"), reader.GetGuid(1).ToString("D"), reader.GetString(2), reader.GetString(3),
             schema.ConfigurationId, schema.SchemaVersion, reader.GetString(4), schema.Shape, schema.DefaultsJson, reader.GetBoolean(6),
-            reader.IsDBNull(7) ? null : reader.GetGuid(7).ToString("D"), reader.IsDBNull(8) ? null : reader.GetGuid(8).ToString("D"));
+            reader.IsDBNull(7) ? null : reader.GetGuid(7).ToString("D"), reader.IsDBNull(8) ? null : reader.GetGuid(8).ToString("D"))
+        {
+            ObjectDefaults = schema.ObjectDefaults
+        };
     }
 
     private async Task<ManagementConfigurationBindingResource?> LockConfigurationBindingAsync(DbConnection connection,

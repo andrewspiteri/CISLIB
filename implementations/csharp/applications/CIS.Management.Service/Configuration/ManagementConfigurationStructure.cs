@@ -117,14 +117,14 @@ internal static class ManagementConfigurationStructure
         {
             foreach (JsonProperty property in value.EnumerateObject())
             {
-                Check(shape.Element!, property.Value, true, issues);
+                Check(shape.Element!, property.Value, complete, issues);
             }
         }
         else if (shape.Kind == "array")
         {
             foreach (JsonElement child in value.EnumerateArray())
             {
-                Check(shape.Element!, child, true, issues);
+                Check(shape.Element!, child, complete, issues);
             }
         }
         else if (shape.Kind == "string" && shape.AllowedValues is not null && !shape.AllowedValues.Contains(value.GetString(), StringComparer.Ordinal))

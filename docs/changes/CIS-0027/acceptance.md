@@ -1,10 +1,14 @@
 # RM-08 acceptance observations
 
-Candidate: the current `codex/rm08-central-configuration` working tree on baseline
+Initial implementation candidate: `842f60e8` on `codex/rm08-central-configuration`, based on
 `abfbcafaa6ef2f3c3c18304244e4dafc1dd5c852`. These are focused implementation
 observations, not release or external deployment qualification. The imported
 specification remains byte-for-byte unchanged. See [verification](verification.md)
 for original failures, corrections and native receipt locations.
+
+The subsequent [three-finding review corrections](review-corrections.md) record
+the new current Windows/Linux1142-unit,151-contract and101-provider/host passes.
+The initial receipts below preserve their original candidate and evidence limits.
 
 Receipt abbreviations below are relative to
 `.artifacts/configuration-publication/CIS-0027/`:

@@ -188,7 +188,7 @@ internal sealed partial class ConfigurationRefreshCoordinator
 
     // Only the authenticated hosting owner can call this after a new admission.
     // Remote content never chooses this target, and fixed app/env/authority/host
-    // cannot silently move. Session equality state resets; map high-water does not.
+    // cannot silently move. Session cache resets; same-cohort map equality survives.
     internal Task<bool> RebindSnapshotTargetAsync(ConfigurationSnapshotTarget target)
     {
         ArgumentNullException.ThrowIfNull(target);
@@ -215,6 +215,7 @@ internal sealed partial class ConfigurationRefreshCoordinator
             {
                 throw new InvalidOperationException("Join the current authenticated target handoff before selecting another registration.");
             }
+            bool sameCohort = target.CohortId == centralTarget.CohortId;
             sessionEpoch = checked(sessionEpoch + 1);
             requiredEpoch = checked(requiredEpoch + 1);
             centralReady = false;
@@ -235,8 +236,11 @@ internal sealed partial class ConfigurationRefreshCoordinator
                 {
                     state.Entry.SessionEpoch = sessionEpoch;
                     state.Entry.SnapshotTarget = target;
-                    state.Entry.ObservedDesired = null;
-                    state.Entry.ObservedProvenance = null;
+                    if (!sameCohort)
+                    {
+                        state.Entry.ObservedDesired = null;
+                        state.Entry.ObservedProvenance = null;
+                    }
                 }
                 lock (state.Gate)
                 {
@@ -483,7 +487,8 @@ internal sealed partial class ConfigurationRefreshCoordinator
                 return "Configuration.StaleGeneration";
             }
             if (generation == entry.HighestGeneration && entry.ObservedDesired is { } previous
-                && (previous != desired || provenance is not null && entry.ObservedProvenance is { } known && known != provenance))
+                && (!SameMapDecision(previous, desired) || provenance is not null && entry.ObservedProvenance is { } known
+                    && !SameMapProvenance(known, provenance)))
             {
                 return "Configuration.EqualGenerationConflict";
             }
@@ -500,6 +505,22 @@ internal sealed partial class ConfigurationRefreshCoordinator
             return null;
         }
     }
+
+    // Registration identifies an incarnation, not another assignment map. Only the
+    // compact observed identity/reference facts survive a same-cohort handoff;
+    // the old conditional envelope and payload remain owned by the serialized read.
+    private static bool SameMapDecision(ConfigurationDesiredIdentity previous, ConfigurationDesiredIdentity current)
+        => previous.ConfigurationId == current.ConfigurationId && previous.SchemaVersion == current.SchemaVersion
+            && previous.AssignmentGeneration == current.AssignmentGeneration && previous.ReleaseId == current.ReleaseId
+            && previous.Target.AuthorityId == current.Target.AuthorityId
+            && previous.Target.ApplicationId == current.Target.ApplicationId
+            && previous.Target.Environment == current.Target.Environment
+            && previous.Target.HostApplicationName == current.Target.HostApplicationName
+            && previous.Target.CohortId == current.Target.CohortId;
+
+    private static bool SameMapProvenance(ConfigurationSnapshotProvenance previous, ConfigurationSnapshotProvenance current)
+        => SameMapDecision(previous.Desired, current.Desired)
+            && previous.CommonSource == current.CommonSource && previous.ApplicationSource == current.ApplicationSource;
 
     private static void RecordCentralFailure(EntryState state, string code, ConfigurationDesiredIdentity? identified, long epoch)
     {

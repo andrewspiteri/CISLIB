@@ -25,3 +25,6 @@ Derived under `cislib:CIS-0027:outcome:0b715aa498aa4ef7a0ab5458f32b51a3` by Code
 | WORK-011 | [Integrate CountryData opt-in operator workflow and composed consumer handoff](agent-tasks/WORK-011.md) | Complete | WORK-003, WORK-006, WORK-008, WORK-009, WORK-010 |
 | WORK-009 | [Report and project actual configuration adoption on existing owners](agent-tasks/WORK-009.md) | Complete | WORK-002, WORK-003, WORK-004, WORK-007 |
 | WORK-012 | [Support same-epoch authoritative recovery after confirmed connectivity](agent-tasks/WORK-012.md) | Complete | WORK-004, WORK-007 |
+| WORK-013 | [Retain unobserved authority gaps before control renewal](agent-tasks/WORK-013.md) | Complete | WORK-006, WORK-012 |
+| WORK-014 | [Preserve declared nested defaults in structural release composition](agent-tasks/WORK-014.md) | Complete | WORK-002, WORK-003, WORK-004 |
+| WORK-015 | [Retain same-cohort generation equality across registration recovery](agent-tasks/WORK-015.md) | Complete | WORK-004, WORK-007 |

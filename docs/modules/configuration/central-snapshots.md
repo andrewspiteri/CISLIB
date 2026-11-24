@@ -140,10 +140,18 @@ After a fresh authenticated admission, the hosting owner can rebind a new
 registration/cohort without mutating captured options. Rebind preserves fixed
 authority/application/environment/host, fences old candidates under each value
 gate, cancels and joins old provider work, and discards the previous session's
-conditional cache/equality facts. The assignment-map generation high-water
-survives that handoff. A different cohort may legitimately resolve another
-release at the same generation; a lower generation still refuses. Snapshots
-never initiate this rebind or renew Management authority.
+conditional pair under the existing serialized read owner before its next
+fetch. The assignment-map generation high-water survives that handoff. For the
+same cohort, bounded observed release and source-reference comparison facts also
+survive: a different registration ID cannot make the same map generation name
+another release or change its pinned sources. Those comparisons exclude only
+the old registration ID, retain no additional payload/cache, and do not rewrite
+accepted provenance before a fresh current-session observation is accepted.
+If only an identified failed desired release was known, its source references
+can still be established by later valid complete content for that same release.
+A different cohort may legitimately resolve another release at the same
+generation; a lower generation still refuses. Snapshots never initiate this
+rebind or renew Management authority.
 
 ## Bounded ownership
 

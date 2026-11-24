@@ -12,8 +12,9 @@ validation, source history, immutable publication/content and publication-result
 recovery. It advertises the three catalog APIs before a manifest is applied and
 the six source APIs after successful provisioning. The
 [distribution layer](configuration-distribution.md) adds coherent release,
-assignment, preview and authoritative snapshot handlers. Adoption reporting is
-still a following story; its portable DTOs alone are not an installed capability.
+assignment, preview and authoritative snapshot handlers. The separately authorized
+[adoption projection](configuration-adoption.md) reports current target relationships
+and independently fresh registration observations.
 
 ## Explicit deployment input
 
@@ -28,21 +29,25 @@ The complete file is bounded to 16 MiB. Definitions, application bindings and
 common scopes each have a 4,096-entry deployment bound; native cohort mappings
 have a 16,384-entry bound. One application/environment has at most 256 bindings.
 
+The following flat declaration illustrates the manifest layout. Use the
+[CountryData recipe](countrydata-configuration.md) for that consumer's actual
+four-member schema and defaults.
+
 ```json
 {
   "manifestVersion": 1,
   "definitions": [{
-    "configurationId": "country.settings", "schemaVersion": "1",
+    "configurationId": "example.flags", "schemaVersion": "1",
     "shape": {"kind":"object","nullable":false,"members":[
       {"name":"Enabled","required":true,"shape":{"kind":"boolean","nullable":false}}
     ]},
     "defaultsJson": "{\"Enabled\":true}"
   }],
   "bindings": [{
-    "application":"CountryData", "environment":"Production",
-    "hostApplicationName":"CountryData", "configurationId":"country.settings", "schemaVersion":"1"
+    "application":"ExampleApp", "environment":"Production",
+    "hostApplicationName":"ExampleHost", "configurationId":"example.flags", "schemaVersion":"1"
   }],
-  "commonSources": [{"configurationId":"country.settings","schemaVersion":"1","environment":"Production"}],
+  "commonSources": [{"configurationId":"example.flags","schemaVersion":"1","environment":"Production"}],
   "cohorts": []
 }
 ```
@@ -55,6 +60,65 @@ constructor, CLR reflection selection, validator expression or JSON Schema engin
 It validates each supplied source before later composition, allows unknown
 configuration members under the existing mapper policy, and bounds all traversed
 values. Final typed and cross-property acceptance remains with Configuration.
+
+### Declared defaults for nested objects
+
+Flat definitions keep their existing constructor and serialized declaration.
+When a shape contains nested objects, its trusted definition also supplies
+`objectDefaults`: one complete declared-default object for each nested object
+shape, including nullable children and array/dictionary element objects. These
+templates are local deployment data, retained in the existing immutable
+definition and logical quota. They do not become public shape metadata or an
+HTTP upload. The service never loads a consumer type or runs its constructor.
+
+For a nullable `Child` and an array `Items`, both with integer members `Left`
+and `Right`, the additional definition property is:
+
+```json
+"objectDefaults": [
+  {"path":"/members/Child","defaultsJson":"{\"Left\":1,\"Right\":2}"},
+  {"path":"/members/Items/element","defaultsJson":"{\"Left\":1,\"Right\":2}"}
+]
+```
+
+Paths follow the declared shape: `/members/{name}` enters an object member,
+and `/element` enters an array or dictionary element. Escape `~` as `~0` and `/`
+as `~1` inside member names. There is no root template: `defaultsJson` already
+captures the root. Every nested object path must appear exactly once; unknown,
+duplicate or missing paths fail before host construction with a manifest error.
+Templates contain every declared member, including optional members, and valid
+complete values recursively. Each is strict object JSON within the existing
+256-KiB source bound. There are at most 4,096 templates per definition and each
+structural path is at most 16 KiB of UTF-8, covering the existing depth/member
+profile including Unicode names; the complete manifest remains
+bounded to 16 MiB.
+
+Root-captured values and declared child defaults are different facts. A root may
+initialize `Child` to null, or customize it to `Left=30, Right=40`, while that
+child type declares `Left=1, Right=2`. Given common `{"Child":null}` followed by
+application `{"Child":{"Right":9}}`, composition restores the declared template
+and yields `Left=1, Right=9`. With no lower null, an ordinary partial overlay
+preserves the current lower `Left=30`. Replacement arrays and dictionaries
+discard prior elements and complete each partial object from its declared type's
+defaults, matching local Configuration. Supplied invalid known values still
+fail publication even when a higher source could mask them. Source bytes and
+their SHA-256 remain unchanged.
+
+Template expansion is admitted during streaming composition, before cloning or
+materializing an effective object: at most 65,536 value nodes, depth sixteen and
+16 MiB of encoded effective JSON. Exceeding that finite bound rejects the
+original release/map intent without an effect. This is a request-local structural
+bound, not a new process-wide memory framework or a promise of typed acceptance.
+
+Templates are detached and sorted by structural path for the immutable
+declaration fingerprint; their values cannot be changed under an existing
+definition/schema identity. The exact loaded deployment digest also covers the
+manifest containing them. A prior nested manifest without templates now fails
+clearly instead of guessing constructor defaults. Supply explicit templates and,
+if that identity was already provisioned, declare a new schema version using the
+ordinary catalog workflow. Existing flat declarations omit the new property and
+retain their original serialized bytes and fingerprint. No new SQL migration or
+automatic metadata repair is performed.
 
 `LoadedManifestDigest` covers the exact manifest UTF-8 plus the explicitly selected
 quota, retention and sorted unique pin policy. Its domain-separated SHA-256 frame

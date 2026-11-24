@@ -271,3 +271,28 @@ limited diagnostic inference are recorded in verification; no definitive cause,
 clean first-run suite or separate physical-process identity is claimed.
 The current acceptance matrix makes those limits explicit. Guide/catalog/skill
 review found no missing selected links or duplicate catalog identifiers.
+
+## Follow-up review corrections after842f60e8
+
+The supplied review identified unobserved expired authority, missing declared
+child defaults in service composition, and lost same-cohort equal-generation
+integrity across re-registration. All three were independently confirmed and
+corrected in bounded tasks013–015. A second authority review found that a failed
+prerequisite could consume an untrusted clock sample before it was retained;
+priority for real clock/expiry evidence and two observed-prerequisite rows resolve
+that masking path. Follow-up review found no remaining issue with exception,
+publication, session or stopping fences.
+
+Same-cohort review confirms compact identity/reference retention without old
+conditional envelopes or payload caches, strict current-session commit fences,
+and positive changed-cohort/unknown-reference cases. Service review confirms
+explicit immutable trusted templates, flat declaration byte compatibility,
+streaming null/default/collection parity, bounded expansion and no public shape
+value disclosure. Root review also preserved the existing Unicode shape profile
+with a16KiB path cap and a declaration regression beyond1024UTF8 bytes.
+
+Current Windows/Linux1142-unit,151-Linux-contract and101-native-provider/host
+selections pass; native includes all16 new defaults cases. Initial strict
+compiler/analyzer fixture errors, their corrections and actual receipts are in
+[the corrective record](review-corrections.md). No assertion or compiler policy
+was weakened. Source review remains distinct from those actual executions.

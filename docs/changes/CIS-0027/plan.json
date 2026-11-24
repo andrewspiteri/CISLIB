@@ -615,6 +615,168 @@
         }
       ],
       "contractErrors": []
+    },
+    {
+      "id": "WORK-013",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-013.md",
+      "title": "Retain unobserved authority gaps before control renewal",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-006",
+        "WORK-012"
+      ],
+      "acceptanceCriteria": "BeginAttempt retains expired or untrusted prior authority as an actual gap before Reconciling can erase it. Existing Configuration epoch owner must settle fresh authoritative work before gate reopening, even with no intermediate TryAdmit/status/health observation. Healthy control and stop/session fences remain unchanged.",
+      "validation": "Focused no-intermediate-observation expiry/clock-gap regression holds actual Configuration read, then proves gate closed until fresh result settles. Existing admission/control/bootstrap/reconciler tests, focused native composed handoff where applicable, docs and independent review.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:43bfab2a815e442fa9d5cd2f7c9c9b04",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "bootstrap",
+        "adoption",
+        "configuration",
+        "records"
+      ],
+      "authorizationScopeBasis": "sha256:c038eae24cddf3219b508eb31d6fcfdb50ac7aee422a612b9a2b05f1011cb2d0",
+      "workPaths": [],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "BeginAttempt retains expired or untrusted prior authority as an actual gap before Reconciling can erase it. Existing Configuration epoch owner must settle fresh authoritative work before gate reopening, even with no intermediate TryAdmit/status/health observation. Healthy control and stop/session fences remain unchanged."
+          ],
+          "description": "Focused no-intermediate-observation expiry/clock-gap regression holds actual Configuration read, then proves gate closed until fresh result settles. Existing admission/control/bootstrap/reconciler tests, focused native composed handoff where applicable, docs and independent review.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Focused no-intermediate-observation expiry/clock-gap regression holds actual Configuration read, then proves gate closed until fresh result settles. Existing admission/control/bootstrap/reconciler tests, focused native composed handoff where applicable, docs and independent review."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-014",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-014.md",
+      "title": "Preserve declared nested defaults in structural release composition",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-002",
+        "WORK-003",
+        "WORK-004"
+      ],
+      "acceptanceCriteria": "Data-only trusted structural declarations/composition preserve existing Configuration declared-child defaults when an upper partial object follows lower null and within replacement arrays/dictionaries. Raw sources retain validation before overlay; effective complete validation and existing finite bounds remain. No consumer CLR execution on service.",
+      "validation": "Native publication and release creation for nullable child and partial collection objects plus actual Configuration acceptance produce existing mapper values. Missing/invalid default declarations remain explicit refusals; portable manifests/wire/docs remain coherent, focused negative/default/limit tests and independent review.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:443f90233a7445a7a4ab8d61ea4e4281",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "contracts",
+        "backend",
+        "configuration",
+        "csharp-client",
+        "typescript",
+        "consumer",
+        "records"
+      ],
+      "authorizationScopeBasis": "sha256:a61c6e69d1e0b593dcd687414078c914d891a0c8703b6b74b3ecac4907f78856",
+      "workPaths": [],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "Data-only trusted structural declarations/composition preserve existing Configuration declared-child defaults when an upper partial object follows lower null and within replacement arrays/dictionaries. Raw sources retain validation before overlay; effective complete validation and existing finite bounds remain. No consumer CLR execution on service."
+          ],
+          "description": "Native publication and release creation for nullable child and partial collection objects plus actual Configuration acceptance produce existing mapper values. Missing/invalid default declarations remain explicit refusals; portable manifests/wire/docs remain coherent, focused negative/default/limit tests and independent review.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Native publication and release creation for nullable child and partial collection objects plus actual Configuration acceptance produce existing mapper values. Missing/invalid default declarations remain explicit refusals; portable manifests/wire/docs remain coherent, focused negative/default/limit tests and independent review."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-015",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-015.md",
+      "title": "Retain same-cohort generation equality across registration recovery",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-004",
+        "WORK-007"
+      ],
+      "acceptanceCriteria": "Same-cohort authenticated target rebind retains compact release/source-reference comparison facts at highest observed generation, excluding replaced registration identity. Old conditional token/snapshot envelope discarded and old work joined. Reject changed release/source refs at equal generation, allow genuine cohort change same generation and unchanged content new session.",
+      "validation": "Focused same-cohort changed release/ref equality regressions, positive identical new-session and existing different-cohort cases, ordinary central session/generation/read budget/cancellation tests, docs and independent review.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:9d9c6732341d4607ad2f8ea26c723ac6",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "configuration",
+        "csharp-client",
+        "records"
+      ],
+      "authorizationScopeBasis": "sha256:09300ca33088072e49bc8174b25649ed8d1b5de9f9e4bf5f79406986833995ad",
+      "workPaths": [],
+      "assignee": "Codex",
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "Same-cohort authenticated target rebind retains compact release/source-reference comparison facts at highest observed generation, excluding replaced registration identity. Old conditional token/snapshot envelope discarded and old work joined. Reject changed release/source refs at equal generation, allow genuine cohort change same generation and unchanged content new session."
+          ],
+          "description": "Focused same-cohort changed release/ref equality regressions, positive identical new-session and existing different-cohort cases, ordinary central session/generation/read budget/cancellation tests, docs and independent review.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Focused same-cohort changed release/ref equality regressions, positive identical new-session and existing different-cohort cases, ordinary central session/generation/read budget/cancellation tests, docs and independent review."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
     }
   ],
   "source": null

@@ -416,4 +416,34 @@ silent success is in native-costs.jsonl (there is no fabricated formatter log).
 `git diff --check` passes. Original specification and unrelated launchSettings
 SHA256 values still exactly match their recorded inputs. No push, merge, release
 or remote deployment was performed.
+
+## Review of pushed842f60e8 and local corrections
+
+The initial implementation was subsequently committed/pushed as842f60e8 at the
+user's explicit request. That push left main unchanged. The user then supplied
+a three-finding review. The [corrective record](review-corrections.md) preserves
+the review input, new bounded owners013–015 and actual current evidence.
+Completed owners001–012 and every original cost/receipt remain untouched.
+
+The corrected candidate passed1142 affected units separately on Windows and
+Ubuntu,151 selected Linux contract/architecture checks, and101 actual native
+PostgreSQL/HTTPS/host cases. This includes six authority-gap rows, eight new
+same-cohort integrity cases, sixteen service/default cases, the prior79 provider
+cases, five native bootstrap cases and CountryData. There are zero failed/skipped
+tests in those final selections. The two initial compilation-only issues were
+strict analyzer/nullable test declarations, both corrected without relaxing
+policy or assertions; their original failure logs and actual costs are retained.
+Independent review findings are resolved. Final scoped format verification exits0.
+
+This is new current source/native evidence; the earlier candidate observations
+above remain historical with their original limits. TypeScript source and the
+portable HTTP/client contracts did not change in this correction. New
+manifest-only nested object defaults preserve existing mapper semantics without
+executing consumer code or disclosing defaults in public shape metadata.
+The service guide documents missing-template refusal and immutable schema-version
+requirements for nested declarations. No new dependencies/tools/frameworks or
+deployment proof are implied. No further push/merge/release was performed.
 | WORK-011 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2446; failed=332; possibleTokenSavings=591; ledgerDigest=sha256:76e855c99e3ed3e8d3b3c70ee2cce6a9517275574bf89bb429bbae0a11132767 |
+| WORK-013 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2454; failed=332; possibleTokenSavings=591; ledgerDigest=sha256:6f6144687e5a528c6f219abf467cd6487672382e98486ab1ce5b8f9bbe2b0a62 |
+| WORK-014 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2455; failed=332; possibleTokenSavings=591; ledgerDigest=sha256:330efd5e7c3e40ce3359ce3f824df4c05856fa2bb859dd48fb787634cc0e0930 |
+| WORK-015 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2456; failed=332; possibleTokenSavings=591; ledgerDigest=sha256:8ddd62b9226acbb7a77a42c8b2c3e374a956d202d0929eca5a724a957063cd4d |

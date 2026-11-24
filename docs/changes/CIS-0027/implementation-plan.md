@@ -221,3 +221,10 @@ join now has five hours, transferred from task002's unused allocation; task002
 retains 6.25 hours. No shared total or existing restoration reserve changed.
 The narrowly scoped confirmed-recovery support task012 is separately recorded
 in the canonical plan and allocation; it owns no new worker or timer.
+
+After the842f60e8 branch review, three narrowly scoped corrective tasks013–015
+use seven hours/six attempts transferred from unused003/004/008 capacity. The
+[review-correction record](review-corrections.md) describes the three fixes,
+their tests/documentation and applied allocation. Shared totals, all prior
+consumption and every earlier restoration reserve remain unchanged. Completed
+implementation tasks001–012 stay complete; none was reset or reopened.

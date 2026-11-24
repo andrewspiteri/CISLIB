@@ -10,7 +10,18 @@ namespace CIS.Management.Service.Configuration;
 
 /// <summary>One immutable global schema/defaults contract, independent of application host bindings.</summary>
 public sealed record ManagementConfigurationSchema(string ConfigurationId, string SchemaVersion,
-    ManagementConfigurationShape Shape, string DefaultsJson, string? Description = null);
+    ManagementConfigurationShape Shape, string DefaultsJson, string? Description = null)
+{
+    /// <summary>Gets explicit declared defaults for every nested object shape; never exposed by definition discovery.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<ManagementConfigurationObjectDefault>? ObjectDefaults
+    {
+        get; init;
+    }
+}
+
+/// <summary>Trusted data for one nested object's declared defaults, addressed by its structural shape path.</summary>
+public sealed record ManagementConfigurationObjectDefault(string Path, string DefaultsJson);
 
 /// <summary>A trusted application/environment binding; this never selects a consumer's local update mode.</summary>
 public sealed record ManagementConfigurationBinding(string Application, string Environment, string HostApplicationName,
@@ -89,8 +100,13 @@ public sealed class ManagementConfigurationOptions
                 ManagementConfigurationWire.EncodeResponse(descriptor))!;
             ManagementConfigurationValidationResult validation = ManagementConfigurationStructure.Validate(frozen.Shape,
                 definition.DefaultsJson, complete: true);
+            IReadOnlyList<ManagementConfigurationObjectDefault>? objectDefaults = ManagementConfigurationDefaultTemplates.Capture(
+                frozen.Shape, definition.ObjectDefaults);
             if (!validation.Valid || !schemas.TryAdd((definition.ConfigurationId, definition.SchemaVersion),
-                new(definition.ConfigurationId, definition.SchemaVersion, frozen.Shape, definition.DefaultsJson, definition.Description)))
+                new(definition.ConfigurationId, definition.SchemaVersion, frozen.Shape, definition.DefaultsJson, definition.Description)
+                {
+                    ObjectDefaults = objectDefaults
+                }))
             {
                 throw new ArgumentException("Schema identities and complete defaults must be valid and unique.", nameof(manifestJson));
             }
