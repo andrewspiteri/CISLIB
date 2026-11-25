@@ -17,6 +17,66 @@ new test result or deployment qualification. No native tests/builds, service
 access, database access or production changes were performed for this assessment.
 The visible design and its explicit user approval remain pending.
 
+## R06 full details and prior-discussion reconciliation
+
+The user requested a full-details link with run history and configuration tabs
+for event/job/task details, referring to the earlier discussion. The connected
+chat **RM-10 Scheduler Brainstorm** was read directly (chat ID
+`6b05b5a1-f610-83eb-af32-00eb434e21ef`), rather than inferring requirements from
+a listing summary. Relevant user/answer turns are
+`7b687bf0-7e84-4c11-bd4e-5d7ef69d5ed2` (Scheduled Task configuration),
+`54202de7-9d09-40d5-8a0b-c4de0663c804` (history/identity), and
+`27afb434-6c56-43c5-8340-5bce3edc3645` (worker versions/deployment).
+This is prior-discussion evidence referenced by the current user, not an import
+of an unseen RM-10 specification or execution authority from an assistant reply.
+
+Preserve the actual agreed model:
+
+- **Scheduled Task** is the main association record, selecting trigger/job and
+  owning resource/input mapping. Its two contextual configuration tabs are
+  **Trigger** and **Job**; history is a separate view/action.
+- A trigger event produces logical task runs; retries/recovery add attempts to
+  the same run and original business-operation identity. Job history and task
+  history query the same records with different scopes; an event shows produced
+  runs or the recorded reason none were produced.
+- History retains captured task/trigger/configuration/contract references and
+  the actual worker release/build per attempt. Executing work and recovering
+  an earlier committed result are separate facts. Current catalog/version data
+  cannot overwrite historical attribution.
+- Workload execution identity is separate from task creator, trigger producer
+  and any human requester. Unknown outcome/reporting loss never becomes a
+  claimed rollback, failure or fresh execution permission.
+
+R06 proposes **View full details** from the job side panel to a dedicated job
+page with Overview, Run history and Configuration. Task links open Scheduled
+Task details with its main settings and exactly Trigger/Job contextual tabs,
+plus a separate View run history action. Event links open immutable Event
+details/produced runs, with Configuration showing captured trigger settings,
+not editing the historical event. The current iteration remains read-only.
+
+| Surface | Delivered boundary | Named prerequisite for production |
+| --- | --- | --- |
+| Job Overview | Definition, selected resource observation and per-registration inventory context. | No new read needed for the current retained snapshot. |
+| Run history | Current snapshots retain no run chronology; Operations supports exact original-result lookup only. | P6: RM-10 authoritative bounded run/attempt capture, protected retention and authorized paged query/client contracts. No history is fabricated from snapshots, logs or operation keys. |
+| Job Configuration | Optional reported local effectiveConfiguration revision/enabled only; enabled composes native host/category/job gates. | P8: explicit policy/descriptor projection and trusted configuration-source/binding mapping before richer settings or any write. Never infer a CountrySettings/job association by name. |
+| Task/Event details and relationships | No typed Management task/event catalog or detail contract exists. | P7: RM-10 stable typed identities, exact application/environment/association scope, authorized detail/relationship reads and captured configuration references. |
+
+The production portal must not enable unsupported history/task/event flows or
+present missing support as an empty successful result. Synthetic populated
+previews show the requested future contract; an explicit unavailable history
+state demonstrates truthfulness. These requirements add no scheduler, event
+bus, general task engine, Audit archive or telemetry store to RM-09. Existing
+Operations/Messaging/Coordination owners remain intact. Any RM-10 implementation
+requires its own imported specification and bounded execution plan.
+
+Source facts: native Jobs snapshots retain at most the latest completed
+observation without resource history (coordination/runtime.md); the Management
+projection transports only local revision/enabled for job configuration
+(JobsManagementInventorySource.cs). No cadence/configuration binding is inferred
+from local source settings. Current typed inventory has modules/categories/jobs,
+not events/tasks/runs. The prior discussion supplies desired behavior, not proof
+that those contracts are delivered.
+
 ## R05 item details addition
 
 R04 is natively approved and preserved in Git commit `ed65c3f1`. The user asked

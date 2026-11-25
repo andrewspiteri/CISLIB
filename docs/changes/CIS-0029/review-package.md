@@ -1,74 +1,92 @@
 ---
-title: "RM09 R05 item details panel review"
+title: "RM09 R06 full details and history review"
 type: design-review-package
-status: Draft
+status: Approved
 change_id: CIS-0029
 ---
 
-# RM09 R05: item details in a side panel
+# RM09 R06: from quick details to full context
 
-Andrew Spiteri approved R04 and requested that selecting an item open details,
-suggesting a side panel. R04's exact native approval is preserved in local Git
-commit `ed65c3f10e1f10a67cb61d8369fbb8af3711c6b4`, with renderer
-`249016b8fde00257a25347205b69f5764052d8be501120f1dea565e12dbcf29d` and manifest
-`1bbb3907ba5435564cd3a643e6a1fb68407722014644a5b8df5a36dbd7538358`.
+The user requested a link from the side panel to full event/job/task details,
+including run history and configuration. R06 retains the approved application
+and four-tab base, keeps quick side panels, and adds **View full details** to the
+job panel. R05 was revised before approval; its exact review is preserved in
+local Git commit `f947e78cbae9614fa6c729f682863a49999262c5`. R04's earlier native
+approval remains preserved in `ed65c3f1`; it does not approve these new views.
 
-**Only the new row-details interaction awaits screenshot approval.** R05 applies
-one shared right-side panel pattern to Instances, Configuration, Capabilities
-and Scheduled jobs. Applications retains its approved page navigation. The
-four tabs and default Instances remain; mobile and future write workflows stay
-deferred.
+## Connected journey
 
-## Interaction to review
+1. Select a reported job, inspect its quick panel, then open View full details.
+2. The dedicated Job page has Overview, Run history and Configuration. History
+   opens the shared history view scoped to that logical job, independently of
+   the currently selected registration report.
+3. History links to the originating Scheduled Task and triggering Event. Retries
+   and recovery remain attempts under one logical run and original operation.
+4. Scheduled Task remains the main association/settings record, with exactly
+   **Trigger** and **Job** contextual configuration tabs. **View run history**
+   is separate and includes that task's history even if its selected job changes.
+5. Event details retain immutable event/produced-run context. Their Configuration
+   view shows captured trigger settings, distinct from current editable settings.
 
-Select an item name or row to open its read-only details. The application,
-active tab, selected row and list remain visible behind a light backdrop. The
-panel uses the governed dialog as a right-aligned variant, with Close details,
-Escape/backdrop dismissal, a scrollable body and focus returned to the original
-item. Background controls are inert while it is open. Closing retains the
-list's filters, report/page selection and scroll.
+This follows the earlier **RM-10 Scheduler Brainstorm** discussion read directly
+through the connected chat. Its user decisions, turn references and current API
+mapping are documented in [reconciliation](reconciliation.md). Prior assistant
+text is requirement evidence referenced by the current user, not proof that the
+runtime contracts are delivered.
 
-The panel uses the exact already returned authorized row or inventory snapshot;
-no panel-specific API is added. A refresh cannot silently retarget by display
-name or row position. Changed target/tab/report/sequence clears obsolete
-selection; access loss clears panel and protected background data. A permitted
-stale snapshot remains explicitly dated.
+## Delivered facts and implementation prerequisites
 
-| Detail type | Visible information and limits |
-| --- | --- |
-| Instance | Reported label, registration identity/version/presence and available process/registration/last-seen facts. Labels/process-start text are reported; absent optional last seen is Not reported. |
-| Configuration | Definition/schema/source/binding/application/environment metadata only. No defaults, payloads, content fetch or editing. Source identity is preserved. |
-| Capability | Full Management API descriptor/required capabilities and advisory caller hint. No invocation; absent hint is Not evaluated. |
-| Scheduled job | Scoped definition and the selected resource/mode observation, optional outcome/occurrence times and registration/sequence/observed/received report context. No inferred cadence, schedule, ownership or execution authority. |
+Current job Overview can use the existing reported definition/resource snapshot.
+Current Job Configuration supplies only optional reported local revision and
+effective enablement. The preview keeps those distinct from central desired
+configuration, task revision, trigger revision and job execution-contract version.
+No CountrySettings/job binding or unreported job defaults is inferred.
 
-Job selection includes resourceId **and** mode within the exact registration,
-inventory sequence and executionScope/jobId. Existing list-query prerequisites
-remain unchanged. See [wireframes](wireframes.md), [brief](design-brief.md) and
-[reconciliation](reconciliation.md) for field and identity details.
+Run chronology and typed event/task records are not supplied by today's
+Management API. The populated history/task/event previews are **synthetic desired
+contract examples**. Production needs P6 bounded authoritative run/attempt
+capture/retention/authorized query, P7 typed task/event identity/detail/relationship
+reads, and P8 explicit richer job policy/configuration-source mappings. Current
+inventory, Operations lookup, logs or current worker registration cannot stand
+in for these records. Missing history support is shown as unavailable, not an
+empty successful run list.
+
+The history example keeps business execution by worker A separate from original
+result recovery by worker B. Their captured versions/builds remain per attempt;
+a current application version cannot overwrite them. An unknown outcome is not
+presented as rollback or confirmed failure. Captured task/trigger/configuration/
+contract references remain distinct, and history views share the same records
+with authorized job/task/event scopes.
+
+This review adds no scheduler, event bus, general task engine, telemetry store,
+Audit archive, editing, execution/cancellation control, package or deployment.
+RM-10 runtime work needs its own imported specification and bounded plan. Existing
+application search, scoped definition query and real human/native authorization
+prerequisites are unchanged. Mobile remains excluded.
 
 ## Review boundary
 
-The primary new preview is Scheduled jobs details. Three additional panel states
-show the same pattern for Instances, Configuration and Capabilities. All data
-are synthetic; these images prove no real click handlers, focus behavior,
-service access or browser accessibility. Normal current-scope/plan/owner
-reconciliation still precedes production work.
-
-The [design record](design.md) preserves exact current hashes and earlier human
-approval history. Native same-change reuse is unsupported, so no such mapping
-or automatic approval carry is claimed. Shared drawing code and unchanged
-application images are preserved and checked accurately.
+The new review is one complete full-details journey, not approval of live run
+history or a completed RM-10 module. The [wireframes](wireframes.md) and
+[design brief](design-brief.md) define its routes/actions/states; the
+[design record](design.md) binds exact current renderer/PNG hashes and preserves
+prior decisions. All content is synthetic. Normal current-scope/direction/plan/
+owner reconciliation still precedes production work.
 
 ## Rendered review index
 
-Current R05 gate: **PausedForReview**. Only the new item-details interaction
-awaits approval. Exact prior R04/R03 approvals remain preserved.
-Renderer SHA256: `c7bdad057ddab20d8a547386f6ad9b3b26ceeb1a4057ac0e899707487b7c41e5`.
-Native render-result SHA256: `a88166093165e084abb4b788f8cfe52b1ae0405549c231639f08a313f483aed5`.
+Current R06 gate: **Approved**. Andrew Spiteri selected **Approve connected
+design** on 25 November 2026. Native approval at 17:04:52 UTC binds renderer
+`6375438db766` and manifest
+`sha256:ff55f6dafc4710fa865420567cb8e51acdc8968118dca12461abfb47971fed7a`.
+Earlier R04 approval remains preserved. This approves the connected UI design;
+the missing RM-10 contracts described above remain implementation prerequisites.
+Renderer SHA256: `6375438db766391a9c376cf43ed12ec33fe24273e76334092e63e850229f7309`.
+Native render-result SHA256: `ea900731efdbc892051f88c011228ceab24ac785637a79c30de7228b8067ff5d`.
 
-Review the Scheduled jobs details preview first; the Instance, Configuration
-and Capability details states show the same shared panel pattern. All three
-application images match the approved R04 references byte for byte.
+Start with the Job panel View full details link, then Job history, Scheduled
+Task Trigger/Job configuration and immutable Event context/configuration.
+All three application images match the approved R04 references byte for byte.
 
 | Screen | State | Desktop size | Preview |
 | --- | --- | --- | --- |
@@ -79,13 +97,22 @@ application images match the approved R04 references byte for byte.
 | rm09-capabilities | primary | 1600 × 1000 | [Open PNG](assets/rm09-capabilities--primary--desktop.png) |
 | rm09-configuration-list | details | 1600 × 1000 | [Open PNG](assets/rm09-configuration-list--details--desktop.png) |
 | rm09-configuration-list | primary | 1600 × 1000 | [Open PNG](assets/rm09-configuration-list--primary--desktop.png) |
+| rm09-event-full | configuration | 1600 × 1000 | [Open PNG](assets/rm09-event-full--configuration--desktop.png) |
+| rm09-event-full | primary | 1600 × 1000 | [Open PNG](assets/rm09-event-full--primary--desktop.png) |
 | rm09-instances | details | 1600 × 1000 | [Open PNG](assets/rm09-instances--details--desktop.png) |
 | rm09-instances | empty | 1600 × 1000 | [Open PNG](assets/rm09-instances--empty--desktop.png) |
 | rm09-instances | primary | 1600 × 1000 | [Open PNG](assets/rm09-instances--primary--desktop.png) |
 | rm09-instances | stale | 1600 × 1000 | [Open PNG](assets/rm09-instances--stale--desktop.png) |
+| rm09-job-full | configuration | 1600 × 1000 | [Open PNG](assets/rm09-job-full--configuration--desktop.png) |
+| rm09-job-full | primary | 1600 × 1000 | [Open PNG](assets/rm09-job-full--primary--desktop.png) |
+| rm09-run-history | primary | 1600 × 1000 | [Open PNG](assets/rm09-run-history--primary--desktop.png) |
+| rm09-run-history | unavailable | 1600 × 1000 | [Open PNG](assets/rm09-run-history--unavailable--desktop.png) |
 | rm09-scheduled-jobs | details | 1600 × 1000 | [Open PNG](assets/rm09-scheduled-jobs--details--desktop.png) |
 | rm09-scheduled-jobs | primary | 1600 × 1000 | [Open PNG](assets/rm09-scheduled-jobs--primary--desktop.png) |
+| rm09-task-full | job | 1600 × 1000 | [Open PNG](assets/rm09-task-full--job--desktop.png) |
+| rm09-task-full | primary | 1600 × 1000 | [Open PNG](assets/rm09-task-full--primary--desktop.png) |
 
-Thirteen synthetic desktop images are review evidence. Native static checks,
-source-aware review and a separate screenshot reader found no material issue.
-They do not establish real click/focus behavior, live reads or accessibility.
+Twenty-one synthetic images are design evidence. The eight new full-page states
+and updated Job-panel link were visually inspected. Native checks, source-aware
+review and an independent screenshot reader found no material issue. No live
+history, Task/Event backend, scheduler, browser or accessibility proof is claimed.

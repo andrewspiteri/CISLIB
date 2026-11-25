@@ -238,3 +238,74 @@ The exact current renderer/result hashes and all thirteen links are recorded in
 review-package.md. The checkpoint is PausedForReview/ReadyForReview, with only
 the new item-details interaction awaiting a human decision. R04's prior exact
 approval remains retained. No production work resumed.
+
+## R06 connected full-details review
+
+The user requested a full-details link with run history and configuration tabs
+for Event/Job/Task details, referring to earlier discussion. Root read the actual
+connected chat RM-10 Scheduler Brainstorm and reconciled the relevant user turns:
+Scheduled Task is the association record with exactly Trigger/Job contextual
+configuration tabs and separate history; events produce logical runs with
+attempts; per-attempt worker versions/builds and captured references persist.
+Selected provenance is retained locally in r06-prior-discussion-evidence.json;
+reconciliation.md distinguishes this evidence from delivered API/approval facts.
+R05 was preserved unapproved in Git f947e78c and revised normally; R04's exact
+approval remains in ed65c3f1 and native history. No R05/R06 approval was inferred.
+
+Current source supplies snapshots, local effective revision/enabled, and exact
+Operations result lookup. It does not supply chronology or typed Task/Event
+records. P6/P7/P8 are named prerequisites; populated new records are clearly
+synthetic future-contract examples, not live completion claims. A separate
+source-aware review found no material contract/scope conflict. Task history is
+independent of its currently selected job; captured Event settings and worker
+attempt versions are not replaced from current state.
+
+The first native validation saw only five screens because a blank split the
+inventory table. The expected-nine check caught it; the two table separators
+were removed, then native validation passed nine screens/fifty-four actions,
+wireframe digest
+`sha256:40d9e22cd90e68221daf2ea4be385ed683e022abdf797ef8f86cc632a2a0645c`.
+Earlier receipts/costs remain retained. No CIS source/tooling campaign was opened.
+
+Twenty-one desktop PNGs rendered successfully: thirteen base/panel states plus
+eight full-page states over nine screen IDs. Root inspected all eight new pages
+and the updated Job drawer, including absent history. Plain-language unavailable
+copy was improved. One rerender encountered a PNG write error; exclusive read
+opening then succeeded, and a bounded normal retry completed with final native
+validation passing. Cause was not established; failed/successful receipts and
+costs remain retained. All twenty-one outputs and eight expected new filenames
+were checked; application images still match the native R04 approval exactly.
+
+An independent context-limited model reader understood the panel link, one
+logical run/two attempts, original execution versus recovery, distinct worker
+versions/builds, Task Trigger/Job tabs/separate history and immutable Event
+configuration. No material clipping/confusion was found. These are static,
+visual/source/model checks, not human usability, browser interaction, runtime
+history, backend or accessibility evidence.
+
+Final renderer:
+`6375438db766391a9c376cf43ed12ec33fe24273e76334092e63e850229f7309`.
+Final native render-result hash:
+`ea900731efdbc892051f88c011228ceab24ac785637a79c30de7228b8067ff5d`.
+At that rendering checkpoint the gate was PausedForReview/ReadyForReview.
+Exact links/hashes and P6/P7/P8 boundaries are in review-package.md.
+
+Fresh admission was 5,588,472,080 bytes under the unchanged 6 GiB ceiling with
+fixed allowances/reserve and 32 MiB growth. Additive R06 conservative accounting
+covers all agents, prior-discussion intake, docs, rendering and reviews within
+the same proposed 48-hour envelope, 48 logical attempts and restoration reserve;
+review allocation was redistributed to 18 hours. Earlier costs are unchanged.
+No package installation, service access, scheduler/backend implementation,
+native consumer build/test, cleanup, push or merge occurred.
+
+## R06 human approval
+
+Andrew Spiteri selected **Approve connected design**. The normal native
+`design approve` operation recorded Approved/Approved at 17:04:52 UTC on
+25 November 2026. Receipt: `rm09-r06-user-approval.json`. The exact wireframe,
+renderer and manifest hashes appear in `design.md`; no screenshot was changed
+to record this decision. Approval covers the read-only desktop journey, with
+synthetic history/task/event examples still conditional on P6/P7/P8. It neither
+delivers nor authorizes an RM-10 runtime. Normal current-scope, outcome, task and
+finite-owner reconciliation precedes production implementation under the
+standing delegation; another work-allocation question is not required.

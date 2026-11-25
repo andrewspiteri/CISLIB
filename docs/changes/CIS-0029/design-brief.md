@@ -1,27 +1,32 @@
 ---
-title: "RM-09 application detail tabs design brief — R05"
+title: "RM-09 application detail tabs design brief — R06"
 type: design-brief
 status: Proposed
 change_id: CIS-0029
 frontend_type: backoffice
-design_revision: R05
+design_revision: R06
 design_approval: Pending
 baseline: "6c70cee807f12caddf40cd1b443e4a20045d35aa"
 ---
 
-# RM-09 application detail tabs design brief — R05
+# RM-09 application detail tabs design brief — R06
 
-Andrew Spiteri approved R04 and requested item details, suggesting a side panel.
-R05 adds one consistent read-only right-side panel to Instances, Configuration,
-Capabilities and Scheduled jobs rows. The application list retains its approved
-page transition; the four tabs, default Instances and five screen definitions
-remain. Mobile and broader write/content/recovery workflows remain deferred.
+R06 adds **View full details** to the Scheduled job panel and dedicated Job,
+Scheduled Task, immutable Event and shared Run history screens. The prior
+discussion and actual delivered gaps are reconciled in [reconciliation](reconciliation.md).
+Job has Overview / Run history / Configuration. Scheduled Task owns its main
+trigger/job/resource/input association and has exactly Trigger / Job contextual
+configuration tabs, with history a separate action. Event Configuration shows
+captured trigger settings rather than editing an event.
 
-R04's exact native approval is preserved in Git commit `ed65c3f1` and native
-history. Only the new row-details interaction awaits screenshot review. It uses
-already returned authorized data and introduces no details API, content/default
-fetch, API invocation, scheduler or execution control. Normal scope/plan/owner
-reconciliation still precedes production work.
+Retain the five existing screens, application navigation, four application tabs,
+default Instances and all R05 quick-inspection fields. R04 exact native approval
+is preserved at `ed65c3f1`; R05 requested revisions at `f947e78c`. R06 is
+pending exact rendered UI review across nine screen definitions and twenty-one
+desktop frames. New synthetic future-contract flows are not delivered backend
+capabilities and must be enabled in production only after their relevant
+contracts/authorization exist. No scheduler/backend, write, API execution or
+deployment implementation is granted. Mobile remains excluded.
 ## Journey and screen scope
 
 | Step | Screen | Purpose | Forward/back behavior |
@@ -32,13 +37,20 @@ reconciliation still precedes production work.
 | 4 | RM09-CAPABILITIES — /applications/11111111-1111-1111-1111-111111111111/capabilities | Inspect implemented Management API descriptors and current-caller hints. | Capabilities tab retains the application and return context; no execution control opens. |
 | 5 | RM09-SCHEDULED-JOBS — /applications/11111111-1111-1111-1111-111111111111/jobs | Inspect reported scheduled-support definitions and resource observations in one selected registration inventory snapshot. | Scheduled jobs tab preserves the application and Back context; no execution or scheduling action. |
 
+| 6 | RM09-JOB-FULL — /applications/11111111-1111-1111-1111-111111111111/jobs/customer-service/customer.dormancy | Full Job Overview and reported local Configuration, with shared Run history. | Job panel View full details preserves exact report/return context; related Task opens full Task details. |
+| 7 | RM09-RUN-HISTORY — /applications/11111111-1111-1111-1111-111111111111/runs | Future authorized bounded logical runs/attempts with typed job, task or event scope. | Job history retains Job header/nav; Task history retains Task context; Event produced-runs scope retains Event context; Back to details works when unavailable. |
+| 8 | RM09-TASK-FULL — /applications/11111111-1111-1111-1111-111111111111/tasks/task-demo-dormancy | Main Scheduled Task association/resource/static mapping and exactly Trigger/Job contextual tabs. | Related Job/Event/history links enter by exact taskId; separate history action includes prior job associations. |
+| 9 | RM09-EVENT-FULL — /applications/11111111-1111-1111-1111-111111111111/events/event-demo-104 | Immutable Event Overview, captured Configuration and produced Task runs. | Links reach exact Task/Job details and event-scoped shared history; restore originating detail/history context. |
+
 A simple desktop header supplies Management context. Applications remains the
-only top-level navigation destination; there is no multi-area rail. All detail
-screens share Back to applications, the selected application's display name,
+only top-level navigation destination; there is no multi-area rail. The four
+existing application-detail lists share Back to applications, the selected application's display name,
 canonical identity and environment, followed by exactly four linked tabs:
 **Instances**, **Configuration**, **Capabilities**, **Scheduled jobs**. The active tab is clear and
 keyboard reachable. Each tab loads its own read surface; Refresh acts on the
 current tab. Keep per-tab bounded page state within the same application.
+New entity details use their explicitly named navigation below the application
+context; add no inactive top-level placeholders.
 
 The product may use **Deployments** as a section heading, with **Applications**
 as the list title. Source copy makes clear that these are applications reported
@@ -162,9 +174,10 @@ row/report, application, tab, registration or sequence changes. A permitted stal
 snapshot retains its original dated basis; session/read-access loss clears the
 panel and protected background. No new API is required for panel opening.
 
-Primary new preview: Scheduled jobs details. Three additional detail-state
-previews demonstrate the same pattern for Instance, Configuration and Capability
-metadata. Pictures do not prove working click/focus/dialog behavior.
+Retain the R05 Job/Instance/Configuration/Capability panel fields. R06 adds
+**View full details** only to Job, preserving exact report/resource and modal
+return context. The other three panels remain quick inspection. Pictures do
+not prove working click/focus/dialog behavior.
 ## Scheduled jobs tab — reported inventory only
 
 Use existing listInventory(applicationId). Cursor pages contain whole
@@ -199,6 +212,84 @@ Previous/Next browse inventory pages, not individual jobs or fleet totals. No
 Run/Pause/Enable/Edit schedule action appears. Loading, no inventory, no scheduled
 definition, no observation, stale, denied and unavailable remain distinct. No
 new read API is needed for this bounded view.
+## R06 full details and history
+
+The full Job page retains the selected definition and dated registration/resource
+report from the panel. Overview shows Customer dormancy /
+customer-service/customer.dormancy, category lifecycle, scheduled support and
+the same partition-eu scheduled/released/jobs.completed observation; occurrence
+times remain Not reported. Back restores the report/list/panel context without
+retargeting by label. Job Configuration shows only the reported local
+effectiveConfiguration revision **12**, enabled **true**. Label it local observed
+configuration; it composes host/category/job gates and grants no authority.
+Unprovided application job defaults/settings, binding, cadence and input mapping
+say **Not reported**. P8 is required before richer policy/settings or trusted
+source binding; never infer a CountrySettings relationship or fabricate payload.
+
+Run history is one future shared record view, not chronology reconstructed from
+current snapshots, logs or exact Operations lookups. Its typed portal scope is
+one of job (application route + executionScope/jobId), task (application route +
+taskId) or event (application route + eventId). Example query suffixes:
+**?scope=job&executionScope=customer-service&jobId=customer.dormancy**,
+**?scope=task&taskId=task-demo-dormancy**, and
+**?scope=event&eventId=event-demo-104**. Reject mixed identities and bind cursors
+to exact authorized scope. Job history stays within the same Job title/nav.
+Task history has Task context and is a separate action; it includes prior runs
+after the task's selected job changes. Event produced-runs links use event scope.
+P6 supplies bounded authoritative capture, retention and authorized paged queries
+plus clients; current Management has none of this chronology.
+
+The read-only **Scheduled Task — Daily customer check**, task-demo-dormancy,
+revision **7**, is a P7 synthetic future-contract preview. Its persistent main
+settings select **Daily calendar**, **Customer dormancy** /
+customer-service/customer.dormancy, resource **partition-eu**, and input mapping.
+Static typed fixture constants are **PartitionId** (string) = **partition-eu**
+and **InactiveBefore** (date) = **2026-08-27**; no expression engine is implied.
+Exactly two contextual configuration tabs are **Trigger** and **Job**; **View run
+history** is separate. Trigger shows **Shared trigger settings**: provider
+**Central Management**, trigger revision **3**, daily **02:00 Europe/Malta**.
+Job shows selected definition and only dated reported local revision12/enabled
+true, with unprovided application job defaults/settings Not reported. Keep
+shared trigger settings, Task mapping and application Job defaults distinct.
+
+**Event — event-demo-104** is immutable. Overview shows 25 Nov 2026 **02:00 CET**
+(2026-11-25T01:00:00.0000000Z), Daily calendar/revision3, captured Task revision7
+and produced logical Task run run-demo-104. Configuration shows captured trigger
+settings and references, not current settings or an event editor. Captured task7,
+trigger3, localconfig12 and jobcontract3 survive current changes; unprovided full
+settings/payload say Not reported. Produced runs link to event-scoped history.
+A supplied zero-run reason is shown exactly; absent reason is **Reason not
+reported**. Missing history support is **Run history unavailable**, never an
+invented successful zero. P7 must deliver typed Task/Event identity, exact
+application/environment/association scope and authorized detail/relationship
+reads. Task/Event links traverse their full details.
+
+The populated history is visibly **SYNTHETIC FUTURE CONTRACT — history not
+delivered**. Logical run **run-demo-104** is **Succeeded — recovered**, **12 s**,
+**2 attempts**, preserving original RunId and original business-operation
+reference (opaque value Not reported in this fixture).
+
+| Captured attempt | Worker / reported app version / immutable build | Work/result attribution |
+| --- | --- | --- |
+| 1 | demo-eu-02 / 2.4.1 / build-20261124.17 | Original work executed; completion interrupted/lost, with original committed result. |
+| 2 | demo-eu-01 / 2.4.2+build.18 / build-20261125.18 | Recovered original committed result; work was not re-executed. |
+
+Retain captured task7/trigger3/localconfig12/jobcontract3 references and actual
+worker release/build per attempt. Current catalog/inventory cannot replace
+historical attribution. A 24 Nov row says **Outcome unknown**; unspecified
+duration/attempt/reference values are Not reported. Reporting loss/unknown
+outcome never implies failure, rollback or fresh permission to execute. Workload
+execution identity is separate from task creator, trigger producer and human
+requester; absent identities stay Not reported. No global totals appear.
+
+New production flows remain disabled until the relevant P6/P7/P8 contracts and
+authorization exist. The unavailable frame says **Run history unavailable**
+and preserves **Back to details**. A genuinely successful empty retained-history
+query may say No retained runs in this scope with actual coverage/retention
+basis. These screens grant no scheduler, event bus, general task engine,
+backend or write implementation; prior assistant discussion is evidence, not
+standalone authority. Existing owner boundaries remain intact.
+
 ## Contract map and prerequisites
 
 | Surface | Existing evidence | Required boundary |
@@ -210,6 +301,9 @@ new read API is needed for this bounded view.
 | Configuration list | `getDefinitions`: globally authorized descriptor pages; application-kind scope fields exist. | Required addition: bounded exact-application/environment filtering. No loaded-page completeness, common relationship or content/default-value claim. |
 | Capabilities | `getCapabilities(applicationId)`: implementedApis and callerHints. | Exact descriptor display and operationId hint matching; missing hint is Not evaluated. No instance inventory or execution console. |
 | Human/session boundary | Per-call/server-only boundaries remain relevant. | Real human/delegated authority remains a production prerequisite. No sign-in screen is added or approved here; remove protected data on access loss. |
+| Run/attempt history | No delivered retained chronology; current snapshots and Operations lookup are insufficient. | **P6:** bounded authoritative run/attempt capture, protected retention and authorized scoped paged query contracts plus clients. |
+| Scheduled Task / Event details | No delivered typed Task/Event Management identities/details/relationships. | **P7:** typed stable identity, exact application/environment/association scope, authorized detail/relationship reads and captured configuration references. |
+| Job configuration | Optional local effectiveConfiguration revision/enabled only. | **P8:** explicit job policy/descriptor projection and trusted source/binding mapping before richer settings or writes; no inferred CountrySettings association. |
 
 A synthetic complete fixture may demonstrate the desired application filters and
 scoped configuration query. Review notes identify their API gaps. Proposed portal
@@ -246,8 +340,10 @@ Retain white surfaces on `#F8FAFC`, navy `#0F172A`, secondary text
 14–16 px body text, 20–24 px titles and the 8 px spacing rhythm. Long identities,
 versions and API paths remain readable. Status uses text as well as color.
 
-Plan up to thirteen desktop frames at exactly **1600 × 1000**. The accepted R02
-Applications reference stays unchanged. R05 adds four shared item-details panel states to the approved R04 presentation.
+Plan exactly twenty-one desktop frames at **1600 × 1000** across nine screen
+definitions. Preserve the thirteen existing reference/panel frames; R06 adds the
+eight states below. The Job panel gains View full details, while the other three
+panels retain R05 quick inspection. Canonical filenames use screen--state--desktop.
 
 | Frame | Screen | Evidence |
 | --- | --- | --- |
@@ -264,6 +360,15 @@ Applications reference stays unchanged. R05 adds four shared item-details panel 
 | R05-F02 | RM09-INSTANCES | One exact registration record in the shared panel. |
 | R05-F03 | RM09-CONFIGURATION-LIST | Definition metadata only in the shared panel. |
 | R05-F04 | RM09-CAPABILITIES | Full Management descriptor and advisory hint in the shared panel. |
+
+| R06-F01 | RM09-JOB-FULL | Job Overview; rm09-job-full--primary--desktop.png. |
+| R06-F02 | RM09-JOB-FULL | Reported local Configuration; rm09-job-full--configuration--desktop.png. |
+| R06-F03 | RM09-RUN-HISTORY | Job-scoped populated synthetic history and expanded attempts; rm09-run-history--primary--desktop.png. |
+| R06-F04 | RM09-RUN-HISTORY | Run history unavailable with Back to details; rm09-run-history--unavailable--desktop.png. |
+| R06-F05 | RM09-TASK-FULL | Main settings/static mapping and Trigger active; rm09-task-full--primary--desktop.png. |
+| R06-F06 | RM09-TASK-FULL | Same main settings and Job active; rm09-task-full--job--desktop.png. |
+| R06-F07 | RM09-EVENT-FULL | Immutable Event Overview/produced Task runs; rm09-event-full--primary--desktop.png. |
+| R06-F08 | RM09-EVENT-FULL | Captured Configuration; rm09-event-full--configuration--desktop.png. |
 
 Other loading/access/incompatible-response states remain specified textually;
 more PNGs are not required to claim a complete state machine. No mobile/narrow
@@ -297,7 +402,9 @@ hint; getConfigurationDefinitions with
 management.configuration.definitions.read and no hint (**Not evaluated**).
 These are descriptor rows only, never workflow controls or live grants.
 
-R04 is approved; the additive R05 item-details design is pending exact rendered approval. No production UI, host dependency,
-administrative call or deployment is authorized by these files. The decision must
-identify the accepted reference and new tab additions within the five-screen
-desktop scope; broader RM-09 acceptance remains deferred.
+R04's exact approval is historical; R05 requested revisions and the changed R06
+body do not inherit it. R06 is pending exact rendered UI approval over the
+nine-screen desktop scope and twenty-one-frame inventory. No new approval is
+recorded here. Production UI/dependencies, administrative calls, deployment and
+RM-10 scheduler/backend implementation are not authorized by these files;
+broader RM-09 acceptance remains deferred.

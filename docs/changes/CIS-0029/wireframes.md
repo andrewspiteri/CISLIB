@@ -1,26 +1,29 @@
 ---
-title: "CIS-0029 textual wireframes — R05"
+title: "CIS-0029 textual wireframes — R06"
 type: textual-wireframes
-status: Draft
+status: Approved
 change_id: CIS-0029
-design_revision: R05
-approval_status: NotReviewed
+design_revision: R06
+approval_status: Approved
 authority: human-reviewed
 ---
 
-# Textual wireframes — R05
+# Textual wireframes — R06
 
-Andrew Spiteri approved R04 and requested that selecting an item open details,
-suggesting a side panel. R05 adds one consistent read-only right-side panel to
-rows in Instances, Configuration, Capabilities and Scheduled jobs. Applications
-continues its approved navigation to the selected application's detail page.
-Five desktop backoffice screen definitions and the four tabs remain unchanged;
-Instances is still the default and mobile remains excluded.
+R06 adds **View full details** to the Scheduled job side panel, opening a Job
+page with Overview, Run history and Configuration. Linked Scheduled Task and
+Event details follow the prior discussion reconciled in [reconciliation](reconciliation.md):
+the task owns its main association/resource/input settings and has exactly two
+contextual configuration tabs, Trigger and Job; history is a separate action.
+The other three R05 panels remain quick inspection of their existing fields.
+Applications navigation, four application tabs and default Instances remain.
 
-Only the new row-details interaction awaits screenshot approval. R04's exact
-native approval and assets are preserved in local Git commit `ed65c3f1` and
-native history. No write, content/default disclosure, API invocation or runtime
-scheduling/control flow is added. See the [design brief](design-brief.md).
+There are nine desktop screen definitions and twenty-one 1600 × 1000 frames:
+the thirteen existing frames plus eight R06 states. R04's exact native approval
+is preserved in Git commit `ed65c3f1`; R05 requested revisions are preserved
+at `f947e78c`. The historical approval row below does not approve this changed
+body. R06 is pending exact rendered UI review. It authorizes no scheduler,
+backend, write or execution implementation. See the [design brief](design-brief.md).
 ## Screen inventory
 
 | Screen ID | Frontend type | Name | Route/path | Platform | Actors/access | Entry points | Purpose |
@@ -30,11 +33,16 @@ scheduling/control flow is added. See the [design brief](design-brief.md).
 | RM09-CONFIGURATION-LIST | backoffice | Application configuration definitions | /applications/11111111-1111-1111-1111-111111111111/configurations | Web desktop only | Current operator with exact application/environment definition-discovery access | Configuration tab, authorized direct link | Read application-kind definition metadata through a bounded scoped query; no content/defaults or edits. |
 | RM09-CAPABILITIES | backoffice | Management APIs and current-caller hints | /applications/11111111-1111-1111-1111-111111111111/capabilities | Web desktop only | Current operator with exact application capability read access | Capabilities tab, authorized direct link | Read implemented Management API descriptors and current-caller hints; no API execution. |
 | RM09-SCHEDULED-JOBS | backoffice | Reported scheduled jobs | /applications/11111111-1111-1111-1111-111111111111/jobs | Web desktop only | Current operator with exact application inventory read access | Scheduled jobs tab, authorized direct link | Inspect scheduled-support definitions and reported resource observations in one selected registration inventory snapshot; no scheduling controls. |
+| RM09-JOB-FULL | backoffice | Full Job details | /applications/11111111-1111-1111-1111-111111111111/jobs/customer-service/customer.dormancy | Web desktop only | Exact application/job reads; future relationships/history independently authorized | Job panel View full details; authorized related-job link | Retain selected definition/report facts; Overview, Run history and Configuration. |
+| RM09-RUN-HISTORY | backoffice | Scoped logical runs and attempts | /applications/11111111-1111-1111-1111-111111111111/runs | Web desktop only | Future authorized typed-scope paged history read (P6/P7) | Job Run history tab; Task View run history; Event produced-runs link | One underlying run history with job, task or event scope and preserved parent context. |
+| RM09-TASK-FULL | backoffice | Scheduled Task details | /applications/11111111-1111-1111-1111-111111111111/tasks/task-demo-dormancy | Web desktop only | Future exact application/environment/task identity and relationship reads (P7) | Related Task link in Job/Event/history; authorized direct link | Main trigger/job/resource/input association; exactly Trigger and Job configuration tabs; separate history action. |
+| RM09-EVENT-FULL | backoffice | Immutable Event details | /applications/11111111-1111-1111-1111-111111111111/events/event-demo-104 | Web desktop only | Future exact application/environment/event and produced-run reads (P6/P7) | Event link in history; authorized direct link | Event Overview and captured Configuration; produced logical Task runs or recorded zero-run reason. |
 
-Applications remains the sole top-level navigation destination. All detail
-screens share Back to applications, application display name, canonical identity,
-environment and exactly **Instances / Configuration / Capabilities / Scheduled jobs** tabs.
-There is no future-placeholder navigation or additional inferred tab.
+Applications remains the sole top-level navigation destination. The four existing
+application-detail lists retain Back to applications, application display name,
+canonical identity, environment and exactly **Instances / Configuration /
+Capabilities / Scheduled jobs** tabs. New entity pages sit beneath that context,
+with their own explicit navigation below; no inactive top-level placeholders.
 
 ## Shared interaction and data rules
 
@@ -80,8 +88,10 @@ detail/tab navigation. Each tab keeps its own bounded page state within the
 selected application. Filter changes clear query-bound cursors. Late prior
 target/query/tab responses cannot replace the active view. Session/read-access
 loss clears protected data; valid-session failures may retain dated snapshots.
-There are no writes, offline commands, content/default values or operation
-recovery flows.
+There are no writes, offline commands or operation-recovery controls. Existing
+configuration-list/panel defaultsJson and content boundaries remain unchanged.
+R06 captured Task/Trigger settings and input constants are explicitly synthetic
+future-contract previews, not an extra current content read.
 
 ## Shared application-detail tab navigation
 
@@ -138,14 +148,17 @@ open only with its original dated source context and stale feedback. Session or
 read-access loss clears the panel and protected background data immediately.
 Late obsolete responses cannot populate the panel.
 
-The job details preview is the primary new example; the other three detail
-states demonstrate the same shared interaction with their own actual fields.
-All thirteen planned images are synthetic. Pictures do not establish working
-focus trapping, click handlers, dialog accessibility or live reads.
+R05's four panel previews retain the same fields and interaction; R06 adds
+**View full details** only to the Job panel. Preserve its exact registration,
+sequence and resource observation when entering the full page and on return.
+The other three panels remain quick inspection. All twenty-one images are
+synthetic. Pictures do not establish working focus trapping, click handlers,
+dialog accessibility or live reads.
 
 | Action ID | Label/control | Available when | User action | Result/side effect | Destination path | Destination screen | Failure/denied behavior |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | RM09-D01 | Close details / Escape / backdrop | A read-only details panel is open | Dismiss panel | Preserve the current tab/list/report context and restore originating focus; no mutation | Current /applications/11111111-1111-1111-1111-111111111111 detail-tab route | Current detail screen | Removed row returns focus to heading; access loss clears protected data. |
+| RM09-D02 | View full details | Exact Job panel selection; production full-details contracts available, or explicit synthetic preview | Open full Job page | Preserve application/list/report/panel return context and exact scoped job; close modal and focus page heading | /applications/11111111-1111-1111-1111-111111111111/jobs/customer-service/customer.dormancy | RM09-JOB-FULL | Never retarget by display name; missing future support stays unavailable and cannot be represented as empty history. |
 ### RM09-APPLICATIONS: Applications reported to Management
 
 #### Description
@@ -465,13 +478,279 @@ Shared tab actions RM09-T01–RM09-T04 and Back RM09-I01 apply here as well.
 | RM09-J-STALE | Refresh failed with permitted retained report | Snapshot may be out of date; preserve observed/received times and report age separately from job occurrence times. |
 | RM09-J-DENIED | Session or inventory read lost | Clear protected snapshot/options and expose safe access feedback/Back where permitted. |
 | RM09-J-INCOMPATIBLE | Required inventory shape invalid | Incompatible response; no manufactured definition/state/authority. |
+## R06 full-details contract boundary
+
+All new links use exact application/environment and typed entity identities;
+neither a label nor a current association is historical authority. The synthetic
+future-contract states below demonstrate desired behavior. Production must
+enable each new flow only after its relevant contract and authorization are
+delivered. Existing inventory, operation lookup and logs cannot substitute.
+
+| Prerequisite | Required boundary |
+| --- | --- |
+| P6 — run history | Authoritative bounded logical-run/attempt capture, protected retention and authorized paged query contracts plus clients. Preserve original RunId/business-operation identity, captured references and actual worker release/build per attempt. |
+| P7 — Task/Event details | Stable typed Task/Event identities; exact application/environment/association scope; authorized detail and relationship reads; immutable captured configuration references. Task history survives changes of the task's selected job. |
+| P8 — Job policy/configuration | Explicit policy/descriptor projection and trusted configuration-source/binding mapping before richer job settings or writes. Current inventory reports only optional local effectiveConfiguration revision/enabled. |
+
+No RM-10 scheduler/backend implementation is granted. Prior assistant discussion
+is evidence of requested behavior, not standalone implementation authority.
+The existing defaultsJson/content boundaries, native owner responsibilities and
+read-only scope remain. No snapshot chronology, Operations lookup, log archive,
+global total or runtime/write control is presented as history.
+
+### RM09-JOB-FULL: Full Job details
+
+#### Description
+
+Route: /applications/11111111-1111-1111-1111-111111111111/jobs/customer-service/customer.dormancy.
+Keep application **Country data service / Demo.CountryData / Demo staging**.
+Use **Back to Scheduled jobs**, title **Customer dormancy**, exact scope
+**customer-service / customer.dormancy**, and **Overview / Run history /
+Configuration** navigation. These are Job tabs beneath the retained application
+context, not additional top-level destinations.
+
+**Overview** retains the selected definition/report basis from the panel:
+category lifecycle; supportedModes scheduled; selected resource partition-eu,
+mode scheduled, state released, lastOutcome jobs.completed; last and next
+occurrence independently **Not reported**. Show registration
+a1111111-1111-4111-8111-111111111111, unverified label demo-eu-01, reported app
+version 2.4.2+build.18, sequence 41, observed 25 Nov 2026 10:58:30 CET and
+received 10:58:32 CET. Do not conflate report times with execution chronology.
+A future P7 related-task section links **Daily customer check** /
+task-demo-dormancy; clearly distinguish that synthetic relationship from the
+current retained inventory. **Run history** opens the shared history screen
+with this same Job header and active Job Run history tab.
+
+**Configuration** displays **Reported local effective configuration** for that
+same registration/resource snapshot: revision **12**, enabled **true**.
+This is an optional observed local result; enabled composes native host/category/
+job gates and does not grant execution authority. It is not central desired
+configuration. **Application job defaults/settings**, **configuration binding**,
+**cadence** and **job input mapping** say **Not reported** when not provided.
+Do not bind country.settings/CountrySettings to this job by name, reconstruct
+payload/default values, or infer cadence. Rich policy/settings require P8.
+A Scheduled Task's input mapping belongs to the task association, not Job defaults.
+
+#### Actions and paths
+
+| Action ID | Label/control | Available when | User action | Result/side effect | Destination path | Destination screen | Failure/denied behavior |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| RM09-JF01 | Back to Scheduled jobs | Safe application return is permitted | Return from full details | Restore exact list/report/scroll and originating Job panel selection/focus when still valid | /applications/11111111-1111-1111-1111-111111111111/jobs | RM09-SCHEDULED-JOBS | Changed report does not reopen obsolete panel; return to list heading with feedback. |
+| RM09-JF02 | Overview | Exact job/report is permitted | Select Overview | Show retained definition and selected observation | /applications/11111111-1111-1111-1111-111111111111/jobs/customer-service/customer.dormancy | RM09-JOB-FULL | Clear protected facts on access loss; do not substitute another registration. |
+| RM09-JF03 | Run history | P6 and relevant P7 reads available; exact job scope authorized; synthetic preview otherwise explicit | Select Run history | Query shared runs by exact application/executionScope/jobId; retain Job header/nav | /applications/11111111-1111-1111-1111-111111111111/runs?scope=job&executionScope=customer-service&jobId=customer.dormancy | RM09-RUN-HISTORY | Run history unavailable, not No runs; usable Back to details. |
+| RM09-JF04 | Configuration | Same authorized job/report basis | Select Configuration | Show only reported local revision/enabled and explicit absent fields; no content fetch/write | /applications/11111111-1111-1111-1111-111111111111/jobs/customer-service/customer.dormancy?tab=configuration | RM09-JOB-FULL | Optional absent observation is Not reported; richer unsupported settings remain unavailable. |
+| RM09-JF05 | Daily customer check | P7 exact related Task identity/read available; synthetic preview explicit | Open related task | Open the actual referenced Scheduled Task, not a task found by job display name | /applications/11111111-1111-1111-1111-111111111111/tasks/task-demo-dormancy | RM09-TASK-FULL | Missing/denied relationship does not disclose or manufacture a task. |
+| RM09-JF06 | Refresh / Retry | Relevant exact read remains permitted | Reread current bounded source | Preserve source/report identity and date permitted retained data | Current full Job route/tab | RM09-JOB-FULL | Changed report requires explicit new selection; loss of read clears protected data. |
+
+#### States
+
+| State ID | State | Visible behavior |
+| --- | --- | --- |
+| RM09-JF-PRIMARY | Overview | Definition/report facts and explicitly synthetic future related Task link; no inferred schedule/history. |
+| RM09-JF-CONFIGURATION | Configuration | Reported local revision 12/enabled true; absent settings/binding/cadence/input mapping Not reported; scope labels visible. |
+| RM09-JF-LOADING | Exact detail read loading | Safe target identity and loading; no substituted report or fabricated settings. |
+| RM09-JF-UNAVAILABLE | Relevant contract/read unavailable | Full details unavailable with safe Back/Retry; no successful-empty claim. |
+| RM09-JF-STALE | Permitted retained report after failed refresh | Dated snapshot warning and original report identity/times. |
+| RM09-JF-DENIED | Session/job/report access lost | Clear protected details and relationships; safe Back where permitted. |
+| RM09-JF-INCOMPATIBLE | Required shape/identity invalid | Incompatible response; preserve no invented revision, state or association. |
+
+### RM09-RUN-HISTORY: Scoped logical runs and attempts
+
+#### Description
+
+Base route: /applications/11111111-1111-1111-1111-111111111111/runs.
+This is one shared underlying run-record view with a typed scope, not separate
+Job/Task histories that duplicate records. Proposed portal query forms are:
+
+| Typed scope | Required identity within the exact application route | Context retained |
+| --- | --- | --- |
+| job | scope=job&executionScope=customer-service&jobId=customer.dormancy | Same Job title and Overview / Run history / Configuration nav, Run history active. |
+| task | scope=task&taskId=task-demo-dormancy | Scheduled Task title/id and Back to Task details; history remains a separate action, never a third contextual configuration tab. |
+| event | scope=event&eventId=event-demo-104 | Immutable Event title/id and Back to Event details; produced-run scope. |
+
+These are proposed typed query states, not delivered Management parameters.
+Reject mixed/missing identities; keep cursor/filters bound to the authorized
+scope. Job scope contains applicationId plus executionScope/jobId. Task scope
+queries captured task identity across all prior job associations: changing the
+task's selected job must not filter out older runs. Event scope shows only runs
+recorded as produced by that event. No unbounded scan or global totals.
+
+Title **Run history**. Columns: occurred/started time, logical RunId, Task,
+Event, Job scope/id, resource, outcome, duration and attempts. Use exact captured
+records; expandable run detail presents attempts and captured references without
+creating another screen. Task/Event names are links to their exact full details.
+Separate workload execution identity from task creator, trigger producer and
+human requester; absent identities say **Not reported**.
+
+The populated preview is **SYNTHETIC FUTURE CONTRACT — history not delivered**.
+Event **event-demo-104**, 25 Nov 2026 **02:00 CET**
+(2026-11-25T01:00:00.0000000Z), produced logical Task run **run-demo-104**
+for task-demo-dormancy / Daily customer check, customer-service/customer.dormancy,
+resource partition-eu. Outcome **Succeeded — recovered**, duration **12 s**,
+**2 attempts**. Preserve original RunId and original business-operation reference;
+the opaque original-operation value is **Not reported** in this fixture.
+
+| Attempt | Actual worker / reported app version / immutable build | Recorded work/result |
+| --- | --- | --- |
+| 1 | demo-eu-02 / 2.4.1 / build-20261124.17 | Executed original work; completion interrupted/lost. Original committed result exists; reporting loss does not imply rollback. |
+| 2 | demo-eu-01 / 2.4.2+build.18 / build-20261125.18 | Recovered the original committed result; original work was not re-executed. |
+
+Captured task revision **7**, trigger revision **3**, local effective configuration
+revision **12** and job contract revision **3** remain associated with this run.
+Historical app/build values are captured per attempt; current inventory/catalog
+values must not overwrite them. Another row on **24 Nov 2026** has outcome
+**Outcome unknown**; do not infer failure, rollback or permission to execute
+again. Its unspecified duration/attempt/reference fields say **Not reported**.
+
+If P6 is absent or a history read fails, show **Run history unavailable** with
+**Back to details** and Retry where meaningful. Do not show **No runs** for missing
+support. A successful authorized retained-history query with no rows may say
+**No retained runs in this scope**, with its actual bounded coverage/retention
+basis; it is not proof no execution ever occurred.
+
+#### Actions and paths
+
+| Action ID | Label/control | Available when | User action | Result/side effect | Destination path | Destination screen | Failure/denied behavior |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| RM09-RH01 | Back to details | Safe exact parent context known | Return | Restore originating Job tab, Task details or Event details and preserved focus/page state | Job /applications/11111111-1111-1111-1111-111111111111/jobs/customer-service/customer.dormancy; Task /applications/11111111-1111-1111-1111-111111111111/tasks/task-demo-dormancy; Event /applications/11111111-1111-1111-1111-111111111111/events/event-demo-104 | RM09-JOB-FULL / RM09-TASK-FULL / RM09-EVENT-FULL according to typed scope | Back remains usable when history unavailable; recheck parent access. |
+| RM09-RH02 | Run row / attempts | Exact authorized logical run returned | Expand run | Show captured references and per-attempt attribution/work-versus-recovery facts in place | Current /runs typed scope | RM09-RUN-HISTORY | Missing fields stay Not reported; no original-result API is misrepresented as chronology. |
+| RM09-RH03 | Task link | P7 exact captured Task read available | Open Task details | Navigate by recorded taskId, preserving history return context | /applications/11111111-1111-1111-1111-111111111111/tasks/task-demo-dormancy | RM09-TASK-FULL | Missing/denied target is explicit; never resolve by today's selected job. |
+| RM09-RH04 | Event link | P7 exact captured Event read available | Open Event details | Navigate by recorded eventId | /applications/11111111-1111-1111-1111-111111111111/events/event-demo-104 | RM09-EVENT-FULL | Missing/denied event does not substitute a current trigger or another event. |
+| RM09-RH05 | Previous / Next | Same authorized scope prior/next cursor exists | Browse retained history | Read a bounded page of the same run records | Current /runs with same typed scope and opaque page state | RM09-RUN-HISTORY | Scope changes invalidate cursors; no total/page-count inference. |
+| RM09-RH06 | Refresh / Retry | P6 available and scoped read permitted | Retry current bounded query | Read exact visible scope | Current /runs typed scope | RM09-RUN-HISTORY | Unsupported/failed read remains Run history unavailable; access loss clears protected rows. |
+| RM09-RH07 | Job Overview / Configuration | Job-scoped history with exact Job context | Select Job tab | Return to same Job details state | /applications/11111111-1111-1111-1111-111111111111/jobs/customer-service/customer.dormancy or ?tab=configuration | RM09-JOB-FULL | Safe parent unavailable/denied state; preserve exact scope. |
+
+#### States
+
+| State ID | State | Visible behavior |
+| --- | --- | --- |
+| RM09-RH-PRIMARY | Job-scoped synthetic populated history | Same Job header/nav; recovered logical run with two attempts expanded, captured references and 24 Nov Outcome unknown row. |
+| RM09-RH-UNAVAILABLE | P6 absent or initial scoped history unavailable | Run history unavailable; safe Back to details; no No runs or zero count. |
+| RM09-RH-TASK | Authorized task scope | Task context and captured task identity across prior job associations; separate history action. |
+| RM09-RH-EVENT | Authorized event scope | Event context; only recorded produced runs and supplied zero-run reason. |
+| RM09-RH-LOADING | Scoped read loading | Preserve safe scope heading; no fabricated run rows or counts. |
+| RM09-RH-EMPTY | Successful bounded retained query is empty | No retained runs in this scope with reported coverage/retention basis; not no execution ever. |
+| RM09-RH-STALE | Failed refresh with permitted prior history page | Dated prior page and warning; captured historical attribution unchanged. |
+| RM09-RH-DENIED | Session/scope read lost | Remove protected runs/attempts and relationship links. |
+| RM09-RH-INCOMPATIBLE | Invalid typed scope or required record shape | Safe invalid/incompatible feedback; no mixed-scope query or invented record. |
+
+### RM09-TASK-FULL: Scheduled Task details
+
+#### Description
+
+Route: /applications/11111111-1111-1111-1111-111111111111/tasks/task-demo-dormancy.
+Title **Scheduled Task — Daily customer check**, exact taskId
+**task-demo-dormancy**, application/environment and task revision **7**.
+Keep a safe Back to originating details/history link. This entire fixture is
+**SYNTHETIC FUTURE CONTRACT — Task reads not delivered** (P7), read-only.
+
+The **main Scheduled Task settings** own the association and remain visible above
+both contextual tabs: selected trigger **Daily calendar**, selected job **Customer
+dormancy** / customer-service/customer.dormancy, resource **partition-eu**, and
+input mapping. Show read-only selection summaries, not edit/save controls.
+Mapping uses explicitly static typed fixture constants: **PartitionId** (string)
+= **partition-eu**; **InactiveBefore** (date) = **2026-08-27**. These values are
+synthetic; no expression engine or mapping execution is implied.
+
+Exactly two contextual configuration tabs: **Trigger** and **Job**. Default
+**Trigger** shows shared trigger settings: Daily calendar, provider **Central
+Management**, captured/reported trigger revision **3**, daily at **02:00**,
+timezone **Europe/Malta**. Label these as **Shared trigger settings** rather
+than application job defaults. **Job** shows the selected scoped Job definition
+and a clearly dated **Reported local effective configuration** reference:
+revision **12**, enabled **true**. **Application job defaults/settings** and any
+unprovided full settings/binding say **Not reported**; no CountrySettings
+association or fabricated payload/default values. Task input mapping stays in
+the main settings and is not relabeled as Job defaults.
+
+**View run history** is a separate action, outside the Trigger/Job tab set.
+It opens task-scoped shared history, including runs captured under previously
+selected jobs after this association changes. The main settings link to full
+Job details; captured Event links from history open immutable Event details.
+
+#### Actions and paths
+
+| Action ID | Label/control | Available when | User action | Result/side effect | Destination path | Destination screen | Failure/denied behavior |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| RM09-TF01 | Back to originating details/history | Safe retained parent context | Return | Restore exact parent selection/page/focus | Preserved authorized Job, Event or /runs typed-scope route | RM09-JOB-FULL / RM09-EVENT-FULL / RM09-RUN-HISTORY | Direct entry falls back to safe Scheduled jobs context; no fabricated parent. |
+| RM09-TF02 | Trigger | P7 exact Task/trigger read permitted | Select Trigger | Show shared trigger settings beside persistent main association/mapping | /applications/11111111-1111-1111-1111-111111111111/tasks/task-demo-dormancy | RM09-TASK-FULL | Unavailable settings stay explicit; no fabricated schedule. |
+| RM09-TF03 | Job | P7 exact selected Job reference permitted | Select Job | Show selected definition and only reported local config facts; main settings remain | /applications/11111111-1111-1111-1111-111111111111/tasks/task-demo-dormancy?tab=job | RM09-TASK-FULL | Unprovided defaults/settings Not reported; no inferred source binding. |
+| RM09-TF04 | View run history | P6/P7 task-scoped history delivered and permitted; synthetic preview explicit | Open history | Query by captured taskId across prior jobs; retain Task context | /applications/11111111-1111-1111-1111-111111111111/runs?scope=task&taskId=task-demo-dormancy | RM09-RUN-HISTORY | Run history unavailable with Back to details; not No runs. |
+| RM09-TF05 | Customer dormancy | Exact referenced Job is permitted | Open full Job details | Preserve Task return context; use selected executionScope/jobId | /applications/11111111-1111-1111-1111-111111111111/jobs/customer-service/customer.dormancy | RM09-JOB-FULL | Safe missing/denied Job state; no lookup by display name. |
+
+#### States
+
+| State ID | State | Visible behavior |
+| --- | --- | --- |
+| RM09-TF-PRIMARY | Trigger configuration | Persistent main settings/mapping; exactly Trigger/Job tabs; shared daily trigger settings; separate history action. |
+| RM09-TF-JOB | Job configuration | Same main settings; selected Job/local revision12/enabled true, absent application job defaults Not reported. |
+| RM09-TF-LOADING | Exact Task read loading | Safe identity/loading; no substituted association or mapping. |
+| RM09-TF-UNAVAILABLE | P7 or exact read unavailable | Task details unavailable and safe Back; not an empty successful association. |
+| RM09-TF-STALE | Failed refresh with permitted prior Task snapshot | Date original task/trigger references; no silent association change. |
+| RM09-TF-DENIED | Session/Task read lost | Clear protected settings and links. |
+| RM09-TF-INCOMPATIBLE | Required typed identity/reference invalid | Incompatible response; do not infer Trigger/Job/resource identities. |
+
+### RM09-EVENT-FULL: Immutable Event details
+
+#### Description
+
+Route: /applications/11111111-1111-1111-1111-111111111111/events/event-demo-104.
+Title **Event — event-demo-104**, application/environment and safe Back.
+Tabs **Overview / Configuration**. This is an immutable historical event,
+not a trigger editor. Show **SYNTHETIC FUTURE CONTRACT — Event reads not
+delivered** (P7); produced-run reads additionally need P6.
+
+**Overview** shows exact eventId **event-demo-104**, occurred 25 Nov 2026
+**02:00 CET** (2026-11-25T01:00:00.0000000Z), trigger **Daily calendar** /
+revision **3**, provider **Central Management**, associated Scheduled Task
+**Daily customer check** / task-demo-dormancy / captured task revision **7**.
+The **Produced Task runs** section links logical run **run-demo-104**,
+**Succeeded — recovered**, 12 s, 2 attempts, to the event-scoped shared history.
+It also links Task full details and scoped Job full details. All links use
+recorded relationships, not current names. If an authoritative event has zero
+produced runs, display its supplied recorded reason; absent reason says
+**Reason not reported**. Missing history support says **Run history unavailable**,
+not a zero-produced-runs success.
+
+**Configuration** shows **Captured trigger configuration at this event**:
+Daily calendar, provider Central Management, trigger revision **3**, daily
+**02:00 Europe/Malta**, captured task revision **7**, local effective configuration
+revision **12** and job contract revision **3** as references. Values are captured
+for this event/run relationship and are not overwritten from today's trigger,
+Task or Job settings. Do not imply a captured full payload when only references
+were supplied: remaining settings/payload say **Not reported**. No edit, replay,
+retry, execute or write control appears.
+
+#### Actions and paths
+
+| Action ID | Label/control | Available when | User action | Result/side effect | Destination path | Destination screen | Failure/denied behavior |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| RM09-EF01 | Back to originating details/history | Safe retained parent context | Return | Restore originating typed scope/page/focus | Preserved authorized /runs scope or Task/Job detail route | RM09-RUN-HISTORY / RM09-TASK-FULL / RM09-JOB-FULL | Direct entry uses safe application return; access rechecked. |
+| RM09-EF02 | Overview / Configuration | P7 exact Event read permitted | Switch Event tab | Read immutable Event overview or captured settings/references | /applications/11111111-1111-1111-1111-111111111111/events/event-demo-104 or ?tab=configuration | RM09-EVENT-FULL | Missing captured fields Not reported; never substitute current trigger settings. |
+| RM09-EF03 | Produced Task runs / run-demo-104 | P6/P7 recorded event-run relationship delivered and permitted; synthetic preview explicit | Open produced runs | Query shared history by exact eventId; preserve Event context | /applications/11111111-1111-1111-1111-111111111111/runs?scope=event&eventId=event-demo-104 | RM09-RUN-HISTORY | Run history unavailable with Back to Event details; missing support is not zero runs. |
+| RM09-EF04 | Daily customer check | P7 exact captured taskId readable | Open Scheduled Task | Navigate to full Task details and preserve Event return context | /applications/11111111-1111-1111-1111-111111111111/tasks/task-demo-dormancy | RM09-TASK-FULL | Safe missing/denied Task state; captured revision remains historical. |
+| RM09-EF05 | Customer dormancy | Exact recorded Job relationship readable | Open full Job details | Navigate by application/executionScope/jobId | /applications/11111111-1111-1111-1111-111111111111/jobs/customer-service/customer.dormancy | RM09-JOB-FULL | No inference from label/current task association; missing relationship stays explicit. |
+
+#### States
+
+| State ID | State | Visible behavior |
+| --- | --- | --- |
+| RM09-EF-PRIMARY | Immutable Event Overview | Captured event/trigger/task identity and produced logical run; related Task/Job and event-scoped history links. |
+| RM09-EF-CONFIGURATION | Captured Configuration | Captured trigger settings/revisions and configuration/contract references, read-only; no current-setting substitution. |
+| RM09-EF-ZERORUNS | Authoritative event produced zero runs | Supplied recorded reason, or Reason not reported; no inference of error, success or rollback. |
+| RM09-EF-HISTORYUNAVAILABLE | Produced-run contract/read unavailable | Run history unavailable in Produced Task runs; Event facts may remain if independently permitted. |
+| RM09-EF-LOADING | Exact Event read loading | Safe identity/loading, no fabricated event or produced runs. |
+| RM09-EF-UNAVAILABLE | P7 or exact Event read unavailable | Event details unavailable and safe Back; no successful-empty event. |
+| RM09-EF-DENIED | Session/Event read lost | Remove protected event/configuration/relationship facts. |
+| RM09-EF-INCOMPATIBLE | Required typed event/captured reference invalid | Safe incompatible response; no inferred immutable record. |
+
 ## Desktop review frame inventory
 
-All frames use exactly **1600 × 1000** desktop layout. The approved application
-list and four-tab structure remain. R05 adds four item-detail panel states to the
-nine existing reference/state images, for thirteen images over five screens.
-The main new review is Scheduled jobs details, with the same panel pattern on
-Instances, Configuration and Capabilities.
+All frames use exactly **1600 × 1000** desktop layout. Preserve the thirteen
+existing reference/panel frames. R06 adds eight frames over four new screen IDs,
+for twenty-one images over nine screens. The Job panel gains View full details;
+the other three panels retain their R05 quick-inspection fields. R06 filenames
+below are canonical screen--state--desktop PNG names.
 | Frame ID | Screen ID | State | Review purpose |
 | --- | --- | --- | --- |
 | R02-F01 | RM09-APPLICATIONS | RM09-L-READY | Unchanged accepted list reference: filters, selection and bounded paging. |
@@ -487,6 +766,14 @@ Instances, Configuration and Capabilities.
 | R05-F02 | RM09-INSTANCES | RM09-I-DETAILS | Same panel pattern for one exact registration record. |
 | R05-F03 | RM09-CONFIGURATION-LIST | RM09-C-DETAILS | Same panel pattern for definition metadata only. |
 | R05-F04 | RM09-CAPABILITIES | RM09-K-DETAILS | Same panel pattern for a Management descriptor and advisory hint. |
+| R06-F01 | RM09-JOB-FULL | RM09-JF-PRIMARY | Full Job Overview, exact retained report and related Task link; rm09-job-full--primary--desktop.png. |
+| R06-F02 | RM09-JOB-FULL | RM09-JF-CONFIGURATION | Reported local revision12/enabled true; missing settings Not reported; rm09-job-full--configuration--desktop.png. |
+| R06-F03 | RM09-RUN-HISTORY | RM09-RH-PRIMARY | Job context; recovered logical run/two attempts/captured references and Outcome unknown row; rm09-run-history--primary--desktop.png. |
+| R06-F04 | RM09-RUN-HISTORY | RM09-RH-UNAVAILABLE | Same Job context, Run history unavailable and usable Back to details; rm09-run-history--unavailable--desktop.png. |
+| R06-F05 | RM09-TASK-FULL | RM09-TF-PRIMARY | Persistent main association/static mapping; Trigger active, Job second tab and history separate; rm09-task-full--primary--desktop.png. |
+| R06-F06 | RM09-TASK-FULL | RM09-TF-JOB | Same main settings with selected Job/local config and absent defaults; rm09-task-full--job--desktop.png. |
+| R06-F07 | RM09-EVENT-FULL | RM09-EF-PRIMARY | Immutable Event and produced logical Task run, related details/history links; rm09-event-full--primary--desktop.png. |
+| R06-F08 | RM09-EVENT-FULL | RM09-EF-CONFIGURATION | Captured trigger configuration/references without event editing; rm09-event-full--configuration--desktop.png. |
 
 Other states are textually specified; further PNGs are not required to represent
 a complete state machine. No mobile/narrow frame is required. Desktop keyboard,
@@ -501,19 +788,23 @@ real-service/browser acceptance.
 | Accepted filterable application list | RM09-APPLICATIONS | RM09-L01–RM09-L07 | R02-F01, R02-F03, R02-F06 | Preserve accepted reference; P2 server search/authorized environments remain required. |
 | Accepted instance/version inspection and return | Both original screens | RM09-L03, RM09-I01–RM09-I05 | R03-F01, R03-F04, R03-F05 | Accepted version/presence semantics remain; approved shared tabs receive the additive Scheduled jobs destination. |
 | Requested four detail tabs | All four detail screens | RM09-T01–RM09-T04 | R03-F01–R03-F03, R04-F01 | Add Scheduled jobs to approved Instances, Configuration, Capabilities; same application, default Instances and preserved Back context. |
-| Item details | Four application-detail screens | RM09-I06, RM09-C05, RM09-K03, RM09-J04, RM09-D01 | R05-F01–R05-F04 | One read-only modal side-panel pattern; exact retained row/report, no added API/content/execution authority, focus/list context preserved. |
+| Item details | Four application-detail screens | RM09-I06, RM09-C05, RM09-K03, RM09-J04, RM09-D01, RM09-D02 | R05-F01–R05-F04 | Preserve existing panel fields/identity/focus; Job alone adds View full details, subject to the R06 contract boundary. |
+| Full Job details/configuration | RM09-JOB-FULL | RM09-JF01–RM09-JF06 | R06-F01, R06-F02 | Retained report facts; local revision/enabled only; missing settings Not reported; no inferred binding/cadence/defaults (P8). |
+| Shared scoped history | RM09-RUN-HISTORY | RM09-RH01–RM09-RH07 | R06-F03, R06-F04; Task/Event scopes specified | P6 bounded authoritative records/attempts; typed job/task/event scopes; historical versions/recovery attribution; unavailable is not empty. |
+| Scheduled Task model | RM09-TASK-FULL | RM09-TF01–RM09-TF05 | R06-F05, R06-F06 | P7 main association/resource/static mapping; exactly Trigger/Job contextual tabs, history separate and spans prior jobs. |
+| Immutable Event details | RM09-EVENT-FULL | RM09-EF01–RM09-EF05 | R06-F07, R06-F08; zero-run state specified | P7 captured settings/references, P6 produced runs and recorded zero-run reason; Task/Job/history traversal without editing. |
 | Scheduled job inspection | RM09-SCHEDULED-JOBS | RM09-T04, RM09-J01–RM09-J03 | R04-F01 and specified negative states | Existing inventory API, explicit registration report, scoped definitions/observations; no cron/cadence, inferred timing, fleet aggregate or control authority. |
 | Read-only application configuration list | RM09-CONFIGURATION-LIST | RM09-C01–RM09-C04 | R03-F02; scoped/empty/error states | Required bounded scoped query; no global-page completeness, common binding inference or default/content values. |
 | Management capabilities/current caller | RM09-CAPABILITIES | RM09-K01, RM09-K02 | R03-F03; absent-hint state | Actual implementedApis and exact operationId hint matching. Not evaluated is distinct from Allowed/Not allowed. |
-| RM09-AC01, RM09-AC02 | All five | No approval action in prototype | R04 approved; R05 details pending | Exact new screenshot decision remains pending; prior approval/history are retained. |
-| RM09-AC04, RM09-AC05, RM09-AC17 | All five | All reads/tab actions | Denied, incompatible, target/tab change | Exact scoped authorization, response compatibility, opaque identity and exact strings/timestamps remain required. No executable server schema. |
+| RM09-AC01, RM09-AC02 | All nine | No approval action in prototype | R04 historical approval; R05 requested revisions; R06 pending | Exact changed-body/rendered screenshot decision remains pending; prior approval/history are retained. |
+| RM09-AC04, RM09-AC05, RM09-AC17 | All nine | All reads/tab actions | Denied, incompatible, target/tab change | Exact scoped authorization, response compatibility, opaque identity and exact strings/timestamps remain required. No executable server schema. |
 | RM09-AC06 | RM09-APPLICATIONS | Filter/page actions | Accepted list reference | P2 remains required; no loaded-page global search. |
 | RM09-AC07 | RM09-INSTANCES, RM09-CAPABILITIES | Instance/capability reads | R03-F01, R03-F03 | Limited inspection only; Management APIs are distinct from instance inventory/admission/control. |
-| RM09-AC10, RM09-AC15 | All five | Refresh/Retry/Back | Unavailable, stale, denied | Read/session-loss behavior only; no receipt/recovery/mutation coverage. |
-| RM09-AC18, RM09-AC19 | All five | All declared controls | Desktop/keyboard/zoom, bounded pages | Mobile no longer required. No unbounded scan/polling or claim pictures verify runtime accessibility. |
+| RM09-AC10, RM09-AC15 | All nine | Refresh/Retry/Back | Unavailable, stale, denied | Read/session-loss behavior only; no receipt/recovery/mutation coverage. |
+| RM09-AC18, RM09-AC19 | All nine | All declared controls | Desktop/keyboard/zoom, bounded pages | Mobile no longer required. No unbounded scan/polling or claim pictures verify runtime accessibility. |
 | Deferred broader scope | Outside this slice | No deferred workflow controls | Future work | Sign-in UI, metadata/configuration writes, content/defaults, operation recovery, release/assignment/adoption and remaining inventory/control acceptance need later review. |
-| RM09-AC20 | All five | Read journey only | Synthetic review | Does not provide real-service/browser acceptance or close RM-09. |
-| Initial exclusions | All five | No mutation/execution action | Inspection only | No write/login/metadata/recovery flow, restart, deployment control, automatic rollout, extra inferred tabs or mobile screen. API descriptor text does not enable those workflows. |
+| RM09-AC20 | All nine | Read journey only | Synthetic review | Does not provide real-service/browser acceptance or close RM-09. |
+| Initial exclusions | All nine | No mutation/execution action | Inspection only | No write/login/metadata/recovery flow, restart, deployment control, automatic rollout, extra inferred tabs or mobile screen. API descriptor text does not enable those workflows. |
 
 Coverage is limited to the described parts of each requirement. A cross-reference
 does not mark the full requirement complete.
@@ -522,4 +813,4 @@ does not mark the full requirement complete.
 
 | Decision | Reviewer | Date | Wireframe SHA-256 | Rationale |
 | --- | --- | --- | --- | --- |
-| Approved | Andrew Spiteri | 2026-11-25T14:14:23Z | `sha256:38af1540c843cb2abcf3e581d7d309a3694afc7dc32a67819bf9eb450e351b68` | Andrew Spiteri approved the exact presented R04 Scheduled jobs image: ok it is good. clicking on an item needs to open the details maybe a side panel can open. This approves the current read-only Scheduled jobs view and four-tab navigation, preserving R03 approval. Item details in a side panel are an additive requested interaction; this decision does not pre-approve an unseen panel, configuration content/writes, runtime scheduling or broader workflows. |
+| Approved | Andrew Spiteri | 2026-11-25T17:04:52Z | `sha256:40d9e22cd90e68221daf2ea4be385ed683e022abdf797ef8f86cc632a2a0645c` | Andrew Spiteri explicitly selected Approve connected design for the exact R06 package (renderer6375438db766) including quick panels, View full details, Job Overview/Run history/Configuration and linked Scheduled Task/Event details. Approval covers the read-only desktop UI design and current scope; history/event/task synthetic examples still depend on named P6/P7/P8 RM-10 contracts. It does not claim a delivered scheduler/history backend or authorize a separate RM-10 runtime implementation. Earlier R04 authority remains preserved; normal CIS current-scope/plan/owner reconciliation precedes production work under the existing delegated bounded allocation. |
