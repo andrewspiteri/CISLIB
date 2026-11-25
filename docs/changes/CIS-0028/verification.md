@@ -84,3 +84,82 @@ automatic graph restoration. No product runtime change, old-owner reopening,
 database access, push, merge or release is included.
 
 The normal tool-usage snapshot includes historical estimates. Its possible-token-savings field does not establish net model-token savings; actual model-token counters are unavailable. The final read-only post-bookkeeping observation is retained separately as `.cis/local/testing/current-context-correction/rm08-verify-post-close.json` and its operation receipt. Native reports and profile inputs remain unchanged; that receipt governs its actual status.
+
+## Review-corrected installation under WORK-002
+
+The source review corrections were installed as
+`0.3.0+worktree.0af366968e59af1546621307872181e0d464716b7d0abf0a39dce544b115efa8`.
+The existing explicit wrapper is unchanged. All 258 installed files match the
+source build manifest, SHA256
+`d5f811dd15651d06ca271bb92972925433ff1b1071dc95d54133c68d5da3c9f0`;
+the installed host SHA256 is
+`6c69acabfd006c37e862e9cb31469ea9d384e276ddba001ade506a1a0bf79445`.
+The preceding d034 binary and exact graph are preserved at the source-owned
+rollback locations. The corrected catalogue fingerprint required a fresh graph:
+the normal wrapper completed that refresh in 228,238 ms, with zero extraction
+errors and 77 visible documentation/mapping warnings. The bounded observer's
+peak counted upper bound was 5,522,496,369 bytes, below the existing 6 GiB ceiling.
+
+The first AppContainer execution passed the same one AC-10 case, but its
+900-second metadata window expired before final publication. It returned exit 4;
+the native report and settled accounting remain retained. The following Verify
+correctly refused reuse because `LOCALAPPDATA` changed between desktop sandbox
+invocations. Neither observation is a completed consumer verification.
+
+The new `rm08-stable-profile.json` pins only that environment value to an empty
+owned directory under `.cis/local/testing/review-d449dcf/`. It uses a separate
+profile ID so the first state/report remains intact. SDK/runtime pins, the
+120-second native test timeout and the exact test selection are retained. The
+same existing wrapper runs in the original Windows execution context under the
+same open `WORK-002:1` logical attempt. No result, consumed cost or used attempt
+was reset.
+
+The stable-profile Run completed in **570,055 ms**, executing one unit batch with
+**one passed test, zero failed/skipped, zero pending batches**, known recovery and
+no reservation. Its retained native report SHA256 is
+`df4da9b798e61fa788f906a7debd46251f1db2cf8ea1889d83a07d180ff1a461`.
+Both executions selected the same named test; the first is retained as an earlier
+development observation, not hidden in the final selection's one-case count.
+Unchanged verification then returned `verified` in **83,205 ms**. State/report
+hashes stayed unchanged and no execution record was added. A subsequent actual
+unchanged `run` completed in **297,878 ms** with **zero executed unit batches,
+one reused batch and zero pending batches**. Its report hash and unit fingerprint
+are unchanged. The new accounting record is metadata-only (`launchIntent: false`);
+no new test-launch record was added. Recovery is known and no reservation remains.
+The exact joined proof is
+`.cis/local/testing/review-d449dcf/cached-run-proof.json`. This establishes real
+cached-Run reuse for this one-case profile. It does not establish automatic
+reduction of a broad suite, net model-token savings or general performance gains.
+
+The normal checked transition applied `Complete` to WORK-002 with zero blockers.
+Post-close Verify returned `verified` in 84,699 ms with the same report hash and
+unit fingerprint and no extra test launch. Controller progress then closed the
+concluded WORK-002:1 logical attempt without resetting consumption. The joined
+receipts are `post-close-proof.json`, `cached-run-proof.json` and the normal CLI
+transition/progress results under the same local review directory.
+
+The preservation check matches all six explicitly protected files, 388 original
+protected files and 301 old incremental files. Critical consumed/restoration
+counters, used/open attempts and holds across 27 previous changes and 142 owners
+also match; this is not a byte-identity assertion about the supported mutable
+ledger. Final counted consumer storage is 5,507,189,531 bytes under 6 GiB.
+The final cost receipt retains every failed and successful CLI operation plus
+the conservative manual estimate within the assigned 5,400-second increment.
+
+The original WORK-001, its native state/reports and unrelated launch settings are
+protected. WORK-002 owns this installation/proof continuation, not the original
+CIS-0027/WORK-004 implementation or whole-criterion satisfaction. The other 23
+criterion mappings and broader product/source qualification remain separate.
+No broad impacted-test rollout, product runtime change, push, merge or release is
+included. Earlier source 1,324-case, coverage, security and browser obligations
+retain their own candidate identities and open status.
+| WORK-002 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2542; failed=341; possibleTokenSavings=591; ledgerDigest=sha256:b8139c76ece42872d8be6ecd4784207de6f3b63fb3fc37df37cd4c5d77584668 |
+
+## Publication of the consumer-proof records
+
+On 25 November 2026, Andrew Spiteri authorized pushing these records and the
+related CIS source corrections to their existing feature branches without
+merging. This publication preserves the installed candidate and completed
+WORK-002 proof above. The newer compiler-backed selector correction remains
+source-only. Local launch settings are excluded from the commit. Main merge,
+release and a broad impacted-test rollout remain outside this request.

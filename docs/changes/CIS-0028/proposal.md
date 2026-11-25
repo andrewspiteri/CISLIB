@@ -37,7 +37,7 @@ No roots declared. Supply roots to `cis impact analyse`.
 
 ## Authorized outcome and limits
 
-Derived from [the canonical authorization](authorization.json), decision `CIS-CURRENT-CONTEXT-2026-11-24:CONTROLLER-DISTRIBUTION:SOURCE79200-CONSUMER7200`, recorded for Andrew Spiteri. Tasks reference this shared context; their organization is not a separate human review.
+Derived from [the canonical authorization](authorization.json), decision `CIS-0005-D449DCF-REVIEW:DISTRIBUTION-SOURCE117000-CONSUMER12600:TOTAL129600-24ATTEMPTS`, recorded for Andrew Spiteri. Tasks reference this shared context; their organization is not a separate human review.
 
 Verify the corrected local CIS installation and focused RM-08 ownership/traceability/current native result reuse while preserving original product authority and evidence.
 
@@ -49,7 +49,7 @@ Verify the corrected local CIS installation and focused RM-08 ownership/traceabi
 - Retire only demonstrably disposable owned scratch after drain with retained hashes/reports. The exact reviewed RM02NuGetcache retirement receipt is retained under .cis/local/testing/current-context-correction.
 - This consumer allocation1800seconds/oneattempt is transferred from source WORK-007, whose local allocation is reduced to12600seconds/threeattempts. Source assigned84600/23 plus consumer1800/1 equals shared86400/24. All agents/intake/review/packaging/installation/native work share the same total.
 
-The total is 7,200 active seconds and 1 logical attempts, including 0 protected restoration seconds. Storage is 6,442,450,944 bytes including existing files and 67,108,864 protected reserve bytes.
+The total is 12,600 active seconds and 2 logical attempts, including 0 protected restoration seconds. Storage is 6,442,450,944 bytes including existing files and 67,108,864 protected reserve bytes.
 Owned roots: `.artifacts` (count only), `.cis/local`, `.cis/local/artifacts`, `implementations/csharp` (count only), `implementations/typescript` (count only).
 Controllers: Codex. Task organization: delegated; resource distribution within the total: delegated.
 Visual UI: not applicable; manual-test catalogue: no obligation recorded.

@@ -1,0 +1,22 @@
+{
+  "tasks": [
+    {
+      "title": "Install review-corrected CIS and repeat the exact RM-08 native check",
+      "scopeIds": [
+        "tool-adoption"
+      ],
+      "category": "implementation",
+      "complexity": "medium",
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "paths": [
+        ".cis/local",
+        ".artifacts/cis-context-correction",
+        "docs/changes/CIS-0028"
+      ],
+      "acceptanceCriteria": "Install the exact review-corrected source distribution through the unchanged explicit wrapper with byte-verified inventory and preserved rollback. Under this fresh owner run exactly the existing AC-10 acceptance case once, then verify unchanged with zero additional native launches. Preserve completed WORK-001, original reports and unrelated launch settings; no broader qualification is implied.",
+      "validation": "Retain source/build/install version and SHA256 manifests, use a fresh incremental unit profile selecting the same existing ConfigurationCentralAcceptanceTests.PairedInitializationUnchangedAcceptanceAndExplicitRemovalKeepOneRootAndTheActualRevision case, correlate the native TRX and settled execution, verify current evidence without rerun and record actual timings, hashes, costs and limitations."
+    }
+  ]
+}
