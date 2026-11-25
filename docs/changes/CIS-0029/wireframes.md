@@ -1,27 +1,26 @@
 ---
-title: "CIS-0029 textual wireframes — R04"
+title: "CIS-0029 textual wireframes — R05"
 type: textual-wireframes
-status: Approved
+status: Draft
 change_id: CIS-0029
-design_revision: R04
-approval_status: Approved
+design_revision: R05
+approval_status: NotReviewed
 authority: human-reviewed
 ---
 
-# Textual wireframes — R04
+# Textual wireframes — R05
 
-Andrew Spiteri approved the exact R03 desktop application/detail design and
-requested **Scheduled jobs** as an additive fourth detail tab. R04 retains the
-accepted application list, instance/version content, Configuration metadata and
-Capabilities. Instances remains the default. There are exactly four detail tabs
-and five screen definitions, all desktop backoffice; mobile remains excluded.
+Andrew Spiteri approved R04 and requested that selecting an item open details,
+suggesting a side panel. R05 adds one consistent read-only right-side panel to
+rows in Instances, Configuration, Capabilities and Scheduled jobs. Applications
+continues its approved navigation to the selected application's detail page.
+Five desktop backoffice screen definitions and the four tabs remain unchanged;
+Instances is still the default and mobile remains excluded.
 
-Only the Scheduled jobs addition and expanded tab row await screenshot approval.
-R03's native approval and exact hashes are preserved in Git commit `035e22c7`
-and native approval history. They do not pre-approve the unseen addition.
-Configuration writes, metadata edits, login, operation recovery and
-release/assignment/adoption remain deferred. No runtime scheduler or job control
-is added. See the [design brief](design-brief.md).
+Only the new row-details interaction awaits screenshot approval. R04's exact
+native approval and assets are preserved in local Git commit `ed65c3f1` and
+native history. No write, content/default disclosure, API invocation or runtime
+scheduling/control flow is added. See the [design brief](design-brief.md).
 ## Screen inventory
 
 | Screen ID | Frontend type | Name | Route/path | Platform | Actors/access | Entry points | Purpose |
@@ -97,6 +96,56 @@ The active route/tab is visually clear and keyboard reachable. Back to
 applications is available on each detail tab with RM09-I01 semantics below.
 Tab selection neither changes the application nor opens deferred workflows.
 
+## Shared item details side panel
+
+The four application-detail lists give each item name a visible keyboard-reachable
+link/button affordance. Clicking its row opens the same read-only details panel;
+text selection and nested controls do not trigger duplicate actions. Keep the
+existing Applications-to-application page transition unchanged.
+
+Use the governed dialog component as a right-aligned desktop variant, around
+600 px wide. The underlying application, active tab and selected row remain
+visible with a light backdrop; background controls are inert while open.
+The panel has a clear type/title, accessible Close details button and a body
+that scrolls independently. Opening moves focus into the named dialog; keyboard
+focus stays inside until Close, Escape or backdrop dismissal. Closing preserves
+list filters, cursor/report selection and scroll, then returns focus to the
+originating item. If that row disappeared, focus the list heading with feedback.
+No unsaved-change confirmation is needed because this panel cannot edit data.
+
+Open from the exact already returned authorized row/report, without an extra
+API request. Keep these selections distinct:
+
+| Row type | Exact selection identity | Read-only panel content |
+| --- | --- | --- |
+| Instance | applicationId + registrationId | Unverified reported label, registrationId, exact reported applicationVersion, presence, reported process-start time, registration receipt time, protocol major and optional last-seen/closed observations. Optional last seen says Not reported. |
+| Configuration | Exact application/environment + sourceId, retaining configuration/schema/binding identity | configurationId, schemaVersion, kind, environment, optional description and applicationId/bindingId/hostApplicationName for application-kind rows. No defaultsJson, payload, source-content fetch or edit controls. |
+| Capability | applicationId + operationId, retaining the actual descriptor | Full operationId/API version/method/descriptive path/required-capability list and matching advisory caller hint. Missing hint remains Not evaluated. No invoke link/action. |
+| Scheduled job | applicationId + registrationId + inventory.sequence + executionScope/jobId; selected observation additionally resourceId + mode | Job definition name/description, scoped identity/category, supportedModes and optional resource-scope description; selected resource's mode/state/open outcome/optional occurrence times; registration/version/sequence and dated observed/received report context. No inferred cadence or execution authority. |
+
+Job category lookup uses executionScope + categoryId. Scheduled support is
+separate from observed mode. Missing observation fields remain Not reported;
+unknown state/outcome strings retain their exact text. Do not show reported
+local effective configuration as central desired state, and do not turn
+optional observed ownership into current lease authority. Such extra diagnostics
+are outside this first panel's visible fields.
+
+Refresh must never rebind a panel by row position or display name. If the
+selected row/report changes or disappears, close obsolete details and explain
+that the list/report changed. Target, registration, inventory sequence, tab or
+filter changes clear obsolete selection. A permitted retained snapshot may stay
+open only with its original dated source context and stale feedback. Session or
+read-access loss clears the panel and protected background data immediately.
+Late obsolete responses cannot populate the panel.
+
+The job details preview is the primary new example; the other three detail
+states demonstrate the same shared interaction with their own actual fields.
+All thirteen planned images are synthetic. Pictures do not establish working
+focus trapping, click handlers, dialog accessibility or live reads.
+
+| Action ID | Label/control | Available when | User action | Result/side effect | Destination path | Destination screen | Failure/denied behavior |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| RM09-D01 | Close details / Escape / backdrop | A read-only details panel is open | Dismiss panel | Preserve the current tab/list/report context and restore originating focus; no mutation | Current /applications/11111111-1111-1111-1111-111111111111 detail-tab route | Current detail screen | Removed row returns focus to heading; access loss clears protected data. |
 ### RM09-APPLICATIONS: Applications reported to Management
 
 #### Description
@@ -201,6 +250,7 @@ convergence metric appears.
 | RM09-I03 | Next | Same-target continuation cursor exists | Activate Next | Read bounded next instance page | Current instance route with opaque next-page state | RM09-INSTANCES | Failed paging does not replace observations with an empty success state. |
 | RM09-I04 | Previous | Same-target previous cursor history exists | Activate Previous | Read prior bounded instance page | Current instance route with prior page state | RM09-INSTANCES | Invalid/changed cursor restarts the selected target's query with feedback. |
 | RM09-I05 | Retry | A selected-target read failed and read access remains valid | Activate Retry | Retry the visible application/instance read | Current instance route/page | RM09-INSTANCES | Keep unavailability explicit and never reveal an inaccessible or previously selected target. |
+| RM09-I06 | Instance item/row | Exact authorized instance row exists | Open details | Show the selected registration record in the shared side panel; no new read | /applications/11111111-1111-1111-1111-111111111111/instances | RM09-INSTANCES | No manufactured fields or prior-target reuse; close obsolete selection. |
 
 Shared RM09-T01–RM09-T03 switch tabs without changing the target or return
 context. They add no mutation or deferred workflow.
@@ -211,6 +261,7 @@ context. They add no mutation or deferred workflow.
 | --- | --- | --- |
 | RM09-I-LOADING | Initial target read | Selected target context/loading feedback; no fabricated version or instance rows. |
 | RM09-I-READY | Successful populated page | Per-instance reported versions, raw presence, last seen and bounded paging. Different versions remain separate. |
+| RM09-I-DETAILS | Selected row details open | Shared right-side read-only modal panel; exact retained item/report identity, Close/Escape/backdrop and focus return. |
 | RM09-I-EMPTY | Successful empty instance response | **No retained instance observations**. Explain that this does not establish whether a process is currently deployed or running. |
 | RM09-I-UNAVAILABLE | Initial target/instance read unavailable | **Instances unavailable**, persistent feedback and Retry; no zero-instance claim. |
 | RM09-I-STALE | Refresh failed with a valid permitted snapshot | **Snapshot may be out of date**, last successful fetch time, original source last-seen values and Refresh/Retry. Raw Active remains an old observation, not a current health assertion. |
@@ -261,6 +312,7 @@ Demo.CountryData. This is an illustrative descriptor, not a live source.
 | RM09-C02 | Next | Same-scope continuation cursor exists | Activate Next | Read the next bounded scoped page | Current configuration-list route with opaque next-page state | RM09-CONFIGURATION-LIST | Failed paging is unavailable/stale, not empty success. |
 | RM09-C03 | Previous | Same-scope previous cursor history exists | Activate Previous | Read the previous bounded scoped page | Current configuration-list route with prior page state | RM09-CONFIGURATION-LIST | Invalidated cursor restarts the scoped query with feedback. |
 | RM09-C04 | Retry | Scoped read failed and exact access remains valid | Activate Retry | Retry the same bounded read | Current configuration-list route/page | RM09-CONFIGURATION-LIST | Retain the prerequisite/access/error boundary; no fallback completeness claim. |
+| RM09-C05 | Configuration item/row | Exact authorized application-kind definition exists | Open details | Show only retained definition metadata in the shared side panel | /applications/11111111-1111-1111-1111-111111111111/configurations | RM09-CONFIGURATION-LIST | No content/default fetch; clear on exact-scope access loss. |
 
 Back uses RM09-I01; tabs use RM09-T01–RM09-T03. No row mutation/content action
 exists.
@@ -271,6 +323,7 @@ exists.
 | --- | --- | --- |
 | RM09-C-LOADING | Scoped read loading | Loading feedback within the active Configuration tab. |
 | RM09-C-READY | Successful scoped page | Only exact application-kind metadata; bounded paging and no totals/content. |
+| RM09-C-DETAILS | Selected row details open | Shared right-side read-only modal panel; exact retained item/report identity, Close/Escape/backdrop and focus return. |
 | RM09-C-EMPTY | Successful scoped response is empty | **No matching application configuration definitions**; do not claim absent runtime configuration. |
 | RM09-C-PREREQUISITE | Scoped query not delivered | Explicit dependency in review; production cannot substitute a partial global-page filter. |
 | RM09-C-UNAVAILABLE | Initial read failed | **Configuration definitions unavailable** and Retry, without fabricated rows. |
@@ -316,6 +369,7 @@ There is no execution button, metadata form or operation-recovery link.
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | RM09-K01 | Refresh | Exact application capability read is permitted | Activate Refresh | Reread implemented Management API descriptors/current-caller hints | /applications/11111111-1111-1111-1111-111111111111/capabilities | RM09-CAPABILITIES | Retain a dated permitted snapshot on network failure; remove it on read/session loss. |
 | RM09-K02 | Retry | Capability read failed and exact access remains valid | Activate Retry | Retry the same application capability read | Current capabilities route | RM09-CAPABILITIES | Persistent failure stays unavailable; do not invent APIs or hint decisions. |
+| RM09-K03 | Capability item/row | Exact authorized implemented descriptor exists | Open details | Show full descriptor and advisory caller hint without invoking it | /applications/11111111-1111-1111-1111-111111111111/capabilities | RM09-CAPABILITIES | Absent hint remains Not evaluated; no inferred permission or dispatch. |
 
 Back uses RM09-I01; tabs use RM09-T01–RM09-T03. API descriptors have no
 execution action.
@@ -326,6 +380,7 @@ execution action.
 | --- | --- | --- |
 | RM09-K-LOADING | Capability read loading | Loading feedback within the active Capabilities tab. |
 | RM09-K-READY | Successful descriptor response | Actual implemented APIs/current-caller hints; absent hints remain Not evaluated. |
+| RM09-K-DETAILS | Selected row details open | Shared right-side read-only modal panel; exact retained item/report identity, Close/Escape/backdrop and focus return. |
 | RM09-K-EMPTY | Successful response without implemented APIs | **No implemented API descriptors returned**; not a health or permission assertion. |
 | RM09-K-UNAVAILABLE | Initial read failed | **Management capabilities unavailable** and Retry. |
 | RM09-K-STALE | Refresh failed with permitted prior snapshot | Dated snapshot and original hint observations, without asserting current grants. |
@@ -392,6 +447,7 @@ its opt-in maintenance recipe. No new read API is required for this bounded view
 | RM09-J01 | Reported instance | Authorized complete inventory items on the current page | Select a registration report | Render its complete catalog with scheduled support; preserve exact application context | Current /applications/11111111-1111-1111-1111-111111111111/jobs with selected registration state | RM09-SCHEDULED-JOBS | Clear old rows if target/report changes; no report means no inventory, not no jobs deployed. |
 | RM09-J02 | Refresh / Retry | Exact inventory read remains permitted | Reread current page/report | Perform an authorized bounded read; no mutation | Current jobs route and inventory page | RM09-SCHEDULED-JOBS | Retain only permitted dated snapshots on outage; access loss removes protected data. |
 | RM09-J03 | Previous / Next inventory page | Prior cursor history / next cursor exists | Browse reports | Read another bounded page of complete registration reports | Current jobs route with query-bound opaque cursor state | RM09-SCHEDULED-JOBS | Invalidate stale cursor history and obsolete responses; do not imply job/fleet totals. |
+| RM09-J04 | Scheduled job item/row | Exact job in the selected registration report exists | Open details | Pin the scoped definition and selected resource/mode observation in the shared panel | /applications/11111111-1111-1111-1111-111111111111/jobs | RM09-SCHEDULED-JOBS | Changed report/sequence clears selection; absent observations remain unknown, not fabricated. |
 
 Shared tab actions RM09-T01–RM09-T04 and Back RM09-I01 apply here as well.
 
@@ -400,6 +456,7 @@ Shared tab actions RM09-T01–RM09-T04 and Back RM09-I01 apply here as well.
 | State ID | State | Visible behavior |
 | --- | --- | --- |
 | RM09-J-READY | Selected complete reported catalog | Exact scoped definitions and actual scheduled observations with dated source context. |
+| RM09-J-DETAILS | Selected row details open | Shared right-side read-only modal panel; exact retained item/report identity, Close/Escape/backdrop and focus return. |
 | RM09-J-LOADING | Initial read or report change | Clear obsolete rows, show loading and retain only safe selected application context. |
 | RM09-J-NOINVENTORY | Successful page has no retained report | No inventory reported; this does not establish that no jobs/processes are deployed. |
 | RM09-J-NOSCHEDULED | Selected complete catalog has no scheduled-support definition | No scheduled jobs reported in this snapshot; no fleet/global absence claim. |
@@ -410,10 +467,11 @@ Shared tab actions RM09-T01–RM09-T04 and Back RM09-I01 apply here as well.
 | RM09-J-INCOMPATIBLE | Required inventory shape invalid | Incompatible response; no manufactured definition/state/authority. |
 ## Desktop review frame inventory
 
-All frames use exactly **1600 × 1000** desktop layout. The accepted application
-list remains unchanged. R04 adds one Scheduled jobs primary preview and expands
-the detail tab row; the other bodies retain their approved R03 presentation.
-Preserved state variants make nine images. State variants do not add screens.
+All frames use exactly **1600 × 1000** desktop layout. The approved application
+list and four-tab structure remain. R05 adds four item-detail panel states to the
+nine existing reference/state images, for thirteen images over five screens.
+The main new review is Scheduled jobs details, with the same panel pattern on
+Instances, Configuration and Capabilities.
 | Frame ID | Screen ID | State | Review purpose |
 | --- | --- | --- | --- |
 | R02-F01 | RM09-APPLICATIONS | RM09-L-READY | Unchanged accepted list reference: filters, selection and bounded paging. |
@@ -424,7 +482,11 @@ Preserved state variants make nine images. State variants do not add screens.
 | R03-F04 | RM09-INSTANCES | RM09-I-EMPTY | Preserved no-retained-observations state beneath tabs. |
 | R03-F05 | RM09-INSTANCES | RM09-I-STALE | Preserved dated-snapshot refresh failure beneath tabs. |
 | R02-F06 | RM09-APPLICATIONS | RM09-L-UNAVAILABLE | Preserved initial unavailable/Retry state. |
-| R04-F01 | RM09-SCHEDULED-JOBS | RM09-J-READY | Scheduled jobs active; selected report context, scoped definition/resource observation and absent occurrence times. |
+| R04-F01 | RM09-SCHEDULED-JOBS | RM09-J-READY | Approved scheduled jobs list with row-details affordance. |
+| R05-F01 | RM09-SCHEDULED-JOBS | RM09-J-DETAILS | Main new preview: selected job and same report/resource observation in a right-side panel. |
+| R05-F02 | RM09-INSTANCES | RM09-I-DETAILS | Same panel pattern for one exact registration record. |
+| R05-F03 | RM09-CONFIGURATION-LIST | RM09-C-DETAILS | Same panel pattern for definition metadata only. |
+| R05-F04 | RM09-CAPABILITIES | RM09-K-DETAILS | Same panel pattern for a Management descriptor and advisory hint. |
 
 Other states are textually specified; further PNGs are not required to represent
 a complete state machine. No mobile/narrow frame is required. Desktop keyboard,
@@ -439,10 +501,11 @@ real-service/browser acceptance.
 | Accepted filterable application list | RM09-APPLICATIONS | RM09-L01–RM09-L07 | R02-F01, R02-F03, R02-F06 | Preserve accepted reference; P2 server search/authorized environments remain required. |
 | Accepted instance/version inspection and return | Both original screens | RM09-L03, RM09-I01–RM09-I05 | R03-F01, R03-F04, R03-F05 | Accepted version/presence semantics remain; approved shared tabs receive the additive Scheduled jobs destination. |
 | Requested four detail tabs | All four detail screens | RM09-T01–RM09-T04 | R03-F01–R03-F03, R04-F01 | Add Scheduled jobs to approved Instances, Configuration, Capabilities; same application, default Instances and preserved Back context. |
+| Item details | Four application-detail screens | RM09-I06, RM09-C05, RM09-K03, RM09-J04, RM09-D01 | R05-F01–R05-F04 | One read-only modal side-panel pattern; exact retained row/report, no added API/content/execution authority, focus/list context preserved. |
 | Scheduled job inspection | RM09-SCHEDULED-JOBS | RM09-T04, RM09-J01–RM09-J03 | R04-F01 and specified negative states | Existing inventory API, explicit registration report, scoped definitions/observations; no cron/cadence, inferred timing, fleet aggregate or control authority. |
 | Read-only application configuration list | RM09-CONFIGURATION-LIST | RM09-C01–RM09-C04 | R03-F02; scoped/empty/error states | Required bounded scoped query; no global-page completeness, common binding inference or default/content values. |
 | Management capabilities/current caller | RM09-CAPABILITIES | RM09-K01, RM09-K02 | R03-F03; absent-hint state | Actual implementedApis and exact operationId hint matching. Not evaluated is distinct from Allowed/Not allowed. |
-| RM09-AC01, RM09-AC02 | All five | No approval action in prototype | R03 approved; R04 addition pending | Exact new screenshot decision remains pending; prior approval/history are retained. |
+| RM09-AC01, RM09-AC02 | All five | No approval action in prototype | R04 approved; R05 details pending | Exact new screenshot decision remains pending; prior approval/history are retained. |
 | RM09-AC04, RM09-AC05, RM09-AC17 | All five | All reads/tab actions | Denied, incompatible, target/tab change | Exact scoped authorization, response compatibility, opaque identity and exact strings/timestamps remain required. No executable server schema. |
 | RM09-AC06 | RM09-APPLICATIONS | Filter/page actions | Accepted list reference | P2 remains required; no loaded-page global search. |
 | RM09-AC07 | RM09-INSTANCES, RM09-CAPABILITIES | Instance/capability reads | R03-F01, R03-F03 | Limited inspection only; Management APIs are distinct from instance inventory/admission/control. |

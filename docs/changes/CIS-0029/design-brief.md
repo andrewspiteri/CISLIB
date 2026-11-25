@@ -1,30 +1,26 @@
 ---
-title: "RM-09 application detail tabs design brief — R04"
+title: "RM-09 application detail tabs design brief — R05"
 type: design-brief
 status: Proposed
 change_id: CIS-0029
 frontend_type: backoffice
-design_revision: R04
+design_revision: R05
 design_approval: Pending
 baseline: "6c70cee807f12caddf40cd1b443e4a20045d35aa"
 ---
 
-# RM-09 application detail tabs design brief — R04
+# RM-09 application detail tabs design brief — R05
 
-Andrew Spiteri approved the exact R03 desktop application/detail design and
-requested an additional **Scheduled jobs** tab. Preserve the approved
-Applications, Instances, Configuration metadata and Capabilities bodies. The
-shared detail navigation now has four tabs, with Instances still the default.
-R04 reviews this additive tab and the expanded tab row, all desktop only.
+Andrew Spiteri approved R04 and requested item details, suggesting a side panel.
+R05 adds one consistent read-only right-side panel to Instances, Configuration,
+Capabilities and Scheduled jobs rows. The application list retains its approved
+page transition; the four tabs, default Instances and five screen definitions
+remain. Mobile and broader write/content/recovery workflows remain deferred.
 
-The [preserved specification](../../../planning/management/portal/sources/CISLIB_RM09_Management_Portal_Specification_v1.0.md)
-remains unchanged. Mobile, configuration values/writes, metadata editing, login,
-operation recovery and release/assignment/adoption remain deferred. Scheduled
-jobs is read-only reporting, not a scheduler or job-control framework.
-
-R03 approval is sealed in the native record and local Git commit `035e22c7`.
-It does not pre-approve the unseen addition. R04 has five screen definitions;
-its exact new screenshot review remains pending. Normal scope/plan/owner
+R04's exact native approval is preserved in Git commit `ed65c3f1` and native
+history. Only the new row-details interaction awaits screenshot review. It uses
+already returned authorized data and introduces no details API, content/default
+fetch, API invocation, scheduler or execution control. Normal scope/plan/owner
 reconciliation still precedes production work.
 ## Journey and screen scope
 
@@ -137,6 +133,38 @@ or Denied. A hint does not create an implemented API row, imply permission from 
 capability name or replace authorization of an actual read. Listing an API that
 can write does not expose a write workflow.
 
+## Shared item details panel
+
+Item labels within the four detail lists become keyboard-reachable links/buttons;
+row activation opens the same panel. Reuse the governed dialog as a right-aligned
+desktop variant around 600 px wide, with a light backdrop, selected-row context,
+Close details, independent body scrolling and a clear item title. Background
+controls are inert. Move focus into the dialog, keep it contained, and support
+Close, Escape and backdrop dismissal. Restore list/report/page/scroll and item
+focus; if the row disappeared, focus the list heading with feedback.
+
+Use exact retained response identity, never display name or row index. Instance
+selection uses application + registrationId; optional last seen remains Not
+reported. Configuration uses exact application/environment + sourceId, retaining
+configuration/schema/binding identity, with definition metadata only and no
+payload/default values. Capabilities uses application + operationId and the full
+returned descriptor; paths stay descriptive and absent hints stay Not evaluated.
+
+Jobs pins application + registration + inventory sequence + executionScope/jobId.
+Its selected observation additionally includes resourceId + mode. Show definition
+name/scope/category/supported modes and the actual resource observation, outcome,
+optional occurrence times and dated report context. Support is not observed mode,
+enablement or authority; no cadence or run time is inferred. Do not add desired
+configuration, ownership controls or extra live reads to these panels.
+
+Refresh must not silently retarget a panel. Close obsolete selection when the
+row/report, application, tab, registration or sequence changes. A permitted stale
+snapshot retains its original dated basis; session/read-access loss clears the
+panel and protected background. No new API is required for panel opening.
+
+Primary new preview: Scheduled jobs details. Three additional detail-state
+previews demonstrate the same pattern for Instance, Configuration and Capability
+metadata. Pictures do not prove working click/focus/dialog behavior.
 ## Scheduled jobs tab — reported inventory only
 
 Use existing listInventory(applicationId). Cursor pages contain whole
@@ -218,9 +246,8 @@ Retain white surfaces on `#F8FAFC`, navy `#0F172A`, secondary text
 14–16 px body text, 20–24 px titles and the 8 px spacing rhythm. Long identities,
 versions and API paths remain readable. Status uses text as well as color.
 
-Plan up to nine desktop frames at exactly **1600 × 1000**. The accepted R02
-Applications reference stays unchanged. R04 adds the Scheduled jobs primary
-preview and fourth navigation tab to the approved R03 detail presentation.
+Plan up to thirteen desktop frames at exactly **1600 × 1000**. The accepted R02
+Applications reference stays unchanged. R05 adds four shared item-details panel states to the approved R04 presentation.
 
 | Frame | Screen | Evidence |
 | --- | --- | --- |
@@ -232,7 +259,11 @@ preview and fourth navigation tab to the approved R03 detail presentation.
 | R03-F04 | RM09-INSTANCES | Preserved no-retained-observations state under shared tabs. |
 | R03-F05 | RM09-INSTANCES | Preserved dated-snapshot refresh failure under shared tabs. |
 | R02-F06 | RM09-APPLICATIONS | Preserved initial unavailable state with Retry. |
-| R04-F01 | RM09-SCHEDULED-JOBS | Selected reported registration, scoped scheduled job/resource observation and absent occurrence times. |
+| R04-F01 | RM09-SCHEDULED-JOBS | Approved jobs list with row-details affordance. |
+| R05-F01 | RM09-SCHEDULED-JOBS | Job definition and selected resource observation in the shared right-side panel. |
+| R05-F02 | RM09-INSTANCES | One exact registration record in the shared panel. |
+| R05-F03 | RM09-CONFIGURATION-LIST | Definition metadata only in the shared panel. |
+| R05-F04 | RM09-CAPABILITIES | Full Management descriptor and advisory hint in the shared panel. |
 
 Other loading/access/incompatible-response states remain specified textually;
 more PNGs are not required to claim a complete state machine. No mobile/narrow
@@ -266,7 +297,7 @@ hint; getConfigurationDefinitions with
 management.configuration.definitions.read and no hint (**Not evaluated**).
 These are descriptor rows only, never workflow controls or live grants.
 
-R03 is approved; the additive R04 Scheduled jobs design is pending exact rendered approval. No production UI, host dependency,
+R04 is approved; the additive R05 item-details design is pending exact rendered approval. No production UI, host dependency,
 administrative call or deployment is authorized by these files. The decision must
 identify the accepted reference and new tab additions within the five-screen
 desktop scope; broader RM-09 acceptance remains deferred.

@@ -17,7 +17,24 @@ new test result or deployment qualification. No native tests/builds, service
 access, database access or production changes were performed for this assessment.
 The visible design and its explicit user approval remain pending.
 
-## R04 Scheduled jobs addition
+## R05 item details addition
+
+R04 is natively approved and preserved in Git commit `ed65c3f1`. The user asked
+for item details and suggested a side panel. Instances, Configuration,
+Capabilities and Scheduled jobs can open read-only details from their existing
+authorized response objects; no panel-specific API is needed.
+
+Instance selection is application + registrationId, with optional lastSeenAtUtc.
+Configuration selection includes sourceId and exact application/environment,
+retaining configuration/schema/binding identity; no defaults or content fetch.
+Capability selection uses application + operationId and the actual descriptor;
+paths are descriptive and hints remain advisory. Jobs selection pins application,
+registration, inventory sequence and executionScope/jobId; selected observations
+add resourceId + mode. Do not retarget by display name/index after refresh.
+Access loss clears panel/background; changed report/target/tab clears obsolete
+selection. Close preserves list/report context and returns focus to the item.
+
+## R04 approved Scheduled jobs base
 
 R03 is now natively approved, with the exact prior checkpoint preserved in Git
 commit `035e22c7`. The user requested Scheduled jobs as an additive read-only

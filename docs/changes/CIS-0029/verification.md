@@ -194,3 +194,47 @@ Andrew Spiteri approved R04 (ok it is good) and requested an additive item-detai
 interaction, suggesting a side panel. Native `design approve` succeeded with
 Approved/Approved; exact hashes remain in its approval row and
 `rm09-r04-user-approval.json`. The unseen side panel is not pre-approved.
+
+## R05 item-details review preparation
+
+Andrew Spiteri approved R04 and requested item selection to open details,
+suggesting a side panel. The exact native R04 approval is retained in
+`rm09-r04-user-approval.json` and local Git commit
+`ed65c3f10e1f10a67cb61d8369fbb8af3711c6b4`. R05 is additive and does not reject
+or silently extend that approval to the unseen interaction.
+
+A narrow wireframe delta specifies one read-only modal right-side panel across
+Instances, Configuration, Capabilities and Scheduled jobs. Five existing screen
+IDs remain, with thirty read/navigation actions and four new detail states.
+Native validation/scaffold passed with wireframe digest
+`sha256:d55d6857e738aa933e4e6c958f6988946c8d76e4a72d8da48dcade8934253ff6`.
+The governed dialog component is selected as a right-aligned variant.
+A separate source-aware model review found no material field/identity/refresh
+issues. Panels use existing returned data, with no new details API or content
+fetch. Jobs selection explicitly includes resourceId + mode within the selected
+registration/sequence/scoped job. Configuration remains metadata-only.
+
+Documentation validation passed with zero errors and the existing 77 warnings.
+Fresh admission is 5,588,224,883 bytes under the existing 6 GiB ceiling, including
+fixed allowances/reserve and 32 MiB growth. R05 additive conservative estimates
+and exact metadata timings remain retained under the same proposed shared
+48-hour envelope, with review work redistributed to 14 hours and no reset,
+resource increase or production authority. All earlier costs/approvals remain.
+No package installation, service access, native consumer build/test, cleanup,
+push or merge is part of this review revision.
+
+R05 rendering and post-render native validation passed. All thirteen desktop
+artifacts and exactly one details state for each of the four detail screens were
+verified in the native manifest. All three application images match R04's native
+approval hashes byte for byte. Root inspected all four panel PNGs for identity,
+fields, readable bounds and the visible persistent Close control; no material
+issue was found. A separate context-limited model reader correctly identified
+the selected job/list relationship, overlay, Close control, definition/resource/
+report distinction, unknown occurrence times and synthetic/read-only boundary.
+No material clipping or confusing labels were found. This is model/visual review,
+not human usability, browser/focus interaction, accessibility or service proof.
+
+The exact current renderer/result hashes and all thirteen links are recorded in
+review-package.md. The checkpoint is PausedForReview/ReadyForReview, with only
+the new item-details interaction awaiting a human decision. R04's prior exact
+approval remains retained. No production work resumed.
