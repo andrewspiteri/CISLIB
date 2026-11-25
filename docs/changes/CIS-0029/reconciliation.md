@@ -17,6 +17,28 @@ new test result or deployment qualification. No native tests/builds, service
 access, database access or production changes were performed for this assessment.
 The visible design and its explicit user approval remain pending.
 
+## R02 current review slice
+
+The latest user requested desktop-only applications and instance versions,
+step by step. R02 therefore reviews only a filterable applications list and a
+selected application's instance page. Other screen mappings below are retained
+future assessment, not the current UI approval scope. Mobile is excluded.
+
+The existing `Instance.applicationVersion` is required registration-time text
+(1–512 characters). It comes from the application's selected registration
+version, normally the entry application's service version. Show it per instance
+as **Reported app version**; different instances may report different values.
+Later presence updates do not refresh this version assertion. Use the raw
+`active`/`stale`/`closed` presence and separate optional `lastSeenAtUtc` (displayed
+as Not reported when absent). A reported instance label is unverified; opaque
+`registrationId` identifies the process-incarnation record.
+
+No version API addition is needed. Application rows expose neither instance
+counts, versions nor current deployment-state aggregates. Known applications can
+outlive retained instances. P2 server filtering/authorized environments and the
+production human/native authorization boundary remain relevant prerequisites;
+P3/P4 configuration/cohort work is deferred with those screens.
+
 ## Current delivered boundary
 
 Use the canonical [OpenAPI](../../../contracts/management/v1/openapi.json),

@@ -1,169 +1,195 @@
 ---
-title: "RM-09 Management Portal design brief"
+title: "RM-09 application and instance inspection design brief — R02"
 type: design-brief
 status: Proposed
 change_id: CIS-0029
 frontend_type: backoffice
+design_revision: R02
 design_approval: Pending
 baseline: "6c70cee807f12caddf40cd1b443e4a20045d35aa"
 ---
 
-# RM-09 Management Portal design brief
+# RM-09 application and instance inspection design brief — R02
 
-This brief guides the versioned rendered-screen review package for the
-[preserved specification](../../../planning/management/portal/sources/CISLIB_RM09_Management_Portal_Specification_v1.0.md).
-All screens are backoffice. The design is pending explicit user approval; this
-brief, the imported specification and the implementation plan do not approve an
-unseen experience. The review package must identify its exact revision/content
-and bind the principal journeys, state variants and API prerequisites to the CIS
-approval checkpoint before production UI implementation.
+R02 follows the user's request to proceed step by step: first show a filterable
+list of applications, then open an application to see its instances and their
+reported application versions. This is a **desktop-only, read-only backoffice
+review slice** with two screen templates. Mobile is no longer required by the
+latest instruction.
 
-## Navigation and three principal journeys
+The broader [preserved specification](../../../planning/management/portal/sources/CISLIB_RM09_Management_Portal_Specification_v1.0.md)
+remains future scope. Configuration, metadata editing, operation recovery,
+release/assignment/adoption journeys and their prerequisites are deferred beyond
+R02; this smaller review does not discard them or satisfy their acceptance
+criteria. R02 has no configuration, metadata-edit, operations or sign-in screens,
+and no future-placeholder navigation.
 
-Use one operational workspace with **Applications**, **Configuration** and
-**Operation receipts** navigation. Applications is the landing view; no fleet
-dashboard or unsupported aggregate cards are needed. Keep the selected environment
-visible in the shell and repeat the exact environment/application in every change
-review. Application identity is separate from editable display metadata. Link the
-screen set through numbered journey steps and explicit forward/back destinations;
-the review must show how an operator reaches a result and recovers from failure.
+R01 was rejected for revision. These proposed R02 documents do not record human
+approval, replace the rejection history or resume production work. The CIS design
+checkpoint remains **PausedForReview** until an explicit decision binds the exact
+rendered R02 content and its limited scope. Approval of this slice would not
+approve the broader portal or close RM-09.
 
-| Journey | Connected screens and decisions | Required branch |
+## Journey and screen scope
+
+| Step | Screen | Purpose | Forward/back behavior |
+| --- | --- | --- | --- |
+| 1 | RM09-APPLICATIONS — /applications | Find applications reported to or known to Management, using name/identity and an authorized environment filter. | Select an application name or row to open its exact application ID. |
+| 2 | RM09-INSTANCES — /applications/11111111-1111-1111-1111-111111111111/instances | Inspect the selected application's retained instance observations, reported application versions, raw presence and last-seen times. | Back restores the list's filters, query-bound page/cursor history, scroll and originating focus. |
+
+A simple desktop header supplies the Management context and current page.
+Applications is the only navigation destination in this slice; there is no
+multi-area rail. On detail, keep the selected application's display name,
+canonical application identity and environment visible above the instance table.
+Refresh acts on the current view.
+
+The product may use **Deployments** as a section heading, with **Applications**
+as the list title. Source copy must make clear that these are applications
+reported to or known to Management. A stored application is not proof that a
+process is currently deployed or running; an empty instance response is not proof
+that nothing is deployed.
+
+## Applications screen
+
+Place a persistent **Search applications** field, described as **Name or
+identity**, beside an **Environment** selector. **Apply filters** commits the
+query; **Clear filters** restores the unfiltered authorized query and resets its
+cursor. The environment selector contains authorized environments only. Do not
+add version, presence or health filters in R02.
+
+The table contains application display name, canonical identity and environment.
+The application name is a keyboard-accessible link; clicking its row opens the
+same destination without making text selection or keyboard focus ambiguous.
+Resolve the target by its application ID, never by editable display name.
+The list contract does not supply instance counts, current versions, fleet totals
+or deployment health, so the table and surrounding page show none of these.
+Do not derive rollups from the currently loaded page.
+
+Use bounded pages with Previous/Next controls only when their corresponding
+query-bound cursor/history exists. Do not imply a total page or application
+count. Filter changes invalidate old cursors; obsolete responses cannot overwrite
+the newly selected query.
+
+## Instances screen and version meaning
+
+The table contains **Instance**, **Reported app version**, **Presence** and
+**Last seen**. Under Instance, distinguish the reported instance label from the
+opaque instance identity. A reported label is unverified display text; it is not
+a verified host, process identity or address.
+
+Use the delivered required `Instance.applicationVersion` string, bounded to
+1–512 characters. Preserve the exact reported text; do not parse it as a semantic
+version or choose the greatest-looking value. Supporting copy says:
+
+> Version reported by this process when it registered.
+
+The registration captures the version once. A later last-seen observation updates
+presence evidence; it does not reread the version or prove the same version is
+executing now. Label the value **Reported app version**, rather than presenting
+it as a verified live/current version.
+
+Different instances may report different versions. Display each row faithfully;
+do not invent a single application-wide current version. `metadataRevision`
+belongs to display metadata and is not an application version, runtime version or
+CIS/library version. Keep metadata revision and ETag out of this slice's main UI.
+A missing required applicationVersion is not a valid normal record to render as
+a made-up version.
+
+Presence displays **Active**, **Stale** or **Closed** for the supplied `active`,
+`stale` or `closed` value, with text and
+a restrained visual cue. These describe registration observations, not health.
+Show optional `lastSeenAtUtc` as Last seen, with a dated CET display and accessible
+exact source timestamp, or **Not reported** when absent. Do not recalculate
+presence from a browser timer. Unknown future values retain their exact text and
+remain explicitly unknown; they never fall back to Active.
+
+The table is bounded and independently paged. No total, healthy count, convergence
+percentage, restart, deployment control or configuration tab appears.
+
+## Contract map and prerequisites
+
+| Surface | Existing evidence | Required boundary |
 | --- | --- | --- |
-| 1. Inspect, edit and recover | Applications -> application detail -> Instances/Inventory -> Edit metadata -> Review exact target and before/after fields -> operation receipt -> refreshed detail | Concurrent edit retains a permitted draft for a fresh review. Lost response leads to original-key lookup and a recovered result, including separate cleanup diagnostics. |
-| 2. Publish, release and assign | Configuration sources -> exact source JSON -> Validate -> publication review/result -> exact common/application pair preview -> Create release -> whole-map canary assignment review/result -> Adoption | Invalid JSON/structural issues return to the draft. Preview is side-effect free; publication does not activate; release creation does not assign. A changed precondition requires renewed review. |
-| 3. Observe, promote and roll back | Adoption -> Promote with explicit canary retention/removal -> whole-map review/result -> Adoption -> Open known earlier release -> verify exact binding -> rollback map review/result | Mixed adoption and restart requirements remain visible. Outage preserves a dated snapshot with writes disabled; session/grant loss removes protected data. Reconnect refreshes authority/state before a fresh explicit action. |
+| Application rows | `listApplications`: identity, environment, display metadata, revision and ETag; bounded `pageSize`/`cursor`. | No application version, instance count, fleet total or current deployment-state aggregate. |
+| Requested application filters | Current application paging accepts only `pageSize` and `cursor`. | **P2: bounded authorized server search by application name/identity and environment, plus authorized environment enumeration, remains required.** Do not claim current paging implements these filters. |
+| Selected application | `getApplication` for the exact application ID. | Authorize the resolved target. List context or an old snapshot does not establish current read access. |
+| Instance rows and versions | `listInstances`: required `applicationVersion`, opaque process-incarnation `registrationId`, unverified `reportedInstanceId`, presence and optional `lastSeenAtUtc`; bounded paging. | No new version API is needed. Existing instance paging has no version, environment or presence filter. |
+| Human/session boundary | Existing per-call/server-only boundaries remain relevant. | Real human/delegated authority remains a production prerequisite; R02 does not add or approve a sign-in screen. Protected data must be removed on session/access loss. |
 
-Reuse a small screen family: application list; application detail with Instances,
-Inventory and Capabilities sections; metadata edit/review; operation receipt;
-configuration source/history/editor; release and assignment review; adoption.
-Configuration is reachable from the application context and the source index.
-Long administrative reviews are pages, not cramped dialogs. Operation receipts
-show this session's incomplete list and can open a known reference; they are not
-a global operation history or Audit archive.
+The rendered synthetic review may demonstrate the intended filters over its
+complete demo fixture, with P2 identified in the review notes. Production may not
+substitute loaded-page search or first-page environment discovery for the
+requested whole-query behavior. Proposed portal query state is not evidence of
+existing Management API query parameters.
 
-## Visual system
+## State and return behavior
 
-Use the CIS default reference palette: white surfaces on `#F8FAFC`, dark navy
-text `#0F172A`, secondary text `#334155`, blue primary actions `#2563EB` and
-borders `#CBD5E1`. Success, warning and error
-use text/icon labels as well as restrained color. Verify contrast for actual
-foreground/background pairs; color alone never communicates status.
+Both templates distinguish loading, successful empty data, no filter matches,
+access loss and initial unavailability. Initial failure shows unavailable with
+Retry, never fabricated zero applications or instances.
 
-The preview embeds Inter v4.1, with its SIL Open Font License notice retained.
-Use 14-16 px body text, clear 20-24 px page titles,
-monospace IDs/JSON/exact timestamps, an 8 px spacing rhythm, approximately 40 px
-controls and compact rounded corners. Tables have readable headers and aligned
-values; forms have persistent labels, associated errors and a stable action row.
-Reserve a persistent feedback region for actionable failures and completed
-results. Toasts may supplement it but cannot be the only result record.
+A valid-session refresh failure may retain a clearly dated last successful
+snapshot. Mark it **Snapshot may be out of date**, expose the last successful
+fetch time and failure feedback, and offer Refresh/Retry. Preserve the source
+last-seen times and raw presence values; do not recolor old Active rows as proof
+of current activity. An instance table's empty response says **No retained
+instance observations** and does not say no deployed or running processes.
 
-The disposable review renderer uses CIS SVG templates and pinned Sharp 0.35.5
-(Apache-2.0) in ignored tooling. The proposed production component approach is
-Radix Primitives with authored CSS, isolated to the portal host/UI. Radix's
-[MIT license](https://github.com/radix-ui/primitives/blob/main/LICENSE) requires
-retaining its copyright and permission notice. Verify supported production
-versions and compatibility before pinning; the existing client workspace has no
-UI toolkit to inherit. No production Next/React/session dependency is installed
-by this preview.
+A denied/deleted target does not reuse a prior application's rows. Session or
+read-access loss clears protected content. This slice has no offline queue,
+mutation, original-operation receipt or automatic action replay.
 
-## Screen content and truthful capabilities
+Back restores the selected list query, cursor history and scroll position, then
+returns keyboard focus to the originating application link when it still exists.
+If it no longer exists, focus the list heading and explain the refreshed result.
+Recheck access and refresh data as needed; restored navigation context must not
+make a cached snapshot appear fresh. Target/query switches invalidate in-flight
+responses that belong to the previous view.
 
-The current baseline has thirteen foundation and nineteen configuration APIs;
-the attachment's older RM-08 absence is not the current implementation state.
-Discovery still determines which compatible handlers a deployed service exposes.
-Each rendered action must identify its implemented contract or prerequisite.
+## Visual system and desktop evidence
 
-| Surface | Delivered contract and truthful presentation | Prerequisite or limit |
+Retain the CIS palette: white surfaces on `#F8FAFC`, dark navy `#0F172A`,
+secondary text `#334155`, blue `#2563EB` and borders `#CBD5E1`. Use Inter,
+14–16 px body text, 20–24 px titles, an 8 px spacing rhythm and clear table
+headers. Keep source IDs and exact timestamps readable. Long identities and
+versions wrap without losing their full value. Status must use text as well as
+color.
+
+Propose six desktop frames at exactly 1600 × 1000, all using these two
+templates:
+
+| Frame | Screen | Evidence |
 | --- | --- | --- |
-| Application list/environment | `listApplications`; identity, environment and display metadata, with bounded server pages | **Required addition:** bounded server search by environment/application identity/display name, plus authorized environment enumeration. Current `PageRequest` accepts only page size/cursor. Do not substitute loaded-page search or first-page environment discovery. Reset query-bound cursors on filter change. |
-| Detail/instances/inventory | `getApplication`, `listInstances`, `listInventory`, `getCapabilities`; identity evidence, presence, historical observations, complete reported inventories and timestamps | No operator-facing admission projection or remote restart. Do not call another workload's self-control API. Reported ownership is a time-qualified observation, not lease authority. Opaque detail is bounded escaped text/JSON. |
-| Metadata edit/recovery | `replaceMetadata`, `getMetadataOperation`; display name/description only, strong ETag and original key | Omitted description clears it; explicit null rejects. Require target read, write and lookup eligibility. Show business decision, original completion, result source and current cleanup separately. |
-| Source discovery/content | `getDefinitions`, `getSource`, `getPublication`; exact configuration/schema/source/binding and paged immutable publication metadata | Definitions are globally authorized pages, not an automatically complete application-specific list. Defaults/content require separate source authority. Definition descriptors have no declared update mode; show reported per-instance mode or "Not reported". |
-| Validation/publication/preview | `validate`, `publishSource`, `preview`, `getPublicationOperation`; preserve reviewed exact payload and immutable references | Preview supplies redaction, path/kind changes, issues, current map and recipient observations, not before/after values. A source-text diff needs authorized original content and is separate from server structural preview. Never compute runtime defaults or promise typed consumer acceptance. |
-| Release/map/adoption | `createRelease`, `getRelease`, `getAssignments`, `replaceAssignments`, `getStatus` and matching original-key lookups | **Required addition:** bounded authorized binding-scoped configured cohort discovery for the canary picker. Current pins/live recipients cannot enumerate an offline/new configured canary. Do not accept arbitrary instance labels as groups. |
-| Rollback | Open an exact known earlier release ID with `getRelease`, verify its binding, then review the complete replacement map | There is no release-history list API. Label known/current/recorded references honestly; no new history API is needed for this initial flow. Rollback advances generation and retains unrelated deliberate overrides. |
-| Human session/action eligibility | Existing per-call credential and server-only projection boundaries | **Required additions:** real Entra human/delegated sign-in independently validated by Management, and narrowly scoped configuration read/write/recovery eligibility. Existing workload Entra support and foundation caller hints do not supply these. No broad permission framework or privilege borrowed from the portal application. |
+| R02-F01 | RM09-APPLICATIONS | Populated list, name/identity search, environment filter and bounded paging. |
+| R02-F02 | RM09-INSTANCES | Selected application with differing reported versions, Active/Stale/Closed presence and last-seen evidence. |
+| R02-F03 | RM09-APPLICATIONS | Successful query with no matching applications and Clear filters. |
+| R02-F04 | RM09-INSTANCES | Successful response with no retained instance observations. |
+| R02-F05 | RM09-INSTANCES | Refresh unavailable with a clearly dated retained snapshot. |
+| R02-F06 | RM09-APPLICATIONS | Initial service unavailability with Retry and no fabricated rows or totals. |
 
-Keep the portable clients, Next.js server/session host and presentation layers
-separate. Current workspace pins Node 24.15.0, npm 11.12.1 and TypeScript 5.9.3;
-there is no installed Next/React portal or browser-test framework. Pin supported
-host dependencies during implementation without moving them into the client
-packages. Every server action and underlying API must authorize the actual target.
-Keep credentials server-only and expose minimal authorized display DTOs.
+Loading, denied/session-loss and obsolete-response behavior are specified in the
+wireframes; these six pictures must not be described as complete implementation
+or end-to-end acceptance evidence. No mobile/narrow frames are required. Desktop
+zoom, keyboard reachability, visible focus, labels, non-color status and announced
+feedback remain relevant. A picture cannot establish working keyboard or
+accessibility behavior.
 
-## Synthetic review data
+## Synthetic review data and approval boundary
 
-Every plate carries **DEMONSTRATION - synthetic data**, a fixed demo snapshot time
-and no claim of actual authorization, server health or deployment. Use six demo
-applications across two explicitly demo environments; the main target is
-`Demo.CountryData` in `Demo staging`. Stable canonical UUIDs and opaque ETags link
-the same target/source/publication/release/receipt across all journey steps.
+Every frame carries **DEMONSTRATION — synthetic data** and fixed snapshot
+`2026-11-25T10:00:00.0000000Z` (25 Nov 2026, 11:00 CET). Use
+`Demo.CountryData`, display name `Country data service`, in `Demo staging`,
+application ID `11111111-1111-1111-1111-111111111111`. Other list rows may use
+the existing synthetic application fixture and a second explicitly demo
+environment; no live service or identity is implied.
 
-Use `country.settings`, schema `"1"`, with the maintained CountrySettings shape:
-`SourceUrl`, `RefreshInterval`, `RequestTimeout`, `RetryPolicyName`. A synthetic
-common source can contain exactly
-`{"RefreshInterval":"01:00:00","RequestTimeout":"00:00:10"}`; an application
-source can set `SourceUrl` and `RetryPolicyName: null`. No URL is fetched. JSON
-content null is separate from forbidden metadata-command null.
+Use exact illustrative reported versions such as `2.4.2+build.18` and
+`2.4.1` in different instance rows. Reported instance labels are explicitly
+synthetic/unverified. Preserve the distinction between snapshot fetch time,
+registration-time version evidence and last-seen observation time.
 
-Use metadata revision `"12"`, assignment generations `"41"`/`"42"`, three known
-immutable release references and `canary` labeled as a synthetic trusted mapping
-whose production picker needs the stated prerequisite. Include six recipient rows
-covering all required adoption states, plus stale/offline and no-recipient
-variants. Do not invent fleet totals, grants, verified process identities or
-fresh-convergence percentages. Show a visible CET timezone and preserve the exact
-seven-fraction UTC source timestamp in diagnostic detail. Include an Int64 above
-2^53 in a state variant to demonstrate exact string handling.
+The review is proposed R02 content only. No production UI, host dependency,
+administrative call or deployment is authorized by these files. The eventual
+human decision must identify the exact rendered revision/content and the
+two-screen desktop scope; broader RM-09 acceptance remains deferred.
 
-## State, recovery and responsive requirements
-
-Provide loading, no-authorized-data, no-results, denied, unavailable, stale,
-validation-error, concurrent-update, unresolved-result and expired-session
-variants within the journeys. Initial failure displays unavailable, not fabricated
-zeros. A valid-session outage may retain the last snapshot with its fetch and
-observation times; disable new changes and queue nothing. On reconnect, refresh
-session, capabilities, target state and tokens before writes. Target/identity
-switch invalidates prepared confirmations and prevents late-response replacement.
-
-Retain the original key before submission. Uncertainty offers original lookup,
-not automatic mutation retry; NotFound does not prove rollback. A synchronous
-metadata command has no invented queued/running lifecycle. Recovered commitment
-remains committed if lookup cleanup later fails. Cancel waiting does not undo an
-accepted effect. Bound same-user payload-free receipts; clear them on sign-out or
-user switch. Revoked lookup leaves the outcome unresolved without revealing it.
-
-Sensitive content is removed before browser delivery. Redacted defaults are not
-empty defaults, and a mask is not an editable value. Preserve drafts only while
-permitted, in memory by default. Keep exact JSON bytes, decimal Int64 strings,
-opaque ETags/cursors and exact timestamps; do not round-trip authoritative source
-numbers through JavaScript Number. Enforce finite payload/page/cache/receipt/call
-limits. Provisional polling is 10 seconds for visible inventory/adoption and a
-2-second original-result polling interval for at most 60 seconds, then the normal
-10-second interval, subject to provider limits. Pause hidden views and allow
-manual refresh. UI timers never determine admission.
-
-Adoption shows desired release/generation, reported applied provenance/local
-revision, last success where supplied, observation/receipt times and independent
-registration/adoption freshness. Preserve Pending, Applied, AppliedUnchanged,
-Rejected, PendingRestart and Faulted; unknown states remain unknown. Faulted does
-not claim safe live last-known-good values. Stale historical success and zero
-observed recipients do not count as fresh convergence. No unsupported restart
-action accompanies PendingRestart or rollback.
-
-Desktop evidence uses an approximately 208 px navigation rail and a flexible
-content region with tables and a side-by-side editor/review where useful. Narrow
-evidence at approximately 390 px uses a drawer, stacked forms/reviews and visible
-environment/target above content. The whole page reflows at zoom; dense tables may
-use a labeled local scroll region. Long IDs wrap or expose accessible detail/copy
-controls. Target WCAG 2.2 AA: keyboard reachability, visible unobscured focus,
-associated labels/errors, non-color status cues, announced status updates and
-dialog focus return. Rendered pictures demonstrate intended focus/layout; actual
-keyboard and accessibility behavior needs implementation verification.
-
-The review pack must visibly connect the three journeys and include metadata
-conflict/recovery, source/release review, complete promotion/rollback maps, mixed
-adoption and representative narrow/session/outage states. It must show dependency
-labels without inactive future-product navigation. No prototype performs real
-administrative mutations, and synthetic/rendered evidence does not establish
-real-service acceptance or live Entra deployment.

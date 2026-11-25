@@ -51,3 +51,45 @@ reports unchanged. Installation receipts are in
 `.cis/local/testing/main-install-20261125/`; this dated proof precedes RM09 draft
 document edits. It does not claim a new consumer native execution or full source
 qualification.
+
+## R02 review continuation
+
+Andrew Spiteri requested changes to R01: no mobile, and begin with a filterable
+application list followed by selected application instances and their reported
+versions. Native `design reject` retained the exact R01 decision/hashes and
+removed rejected PNGs; local Git commit `d4ce9478` preserves the earlier draft.
+No R02 approval or production resumption is inferred.
+
+R02 wireframe validation found two heading-level errors, retained the failed
+result, then passed after correction. A separate source-aware review caught the
+actual registration identity (`registrationId`, not `instanceId`) and optional
+last-seen field. Those corrections were applied before regenerating the native
+scaffold. Version reporting already exists; no new version API is required.
+The corrected native wireframes contain two backoffice screens and twelve read
+or navigation actions. Their digest is
+`sha256:f423833ca481701d21886592d67471c57b87b780ed980d58fa32bc2dee1fd09a`.
+Receipts are retained under local configuration-publication-intake with
+`rm09-r02-*` names. Only review documents and synthetic design assets changed.
+These checks are not browser, keyboard, accessibility or product test passes.
+
+R02 rendering completed successfully: six desktop PNGs at 1600 × 1000, using
+Sharp 0.35.5/libvips 8.18.7. The native gate is **PausedForReview** and approval
+state is **ReadyForReview**, with no human R02 decision. The pre-render design
+validation correctly reported missing new PNGs after rejection; the normal
+render command generated them, and post-render native validation passed. Both
+results and costs remain retained.
+
+Root visually inspected all six PNGs. A separate context-limited model reader
+inspected only the two primary screenshots and correctly identified filtering,
+selection/back navigation, per-instance registration versions, presence limits
+and synthetic data. No material clipping, overlap or task confusion was found;
+the reader noted the minor ambiguity of a Current page label without a page
+number. These are model-assisted/source and visual reviews, not real-user
+usability, browser, accessibility or native product test evidence.
+
+The exact renderer/result hashes and all six links are in review-package.md.
+R02's additive conservative preparation accounting and fresh storage admission
+are retained under `.cis/local/testing/rm09/r02-*`. The measured admission is
+5,578,552,596 bytes under the unchanged 6 GiB ceiling with 32 MiB image-growth
+headroom, fixed allowances and reserves included. Earlier costs and failures
+are retained. No cleanup, resource reset or new production authority is claimed.
