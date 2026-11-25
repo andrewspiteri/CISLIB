@@ -17,7 +17,33 @@ new test result or deployment qualification. No native tests/builds, service
 access, database access or production changes were performed for this assessment.
 The visible design and its explicit user approval remain pending.
 
-## R02 current review slice
+## R03 current review slice
+
+The user accepted the application/instance direction and requested three tabs on
+the selected application's detail screen: Instances, Configuration and
+Capabilities. Keep the application list and instance-version content; only the
+tabbed detail presentation is being revised. Mobile remains excluded. The wider
+screen mappings below remain future assessment.
+
+Configuration lists application-kind `ConfigurationDefinition` metadata for the
+exact selected `applicationId` and `environment`: `configurationId`,
+`schemaVersion`, `hostApplicationName`, `sourceId` and `bindingId`. Omit optional
+defaults and content values. Common definitions have no application/binding/host
+identity, so an arbitrary common row cannot be associated with an application.
+Current `getDefinitions` supports global pageSize/cursor only. A bounded exact
+application/environment query is an additional prerequisite for a complete
+selected-application list; filtering a loaded page is insufficient.
+
+`getCapabilities(applicationId)` supplies `implementedApis` (operationId,
+version, method, path and requiredCapabilities) and `callerHints` (operationId,
+allowed). This is Management API discovery with advisory current-caller hints,
+distinct from reported instance module/category/Job inventory. The current
+service emits foundation API hints but appends configuration features without
+configuration hints. Missing hints remain **Not evaluated**, never inferred
+Allowed or Not allowed. Actual calls still require native authorization.
+No edit/publication/assignment/recovery flow is added by these read-only tabs.
+
+## R02 accepted base direction
 
 The latest user requested desktop-only applications and instance versions,
 step by step. R02 therefore reviews only a filterable applications list and a

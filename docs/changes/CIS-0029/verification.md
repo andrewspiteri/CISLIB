@@ -93,3 +93,62 @@ are retained under `.cis/local/testing/rm09/r02-*`. The measured admission is
 5,578,552,596 bytes under the unchanged 6 GiB ceiling with 32 MiB image-growth
 headroom, fixed allowances and reserves included. Earlier costs and failures
 are retained. No cleanup, resource reset or new production authority is claimed.
+
+## R03 application detail tabs review
+
+Andrew Spiteri accepted the R02 application/instance direction and requested
+Instances, Configuration and Capabilities tabs. R02 is preserved in local Git
+commit `6176b895d423ddfbf76936733432191bd2287782`. The native requested-revision
+receipt records that partial acceptance and the material navigation change;
+it does not manufacture blanket approval of the unmodified full R02 manifest.
+Only review work continues; production remains paused and mobile excluded.
+
+The R03 wireframes contain four screen definitions and twenty-one read/navigation
+actions. An independent source-aware check verified the ConfigurationDefinition
+and capability/caller-hint boundaries. It caught a documentation regression in
+already accepted instance fields; registrationId, optional lastSeenAtUtc with
+Not reported, lowercase presence mapping and defaultsJson spelling were restored
+before renderer work. Both initial and corrected native scaffold receipts/costs
+remain retained. The corrected wireframe digest is
+`sha256:06582aab7edb438721e3d82c72c08761839474932dbc02cc6fc6e3271e6b155a`.
+Documentation validation passed with zero errors and the same 77 existing
+warnings. Scoped definition completeness remains an explicit prerequisite;
+current global discovery is not presented as complete selected-app filtering.
+
+Fresh R03 storage admission is 5,580,965,481 bytes under the unchanged 6 GiB
+ceiling, including fixed allowances/reserve and 32 MiB renderer/image growth.
+The proposed 48-hour shared envelope and historical costs are unchanged; additive
+R03 conservative estimates are recorded under `.cis/local/testing/rm09/`.
+No production package install, service access, native consumer test, build,
+push or merge is part of this review revision.
+
+R03's eight desktop frames rendered and post-render native validation passed.
+The final renderer is
+`071d759ed388a2852f15ce82ff9a07ceb3e072991df4e1c50774be8c33ae24b4`;
+the final native render-result hash is
+`8450342bbf6487b7bf961ac8b469f8374d4c3ad92f52714d317b21f29a00dab4`.
+The gate is PausedForReview/ReadyForReview; R03 has no human decision yet.
+
+Root inspected all five detail-state PNGs and corrected one orphaned letter
+wrap in the capabilities column. All three application PNGs match accepted R02
+reference hashes byte for byte; comparison evidence is retained locally and is
+not presented as native approval reuse. A separate context-limited model reader
+of the three primary detail PNGs identified the tabs, consistent target, metadata
+only configuration list, advisory Management capabilities and absent-hint
+meaning correctly, with no material clipping or confusion. These are visual/model
+checks, not real-user usability, accessibility or browser/service tests.
+
+The first column-fix rerender encountered one PNG write error; an exclusive
+read-open then succeeded and a bounded retry through the normal native command
+completed. The cause was not established. The failed receipt/cost and successful
+retry are both retained. No manual PNG edits, cleanup or hidden result
+replacement was performed. The final package index binds all eight output hashes.
+
+## R03 human approval
+
+Andrew Spiteri accepted the R03 image and requested Scheduled jobs as an
+additive follow-up tab. Normal `design approve` succeeded, binding the exact
+R03 wireframe/renderer and the PNG manifest
+`sha256:ca0b5b2960776dd6a6d474807c80b54bb2ffc1ee94ef646e0f33847c1d070bc5`.
+The native approval receipt is `rm09-r03-user-approval.json`; the checkpoint is
+Approved/Approved. The unseen Scheduled jobs design is not pre-approved.

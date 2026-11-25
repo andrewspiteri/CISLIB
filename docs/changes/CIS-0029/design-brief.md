@@ -1,195 +1,243 @@
 ---
-title: "RM-09 application and instance inspection design brief — R02"
+title: "RM-09 application detail tabs design brief — R03"
 type: design-brief
 status: Proposed
 change_id: CIS-0029
 frontend_type: backoffice
-design_revision: R02
+design_revision: R03
 design_approval: Pending
 baseline: "6c70cee807f12caddf40cd1b443e4a20045d35aa"
 ---
 
-# RM-09 application and instance inspection design brief — R02
+# RM-09 application detail tabs design brief — R03
 
-R02 follows the user's request to proceed step by step: first show a filterable
-list of applications, then open an application to see its instances and their
-reported application versions. This is a **desktop-only, read-only backoffice
-review slice** with two screen templates. Mobile is no longer required by the
-latest instruction.
+The user accepted the current application/instance direction and requested tabs
+on the selected application: **Instances**, **Configuration** and
+**Capabilities**. R03 preserves the accepted Applications list, instance table,
+reported-version meaning and bounded navigation flow. It adds only those three
+detail tabs, with Instances selected by default. This remains a **desktop-only,
+read-only backoffice review slice** with four screen definitions. Mobile remains
+outside the requested scope; “etc” does not add inferred tabs.
 
 The broader [preserved specification](../../../planning/management/portal/sources/CISLIB_RM09_Management_Portal_Specification_v1.0.md)
-remains future scope. Configuration, metadata editing, operation recovery,
-release/assignment/adoption journeys and their prerequisites are deferred beyond
-R02; this smaller review does not discard them or satisfy their acceptance
-criteria. R02 has no configuration, metadata-edit, operations or sign-in screens,
-and no future-placeholder navigation.
+remains future scope. Configuration content/editing, metadata editing, operation
+recovery and release/assignment/adoption journeys remain deferred. This smaller
+review does not discard them or satisfy their acceptance criteria. R03 has no
+writes, sign-in screens or future-placeholder navigation.
 
-R01 was rejected for revision. These proposed R02 documents do not record human
-approval, replace the rejection history or resume production work. The CIS design
-checkpoint remains **PausedForReview** until an explicit decision binds the exact
-rendered R02 content and its limited scope. Approval of this slice would not
-approve the broader portal or close RM-09.
+R01/R02 review history and the user's partial acceptance remain recorded
+separately. These proposed R03 documents do not turn that acceptance into full
+manifest approval or resume production work. The CIS design checkpoint remains
+**PausedForReview** until an explicit decision binds the exact rendered R03
+content and its limited scope. The requested tab navigation and new list surfaces
+are pending review. Approval of this slice would not approve the broader portal
+or close RM-09.
 
 ## Journey and screen scope
 
 | Step | Screen | Purpose | Forward/back behavior |
 | --- | --- | --- | --- |
 | 1 | RM09-APPLICATIONS — /applications | Find applications reported to or known to Management, using name/identity and an authorized environment filter. | Select an application name or row to open its exact application ID. |
-| 2 | RM09-INSTANCES — /applications/11111111-1111-1111-1111-111111111111/instances | Inspect the selected application's retained instance observations, reported application versions, raw presence and last-seen times. | Back restores the list's filters, query-bound page/cursor history, scroll and originating focus. |
+| 2 | RM09-INSTANCES — /applications/11111111-1111-1111-1111-111111111111/instances | Inspect retained instance observations, reported application versions, raw presence and last-seen times. | Default detail tab; Back restores list filters, query-bound page/cursor history, scroll and originating focus. |
+| 3 | RM09-CONFIGURATION-LIST — /applications/11111111-1111-1111-1111-111111111111/configurations | Inspect application-kind configuration definition metadata for the exact application/environment. | Configuration tab retains the application and return context; no content or write journey opens. |
+| 4 | RM09-CAPABILITIES — /applications/11111111-1111-1111-1111-111111111111/capabilities | Inspect implemented Management API descriptors and current-caller hints. | Capabilities tab retains the application and return context; no execution control opens. |
 
-A simple desktop header supplies the Management context and current page.
-Applications is the only navigation destination in this slice; there is no
-multi-area rail. On detail, keep the selected application's display name,
-canonical application identity and environment visible above the instance table.
-Refresh acts on the current view.
+A simple desktop header supplies Management context. Applications remains the
+only top-level navigation destination; there is no multi-area rail. All detail
+screens share Back to applications, the selected application's display name,
+canonical identity and environment, followed by exactly three linked tabs:
+**Instances**, **Configuration**, **Capabilities**. The active tab is clear and
+keyboard reachable. Each tab loads its own read surface; Refresh acts on the
+current tab. Keep per-tab bounded page state within the same application.
 
 The product may use **Deployments** as a section heading, with **Applications**
-as the list title. Source copy must make clear that these are applications
-reported to or known to Management. A stored application is not proof that a
-process is currently deployed or running; an empty instance response is not proof
-that nothing is deployed.
+as the list title. Source copy makes clear that these are applications reported
+to or known to Management. A stored application is not proof of a currently
+deployed/running process; an empty instance response does not prove nothing is
+deployed.
 
-## Applications screen
+## Applications screen — accepted reference
 
-Place a persistent **Search applications** field, described as **Name or
-identity**, beside an **Environment** selector. **Apply filters** commits the
-query; **Clear filters** restores the unfiltered authorized query and resets its
-cursor. The environment selector contains authorized environments only. Do not
-add version, presence or health filters in R02.
+Retain the R02 filter row: **Search applications**, described as **Name or
+identity**, **Environment**, **Apply filters** and **Clear filters**. Apply
+commits a new bounded query; Clear resets filters and cursor history. Environment
+choices are authorized only. Do not add version, presence or health filters.
 
-The table contains application display name, canonical identity and environment.
-The application name is a keyboard-accessible link; clicking its row opens the
-same destination without making text selection or keyboard focus ambiguous.
-Resolve the target by its application ID, never by editable display name.
-The list contract does not supply instance counts, current versions, fleet totals
-or deployment health, so the table and surrounding page show none of these.
-Do not derive rollups from the currently loaded page.
+Retain application display name, canonical identity and environment in the
+table. The application name is a keyboard-accessible link; its row opens the same
+exact application ID. Do not resolve targets by editable display name. There are
+no instance counts, current versions, fleet totals, deployment-health cards or
+rollups derived from the loaded page.
 
-Use bounded pages with Previous/Next controls only when their corresponding
-query-bound cursor/history exists. Do not imply a total page or application
-count. Filter changes invalidate old cursors; obsolete responses cannot overwrite
-the newly selected query.
+Previous/Next use only corresponding server cursors and same-query history.
+Filter changes invalidate old cursors. Do not imply total applications/pages;
+obsolete responses cannot overwrite the current query. R03 does not redesign
+this accepted list.
 
-## Instances screen and version meaning
+## Instances tab — accepted content under new tabs
 
-The table contains **Instance**, **Reported app version**, **Presence** and
-**Last seen**. Under Instance, distinguish the reported instance label from the
-opaque instance identity. A reported label is unverified display text; it is not
-a verified host, process identity or address.
+Retain **Instance**, **Reported app version**, **Presence** and **Last seen**.
+Distinguish the unverified reported instance label from opaque `registrationId`,
+which identifies the process-incarnation registration. A label is not a verified
+host, process identity or address.
 
-Use the delivered required `Instance.applicationVersion` string, bounded to
-1–512 characters. Preserve the exact reported text; do not parse it as a semantic
-version or choose the greatest-looking value. Supporting copy says:
+Use the delivered required `Instance.applicationVersion` string, 1–512
+characters, without semantic-version parsing or greatest-version selection.
+Supporting copy remains:
 
 > Version reported by this process when it registered.
 
-The registration captures the version once. A later last-seen observation updates
-presence evidence; it does not reread the version or prove the same version is
-executing now. Label the value **Reported app version**, rather than presenting
-it as a verified live/current version.
+Registration captures the version once. Later last-seen observations update
+presence evidence, not the version report. Different instances may report
+different versions; do not invent an application-wide current version.
+`metadataRevision` belongs to display metadata, not the application, runtime or
+CIS/library version. Metadata revision and ETag remain outside the main UI.
+A missing required applicationVersion is an incompatible record, not a made-up
+normal version.
 
-Different instances may report different versions. Display each row faithfully;
-do not invent a single application-wide current version. `metadataRevision`
-belongs to display metadata and is not an application version, runtime version or
-CIS/library version. Keep metadata revision and ETag out of this slice's main UI.
-A missing required applicationVersion is not a valid normal record to render as
-a made-up version.
+Display **Active**, **Stale** or **Closed** for source `active`, `stale` or
+`closed`, with text and non-color cues. These describe registration observations,
+not health. Last seen uses optional `lastSeenAtUtc`, with dated CET display and
+accessible exact source UTC, or **Not reported** when absent. Do not recompute
+presence from browser time; unknown future values retain their text and remain
+explicitly unknown.
 
-Presence displays **Active**, **Stale** or **Closed** for the supplied `active`,
-`stale` or `closed` value, with text and
-a restrained visual cue. These describe registration observations, not health.
-Show optional `lastSeenAtUtc` as Last seen, with a dated CET display and accessible
-exact source timestamp, or **Not reported** when absent. Do not recalculate
-presence from a browser timer. Unknown future values retain their exact text and
-remain explicitly unknown; they never fall back to Active.
+The accepted table remains bounded and independently paged. The R03 addition is
+the shared tab navigation. There is no restart, deployment control, healthy count,
+convergence percentage or configuration write action.
 
-The table is bounded and independently paged. No total, healthy count, convergence
-percentage, restart, deployment control or configuration tab appears.
+## Configuration tab — read-only definition metadata
+
+Show only application-kind definitions matched to the exact application ID and
+environment through the proposed scoped query. Fields are `configurationId`,
+`schemaVersion`, `sourceId`, `environment`, `kind`, plus application-kind
+`applicationId`, `bindingId` and `hostApplicationName`. Group application
+scope fields where useful and wrap long identities. The descriptor's required
+shape remains contract data; this slice displays metadata, without defaultsJson
+values or content.
+
+The existing `getDefinitions` contract is a globally authorized paged directory
+with pageSize/cursor only. **A bounded application/environment-scoped definition
+query is required for the proposed complete application list.** Loaded-page
+filtering cannot establish completeness. Synthetic rows may demonstrate the
+intended scoped response with this prerequisite identified; they do not establish
+that the current endpoint provides it. Do not conceal the gap through an
+unbounded global scan or invent totals.
+
+Do not infer that common definitions belong to this application or combine common
+and application sources. There are no content/defaults, effective runtime values,
+publication/release/adoption rows, editors or write controls.
+
+## Capabilities tab — Management APIs and current-caller hints
+
+Use `getCapabilities(applicationId)`. Show actual `implementedApis` fields:
+`operationId`, `version`, `method`, `path` and
+`requiredCapabilities`. These describe implemented **Management APIs**, not
+instance-reported inventory or executable actions. Preserve advertised relative
+paths as display text; do not manually construct paths or API execution links.
+
+Join `callerHints` by exact operationId and label them **Current caller hint**.
+A supplied true/false hint may say **Allowed**/**Not allowed**, explicitly as a
+hint for the current caller. An absent hint says **Not evaluated**, never Allowed
+or Denied. A hint does not create an implemented API row, imply permission from a
+capability name or replace authorization of an actual read. Listing an API that
+can write does not expose a write workflow.
 
 ## Contract map and prerequisites
 
 | Surface | Existing evidence | Required boundary |
 | --- | --- | --- |
-| Application rows | `listApplications`: identity, environment, display metadata, revision and ETag; bounded `pageSize`/`cursor`. | No application version, instance count, fleet total or current deployment-state aggregate. |
-| Requested application filters | Current application paging accepts only `pageSize` and `cursor`. | **P2: bounded authorized server search by application name/identity and environment, plus authorized environment enumeration, remains required.** Do not claim current paging implements these filters. |
-| Selected application | `getApplication` for the exact application ID. | Authorize the resolved target. List context or an old snapshot does not establish current read access. |
-| Instance rows and versions | `listInstances`: required `applicationVersion`, opaque process-incarnation `registrationId`, unverified `reportedInstanceId`, presence and optional `lastSeenAtUtc`; bounded paging. | No new version API is needed. Existing instance paging has no version, environment or presence filter. |
-| Human/session boundary | Existing per-call/server-only boundaries remain relevant. | Real human/delegated authority remains a production prerequisite; R02 does not add or approve a sign-in screen. Protected data must be removed on session/access loss. |
+| Application rows | `listApplications`: identity, environment, display metadata, revision and ETag; pageSize/cursor. | No application version, count, fleet total or live deployment-state aggregate. |
+| Requested application filters | Existing application paging has no search/environment query. | **P2:** bounded authorized name/identity/environment search and authorized environment enumeration remain required. No loaded-page global search. |
+| Selected application | `getApplication` for the exact ID. | Authorize the resolved target; prior list context is not current access authority. |
+| Instance rows/versions | `listInstances`: required applicationVersion, process-incarnation registrationId, unverified reportedInstanceId, presence and optional lastSeenAtUtc; bounded paging. | No new version API. No instance environment/presence/version filters are delivered. |
+| Configuration list | `getDefinitions`: globally authorized descriptor pages; application-kind scope fields exist. | Required addition: bounded exact-application/environment filtering. No loaded-page completeness, common relationship or content/default-value claim. |
+| Capabilities | `getCapabilities(applicationId)`: implementedApis and callerHints. | Exact descriptor display and operationId hint matching; missing hint is Not evaluated. No instance inventory or execution console. |
+| Human/session boundary | Per-call/server-only boundaries remain relevant. | Real human/delegated authority remains a production prerequisite. No sign-in screen is added or approved here; remove protected data on access loss. |
 
-The rendered synthetic review may demonstrate the intended filters over its
-complete demo fixture, with P2 identified in the review notes. Production may not
-substitute loaded-page search or first-page environment discovery for the
-requested whole-query behavior. Proposed portal query state is not evidence of
-existing Management API query parameters.
+A synthetic complete fixture may demonstrate the desired application filters and
+scoped configuration query. Review notes identify their API gaps. Proposed portal
+query state is not proof of existing Management query parameters.
 
 ## State and return behavior
 
-Both templates distinguish loading, successful empty data, no filter matches,
-access loss and initial unavailability. Initial failure shows unavailable with
-Retry, never fabricated zero applications or instances.
+All templates distinguish loading, successful empty data, access loss and initial
+unavailability. Applications also distinguishes no filter matches. Initial
+failure shows unavailable with Retry, never fabricated zeros.
 
-A valid-session refresh failure may retain a clearly dated last successful
-snapshot. Mark it **Snapshot may be out of date**, expose the last successful
-fetch time and failure feedback, and offer Refresh/Retry. Preserve the source
-last-seen times and raw presence values; do not recolor old Active rows as proof
-of current activity. An instance table's empty response says **No retained
-instance observations** and does not say no deployed or running processes.
+A valid-session read failure may retain a dated last successful snapshot. Mark
+**Snapshot may be out of date**, expose the last successful fetch time and offer
+Refresh/Retry. Preserve source last-seen times/raw presence rather than asserting
+current activity. Successful empty instances say **No retained instance
+observations**, not no deployed processes.
 
-A denied/deleted target does not reuse a prior application's rows. Session or
-read-access loss clears protected content. This slice has no offline queue,
-mutation, original-operation receipt or automatic action replay.
+A successful empty scoped configuration response says **No matching application
+configuration definitions**. An empty capability response says **No implemented
+API descriptors returned**; neither proves health, permission or absent runtime
+configuration. Session/read-access loss clears protected content.
 
-Back restores the selected list query, cursor history and scroll position, then
-returns keyboard focus to the originating application link when it still exists.
-If it no longer exists, focus the list heading and explain the refreshed result.
-Recheck access and refresh data as needed; restored navigation context must not
-make a cached snapshot appear fresh. Target/query switches invalidate in-flight
-responses that belong to the previous view.
+Back restores list query, cursor history, scroll and originating link focus;
+otherwise focus the list heading with refreshed-result feedback. Recheck access
+and freshness. Tab changes keep the application fixed and preserve applicable
+per-tab page state. Target/query/tab changes prevent late obsolete responses from
+replacing the active view. Reads remain bounded; tabs start no background crawl,
+offline queue, mutation or operation-recovery workflow.
 
 ## Visual system and desktop evidence
 
-Retain the CIS palette: white surfaces on `#F8FAFC`, dark navy `#0F172A`,
-secondary text `#334155`, blue `#2563EB` and borders `#CBD5E1`. Use Inter,
-14–16 px body text, 20–24 px titles, an 8 px spacing rhythm and clear table
-headers. Keep source IDs and exact timestamps readable. Long identities and
-versions wrap without losing their full value. Status must use text as well as
-color.
+Retain white surfaces on `#F8FAFC`, navy `#0F172A`, secondary text
+`#334155`, blue `#2563EB` and borders `#CBD5E1`. Retain Inter,
+14–16 px body text, 20–24 px titles and the 8 px spacing rhythm. Long identities,
+versions and API paths remain readable. Status uses text as well as color.
 
-Propose six desktop frames at exactly 1600 × 1000, all using these two
-templates:
+Plan up to eight desktop frames at exactly **1600 × 1000**. The accepted R02
+Applications reference stays unchanged. Three primary R03 detail previews show
+the requested tabs; preserved state variants complete the package.
 
 | Frame | Screen | Evidence |
 | --- | --- | --- |
-| R02-F01 | RM09-APPLICATIONS | Populated list, name/identity search, environment filter and bounded paging. |
-| R02-F02 | RM09-INSTANCES | Selected application with differing reported versions, Active/Stale/Closed presence and last-seen evidence. |
-| R02-F03 | RM09-APPLICATIONS | Successful query with no matching applications and Clear filters. |
-| R02-F04 | RM09-INSTANCES | Successful response with no retained instance observations. |
-| R02-F05 | RM09-INSTANCES | Refresh unavailable with a clearly dated retained snapshot. |
-| R02-F06 | RM09-APPLICATIONS | Initial service unavailability with Retry and no fabricated rows or totals. |
+| R02-F01 | RM09-APPLICATIONS | Unchanged accepted list reference: filters, selection and bounded paging. |
+| R03-F01 | RM09-INSTANCES | Instances selected; accepted version/presence/last-seen content under the shared tabs. |
+| R03-F02 | RM09-CONFIGURATION-LIST | Configuration selected; application-kind scoped definition metadata with query prerequisite. |
+| R03-F03 | RM09-CAPABILITIES | Capabilities selected; actual Management API descriptors and caller hints including Not evaluated. |
+| R02-F03 | RM09-APPLICATIONS | Preserved no-matching-applications state and Clear filters. |
+| R03-F04 | RM09-INSTANCES | Preserved no-retained-observations state under shared tabs. |
+| R03-F05 | RM09-INSTANCES | Preserved dated-snapshot refresh failure under shared tabs. |
+| R02-F06 | RM09-APPLICATIONS | Preserved initial unavailable state with Retry. |
 
-Loading, denied/session-loss and obsolete-response behavior are specified in the
-wireframes; these six pictures must not be described as complete implementation
-or end-to-end acceptance evidence. No mobile/narrow frames are required. Desktop
-zoom, keyboard reachability, visible focus, labels, non-color status and announced
-feedback remain relevant. A picture cannot establish working keyboard or
-accessibility behavior.
+Other loading/access/incompatible-response states remain specified textually;
+more PNGs are not required to claim a complete state machine. No mobile/narrow
+frames are required. Desktop keyboard, visible focus/return, labels, zoom,
+non-color cues and announced persistent feedback remain implementation
+requirements. Pictures do not establish working accessibility or real-service
+acceptance.
 
-## Synthetic review data and approval boundary
+## Synthetic data and approval boundary
 
 Every frame carries **DEMONSTRATION — synthetic data** and fixed snapshot
-`2026-11-25T10:00:00.0000000Z` (25 Nov 2026, 11:00 CET). Use
-`Demo.CountryData`, display name `Country data service`, in `Demo staging`,
-application ID `11111111-1111-1111-1111-111111111111`. Other list rows may use
-the existing synthetic application fixture and a second explicitly demo
-environment; no live service or identity is implied.
+`2026-11-25T10:00:00.0000000Z` (25 Nov 2026, 11:00 CET). Retain
+`Demo.CountryData`, display name `Country data service`, `Demo staging`,
+application ID `11111111-1111-1111-1111-111111111111`, and accepted synthetic
+list/instance data. Reported versions such as `2.4.2+build.18` and `2.4.1`
+remain registration-time text, separate from snapshot and last-seen timestamps.
 
-Use exact illustrative reported versions such as `2.4.2+build.18` and
-`2.4.1` in different instance rows. Reported instance labels are explicitly
-synthetic/unverified. Preserve the distinction between snapshot fetch time,
-registration-time version evidence and last-seen observation time.
+The Configuration fixture uses `country.settings`, schemaVersion string
+`"1"`, kind `application`, source
+`55555555-5555-5555-5555-555555555555`, binding
+`99999999-9999-9999-9999-999999999999`, the selected application/environment
+and hostApplicationName `Demo.CountryData`. IDs/data are synthetic, not actual
+deployment or authorization evidence.
 
-The review is proposed R02 content only. No production UI, host dependency,
-administrative call or deployment is authorized by these files. The eventual
-human decision must identify the exact rendered revision/content and the
-two-screen desktop scope; broader RM-09 acceptance remains deferred.
+Capabilities examples use actual operation IDs/descriptors, all version 1:
+getApplication and listInstances with management.applications.read and synthetic
+Allowed hints; replaceApplicationMetadata with
+management.applications.metadata.write and a synthetic Not allowed hint;
+getMetadataOperation with management.operations.read and a synthetic Not allowed
+hint; getConfigurationDefinitions with
+management.configuration.definitions.read and no hint (**Not evaluated**).
+These are descriptor rows only, never workflow controls or live grants.
 
+R03 is pending exact rendered approval. No production UI, host dependency,
+administrative call or deployment is authorized by these files. The decision must
+identify the accepted reference and new tab additions within the four-screen
+desktop scope; broader RM-09 acceptance remains deferred.

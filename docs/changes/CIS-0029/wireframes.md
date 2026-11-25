@@ -1,87 +1,101 @@
 ---
-title: "CIS-0029 textual wireframes — R02"
+title: "CIS-0029 textual wireframes — R03"
 type: textual-wireframes
-status: Draft
+status: Approved
 change_id: CIS-0029
-design_revision: R02
-approval_status: NotReviewed
+design_revision: R03
+approval_status: Approved
 authority: human-reviewed
 ---
 
-# Textual wireframes — R02
+# Textual wireframes — R03
 
-R02 is a proposed two-screen **desktop backoffice** review: find an application,
-then inspect its retained instance observations and reported application
-versions. It follows the user's narrower step-by-step request. Mobile is no
-longer required. See the [design brief](design-brief.md).
+The user accepted the current application/instance direction and requested
+selected-application tabs: **Instances**, **Configuration** and **Capabilities**.
+R03 preserves the accepted Applications list, instance contents/version meaning
+and bounded return flow. Instances remains the default detail tab. There are
+exactly three tabs and four screen definitions, all **desktop backoffice**.
+Mobile remains outside the requested scope. See the [design brief](design-brief.md).
 
-R01 was rejected for revision. R02 is pending human review; the CIS design
-checkpoint remains **PausedForReview**. These textual wireframes neither record
-approval nor authorize production UI. Any later approval must identify the exact
-rendered R02 revision and this partial scope. Configuration, metadata editing,
-operation recovery, release/assignment/adoption and other broader specification
-work remain deferred; they are not silently removed or accepted.
+R01/R02 history and partial acceptance remain separate from full manifest
+approval. R03's tab navigation and new read-only lists are pending human review;
+the CIS checkpoint remains **PausedForReview**. These files do not authorize
+production UI. Configuration content/editing, metadata edits, login, operation
+recovery and release/assignment/adoption workflows remain deferred. Actual
+Management API descriptors may mention these operations without exposing actions.
 
 ## Screen inventory
 
 | Screen ID | Frontend type | Name | Route/path | Platform | Actors/access | Entry points | Purpose |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | RM09-APPLICATIONS | backoffice | Applications reported to Management | /applications | Web desktop only | Current operator with authorized application reads | Existing host entry, detail return | Find authorized known applications by name/identity and environment, then select one. |
-| RM09-INSTANCES | backoffice | Application instances and reported versions | /applications/11111111-1111-1111-1111-111111111111/instances | Web desktop only | Current operator with exact application and instance read access | Application name/row, authorized direct link | Show retained instance observations, reported application versions, raw presence and last-seen evidence for the exact selected application. |
+| RM09-INSTANCES | backoffice | Application instances and reported versions | /applications/11111111-1111-1111-1111-111111111111/instances | Web desktop only | Current operator with exact application and instance read access | Application name/row, Instances tab, authorized direct link | Default detail tab: retained instance observations, reported versions, raw presence and last seen. |
+| RM09-CONFIGURATION-LIST | backoffice | Application configuration definitions | /applications/11111111-1111-1111-1111-111111111111/configurations | Web desktop only | Current operator with exact application/environment definition-discovery access | Configuration tab, authorized direct link | Read application-kind definition metadata through a bounded scoped query; no content/defaults or edits. |
+| RM09-CAPABILITIES | backoffice | Management APIs and current-caller hints | /applications/11111111-1111-1111-1111-111111111111/capabilities | Web desktop only | Current operator with exact application capability read access | Capabilities tab, authorized direct link | Read implemented Management API descriptors and current-caller hints; no API execution. |
 
-There are no sign-in, metadata, configuration, operations, assignment or adoption
-screens in R02, and no placeholder navigation for those areas. A simple
-Management header and Applications destination supply context. Any Deployments
-section label is accompanied by truthful source wording: applications reported
-to or known to Management, rather than verified live deployments.
+Applications remains the sole top-level navigation destination. All detail
+screens share Back to applications, application display name, canonical identity,
+environment and exactly **Instances / Configuration / Capabilities** tabs.
+There is no future-placeholder navigation or additional inferred tab.
 
 ## Shared interaction and data rules
 
 Every frame says **DEMONSTRATION — synthetic data** and uses fixed snapshot
-`2026-11-25T10:00:00.0000000Z` (25 Nov 2026, 11:00 CET). All identities, labels,
-rows and observations are synthetic. Proposed portal paths/query state are not
-Management API routes or proof of implemented server filters.
+`2026-11-25T10:00:00.0000000Z` (25 Nov 2026, 11:00 CET). All rows, labels and
+grants are synthetic. Portal routes/query state do not prove implemented server
+filters.
 
-The main application is `Demo.CountryData`, display name
-`Country data service`, in `Demo staging`, application ID
-`11111111-1111-1111-1111-111111111111`. Application display metadata, canonical
-identity and environment remain distinct. Never resolve a target by editable
-display name.
+The target remains `Demo.CountryData`, display name `Country data service`,
+in `Demo staging`, application ID
+`11111111-1111-1111-1111-111111111111`. Resolve by application ID, not editable
+display name. A Deployments section heading must retain source wording:
+applications reported to or known to Management, not verified live deployments.
 
-`Instance.applicationVersion` is required reported registration text, 1–512
-characters. Use exact values such as `2.4.2+build.18` and `2.4.1`; do not
-parse or rank them. `metadataRevision`, runtime/CIS versions and configuration
-revisions are not substitutions. There is no application-wide version or instance
-count in the application list response, and R02 invents neither.
+Required `Instance.applicationVersion` is exact registration text, 1–512
+characters. It is not metadataRevision, runtime/CIS version or a fleet aggregate.
+`reportedInstanceId` is unverified display text; `registrationId` identifies the
+process-incarnation registration. Display Active/Stale/Closed for source values
+`active`/`stale`/`closed`. Optional `lastSeenAtUtc` is separate presence evidence,
+not a renewed version measurement; show **Not reported** when absent. Supporting
+copy remains **Version reported by this process when it registered**. Preserve
+exact strings/timestamps and unknown value text.
 
-`reportedInstanceId` is an unverified label. `registrationId` identifies the
-process-incarnation registration. Presence displays Active, Stale or Closed for
-the supplied `active`, `stale` or `closed` value. Last seen displays optional
-`lastSeenAtUtc`; when absent, show **Not reported**. It does not update the
-immutable version report. Supporting copy
-states **Version reported by this process when it registered**. Presence does
-not claim health or verified process liveness.
+P2 remains required: bounded authorized application name/identity/environment
+search and authorized environment enumeration. Existing application paging has
+only pageSize/cursor; instance paging has no environment/presence/version filters.
+Do not present loaded-page search as global.
 
-P2 remains an explicit prerequisite: bounded authorized server search by
-application name/identity and environment, plus authorized environment
-enumeration. Current `listApplications` accepts only pageSize/cursor; current
-instance paging also has no environment, presence or version filter. A complete
-synthetic fixture may demonstrate intended search/filter interaction, but
-production may not silently search only loaded rows or discover environments from
-the first page. No new version API is needed.
+Configuration requires a bounded exact-application/environment definition query:
+current getDefinitions is globally authorized paging with pageSize/cursor only.
+A filtered loaded global page is not a complete application list. Match only
+application-kind definitions to exact application ID and environment; infer no
+common definition relationship. Synthetic complete fixtures may demonstrate
+these desired queries with the prerequisites identified, not conceal them.
 
-All reads authorize their exact target and query/cursor scope. Preserve opaque
-IDs/cursors and exact source timestamps. Show dated CET times with accessible
-exact UTC source values. Do not infer totals, deployment state or fleet health
-from a page. A known application may remain after registrations are purged; an
-empty instance response therefore does not prove the application is undeployed.
+Capability rows come from implementedApis; callerHints join by exact operationId.
+A missing hint is **Not evaluated**. A hint alone does not create an implemented
+API or replace actual read authorization. Relative paths remain returned display
+text under their advertised prefix, without manual construction/execution links.
 
-Retain list filters, cursor history, scroll and originating application focus
-across detail navigation. Clear query-bound cursors when filters change. Late
-responses from previous targets/queries cannot replace the current view.
-Protected data is cleared on session/read-access loss; valid-session outages may
-retain an explicitly dated snapshot. There are no writes, offline commands,
-operation receipts or automatic action replay in R02.
+Preserve list filters, cursor history, scroll and originating focus through
+detail/tab navigation. Each tab keeps its own bounded page state within the
+selected application. Filter changes clear query-bound cursors. Late prior
+target/query/tab responses cannot replace the active view. Session/read-access
+loss clears protected data; valid-session failures may retain dated snapshots.
+There are no writes, offline commands, content/default values or operation
+recovery flows.
+
+## Shared application-detail tab navigation
+
+| Action ID | Label/control | Available when | User action | Result/side effect | Destination path | Destination screen | Failure/denied behavior |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| RM09-T01 | Instances tab | Exact application context exists; reads independently checked | Select Instances | Open default read-only instance surface; preserve application/list return context | /applications/11111111-1111-1111-1111-111111111111/instances | RM09-INSTANCES | Show its own safe loading/denied/unavailable state; never substitute another tab's data. |
+| RM09-T02 | Configuration tab | Exact application context exists; scoped read independently checked | Select Configuration | Open bounded application-kind definition metadata; no content read or mutation | /applications/11111111-1111-1111-1111-111111111111/configurations | RM09-CONFIGURATION-LIST | Scoped query prerequisite remains explicit; no loaded-global-page completeness claim. |
+| RM09-T03 | Capabilities tab | Exact application context exists; capability read independently checked | Select Capabilities | Read implemented Management APIs/current-caller hints | /applications/11111111-1111-1111-1111-111111111111/capabilities | RM09-CAPABILITIES | Show safe denied/unavailable state; missing hints do not become permission decisions. |
+
+The active route/tab is visually clear and keyboard reachable. Back to
+applications is available on each detail tab with RM09-I01 semantics below.
+Tab selection neither changes the application nor opens deferred workflows.
 
 ### RM09-APPLICATIONS: Applications reported to Management
 
@@ -153,19 +167,20 @@ Header:
 - **Back to applications**.
 - **Country data service**, canonical identity **Demo.CountryData**, and
   **Demo staging**.
+- **Instances / Configuration / Capabilities**, with Instances selected.
 - Page/section title **Instances**, plus Refresh and dated fetch feedback.
 
-Keep this a single inspection view without tabs for configuration, metadata or
-operations. The selected application is resolved by application ID and authorized
-again. Direct entry needs no fabricated prior list selection; Back returns to a
-safe initial authorized applications query when no prior context exists.
+The selected application is resolved by application ID and authorized again.
+Direct entry needs no fabricated prior list selection; Back returns to a safe
+initial authorized applications query when no prior context exists. The table
+and version meaning remain accepted R02 content under the shared R03 tabs.
 
 | Column | Content and behavior |
 | --- | --- |
 | Instance | Reported instance label, clearly described as unverified; opaque registrationId as readable secondary text. |
 | Reported app version | Exact required applicationVersion. Long values wrap without losing content. |
 | Presence | Active, Stale or Closed for known source values, with text and non-color cues. Preserve unknown future value text and mark it unknown. |
-| Last seen | Dated lastSeenAtUtc in CET when supplied, with accessible exact source UTC timestamp; **Not reported** when absent. This is separate from the registration-time version report. |
+| Last seen | Dated optional lastSeenAtUtc in CET, with accessible exact source UTC timestamp; Not reported when absent. This is separate from the registration-time version report. |
 
 Below the table heading, show **Version reported by this process when it
 registered**. Different rows may show different versions. Do not combine them
@@ -181,11 +196,14 @@ convergence metric appears.
 
 | Action ID | Label/control | Available when | User action | Result/side effect | Destination path | Destination screen | Failure/denied behavior |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| RM09-I01 | Back to applications | Applications navigation is available | Activate Back | Restore prior list filters, query-bound cursor history, scroll and originating link focus; revalidate access as needed | Preserved /applications query, or /applications for direct entry | RM09-APPLICATIONS | If the originating row disappeared, focus the list heading and explain the refreshed result. Cached context does not imply fresh data. |
+| RM09-I01 | Back to applications | Applications navigation is available | Activate Back from any detail tab | Restore prior list filters, query-bound cursor history, scroll and originating link focus; revalidate access as needed | Preserved /applications query, or /applications for direct entry | RM09-APPLICATIONS | If the originating row disappeared, focus the list heading and explain the refreshed result. Cached context does not imply fresh data. |
 | RM09-I02 | Refresh | Exact application/instance reads are permitted | Activate Refresh | Reread selected application and current bounded instance page | Current /applications/11111111-1111-1111-1111-111111111111/instances page | RM09-INSTANCES | Retain a dated permitted snapshot on network failure; remove data on access loss. |
 | RM09-I03 | Next | Same-target continuation cursor exists | Activate Next | Read bounded next instance page | Current instance route with opaque next-page state | RM09-INSTANCES | Failed paging does not replace observations with an empty success state. |
 | RM09-I04 | Previous | Same-target previous cursor history exists | Activate Previous | Read prior bounded instance page | Current instance route with prior page state | RM09-INSTANCES | Invalid/changed cursor restarts the selected target's query with feedback. |
 | RM09-I05 | Retry | A selected-target read failed and read access remains valid | Activate Retry | Retry the visible application/instance read | Current instance route/page | RM09-INSTANCES | Keep unavailability explicit and never reveal an inaccessible or previously selected target. |
+
+Shared RM09-T01–RM09-T03 switch tabs without changing the target or return
+context. They add no mutation or deferred workflow.
 
 #### States
 
@@ -200,42 +218,162 @@ convergence metric appears.
 | RM09-I-TARGETCHANGE | New target or obsolete request completes | Clear old target rows; accept only the current target's response. |
 | RM09-I-INCOMPATIBLE | Required record fields missing or unsupported response shape | Explain that the response cannot be displayed safely. Do not manufacture a version, identity or Active state. |
 
+### RM09-CONFIGURATION-LIST: Application configuration definitions
+
+#### Description
+
+Retain the shared application header and three tabs, with **Configuration**
+selected. Title: **Configuration definitions**. Supporting copy explains that
+this is application-kind definition metadata for the selected application and
+environment, without source/default content or runtime values.
+
+| Column | Content and behavior |
+| --- | --- |
+| Configuration | Exact configurationId, such as country.settings. |
+| Schema version | Exact schemaVersion string, such as "1"; not a deployed application version. |
+| Source | Opaque sourceId. |
+| Environment / kind | Exact environment and application kind. |
+| Application scope | Exact applicationId, bindingId and hostApplicationName, grouped as labeled metadata where useful. |
+
+Only application-kind definitions matching the exact application ID/environment
+belong in the proposed scoped list. No common relationships are inferred.
+Required descriptor shape stays in contract data; no defaultsJson/content values
+are displayed. Rows do not open editors or deferred source/publication flows.
+
+The existing getDefinitions directory is globally paged by pageSize/cursor only.
+**Required addition: bounded application/environment-scoped definition query.**
+A loaded global page filtered in the browser is not a complete application list.
+The synthetic preview demonstrates the intended scoped result with that
+prerequisite identified, without implying delivered filtering, totals or an
+unbounded scan.
+
+Synthetic row: country.settings; schemaVersion string "1"; kind application;
+source 55555555-5555-5555-5555-555555555555; binding
+99999999-9999-9999-9999-999999999999; selected application
+11111111-1111-1111-1111-111111111111; Demo staging; hostApplicationName
+Demo.CountryData. This is an illustrative descriptor, not a live source.
+
+#### Actions and paths
+
+| Action ID | Label/control | Available when | User action | Result/side effect | Destination path | Destination screen | Failure/denied behavior |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| RM09-C01 | Refresh | Scoped query exists and exact definition read is permitted | Activate Refresh | Read the current bounded exact-application/environment definition page | Current /applications/11111111-1111-1111-1111-111111111111/configurations page | RM09-CONFIGURATION-LIST | Date a retained permitted snapshot; do not imply complete results from loaded global rows. |
+| RM09-C02 | Next | Same-scope continuation cursor exists | Activate Next | Read the next bounded scoped page | Current configuration-list route with opaque next-page state | RM09-CONFIGURATION-LIST | Failed paging is unavailable/stale, not empty success. |
+| RM09-C03 | Previous | Same-scope previous cursor history exists | Activate Previous | Read the previous bounded scoped page | Current configuration-list route with prior page state | RM09-CONFIGURATION-LIST | Invalidated cursor restarts the scoped query with feedback. |
+| RM09-C04 | Retry | Scoped read failed and exact access remains valid | Activate Retry | Retry the same bounded read | Current configuration-list route/page | RM09-CONFIGURATION-LIST | Retain the prerequisite/access/error boundary; no fallback completeness claim. |
+
+Back uses RM09-I01; tabs use RM09-T01–RM09-T03. No row mutation/content action
+exists.
+
+#### States
+
+| State ID | State | Visible behavior |
+| --- | --- | --- |
+| RM09-C-LOADING | Scoped read loading | Loading feedback within the active Configuration tab. |
+| RM09-C-READY | Successful scoped page | Only exact application-kind metadata; bounded paging and no totals/content. |
+| RM09-C-EMPTY | Successful scoped response is empty | **No matching application configuration definitions**; do not claim absent runtime configuration. |
+| RM09-C-PREREQUISITE | Scoped query not delivered | Explicit dependency in review; production cannot substitute a partial global-page filter. |
+| RM09-C-UNAVAILABLE | Initial read failed | **Configuration definitions unavailable** and Retry, without fabricated rows. |
+| RM09-C-STALE | Refresh failed with permitted prior snapshot | Dated snapshot warning and original descriptor data. |
+| RM09-C-DENIED | Session/target/scoped read denied | Remove protected rows; safe feedback and Back where permitted. |
+| RM09-C-TARGETCHANGE | Target/scope/tab changes or obsolete response arrives | Preserve the active target/tab; ignore obsolete results. |
+
+### RM09-CAPABILITIES: Management APIs and current-caller hints
+
+#### Description
+
+Retain the shared application header and three tabs, with **Capabilities**
+selected. Title: **Management capabilities**. Read getCapabilities(applicationId);
+show actual implementedApis, not instance inventory or an execution console.
+
+| Column | Content and behavior |
+| --- | --- |
+| Operation | Exact operationId from implementedApis. |
+| API version | Exact descriptor version. |
+| Method / path | Exact method and returned relative path, under its advertised prefix; display text, not an execution link. |
+| Required capabilities | Exact declared capability names; do not infer grants from them. |
+| Current caller hint | Match callerHints by operationId. Supplied true/false means Allowed/Not allowed as a current-caller hint; absent means Not evaluated. |
+
+The synthetic preview uses real descriptor IDs/paths, all API version 1:
+
+| Operation | Method | Relative path | Required capability | Synthetic current caller hint |
+| --- | --- | --- | --- | --- |
+| getApplication | GET | /applications/{applicationId} | management.applications.read | Allowed |
+| listInstances | GET | /applications/{applicationId}/instances | management.applications.read | Allowed |
+| replaceApplicationMetadata | PUT | /applications/{applicationId}/metadata | management.applications.metadata.write | Not allowed |
+| getMetadataOperation | GET | /applications/{applicationId}/metadata-operations/{operationKey} | management.operations.read | Not allowed |
+| getConfigurationDefinitions | GET | /configuration/definitions | management.configuration.definitions.read | Not evaluated — no hint supplied |
+
+These are synthetic examples of a legitimate grant bundle, not live grants.
+Configuration APIs can be advertised without source/binding caller hints; an
+absent hint must not be relabeled Denied or Allowed. Hint-only entries do not
+invent implemented API rows. Every actual read still authorizes independently.
+There is no execution button, metadata form or operation-recovery link.
+
+#### Actions and paths
+
+| Action ID | Label/control | Available when | User action | Result/side effect | Destination path | Destination screen | Failure/denied behavior |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| RM09-K01 | Refresh | Exact application capability read is permitted | Activate Refresh | Reread implemented Management API descriptors/current-caller hints | /applications/11111111-1111-1111-1111-111111111111/capabilities | RM09-CAPABILITIES | Retain a dated permitted snapshot on network failure; remove it on read/session loss. |
+| RM09-K02 | Retry | Capability read failed and exact access remains valid | Activate Retry | Retry the same application capability read | Current capabilities route | RM09-CAPABILITIES | Persistent failure stays unavailable; do not invent APIs or hint decisions. |
+
+Back uses RM09-I01; tabs use RM09-T01–RM09-T03. API descriptors have no
+execution action.
+
+#### States
+
+| State ID | State | Visible behavior |
+| --- | --- | --- |
+| RM09-K-LOADING | Capability read loading | Loading feedback within the active Capabilities tab. |
+| RM09-K-READY | Successful descriptor response | Actual implemented APIs/current-caller hints; absent hints remain Not evaluated. |
+| RM09-K-EMPTY | Successful response without implemented APIs | **No implemented API descriptors returned**; not a health or permission assertion. |
+| RM09-K-UNAVAILABLE | Initial read failed | **Management capabilities unavailable** and Retry. |
+| RM09-K-STALE | Refresh failed with permitted prior snapshot | Dated snapshot and original hint observations, without asserting current grants. |
+| RM09-K-DENIED | Session/target/capability read lost | Remove protected descriptors/hints; safe feedback and Back where permitted. |
+| RM09-K-TARGETCHANGE | Target/tab changes or obsolete response arrives | Ignore obsolete responses; retain only active target/tab data. |
+
 ## Desktop review frame inventory
 
-All proposed frames use desktop layout at exactly 1600 × 1000. There are
-two screen templates; state variants do not add navigation destinations.
+All frames use exactly **1600 × 1000** desktop layout. The accepted Applications
+list remains the R02 reference. Three primary R03 detail previews review the
+requested tabs; preserved state variants bring the planned package to eight
+images. State variants do not add screens.
 
 | Frame ID | Screen ID | State | Review purpose |
 | --- | --- | --- | --- |
-| R02-F01 | RM09-APPLICATIONS | RM09-L-READY | Search/name/identity, authorized environment filter, application selection and bounded paging. |
-| R02-F02 | RM09-INSTANCES | RM09-I-READY | Selected application context, differing reported versions, unverified labels, Active/Stale/Closed and last seen. |
-| R02-F03 | RM09-APPLICATIONS | RM09-L-NOMATCH | Successful filtered empty result and Clear filters. |
-| R02-F04 | RM09-INSTANCES | RM09-I-EMPTY | No retained observations, without claiming no deployed processes. |
-| R02-F05 | RM09-INSTANCES | RM09-I-STALE | Dated retained snapshot during refresh failure. |
-| R02-F06 | RM09-APPLICATIONS | RM09-L-UNAVAILABLE | Initial unavailability, Retry and no fabricated rows/totals. |
+| R02-F01 | RM09-APPLICATIONS | RM09-L-READY | Unchanged accepted list reference: filters, selection and bounded paging. |
+| R03-F01 | RM09-INSTANCES | RM09-I-READY | Instances active; accepted versions/presence/last seen beneath shared tabs. |
+| R03-F02 | RM09-CONFIGURATION-LIST | RM09-C-READY | Configuration active; exact application-kind descriptor metadata and scoped-query prerequisite. |
+| R03-F03 | RM09-CAPABILITIES | RM09-K-READY | Capabilities active; actual Management APIs and caller hints, including absent hint = Not evaluated. |
+| R02-F03 | RM09-APPLICATIONS | RM09-L-NOMATCH | Preserved no-matches/Clear filters state. |
+| R03-F04 | RM09-INSTANCES | RM09-I-EMPTY | Preserved no-retained-observations state beneath tabs. |
+| R03-F05 | RM09-INSTANCES | RM09-I-STALE | Preserved dated-snapshot refresh failure beneath tabs. |
+| R02-F06 | RM09-APPLICATIONS | RM09-L-UNAVAILABLE | Preserved initial unavailable/Retry state. |
 
-Loading, denied/session-loss, incompatible data and obsolete-response states are
-specified above; the six pictures do not claim all runtime behavior has been
-implemented or tested. No mobile/narrow frame is required. Desktop keyboard,
+Other states are textually specified; further PNGs are not required to represent
+a complete state machine. No mobile/narrow frame is required. Desktop keyboard,
 focus return, labels, zoom, non-color status and persistent/announced feedback
-remain implementation requirements.
+remain implementation requirements. Pictures do not establish accessibility or
+real-service/browser acceptance.
 
 ## Journey and requirement coverage
 
 | Requirement/exclusion | Screen IDs | Action IDs | States/evidence | Coverage and limits |
 | --- | --- | --- | --- | --- |
-| Latest step 1: filterable applications | RM09-APPLICATIONS | RM09-L01, RM09-L02, RM09-L04, RM09-L05 | R02-F01, R02-F03 | Desired whole-query search and authorized environments remain P2 prerequisites; current paging alone does not deliver them. |
-| Latest step 2: select application and see instances/version | Both | RM09-L03, RM09-I01 | R02-F01, R02-F02 | Exact target, per-instance reported applicationVersion and preserved back context. |
-| Truthful application/version evidence | Both | RM09-L03, RM09-I02 | R02-F02, R02-F04 | Registration-time version is distinct from metadataRevision and Last seen; no app version/count/health aggregate. |
-| RM09-AC01, RM09-AC02 | Both | No approval action in prototype | Proposed R02, pending exact rendered decision | Partial desktop review only; rejection history and production gate remain authoritative. |
-| RM09-AC04, RM09-AC05 | Both | All read actions | Denied, target/query change, incompatible response | Exact target/query authorization and capability/response compatibility remain required. |
-| RM09-AC06 | RM09-APPLICATIONS | RM09-L01, RM09-L02, RM09-L04, RM09-L05 | Ready/no matches | P2 remains required. No loaded-page global search or first-page environment discovery. |
-| RM09-AC07, RM09-AC17 | RM09-INSTANCES | RM09-I02, RM09-I03, RM09-I04 | Ready, empty, incompatible | Only instance/version inspection is in scope; no admission/control or complete inventory journey is claimed. Preserve opaque identity and exact version/timestamp text. |
-| RM09-AC10, RM09-AC15 | Both | Refresh/Retry/Back | Unavailable, stale, denied | Only read/session-loss behavior is in scope; no receipt/recovery or mutation coverage is claimed. |
-| RM09-AC18, RM09-AC19 | Both | All declared controls | Desktop/keyboard/zoom, bounded pages | Mobile is no longer required by the user. Pictures do not establish real keyboard/accessibility behavior. No unbounded fetch or polling is implied. |
-| Deferred broader scope | Outside these two screens | No deferred controls/navigation | Future work | RM09-AC03 human sign-in UI; AC08–AC14 mutation/configuration/recovery/adoption; AC16 sensitive configuration content; remaining inventory/capability and cross-cutting portions need later review and implementation. |
-| RM09-AC20 | Both | Read journey only | Synthetic review | Does not provide real-service/browser acceptance or close RM-09. |
-| Initial exclusions | Both | No mutation/control action | Inspection only | No metadata editing, configuration, operation navigation, restart, scheduling, execution, automatic rollout, fleet transaction or mobile screen. |
+| Accepted filterable application list | RM09-APPLICATIONS | RM09-L01–RM09-L07 | R02-F01, R02-F03, R02-F06 | Preserve accepted reference; P2 server search/authorized environments remain required. |
+| Accepted instance/version inspection and return | Both original screens | RM09-L03, RM09-I01–RM09-I05 | R03-F01, R03-F04, R03-F05 | Accepted version/presence semantics remain; shared tabs are the R03 addition. |
+| Requested three detail tabs | All three detail screens | RM09-T01–RM09-T03 | R03-F01–R03-F03 | Exactly Instances, Configuration, Capabilities; same application, default Instances, preserved list context. |
+| Read-only application configuration list | RM09-CONFIGURATION-LIST | RM09-C01–RM09-C04 | R03-F02; scoped/empty/error states | Required bounded scoped query; no global-page completeness, common binding inference or default/content values. |
+| Management capabilities/current caller | RM09-CAPABILITIES | RM09-K01, RM09-K02 | R03-F03; absent-hint state | Actual implementedApis and exact operationId hint matching. Not evaluated is distinct from Allowed/Not allowed. |
+| RM09-AC01, RM09-AC02 | All four | No approval action in prototype | Partial acceptance and proposed R03 | Exact rendered decision remains pending; production gate/history remain authoritative. |
+| RM09-AC04, RM09-AC05, RM09-AC17 | All four | All reads/tab actions | Denied, incompatible, target/tab change | Exact scoped authorization, response compatibility, opaque identity and exact strings/timestamps remain required. No executable server schema. |
+| RM09-AC06 | RM09-APPLICATIONS | Filter/page actions | Accepted list reference | P2 remains required; no loaded-page global search. |
+| RM09-AC07 | RM09-INSTANCES, RM09-CAPABILITIES | Instance/capability reads | R03-F01, R03-F03 | Limited inspection only; Management APIs are distinct from instance inventory/admission/control. |
+| RM09-AC10, RM09-AC15 | All four | Refresh/Retry/Back | Unavailable, stale, denied | Read/session-loss behavior only; no receipt/recovery/mutation coverage. |
+| RM09-AC18, RM09-AC19 | All four | All declared controls | Desktop/keyboard/zoom, bounded pages | Mobile no longer required. No unbounded scan/polling or claim pictures verify runtime accessibility. |
+| Deferred broader scope | Outside this slice | No deferred workflow controls | Future work | Sign-in UI, metadata/configuration writes, content/defaults, operation recovery, release/assignment/adoption and remaining inventory/control acceptance need later review. |
+| RM09-AC20 | All four | Read journey only | Synthetic review | Does not provide real-service/browser acceptance or close RM-09. |
+| Initial exclusions | All four | No mutation/execution action | Inspection only | No write/login/metadata/recovery flow, restart, deployment control, automatic rollout, extra inferred tabs or mobile screen. API descriptor text does not enable those workflows. |
 
 Coverage is limited to the described parts of each requirement. A cross-reference
 does not mark the full requirement complete.
@@ -244,5 +382,4 @@ does not mark the full requirement complete.
 
 | Decision | Reviewer | Date | Wireframe SHA-256 | Rationale |
 | --- | --- | --- | --- | --- |
-| Pending Approval — R02 | No human R02 decision recorded | Not decided | Not sealed; CIS must bind the exact rendered review revision/content | Proposed two-screen desktop inspection slice. R01 rejection history is retained separately; production remains gated and broader RM-09 work remains deferred. |
-
+| Approved | Andrew Spiteri | 2026-11-25T13:39:18Z | `sha256:06582aab7edb438721e3d82c72c08761839474932dbc02cc6fc6e3271e6b155a` | Andrew Spiteri explicitly accepted R03: ok, we will need to add scheduled jobs as well. but the image seems ok. This approves the exact presented R03 desktop Applications/Instances/Configuration metadata/Capabilities design and preserves earlier application-list acceptance. Scheduled jobs is a requested additive follow-up tab; this approval does not pre-approve its unseen design, configuration write flows or broader portal workflows. |
