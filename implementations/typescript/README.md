@@ -1,9 +1,13 @@
-# CISLIB TypeScript management clients
+# CISLIB TypeScript clients and Management portal
 
-This workspace contains the RM-07 `@cislib/client-core` and
-`@cislib/management-client` ES modules. The only external dependency is the pinned
-TypeScript 5.9.3 development compiler. The packages have no external runtime
-dependencies. Use Node 24.15.0 and npm 11.12.1 for the repository commands:
+This workspace contains the portable RM-07 `@cislib/client-core` and
+`@cislib/management-client` ES modules and the independent private
+[`@cislib/management-portal` application](applications/management-portal/README.md).
+The SDK packages have no external runtime dependencies; their development
+compiler remains TypeScript 5.9.3. The portal owns its Next.js/React, OIDC/session
+and PostgreSQL dependencies. SDK browser and server exports acquire no portal
+framework or session dependency. Use Node 24.15.0 and npm 11.12.1 for the
+repository commands:
 
 ```sh
 npm ci
@@ -12,13 +16,23 @@ npm test
 npm run check:browser
 ```
 
-The build emits JavaScript and declarations in each package's `dist` directory.
+These SDK commands remain unchanged. The build emits JavaScript and declarations
+in each package's `dist` directory; it does not build the portal.
 The browser check uses DOM libraries and `types: []`. Native `node:test` checks
 consume the independent exact-text vectors in
 `conformance/management/v1/wire-cases.json`, then exercise deadlines, held cleanup,
 read retries, concurrent credentials and selected DTO projection. Native service
 acceptance uses `tests/real-service-consumer.mjs` against the actual C# service;
 unit substitutes do not establish SQL, native authentication or deployment proof.
+
+The [portal build/run guide](applications/management-portal/README.md#build-and-run)
+documents its separate `npm run build:portal`, explicit session-schema migration
+and application start commands. Its current approved desktop slice is read-only:
+filterable Applications, Instances with reported versions, Configuration metadata,
+Capabilities and reported Scheduled jobs, with quick details and full Job details. Run history
+and typed Task/Event services remain unavailable pending RM-10; production uses
+no demonstration records to replace them. Portal configuration and native
+Management authorization are independent of portable client construction.
 
 ```ts
 import { ManagementClient } from "@cislib/management-client";
@@ -95,9 +109,10 @@ ordinary responses, 8 MiB inventory responses and depth 16; inventory limits are
 `examples/node/management.mjs` uses the explicit server export and host-owned PEM
 paths. `examples/next-server` shows a real `server-only` import boundary and a
 per-request credential owner, then selects a small response DTO. Its compile-only
-declaration does not install a Next runtime or implement login; production UI and
-identity/session flows remain RM-09. See [the Kotlin protocol note](KOTLIN.md) for
-another language implementation.
+declaration does not install a Next runtime or implement login. The independent
+[Management portal](applications/management-portal/README.md) owns the runtime
+and login/session flow. See [the Kotlin protocol note](KOTLIN.md) for another
+language implementation.
 
 The additive configuration client exposes nineteen publication/distribution APIs;
 see the [configuration guide](../../docs/modules/management/typescript.md).

@@ -1,5 +1,11 @@
 # Management v1 protocol
 
+The additive v1.3 discovery surface supplies literal application queries,
+authorized environment pages and exact-application metadata-only Configuration
+definitions. See [discovery semantics and cursor boundaries](../../../docs/modules/management/discovery.md).
+Existing unfiltered APIs remain supported; unsupported optional backends do not
+advertise the additions.
+
 Use `/management/v1` relative to the configured HTTPS base prefix. Preserve that
 prefix when appending the typed API paths. Bootstrap trust and credentials are
 independent of this service. Every business API uses a selected native

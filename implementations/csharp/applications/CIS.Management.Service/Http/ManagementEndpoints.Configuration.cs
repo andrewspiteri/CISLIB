@@ -33,6 +33,7 @@ internal static partial class ManagementEndpoints
         group.MapPost("/configuration/catalog/apply", ApplyConfigurationCatalog);
         group.MapGet("/configuration/catalog/operations/{operationKey}", ConfigurationCatalogOperation);
         group.MapGet("/configuration/definitions", ConfigurationDefinitions);
+        group.MapGet("/applications/{applicationId}/configuration-definitions", ApplicationConfigurationDefinitions);
         group.MapPost("/configuration/validate", ValidateConfiguration);
         group.MapGet("/configuration/sources/{sourceId}", ConfigurationSource);
         group.MapPost("/configuration/sources/{sourceId}/publications", PublishConfiguration);
@@ -52,7 +53,10 @@ internal static partial class ManagementEndpoints
         }
         ManagementStoreResult<ManagementConfigurationCatalog> catalog = await backend.ReadCatalogAsync(token);
         return catalog.IsKnownCommitted && catalog.Value?.Ready is true
-            ? Array.AsReadOnly(CatalogFeatures.Concat(PublicationFeatures).Concat(DistributionFeatures).Concat(SnapshotFeatures).Concat(AdoptionFeatures).ToArray())
+            ? Array.AsReadOnly(CatalogFeatures.Concat(PublicationFeatures).Concat(DistributionFeatures).Concat(SnapshotFeatures).Concat(AdoptionFeatures)
+                .Concat(backend is IManagementApplicationConfigurationBackend
+                    ? new[] { new ManagementFeature("getApplicationConfigurationDefinitions", 1, "GET", "/applications/{applicationId}/configuration-definitions",
+                        ["management.applications.read", ManagementConfigurationCapabilities.DefinitionsRead]) } : []).ToArray())
             : Array.AsReadOnly(CatalogFeatures);
     }
 

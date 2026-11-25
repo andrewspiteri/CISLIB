@@ -10,12 +10,15 @@
   },
   "workspaces": [
     "packages/client-core",
-    "packages/management-client"
+    "packages/management-client",
+    "applications/management-portal"
   ],
   "scripts": {
     "build": "node node_modules/typescript/bin/tsc -b packages/client-core packages/management-client examples/next-server",
     "test": "node --test --test-concurrency=1 tests/*.test.mjs",
-    "check:browser": "node node_modules/typescript/bin/tsc -p tests/browser/tsconfig.json --noEmit"
+    "check:browser": "node node_modules/typescript/bin/tsc -p tests/browser/tsconfig.json --noEmit",
+    "build:portal": "npm run build --workspace @cislib/management-portal",
+    "test:portal": "npm run test --workspace @cislib/management-portal"
   },
   "devDependencies": {
     "typescript": "5.9.3"

@@ -44,6 +44,13 @@ public sealed class ManagementConfigurationClient : IManagementConfigurationClie
         => CallAsync<ManagementPage<ManagementConfigurationDefinition>>("GET", "configuration/definitions", page: page ?? new(), options: options, token: cancellationToken);
 
     /// <inheritdoc />
+    public Task<ManagementConfigurationCallResult<ManagementPage<ManagementConfigurationDefinition>>> GetApplicationDefinitionsAsync(
+        string applicationId, ManagementPageRequest? page = null, ManagementCallOptions? options = null,
+        CancellationToken cancellationToken = default)
+        => CallAsync<ManagementPage<ManagementConfigurationDefinition>>("GET", "applications/" + Uuid(applicationId) + "/configuration-definitions",
+            page: page ?? new(), options: options, token: cancellationToken);
+
+    /// <inheritdoc />
     public Task<ManagementConfigurationCallResult<ManagementConfigurationValidationResult>> ValidateAsync(ManagementConfigurationValidationCommand command,
         ManagementCallOptions? options = null, CancellationToken cancellationToken = default)
         => CallAsync<ManagementConfigurationValidationResult>("POST", "configuration/validate", body: command, options: options, token: cancellationToken);

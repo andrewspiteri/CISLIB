@@ -354,3 +354,176 @@ maximum inside 6 GiB. No old images, volumes or cache were deleted. New npm,
 .next and browser outputs are counted. Runtime pins stay unchanged. Stable
 Auth.js replaces the uninstalled Better Auth proposal for the bounded provider
 I/O reason recorded in dependency-decision.md.
+
+## Desktop implementation checks in progress
+
+The frozen handoffs now have source implementations for the native operator
+identity profile, bounded discovery/portable clients, the independent Next host
+and approved desktop inspection views. Source reviews are retained under
+`.cis/local/testing/rm09/`; a source disposition does not substitute for native
+execution. WORK-002 through WORK-005 remain separate active owners.
+
+The first integration compilation exposed one missing test namespace import;
+that was corrected without changing product behavior. The affected Core unit
+project subsequently built with zero warnings/errors. Its first focused native
+client/wire selection returned **197 passed, 1 failed, 0 skipped**. The failure
+was a real finite-profile regression: adding a new environment observation alias
+exceeded the existing 32-pair REST composition budget. The correction groups
+environment discovery under the existing `applications` observation family,
+while retaining the distinct public API, typed environment response and exact
+HTTP URI. The global REST bound and existing profile-budget regression test are
+unchanged. Passing execution of this correction remains to be recorded.
+
+The portal's eleven focused profile/input/projection Node tests passed with no
+failures, cancellation or skips. Initial strict application checking exposed
+dependency-only declaration errors for unselected email/WebAuthn providers;
+app-local `skipLibCheck` leaves all application/server source strict and adds no
+unused provider dependencies. Including the custom `.mts` entry points then
+exposed two genuine v4/v5 adapter-input differences and one environment typing
+error. The adapter now constructs explicit closed validated inputs rather than
+casting across versions. A production build and actual PostgreSQL/OIDC runtime
+proof are still required before accepting the host.
+
+The UI source review corrected child-read-only 401 messaging and restored the
+approved exactly-two Trigger/Job configuration tabs with a separate history
+action. Exact report/scoped identity, stale request abort and truthful missing
+history/task/event data remain explicit. The new desktop browser check uses the
+ordinary production host and isolated native fixture for actual data; separately
+labelled browser-controlled responses exercise race/paging/expiry UI states.
+No browser pass, actual screenshot comparison, live Entra deployment or release
+qualification is claimed by this source checkpoint.
+
+### Current focused results
+
+| Owner | Native check | Result |
+| --- | --- | --- |
+| WORK-002 | Integration project build, including the native service | Passed, zero warnings/errors |
+| WORK-002 | Operator identity, metadata cancellation/body ownership and strict discovery boundary selection | 54 passed, 0 failed/skipped |
+| WORK-002 | Actual native operator/workload and existing certificate/local/Entra profile selection after fixture-policy correction | 5 passed, 0 failed/skipped |
+| WORK-003 | Corrected Core client/wire/profile regression selection | 198 passed, 0 failed/skipped |
+| WORK-003 | Canonical Management contract/conformance selection | 94 passed, 0 failed/skipped |
+| WORK-003 | Actual PostgreSQL filtering, UTF-8 continuation, 4096-candidate refusal and blocked-query cancellation | 5 passed, 0 failed/skipped |
+| WORK-003 | Affected TypeScript client/wire/cancellation/configuration/export selection | 189 passed, 0 failed/cancelled/skipped |
+| WORK-003 | Portable browser-import TypeScript check | Passed |
+| WORK-004 | Final portal input/profile/projection checks | 11 passed, 0 failed/cancelled/skipped |
+| WORK-004 | Production Next build, including strict application/custom-server/migration source types after native-client drainage corrections | Passed |
+| WORK-004 | Actual HTTPS response/deadline/body-limit/saturation/stop ownership | 1 MSTest passed, asserting all 6 native transport scenarios and actual closure |
+| WORK-004 | Real maintained OIDC callbacks, PostgreSQL sessions, native Management grants and host stop | 1 MSTest passed, asserting all 26 recorded scenarios; browserChecked=false |
+
+Native command arguments, actual elapsed walls and exit results remain in
+`.artifacts/management-portal/CIS-0029/native-costs.jsonl`; nonempty command logs
+and TRX results are under each named owner/phase. Silent compiler success is
+recorded in that journal rather than an invented output file. These independent
+native commands are outside CIS's internal measured-run coverage; the shared
+external admission/accounting record charges them in addition to conservative
+source/agent allowances and retained CIS metadata costs. A native ledger zero
+does not mean this work was free.
+
+The first native operator selection had 3 existing-profile passes and 2 new-test
+failures before authentication. The new test initializer omitted the owned TLS
+fixture's short-lived certificate revocation policy, thereby selecting Online.
+It now copies both actual fixture policy values; production validation and
+trust roots are unchanged. The passing five-case retry above uses that corrected
+initializer. Both native observations and costs are retained.
+
+One provider admission was held before launch because its projected growth did
+not fit the unchanged physical ceiling. Exact local inspection verified all
+three pinned fixture images were already present. The subsequent admission
+reserves 192 MiB for sequential owned provider volumes/writable layers and 16 MiB
+for the selected native outputs/scratch; the rationale and actual counted roots
+are retained in `provider-storage-admission-refinement.json`. No prior cache,
+image, database or volume was deleted, and no ceiling or reserve was enlarged.
+
+The first OIDC/session host invocation reached the real PostgreSQL retirement
+helper and failed on its additional remote-PID-disappearance assertion. It had
+not yet established an auth-host result. Remote PostgreSQL execution/rollback is
+distinct from local native client ownership. The corrected helper independently
+observes actual public Client.end: absent while held and disposal is pending with
+the real backend connected; present after releasing native end and awaiting the
+same disposal. Actual query-timeout eviction remains covered. Installed driver
+stream-close/Connection.end/Client.end ordering was independently reviewed.
+Production drainage is unchanged, and no remote termination claim replaces it.
+The original failed invocation and classification remain retained; the corrected
+invocation then reached 14 actual scenarios before failing at its forced-expiry
+step and timing out in the fixture's aggregate child-close wait. The recorded
+host had exited while aggregate close remained unobserved. The next diagnostic
+run retained that exact partial result; no partial run is labelled a host pass.
+
+The fixture now joins actual process exit, stdout closure, stderr closure and
+IPC disconnect separately, all registered before stopping. Aggregate close is
+retained as a diagnostic; it is not substituted by exit alone. The pinned Node
+24.15 implementation's explicit-disconnect/aggregate accounting path was
+independently inspected. No process-private counters or forced stream destruction
+were introduced. The forced-expiry check now parameterizes an explicit date on
+the validator's clock, requires exactly one updated row and a returned past
+deadline, then asserts 401. The previous expiry cause remains unidentified;
+the successful run's numeric clock delta is not evidence about that old run.
+
+`rm09-native-oidc-session-public-joins` passed in 28 seconds. Its retained report
+lists 26 completed scenarios: all three real PostgreSQL client-retirement cases,
+maintained OIDC/PKCE flow, native target denial, per-registration versions and
+inventory identity, real metadata-only definition, two independent users,
+opaque cookie, token/account-route denial, no retained refresh/ID token,
+account-linking/origin/scope rejection, actual persisted session expiry,
+reauthentication, revocation and sign-out, five invalid callback cases, restricted
+SQL role, no token logging and awaited host stop. All four public shutdown events
+and issuer socket drainage were observed. Exact report path/hash is recorded in
+`.cis/local/testing/rm09/host-verified-evidence.json`. Browser execution remains
+pending; this does not claim current screenshots, live Entra, another OS lane or
+release readiness.
+
+## Verified approved desktop increment
+
+WORK-002, WORK-003 and WORK-004 completed through normal CIS transitions before
+the connected desktop selection. The final approved-layout production build
+passed strict application/server/migration type checking. The installed Edge
+run `rm09-native-desktop-approved-layout` then passed: **1 MSTest, 0 failed,
+0 skipped, 41 seconds**. It completed the same 26 real host/session/native-service
+scenarios and the browser hook below.
+
+The browser evidence separates **10 scenarios using actual native service data**
+from **3 controlled browser-response scenarios**. Actual checks cover filters and
+Clear filters, per-registration versions, keyboard/Escape/focus return,
+metadata-only Configuration, advisory capabilities, complete inventory and exact
+registration/report/scoped-job/resource navigation, local configuration, truthful
+unavailable history/Task/Event views and independent browser-session target
+isolation. Controlled checks separately prove delayed old-tab response rejection,
+child-read session-expiry clearing/reauthentication notice and bounded
+Next/Previous/filter restart. They do not become real backend or scheduler proof.
+
+The earlier desktop runs and costs remain. They captured the main approved
+views, then failed on an unscoped alert selector that also included Next's own
+route announcer. The check now targets the actual page notice inside main;
+production alert semantics were preserved. Visual review additionally found a
+Job Overview density/grouping difference. The final implementation restores the
+approved compact Definition/Selected resource cards, full-width Selected report
+and related links, with exact native fields. The old captures remain historical.
+
+The final run retained **14 screenshots**. Root and an independent reader viewed
+the fresh Job Overview and Applications toolbar against R06; the earlier panel,
+Configuration and Instances comparisons remain compatible. No required visual
+finding remains. The ordinary fixture's related links also passed full viewport
+visibility at 1,600 by 1,000. No new journey or screenshot approval was invented.
+Native source, protected launch settings and approved renderer hashes are
+unchanged. `.cis/local/testing/rm09/desktop-verified-evidence.json` binds all
+fresh images and the final browser/host reports; the visual assessment is
+`.cis/local/testing/rm09/desktop-visual-review.md`.
+
+Only this task's newly generated rebuildable webpack caches were disposed after
+completed builds to retain browser headroom: 92,025,181 bytes and 81,430,396 bytes.
+Exact targets were verified inside the new portal, with no linked entries;
+file hashes and manifests were retained. Compiled production output remained
+available and was used by the passing native run. No historical cache, image,
+existing database/volume, source, report or recovery input was removed. The
+unchanged 6 GiB ceiling, 64 MiB reserve and 2 GiB Docker allowance remain in force.
+
+This closes the approved R02–R06 desktop inspection behavior. The original full
+RM-09 specification is still broader: writes, publication/assignment/adoption
+journeys and mobile remain deferred, and real scheduler/history/Task/Event data
+requires RM-10 contracts. Local controlled-issuer proof does not qualify live
+Entra, external encryption/replicas, AKS/cert-manager, another OS or a release.
+No push, merge, publication or external deployment occurred.
+| WORK-002 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2716; failed=357; possibleTokenSavings=591; ledgerDigest=sha256:fd11df4a43f11c9e77a8e339e9d20264fca5af586b745db230f741426eacc629 |
+| WORK-003 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2718; failed=357; possibleTokenSavings=591; ledgerDigest=sha256:dc1f0ff0e04010a16b51f75d877968abe0d8389f8902b263dab58c05a7050eee |
+| WORK-004 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2724; failed=357; possibleTokenSavings=591; ledgerDigest=sha256:13b3701feb30eba1ccf3b5b52851075c542a3552893a509f3a9ab25cb6f417bd |
+| WORK-005 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2734; failed=357; possibleTokenSavings=591; ledgerDigest=sha256:aa03c50c65aec759ebb903f1ccdc9748ac971300e806b9fd7a1642e2c552443a |

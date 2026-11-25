@@ -1,11 +1,12 @@
 import { ClientProtocolFailure, createFetchTransport, executeRequest, validateReadRetries, validateTimeout } from "@cislib/client-core";
 import type { ClientCallContext, ClientTransport, CredentialProvider, RequestObservation } from "@cislib/client-core";
 import type {
-  Application, Capabilities, CloseReceipt, ControlConfirmation, Instance, InventoryItem, InventorySnapshot, ManagementCallResult,
+  Application, ApplicationQuery, EnvironmentEntry, Capabilities, CloseReceipt, ControlConfirmation, Instance, InventoryItem, InventorySnapshot, ManagementCallResult,
   MetadataCommand, MetadataResult, Observation, Page, PageRequest, Problem, RegistrationReceipt, RegistrationRequest,
   ReportReceipt, ServiceInfo
 } from "./models.js";
 import { bodyLimit, captureWireLimits, decodeManagement, encodeManagement, isCursor, isOperationKey, isStrongETag, isUuid, ManagementWireError } from "./wire.js";
+import { isScalarText } from "./wire-validation.js";
 import type { ManagementSchema, ManagementWireLimits } from "./wire.js";
 
 export interface ManagementClientOptions {
@@ -59,6 +60,22 @@ export class ManagementClient {
   }
   listApplications(page?: PageRequest, context?: ClientCallContext): Promise<ManagementCallResult<Page<Application>>> {
     return this.call("GET", "applications", () => "applications" + pageQuery(page), "ApplicationPage", context);
+  }
+  queryApplications(query: ApplicationQuery, page?: PageRequest, context?: ClientCallContext): Promise<ManagementCallResult<Page<Application>>> {
+    return this.call("GET", "applications", () => {
+      if (query === null || typeof query !== "object"
+        || query.query !== undefined && !isScalarText(query.query, 128)
+        || query.environment !== undefined && !isScalarText(query.environment, 255)) {
+        throw new TypeError("Supply bounded literal application and exact environment filters.");
+      }
+      const parameters = new URLSearchParams(pageQuery(page).slice(1));
+      if (query.query !== undefined) { parameters.set("query", query.query); }
+      if (query.environment !== undefined) { parameters.set("environment", query.environment); }
+      return "applications?" + parameters.toString();
+    }, "ApplicationPage", context);
+  }
+  listEnvironments(page?: PageRequest, context?: ClientCallContext): Promise<ManagementCallResult<Page<EnvironmentEntry>>> {
+    return this.call("GET", "applications", () => "environments" + pageQuery(page), "EnvironmentPage", context);
   }
   getApplication(applicationId: string, context?: ClientCallContext): Promise<ManagementCallResult<Application>> {
     return this.call("GET", "application", () => "applications/" + uuid(applicationId), "Application", context);

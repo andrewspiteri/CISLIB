@@ -2,7 +2,7 @@
 title: "WORK-002 Native independently validated human operator authority"
 type: agent-task
 status: Draft
-task_status: InProgress
+task_status: Complete
 task_id: WORK-002
 parent_id: none
 category: backend
@@ -29,13 +29,18 @@ Native independently validated human operator authority
 
 ## Acceptance criteria
 
-- [ ] Implement application-local independently validated human/delegated JWT identity through current Security extension points, strict fixed issuer/tenant/audience/client/delegated scope and trusted resource grants. Preserve workload Entra strictness, native listener isolation and distinct human/calling-application attribution. Include current signed-token/native fixtures and documentation; no copied actor headers or new auth framework.
+- [x] Implement application-local independently validated human/delegated JWT identity through current Security extension points, strict fixed issuer/tenant/audience/client/delegated scope and trusted resource grants. Preserve workload Entra strictness, native listener isolation and distinct human/calling-application attribution. Include current signed-token/native fixtures and documentation; no copied actor headers or new auth framework.
 
 ## Targeted validation
 
-- [ ] Meaningful affected unit/native HTTPS signed-token tests prove correct user projection plus wrong issuer/audience/client/scope/app token/forged identity/resource denial. Format changed C# and build affected projects. Controlled issuer is explicitly not live Entra proof; independent review checks responsibility growth.
+- [x] Meaningful affected unit/native HTTPS signed-token tests prove correct user projection plus wrong issuer/audience/client/scope/app token/forged identity/resource denial. Format changed C# and build affected projects. Controlled issuer is explicitly not live Entra proof; independent review checks responsibility growth.
 
 ## Completion evidence
 
 | Check | Result | Evidence |
 | --- | --- | --- |
+| Native build and format | Passed | Integration build zero warnings/errors; scoped changed-C# whitespace and verification passed. |
+| Native identity and ownership boundaries | Passed | Combined 54-case identity/metadata/query-boundary selection; actual 5-case native operator/workload/certificate/local/Entra selection passed after fixture policy correction. See verification.md for exact phases and retained failed observations. |
+| Independent source review | Resolved | .cis/local/testing/rm09/operator-independent-review.md; linked cancellation/body limit correction executed in focused tests. |
+| Scope and proof limits | Preserved | Fixed application-local provider and existing native Security ownership; controlled signed-token/TLS proof is not live Entra/AKS deployment or release qualification. |
+| CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2716; failed=357; possibleTokenSavings=591; ledgerDigest=sha256:fd11df4a43f11c9e77a8e339e9d20264fca5af586b745db230f741426eacc629 |

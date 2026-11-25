@@ -38,6 +38,8 @@ public sealed class ManagementWireTests
             ("InventorySnapshot", "request") => ManagementWire.DecodeRequest<ManagementInventorySnapshot>(bytes),
             ("MetadataCommand", "request") => ManagementWire.DecodeRequest<ManagementMetadataCommand>(bytes),
             ("Application", "response") => ManagementWire.DecodeResponse<ManagementApplication>(bytes),
+            ("EnvironmentEntry", "response") => ManagementWire.DecodeResponse<ManagementEnvironment>(bytes),
+            ("EnvironmentPage", "response") => ManagementWire.DecodeResponse<ManagementPage<ManagementEnvironment>>(bytes),
             ("MetadataResult", "response") => ManagementWire.DecodeResponse<ManagementMetadataResult>(bytes),
             ("Problem", "response") => ManagementWire.DecodeResponse<ManagementProblem>(bytes),
             ("ControlConfirmation", "response") => ManagementWire.DecodeResponse<ManagementControlConfirmation>(bytes),

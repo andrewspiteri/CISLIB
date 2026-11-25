@@ -7,6 +7,13 @@ public interface IManagementConfigurationClient
     Task<ManagementConfigurationCallResult<ManagementPage<ManagementConfigurationDefinition>>> GetDefinitionsAsync(
         ManagementPageRequest? page = null, ManagementCallOptions? options = null, CancellationToken cancellationToken = default);
 
+    /// <summary>Reads metadata-only application definitions for the visible application's exact environment; excludes common sources and defaults.</summary>
+    Task<ManagementConfigurationCallResult<ManagementPage<ManagementConfigurationDefinition>>> GetApplicationDefinitionsAsync(
+        string applicationId, ManagementPageRequest? page = null, ManagementCallOptions? options = null,
+        CancellationToken cancellationToken = default)
+        => Task.FromException<ManagementConfigurationCallResult<ManagementPage<ManagementConfigurationDefinition>>>(
+            new NotSupportedException("The selected client does not implement application definition discovery."));
+
     /// <summary>Validates a scoped draft without mutation or automatic POST replay.</summary>
     Task<ManagementConfigurationCallResult<ManagementConfigurationValidationResult>> ValidateAsync(
         ManagementConfigurationValidationCommand command, ManagementCallOptions? options = null, CancellationToken cancellationToken = default);

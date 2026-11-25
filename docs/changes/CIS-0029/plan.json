@@ -68,7 +68,7 @@
       ],
       "acceptanceCriteria": "Implement application-local independently validated human/delegated JWT identity through current Security extension points, strict fixed issuer/tenant/audience/client/delegated scope and trusted resource grants. Preserve workload Entra strictness, native listener isolation and distinct human/calling-application attribution. Include current signed-token/native fixtures and documentation; no copied actor headers or new auth framework.",
       "validation": "Meaningful affected unit/native HTTPS signed-token tests prove correct user projection plus wrong issuer/audience/client/scope/app token/forged identity/resource denial. Format changed C# and build affected projects. Controlled issuer is explicitly not live Entra proof; independent review checks responsibility growth.",
-      "status": "InProgress",
+      "status": "Complete",
       "taskTypeKey": "core.legacy",
       "taskTypeVersion": "1.0",
       "approvalGate": "none",
@@ -121,7 +121,7 @@
       ],
       "acceptanceCriteria": "Provide server-side bounded identity/display-name search and exact environment filtering, authorized environment enumeration and exact application/environment Configuration-definition query. Native per-resource authorization precedes page/cursor disclosure; canonical filter/actor/profile/policy cursor binding preserves original operation recovery. Use compatible optional backend query interfaces; update OpenAPI/schema/C#/TS clients together. Include tests/docs, no whole-fleet query in Next.",
       "validation": "Existing native/provider and portable client tests cover beyond-first-page matches, hidden apps/environments/sources, malformed/Unicode bounds, filter/policy cursor mismatch and old omitted-filter callers. Exact SQL filters before paging, bounded scan behavior and cancellation reviewed. Build affected projects, scoped C# formatting, independent responsibility review.",
-      "status": "Draft",
+      "status": "Complete",
       "taskTypeKey": "core.legacy",
       "taskTypeVersion": "1.0",
       "approvalGate": "none",
@@ -178,7 +178,7 @@
       ],
       "acceptanceCriteria": "Backoffice: add independent Next/TypeScript host using supported exact dependency pins and maintained OIDC code/PKCE session adapter. Management tokens remain server-only with secure HttpOnly cookies, callback/state/nonce/PKCE and origin/redirect controls, expiry/sign-out/revocation, per-request credentials and cancellation. Portable packages remain framework-free. Public responses traverse explicit cache policy (auth no-store); health has no database I/O, auth uses only the maintained owned session adapter with no direct Management repository access; no auth/test framework. Tests/docs/license notices included.",
       "validation": "Focused host/session tests and build verify request isolation, denied browser token APIs, authenticated access, expiry/revocation, callback/return validation, origin/CSRF rules and cancellation. Check current supported versions/licenses and physical storage before install/build. Document separate owned session schema and local-versus-live identity evidence. Independent review checks responsibility expansion.",
-      "status": "Draft",
+      "status": "Complete",
       "taskTypeKey": "core.legacy",
       "taskTypeVersion": "1.0",
       "approvalGate": "none",
@@ -229,13 +229,11 @@
       "requirementIds": [],
       "impactIds": [],
       "dependsOn": [
-        "WORK-002",
-        "WORK-003",
-        "WORK-004"
+        "WORK-001"
       ],
-      "acceptanceCriteria": "Backoffice: implement approved R06 Applications filters, selected-app Instances/Configuration/Capabilities/Scheduled jobs, read-only quick panels and Job Overview/local Configuration. Keep app/env/registration/report/scoped identities and reported versions; truthful Not reported/unknown/unavailable states. Run history and Task/Event APIs unavailable until RM10; no synthetic production records or inferred cron/bindings. Abort stale reads, clear denied session state, preserve keyboard/Escape/focus/context. Include runnable docs/tests/review; no new journeys.",
-      "validation": "Focused UI and existing connected native/provider tests prove bounded paging, per-registration versions, definition metadata only, inventory identity, target switching/cancellation/stale response, denial/session expiry and panel keyboard/focus behavior. Actual desktop screenshots compared with approved R06; material new journey requires screenshot review. Build affected clients/portal, record proof limits and native costs; no broad qualification campaign.",
-      "status": "Draft",
+      "acceptanceCriteria": "Backoffice: implement approved R06 Applications filters, selected-app Instances/Configuration/Capabilities/Scheduled jobs, read-only quick panels and Job Overview/local Configuration. Keep app/env/registration/report/scoped identities and reported versions; truthful Not reported/unknown/unavailable states. Run history and Task/Event APIs unavailable until RM10; no synthetic production records or inferred cron/bindings. Abort stale reads, clear denied session state, preserve keyboard/Escape/focus/context. Include runnable docs/tests/review; no new journeys. The typed portal-model/API routes and SDK contracts are now frozen handoffs, so UI source may proceed independently after WORK001. Connected acceptance and completion still require WORK002/003/004 completed with current native evidence; no backend/session check is waived.",
+      "validation": "Focused UI and existing connected native/provider tests prove bounded paging, per-registration versions, definition metadata only, inventory identity, target switching/cancellation/stale response, denial/session expiry and panel keyboard/focus behavior. Actual desktop screenshots compared with approved R06; material new journey requires screenshot review. Build affected clients/portal, record proof limits and native costs; no broad qualification campaign. Before completion, verify native WORK002/003/004 are Complete and reference their actual current focused evidence, then validate the connected UI. Source work may run in parallel against the frozen DTO/API handoff.",
+      "status": "Complete",
       "taskTypeKey": "core.legacy",
       "taskTypeVersion": "1.0",
       "approvalGate": "none",
@@ -264,12 +262,12 @@
         {
           "id": "task-contract",
           "criteria": [
-            "Backoffice: implement approved R06 Applications filters, selected-app Instances/Configuration/Capabilities/Scheduled jobs, read-only quick panels and Job Overview/local Configuration. Keep app/env/registration/report/scoped identities and reported versions; truthful Not reported/unknown/unavailable states. Run history and Task/Event APIs unavailable until RM10; no synthetic production records or inferred cron/bindings. Abort stale reads, clear denied session state, preserve keyboard/Escape/focus/context. Include runnable docs/tests/review; no new journeys."
+            "Backoffice: implement approved R06 Applications filters, selected-app Instances/Configuration/Capabilities/Scheduled jobs, read-only quick panels and Job Overview/local Configuration. Keep app/env/registration/report/scoped identities and reported versions; truthful Not reported/unknown/unavailable states. Run history and Task/Event APIs unavailable until RM10; no synthetic production records or inferred cron/bindings. Abort stale reads, clear denied session state, preserve keyboard/Escape/focus/context. Include runnable docs/tests/review; no new journeys. The typed portal-model/API routes and SDK contracts are now frozen handoffs, so UI source may proceed independently after WORK001. Connected acceptance and completion still require WORK002/003/004 completed with current native evidence; no backend/session check is waived."
           ],
-          "description": "Focused UI and existing connected native/provider tests prove bounded paging, per-registration versions, definition metadata only, inventory identity, target switching/cancellation/stale response, denial/session expiry and panel keyboard/focus behavior. Actual desktop screenshots compared with approved R06; material new journey requires screenshot review. Build affected clients/portal, record proof limits and native costs; no broad qualification campaign.",
+          "description": "Focused UI and existing connected native/provider tests prove bounded paging, per-registration versions, definition metadata only, inventory identity, target switching/cancellation/stale response, denial/session expiry and panel keyboard/focus behavior. Actual desktop screenshots compared with approved R06; material new journey requires screenshot review. Build affected clients/portal, record proof limits and native costs; no broad qualification campaign. Before completion, verify native WORK002/003/004 are Complete and reference their actual current focused evidence, then validate the connected UI. Source work may run in parallel against the frozen DTO/API handoff.",
           "evidenceRoute": "review",
           "evidenceExpectations": [
-            "Focused UI and existing connected native/provider tests prove bounded paging, per-registration versions, definition metadata only, inventory identity, target switching/cancellation/stale response, denial/session expiry and panel keyboard/focus behavior. Actual desktop screenshots compared with approved R06; material new journey requires screenshot review. Build affected clients/portal, record proof limits and native costs; no broad qualification campaign."
+            "Focused UI and existing connected native/provider tests prove bounded paging, per-registration versions, definition metadata only, inventory identity, target switching/cancellation/stale response, denial/session expiry and panel keyboard/focus behavior. Actual desktop screenshots compared with approved R06; material new journey requires screenshot review. Build affected clients/portal, record proof limits and native costs; no broad qualification campaign. Before completion, verify native WORK002/003/004 are Complete and reference their actual current focused evidence, then validate the connected UI. Source work may run in parallel against the frozen DTO/API handoff."
           ],
           "sharedGateIds": [],
           "basisReferences": []

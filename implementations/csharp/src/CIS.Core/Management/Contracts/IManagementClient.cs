@@ -40,6 +40,18 @@ public interface IManagementClient
     Task<ManagementCallResult<ManagementPage<ManagementApplication>>> ListApplicationsAsync(ManagementPageRequest? page = null,
         ManagementCallOptions? options = null, CancellationToken cancellationToken = default);
 
+    /// <summary>Queries authorized applications before paging; omitted filters retain the original list behavior.</summary>
+    Task<ManagementCallResult<ManagementPage<ManagementApplication>>> QueryApplicationsAsync(ManagementApplicationQuery query,
+        ManagementPageRequest? page = null, ManagementCallOptions? options = null, CancellationToken cancellationToken = default)
+        => Task.FromException<ManagementCallResult<ManagementPage<ManagementApplication>>>(
+            new NotSupportedException("The selected client does not implement application queries."));
+
+    /// <summary>Reads an ordinal page of environments belonging to currently authorized applications.</summary>
+    Task<ManagementCallResult<ManagementPage<ManagementEnvironment>>> ListEnvironmentsAsync(ManagementPageRequest? page = null,
+        ManagementCallOptions? options = null, CancellationToken cancellationToken = default)
+        => Task.FromException<ManagementCallResult<ManagementPage<ManagementEnvironment>>>(
+            new NotSupportedException("The selected client does not implement environment discovery."));
+
     /// <summary>Reads one visible authoritative application resource and current metadata-only ETag.</summary>
     Task<ManagementCallResult<ManagementApplication>> GetApplicationAsync(string applicationId,
         ManagementCallOptions? options = null, CancellationToken cancellationToken = default);

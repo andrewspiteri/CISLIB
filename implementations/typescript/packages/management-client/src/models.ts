@@ -9,6 +9,10 @@ export interface Application {
 }
 export interface Page<T> { readonly items: readonly T[]; readonly nextCursor?: string; }
 export interface PageRequest { readonly pageSize?: number; readonly cursor?: string; }
+/** Literal case-sensitive substrings and exact environments; no trimming, normalization or wildcards. */
+export interface ApplicationQuery { readonly query?: string; readonly environment?: string; }
+/** An environment belonging to at least one currently authorized application. */
+export interface EnvironmentEntry { readonly environment: string; }
 export interface Feature {
   readonly operationId: string; readonly version: number; readonly method: string;
   readonly path: string; readonly requiredCapabilities: readonly string[];

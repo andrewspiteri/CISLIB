@@ -51,7 +51,7 @@ continue counting against admissions rather than being reset by native adoption.
 | WORK-002 | Native independently validated human authority through current Security extensions; after WORK-001 | 6 h / 8 attempts |
 | WORK-003 | Bounded authorized application/environment and app-specific definition discovery, contracts and clients; after WORK-001 | 6 h / 8 attempts |
 | WORK-004 | Independent Next host and maintained OIDC/session boundary; after WORK-001 | 7 h / 10 attempts |
-| WORK-005 | Approved backoffice inspection UI and connected native/browser proof; after WORK-002, WORK-003, WORK-004 | 8 h / 11 attempts |
+| WORK-005 | Approved backoffice inspection UI: source after WORK-001 and frozen typed handoffs; connected completion requires WORK-002, WORK-003, WORK-004 complete | 8 h / 11 attempts |
 | Reserve | Actually required restoration only | 1 h / 1 attempt |
 
 Each implementation leaf is medium or smaller and includes meaningful tests,

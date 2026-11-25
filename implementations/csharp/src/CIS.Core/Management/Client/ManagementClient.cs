@@ -78,6 +78,18 @@ public sealed class ManagementClient : IManagementClient
             null, page ?? new(), null, options, cancellationToken);
 
     /// <inheritdoc />
+    public Task<ManagementCallResult<ManagementPage<ManagementApplication>>> QueryApplicationsAsync(ManagementApplicationQuery query,
+        ManagementPageRequest? page = null, ManagementCallOptions? options = null, CancellationToken cancellationToken = default)
+        => CallAsync<ManagementPage<ManagementApplication>>("GET", "applications", "applications", null, null,
+            null, page ?? new(), null, options, cancellationToken, query: query ?? throw new ArgumentNullException(nameof(query)));
+
+    /// <inheritdoc />
+    public Task<ManagementCallResult<ManagementPage<ManagementEnvironment>>> ListEnvironmentsAsync(ManagementPageRequest? page = null,
+        ManagementCallOptions? options = null, CancellationToken cancellationToken = default)
+        => CallAsync<ManagementPage<ManagementEnvironment>>("GET", "applications", "environments", null, null,
+            null, page ?? new(), null, options, cancellationToken);
+
+    /// <inheritdoc />
     public Task<ManagementCallResult<ManagementApplication>> GetApplicationAsync(string applicationId, ManagementCallOptions? options = null,
         CancellationToken cancellationToken = default)
         => CallAsync<ManagementApplication>("GET", "application", "applications", applicationId, null,
@@ -115,7 +127,8 @@ public sealed class ManagementClient : IManagementClient
 
     private async Task<ManagementCallResult<T>> CallAsync<T>(string method, string operation, string collection,
         string? id, string? suffix, object? body, ManagementPageRequest? page, CommandHeaders? command,
-        ManagementCallOptions? options, CancellationToken cancellationToken, string? controlAttemptId = null) where T : class
+        ManagementCallOptions? options, CancellationToken cancellationToken, string? controlAttemptId = null,
+        ManagementApplicationQuery? query = null) where T : class
     {
         long entered = clock.GetTimestamp();
         cancellationToken.ThrowIfCancellationRequested();
@@ -131,6 +144,11 @@ public sealed class ManagementClient : IManagementClient
         if (page is not null && !ManagementWire.IsPageRequest(page))
         {
             throw new ArgumentException("Supply a bounded page size and opaque cursor.", nameof(page));
+        }
+        if (query is not null && (query.Query is not null && !ManagementWire.IsScalarText(query.Query, 128)
+            || query.Environment is not null && !ManagementWire.IsScalarText(query.Environment, 255)))
+        {
+            throw new ArgumentException("Supply bounded literal application and exact environment filters.", nameof(query));
         }
         if (command is not null && (!ManagementWire.IsOperationKey(command.Key)
             || method == "PUT" && !ManagementWire.IsStrongETag(command.IfMatch)))
@@ -184,6 +202,14 @@ public sealed class ManagementClient : IManagementClient
             }
         };
         request.Headers.Set("Accept", "application/json, application/problem+json");
+        if (query?.Query is not null)
+        {
+            request.Query.Set("query", query.Query);
+        }
+        if (query?.Environment is not null)
+        {
+            request.Query.Set("environment", query.Environment);
+        }
         if (controlAttemptId is not null)
         {
             request.Query.Set("attemptId", controlAttemptId);

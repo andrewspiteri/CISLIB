@@ -63,6 +63,9 @@ compatible response additions.
 - [TypeScript workspace](../../../implementations/typescript/README.md) and
   [management package](../../../implementations/typescript/packages/management-client/README.md):
   portable ES modules, per-call credentials and explicit server-only adapters.
+- [Bounded portal discovery](discovery.md): literal application search, exact
+  environments, authorized environment enumeration, metadata-only application
+  definitions and current read-policy/ticket-bound cursors.
 - [TypeScript configuration client](typescript.md): matching portable contracts,
   awaited native integrity, scoped conditional reads and actual transport results.
 

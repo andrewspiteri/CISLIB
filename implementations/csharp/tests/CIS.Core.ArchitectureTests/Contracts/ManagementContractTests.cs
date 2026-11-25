@@ -19,7 +19,7 @@ public sealed class ManagementContractTests
     private static readonly HashSet<string> SchemaNames = new(StringComparer.Ordinal)
     {
         "RegistrationRequest", "Observation", "InventorySnapshot", "MetadataCommand",
-        "Application", "MetadataResult", "Problem", "ControlConfirmation", "ServiceInfo"
+        "Application", "MetadataResult", "Problem", "ControlConfirmation", "ServiceInfo", "EnvironmentEntry", "EnvironmentPage"
     };
 
     public static IEnumerable<object[]> WireCases => Wire.RootElement.GetProperty("cases").EnumerateArray()
@@ -161,6 +161,8 @@ public sealed class ManagementContractTests
             ("put", "/registrations/{registrationId}/inventory"),
             ("delete", "/registrations/{registrationId}"),
             ("get", "/applications"),
+            ("get", "/environments"),
+            ("get", "/applications/{applicationId}/configuration-definitions"),
             ("get", "/applications/{applicationId}"),
             ("get", "/applications/{applicationId}/instances"),
             ("get", "/applications/{applicationId}/inventory"),

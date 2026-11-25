@@ -4406,6 +4406,44 @@
       "x-cis-distinct-cohort-ids": true,
       "x-cis-max-body-bytes": 1048576,
       "x-cis-default-max-body-bytes": 1048576
+    },
+    "EnvironmentEntry": {
+      "type": "object",
+      "properties": {
+        "environment": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        }
+      },
+      "required": [
+        "environment"
+      ],
+      "additionalProperties": true,
+      "x-cis-text": "Exact control-free Unicode scalar environment; no normalization."
+    },
+    "EnvironmentPage": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EnvironmentEntry"
+          },
+          "maxItems": 500,
+          "minItems": 0
+        },
+        "nextCursor": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "additionalProperties": true,
+      "x-cis-order": "Unique authorized environments in UTF-8 byte ordinal order; no hidden environment or application position in continuation."
     }
   },
   "description": "Canonical DTO schemas. Requests are closed; response readers tolerate optional additions and preserve unknown raw values. x-cis annotations document runtime lexical/semantic/byte requirements not all expressible in JSON Schema or the existing evaluator.",

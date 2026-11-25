@@ -92,6 +92,10 @@ public static class ManagementSecurityComposition
                 }
             }, captured.AuthenticationScheme);
         }
+        else if (captured.Mode == "entra-management")
+        {
+            ManagementEntraSecurity.Configure(builder.Services, captured);
+        }
         else if (captured.Mode is "local" or "certificate")
         {
             builder.Services.AddCisCertificatePemSecurity(captured.Profile, services =>
