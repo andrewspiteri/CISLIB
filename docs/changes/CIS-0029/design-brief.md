@@ -1,38 +1,31 @@
 ---
-title: "RM-09 application detail tabs design brief — R03"
+title: "RM-09 application detail tabs design brief — R04"
 type: design-brief
 status: Proposed
 change_id: CIS-0029
 frontend_type: backoffice
-design_revision: R03
+design_revision: R04
 design_approval: Pending
 baseline: "6c70cee807f12caddf40cd1b443e4a20045d35aa"
 ---
 
-# RM-09 application detail tabs design brief — R03
+# RM-09 application detail tabs design brief — R04
 
-The user accepted the current application/instance direction and requested tabs
-on the selected application: **Instances**, **Configuration** and
-**Capabilities**. R03 preserves the accepted Applications list, instance table,
-reported-version meaning and bounded navigation flow. It adds only those three
-detail tabs, with Instances selected by default. This remains a **desktop-only,
-read-only backoffice review slice** with four screen definitions. Mobile remains
-outside the requested scope; “etc” does not add inferred tabs.
+Andrew Spiteri approved the exact R03 desktop application/detail design and
+requested an additional **Scheduled jobs** tab. Preserve the approved
+Applications, Instances, Configuration metadata and Capabilities bodies. The
+shared detail navigation now has four tabs, with Instances still the default.
+R04 reviews this additive tab and the expanded tab row, all desktop only.
 
-The broader [preserved specification](../../../planning/management/portal/sources/CISLIB_RM09_Management_Portal_Specification_v1.0.md)
-remains future scope. Configuration content/editing, metadata editing, operation
-recovery and release/assignment/adoption journeys remain deferred. This smaller
-review does not discard them or satisfy their acceptance criteria. R03 has no
-writes, sign-in screens or future-placeholder navigation.
+The [preserved specification](../../../planning/management/portal/sources/CISLIB_RM09_Management_Portal_Specification_v1.0.md)
+remains unchanged. Mobile, configuration values/writes, metadata editing, login,
+operation recovery and release/assignment/adoption remain deferred. Scheduled
+jobs is read-only reporting, not a scheduler or job-control framework.
 
-R01/R02 review history and the user's partial acceptance remain recorded
-separately. These proposed R03 documents do not turn that acceptance into full
-manifest approval or resume production work. The CIS design checkpoint remains
-**PausedForReview** until an explicit decision binds the exact rendered R03
-content and its limited scope. The requested tab navigation and new list surfaces
-are pending review. Approval of this slice would not approve the broader portal
-or close RM-09.
-
+R03 approval is sealed in the native record and local Git commit `035e22c7`.
+It does not pre-approve the unseen addition. R04 has five screen definitions;
+its exact new screenshot review remains pending. Normal scope/plan/owner
+reconciliation still precedes production work.
 ## Journey and screen scope
 
 | Step | Screen | Purpose | Forward/back behavior |
@@ -41,12 +34,13 @@ or close RM-09.
 | 2 | RM09-INSTANCES — /applications/11111111-1111-1111-1111-111111111111/instances | Inspect retained instance observations, reported application versions, raw presence and last-seen times. | Default detail tab; Back restores list filters, query-bound page/cursor history, scroll and originating focus. |
 | 3 | RM09-CONFIGURATION-LIST — /applications/11111111-1111-1111-1111-111111111111/configurations | Inspect application-kind configuration definition metadata for the exact application/environment. | Configuration tab retains the application and return context; no content or write journey opens. |
 | 4 | RM09-CAPABILITIES — /applications/11111111-1111-1111-1111-111111111111/capabilities | Inspect implemented Management API descriptors and current-caller hints. | Capabilities tab retains the application and return context; no execution control opens. |
+| 5 | RM09-SCHEDULED-JOBS — /applications/11111111-1111-1111-1111-111111111111/jobs | Inspect reported scheduled-support definitions and resource observations in one selected registration inventory snapshot. | Scheduled jobs tab preserves the application and Back context; no execution or scheduling action. |
 
 A simple desktop header supplies Management context. Applications remains the
 only top-level navigation destination; there is no multi-area rail. All detail
 screens share Back to applications, the selected application's display name,
-canonical identity and environment, followed by exactly three linked tabs:
-**Instances**, **Configuration**, **Capabilities**. The active tab is clear and
+canonical identity and environment, followed by exactly four linked tabs:
+**Instances**, **Configuration**, **Capabilities**, **Scheduled jobs**. The active tab is clear and
 keyboard reachable. Each tab loads its own read surface; Refresh acts on the
 current tab. Keep per-tab bounded page state within the same application.
 
@@ -143,6 +137,40 @@ or Denied. A hint does not create an implemented API row, imply permission from 
 capability name or replace authorization of an actual read. Listing an API that
 can write does not expose a write workflow.
 
+## Scheduled jobs tab — reported inventory only
+
+Use existing listInventory(applicationId). Cursor pages contain whole
+registration InventoryItems, each with a complete bounded catalog. Select one
+reported registration snapshot; do not merge registrations into a fleet total.
+The source context shows registrationId, reported applicationVersion, inventory
+sequence and dated observed/received times. A matching reported instance label
+is unverified; the registration ID remains authoritative record identity.
+
+List definitions whose supportedModes contains scheduled. The key is
+(executionScope, jobId), with category also scoped by executionScope. Declared
+support is not actual active mode, enablement, schedule, lease or execution
+authority. Show actual scheduled resourceId/mode/state observations and optional
+open lastOutcome codes. A definition without such observations remains visible
+as No scheduled observation; never invent Idle/Waiting or a successful outcome.
+
+Occurrence timestamps are optional. Display supplied lastOccurrenceUtc and
+nextOccurrenceUtc as dated source values, otherwise Not reported independently.
+The current native snapshot does not populate these fields; no cron/cadence
+contract is transported. Do not extract the example's daily schedule from source
+and present it as reported runtime data.
+
+The synthetic row uses the real opt-in CountryData definition Customer dormancy,
+customer-service/customer.dormancy, category lifecycle. Its illustrative
+observation is partition-eu, scheduled, released, jobs.completed; both occurrence
+times are Not reported. Continuous-only wallet.compaction is excluded. Selection
+is demo-eu-01 / a1111111-1111-4111-8111-111111111111, version 2.4.2+build.18,
+inventory sequence 41, observed 25 Nov 2026, 10:58:30 CET and received 10:58:32 CET.
+These are inventory report times, not occurrence times. All data remain synthetic.
+
+Previous/Next browse inventory pages, not individual jobs or fleet totals. No
+Run/Pause/Enable/Edit schedule action appears. Loading, no inventory, no scheduled
+definition, no observation, stale, denied and unavailable remain distinct. No
+new read API is needed for this bounded view.
 ## Contract map and prerequisites
 
 | Surface | Existing evidence | Required boundary |
@@ -190,9 +218,9 @@ Retain white surfaces on `#F8FAFC`, navy `#0F172A`, secondary text
 14–16 px body text, 20–24 px titles and the 8 px spacing rhythm. Long identities,
 versions and API paths remain readable. Status uses text as well as color.
 
-Plan up to eight desktop frames at exactly **1600 × 1000**. The accepted R02
-Applications reference stays unchanged. Three primary R03 detail previews show
-the requested tabs; preserved state variants complete the package.
+Plan up to nine desktop frames at exactly **1600 × 1000**. The accepted R02
+Applications reference stays unchanged. R04 adds the Scheduled jobs primary
+preview and fourth navigation tab to the approved R03 detail presentation.
 
 | Frame | Screen | Evidence |
 | --- | --- | --- |
@@ -204,6 +232,7 @@ the requested tabs; preserved state variants complete the package.
 | R03-F04 | RM09-INSTANCES | Preserved no-retained-observations state under shared tabs. |
 | R03-F05 | RM09-INSTANCES | Preserved dated-snapshot refresh failure under shared tabs. |
 | R02-F06 | RM09-APPLICATIONS | Preserved initial unavailable state with Retry. |
+| R04-F01 | RM09-SCHEDULED-JOBS | Selected reported registration, scoped scheduled job/resource observation and absent occurrence times. |
 
 Other loading/access/incompatible-response states remain specified textually;
 more PNGs are not required to claim a complete state machine. No mobile/narrow
@@ -237,7 +266,7 @@ hint; getConfigurationDefinitions with
 management.configuration.definitions.read and no hint (**Not evaluated**).
 These are descriptor rows only, never workflow controls or live grants.
 
-R03 is pending exact rendered approval. No production UI, host dependency,
+R03 is approved; the additive R04 Scheduled jobs design is pending exact rendered approval. No production UI, host dependency,
 administrative call or deployment is authorized by these files. The decision must
-identify the accepted reference and new tab additions within the four-screen
+identify the accepted reference and new tab additions within the five-screen
 desktop scope; broader RM-09 acceptance remains deferred.

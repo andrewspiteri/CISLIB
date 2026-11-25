@@ -17,7 +17,27 @@ new test result or deployment qualification. No native tests/builds, service
 access, database access or production changes were performed for this assessment.
 The visible design and its explicit user approval remain pending.
 
-## R03 current review slice
+## R04 Scheduled jobs addition
+
+R03 is now natively approved, with the exact prior checkpoint preserved in Git
+commit `035e22c7`. The user requested Scheduled jobs as an additive read-only
+tab. Existing `listInventory(applicationId)` returns cursor pages of complete
+registration snapshots, including registrationId/applicationVersion and the
+inventory sequence/observed/received times. Selecting one bounded report needs
+no new API or application-wide inventory sweep.
+
+Job definitions use (executionScope, jobId) identity and declare supportedModes.
+The view lists scheduled support, separately showing actual resourceId/mode/state
+observations and optional open lastOutcome codes. Category identity also includes
+executionScope. These reports confer no lease, scheduling or execution authority.
+The native JobRuntime snapshot currently leaves optional last/next occurrence
+timestamps absent. Show Not reported; no cron/cadence is transported or inferred.
+CountryData's optional customer.dormancy definition supplies a realistic
+scheduled-support example, while wallet.compaction is continuous-only.
+The synthetic observation remains illustrative; default tutorial selection and
+real-service proof are not claimed.
+
+## R03 approved base
 
 The user accepted the application/instance direction and requested three tabs on
 the selected application's detail screen: Instances, Configuration and

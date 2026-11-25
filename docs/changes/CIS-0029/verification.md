@@ -152,3 +152,45 @@ R03 wireframe/renderer and the PNG manifest
 `sha256:ca0b5b2960776dd6a6d474807c80b54bb2ffc1ee94ef646e0f33847c1d070bc5`.
 The native approval receipt is `rm09-r03-user-approval.json`; the checkpoint is
 Approved/Approved. The unseen Scheduled jobs design is not pre-approved.
+
+## R04 Scheduled jobs preview
+
+R04 adds the explicitly requested Scheduled jobs tab to the approved R03
+presentation. Native wireframe validation passed: five backoffice screens,
+twenty-five read/navigation actions, digest
+`sha256:38af1540c843cb2abcf3e581d7d309a3694afc7dc32a67819bf9eb450e351b68`.
+The new jobs block/brief received a separate source-aware model review with no
+material findings. Existing registration/version/optional-time facts were
+preserved through a narrow document delta; no new read API was invented.
+
+Nine desktop frames at 1600 × 1000 rendered successfully and post-render native
+validation passed. Root inspected the new Jobs view and expanded Instances tab
+row. The three application images match the native R03 approval byte for byte;
+local comparison evidence is retained. A separate context-limited model reader
+correctly distinguished the selected registration report, declared support,
+mode/state/outcome, unknown occurrence times and synthetic/non-executable view.
+Its minor mode/state-label ambiguity was corrected, then the normal renderer
+and native validation passed again. These checks are not human usability,
+browser, service integration or accessibility evidence.
+
+The final R04 renderer is
+`249016b8fde00257a25347205b69f5764052d8be501120f1dea565e12dbcf29d`;
+render-result hash is
+`e6be96026ed855f54d8327a2270bc58949198e32f24166c23a4daff6c3e0819a`.
+The current gate is PausedForReview/ReadyForReview for the new addition; R03's
+prior exact approval remains preserved. No production work resumed. Native
+same-change reuse is unsupported, so no such mapping or carried authority is
+claimed; source code/drawing preservation and hashes are reported accurately.
+
+Fresh admission was 5,586,791,952 bytes under 6 GiB, including fixed allowances,
+reserve and 32 MiB growth. Additive conservative R04 costs and exact metadata
+walls remain retained within the same proposed shared 48-hour envelope and
+12-hour review redistribution. Earlier costs/failed observations are unchanged.
+No cleanup, package installation, native consumer build/test, push or merge.
+
+## R04 human approval
+
+Andrew Spiteri approved R04 (ok it is good) and requested an additive item-detail
+interaction, suggesting a side panel. Native `design approve` succeeded with
+Approved/Approved; exact hashes remain in its approval row and
+`rm09-r04-user-approval.json`. The unseen side panel is not pre-approved.

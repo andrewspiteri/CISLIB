@@ -1,29 +1,27 @@
 ---
-title: "CIS-0029 textual wireframes — R03"
+title: "CIS-0029 textual wireframes — R04"
 type: textual-wireframes
 status: Approved
 change_id: CIS-0029
-design_revision: R03
+design_revision: R04
 approval_status: Approved
 authority: human-reviewed
 ---
 
-# Textual wireframes — R03
+# Textual wireframes — R04
 
-The user accepted the current application/instance direction and requested
-selected-application tabs: **Instances**, **Configuration** and **Capabilities**.
-R03 preserves the accepted Applications list, instance contents/version meaning
-and bounded return flow. Instances remains the default detail tab. There are
-exactly three tabs and four screen definitions, all **desktop backoffice**.
-Mobile remains outside the requested scope. See the [design brief](design-brief.md).
+Andrew Spiteri approved the exact R03 desktop application/detail design and
+requested **Scheduled jobs** as an additive fourth detail tab. R04 retains the
+accepted application list, instance/version content, Configuration metadata and
+Capabilities. Instances remains the default. There are exactly four detail tabs
+and five screen definitions, all desktop backoffice; mobile remains excluded.
 
-R01/R02 history and partial acceptance remain separate from full manifest
-approval. R03's tab navigation and new read-only lists are pending human review;
-the CIS checkpoint remains **PausedForReview**. These files do not authorize
-production UI. Configuration content/editing, metadata edits, login, operation
-recovery and release/assignment/adoption workflows remain deferred. Actual
-Management API descriptors may mention these operations without exposing actions.
-
+Only the Scheduled jobs addition and expanded tab row await screenshot approval.
+R03's native approval and exact hashes are preserved in Git commit `035e22c7`
+and native approval history. They do not pre-approve the unseen addition.
+Configuration writes, metadata edits, login, operation recovery and
+release/assignment/adoption remain deferred. No runtime scheduler or job control
+is added. See the [design brief](design-brief.md).
 ## Screen inventory
 
 | Screen ID | Frontend type | Name | Route/path | Platform | Actors/access | Entry points | Purpose |
@@ -32,10 +30,11 @@ Management API descriptors may mention these operations without exposing actions
 | RM09-INSTANCES | backoffice | Application instances and reported versions | /applications/11111111-1111-1111-1111-111111111111/instances | Web desktop only | Current operator with exact application and instance read access | Application name/row, Instances tab, authorized direct link | Default detail tab: retained instance observations, reported versions, raw presence and last seen. |
 | RM09-CONFIGURATION-LIST | backoffice | Application configuration definitions | /applications/11111111-1111-1111-1111-111111111111/configurations | Web desktop only | Current operator with exact application/environment definition-discovery access | Configuration tab, authorized direct link | Read application-kind definition metadata through a bounded scoped query; no content/defaults or edits. |
 | RM09-CAPABILITIES | backoffice | Management APIs and current-caller hints | /applications/11111111-1111-1111-1111-111111111111/capabilities | Web desktop only | Current operator with exact application capability read access | Capabilities tab, authorized direct link | Read implemented Management API descriptors and current-caller hints; no API execution. |
+| RM09-SCHEDULED-JOBS | backoffice | Reported scheduled jobs | /applications/11111111-1111-1111-1111-111111111111/jobs | Web desktop only | Current operator with exact application inventory read access | Scheduled jobs tab, authorized direct link | Inspect scheduled-support definitions and reported resource observations in one selected registration inventory snapshot; no scheduling controls. |
 
 Applications remains the sole top-level navigation destination. All detail
 screens share Back to applications, application display name, canonical identity,
-environment and exactly **Instances / Configuration / Capabilities** tabs.
+environment and exactly **Instances / Configuration / Capabilities / Scheduled jobs** tabs.
 There is no future-placeholder navigation or additional inferred tab.
 
 ## Shared interaction and data rules
@@ -92,6 +91,7 @@ recovery flows.
 | RM09-T01 | Instances tab | Exact application context exists; reads independently checked | Select Instances | Open default read-only instance surface; preserve application/list return context | /applications/11111111-1111-1111-1111-111111111111/instances | RM09-INSTANCES | Show its own safe loading/denied/unavailable state; never substitute another tab's data. |
 | RM09-T02 | Configuration tab | Exact application context exists; scoped read independently checked | Select Configuration | Open bounded application-kind definition metadata; no content read or mutation | /applications/11111111-1111-1111-1111-111111111111/configurations | RM09-CONFIGURATION-LIST | Scoped query prerequisite remains explicit; no loaded-global-page completeness claim. |
 | RM09-T03 | Capabilities tab | Exact application context exists; capability read independently checked | Select Capabilities | Read implemented Management APIs/current-caller hints | /applications/11111111-1111-1111-1111-111111111111/capabilities | RM09-CAPABILITIES | Show safe denied/unavailable state; missing hints do not become permission decisions. |
+| RM09-T04 | Scheduled jobs tab | Exact application context exists; inventory read independently checked | Select Scheduled jobs | Read a bounded inventory page and inspect one selected registration snapshot | /applications/11111111-1111-1111-1111-111111111111/jobs | RM09-SCHEDULED-JOBS | Distinguish no inventory, no scheduled definitions, no observations, denied and unavailable; never fabricate a current schedule. |
 
 The active route/tab is visually clear and keyboard reachable. Back to
 applications is available on each detail tab with RM09-I01 semantics below.
@@ -222,7 +222,7 @@ context. They add no mutation or deferred workflow.
 
 #### Description
 
-Retain the shared application header and three tabs, with **Configuration**
+Retain the shared application header and four tabs, with **Configuration**
 selected. Title: **Configuration definitions**. Supporting copy explains that
 this is application-kind definition metadata for the selected application and
 environment, without source/default content or runtime values.
@@ -282,7 +282,7 @@ exists.
 
 #### Description
 
-Retain the shared application header and three tabs, with **Capabilities**
+Retain the shared application header and four tabs, with **Capabilities**
 selected. Title: **Management capabilities**. Read getCapabilities(applicationId);
 show actual implementedApis, not instance inventory or an execution console.
 
@@ -332,13 +332,88 @@ execution action.
 | RM09-K-DENIED | Session/target/capability read lost | Remove protected descriptors/hints; safe feedback and Back where permitted. |
 | RM09-K-TARGETCHANGE | Target/tab changes or obsolete response arrives | Ignore obsolete responses; retain only active target/tab data. |
 
+### RM09-SCHEDULED-JOBS: Reported scheduled jobs
+
+#### Description
+
+Keep the shared application/environment header, Back and four detail tabs, with
+**Scheduled jobs** active. Heading: **Scheduled jobs**. Supporting copy:
+**Reported jobs that support scheduled execution**. This is inventory inspection,
+not a scheduler or authoritative fleet view.
+
+Read listInventory for the exact application. Its cursor pages contain whole
+registration snapshots, not job rows. Select one report using **Reported
+instance**; options on this inventory page resolve by registrationId and may show
+an unverified reported label from matching instance data. Missing labels fall
+back to registrationId, never a fabricated host. Previous/Next browse inventory
+pages, not a fleet or unbounded sweep. Refresh rereads the selected report/page.
+
+Show the selected registrationId, InventoryItem.applicationVersion, inventory
+sequence, observedAtUtc and receivedAtUtc as dated reporting context. The fixture
+selects demo-eu-01 / a1111111-1111-4111-8111-111111111111, reported version
+2.4.2+build.18, sequence `41`, observed 25 Nov 2026, 10:58:30 CET
+(2026-11-25T09:58:30.0000000Z), received 10:58:32 CET
+(2026-11-25T09:58:32.0000000Z). These times are not job occurrence times.
+
+Within that complete bounded catalog, include definitions whose supportedModes
+contains `scheduled`. Identity is (executionScope, jobId); category identity
+also includes executionScope. Declared support does not establish actual mode,
+enablement, an active schedule or ownership. Preserve actual observations by
+resourceId and do not collapse matching jobs across registrations into a fleet
+row. Definitions with no scheduled resource observation remain visible as
+**No scheduled observation**, without fabricated state or outcome.
+
+| Column | Content and behavior |
+| --- | --- |
+| Job | Display name with exact executionScope/jobId and category as secondary text. |
+| Resource | Actual resourceId for the scheduled observation, or Not reported. |
+| Observation | Supplied mode and state, with text/non-color cues; absence is No scheduled observation. Unknown future strings retain their exact text and remain unknown. |
+| Last outcome | Optional open safe lastOutcome code, or Not reported. Do not classify all future codes as success/failure. |
+| Occurrence times | Supplied optional lastOccurrenceUtc and nextOccurrenceUtc as dated CET/accessible UTC; Not reported independently when absent. |
+
+The synthetic row uses the actual CountryData opt-in definition Customer dormancy,
+customer-service / customer.dormancy, category lifecycle, supportedModes scheduled.
+Its illustrative resource observation is partition-eu, mode scheduled, state
+released, lastOutcome jobs.completed. Both occurrence times say Not reported.
+The current native runtime does not populate those optional occurrence fields.
+No cron/cadence descriptor is transported; do not invent the configured cadence
+from source code or infer future timing from current state. Wallet compaction
+supports continuous execution and is excluded from this scheduled-support view.
+
+No Run, Pause, Enable, Edit schedule or lease-control action is offered. Keep
+**Inventory observations are reports; they do not grant execution authority**
+visible. These synthetic data do not claim the normal CountryData host selects
+its opt-in maintenance recipe. No new read API is required for this bounded view.
+
+#### Actions and paths
+
+| Action ID | Label/control | Available when | User action | Result/side effect | Destination path | Destination screen | Failure/denied behavior |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| RM09-J01 | Reported instance | Authorized complete inventory items on the current page | Select a registration report | Render its complete catalog with scheduled support; preserve exact application context | Current /applications/11111111-1111-1111-1111-111111111111/jobs with selected registration state | RM09-SCHEDULED-JOBS | Clear old rows if target/report changes; no report means no inventory, not no jobs deployed. |
+| RM09-J02 | Refresh / Retry | Exact inventory read remains permitted | Reread current page/report | Perform an authorized bounded read; no mutation | Current jobs route and inventory page | RM09-SCHEDULED-JOBS | Retain only permitted dated snapshots on outage; access loss removes protected data. |
+| RM09-J03 | Previous / Next inventory page | Prior cursor history / next cursor exists | Browse reports | Read another bounded page of complete registration reports | Current jobs route with query-bound opaque cursor state | RM09-SCHEDULED-JOBS | Invalidate stale cursor history and obsolete responses; do not imply job/fleet totals. |
+
+Shared tab actions RM09-T01–RM09-T04 and Back RM09-I01 apply here as well.
+
+#### States
+
+| State ID | State | Visible behavior |
+| --- | --- | --- |
+| RM09-J-READY | Selected complete reported catalog | Exact scoped definitions and actual scheduled observations with dated source context. |
+| RM09-J-LOADING | Initial read or report change | Clear obsolete rows, show loading and retain only safe selected application context. |
+| RM09-J-NOINVENTORY | Successful page has no retained report | No inventory reported; this does not establish that no jobs/processes are deployed. |
+| RM09-J-NOSCHEDULED | Selected complete catalog has no scheduled-support definition | No scheduled jobs reported in this snapshot; no fleet/global absence claim. |
+| RM09-J-NOOBSERVATION | Scheduled-support definition without scheduled observations | Keep definition, show No scheduled observation and absent fields as Not reported. |
+| RM09-J-UNAVAILABLE | Initial read failed | Inventory unavailable and Retry, never an empty successful catalog. |
+| RM09-J-STALE | Refresh failed with permitted retained report | Snapshot may be out of date; preserve observed/received times and report age separately from job occurrence times. |
+| RM09-J-DENIED | Session or inventory read lost | Clear protected snapshot/options and expose safe access feedback/Back where permitted. |
+| RM09-J-INCOMPATIBLE | Required inventory shape invalid | Incompatible response; no manufactured definition/state/authority. |
 ## Desktop review frame inventory
 
-All frames use exactly **1600 × 1000** desktop layout. The accepted Applications
-list remains the R02 reference. Three primary R03 detail previews review the
-requested tabs; preserved state variants bring the planned package to eight
-images. State variants do not add screens.
-
+All frames use exactly **1600 × 1000** desktop layout. The accepted application
+list remains unchanged. R04 adds one Scheduled jobs primary preview and expands
+the detail tab row; the other bodies retain their approved R03 presentation.
+Preserved state variants make nine images. State variants do not add screens.
 | Frame ID | Screen ID | State | Review purpose |
 | --- | --- | --- | --- |
 | R02-F01 | RM09-APPLICATIONS | RM09-L-READY | Unchanged accepted list reference: filters, selection and bounded paging. |
@@ -349,6 +424,7 @@ images. State variants do not add screens.
 | R03-F04 | RM09-INSTANCES | RM09-I-EMPTY | Preserved no-retained-observations state beneath tabs. |
 | R03-F05 | RM09-INSTANCES | RM09-I-STALE | Preserved dated-snapshot refresh failure beneath tabs. |
 | R02-F06 | RM09-APPLICATIONS | RM09-L-UNAVAILABLE | Preserved initial unavailable/Retry state. |
+| R04-F01 | RM09-SCHEDULED-JOBS | RM09-J-READY | Scheduled jobs active; selected report context, scoped definition/resource observation and absent occurrence times. |
 
 Other states are textually specified; further PNGs are not required to represent
 a complete state machine. No mobile/narrow frame is required. Desktop keyboard,
@@ -361,19 +437,20 @@ real-service/browser acceptance.
 | Requirement/exclusion | Screen IDs | Action IDs | States/evidence | Coverage and limits |
 | --- | --- | --- | --- | --- |
 | Accepted filterable application list | RM09-APPLICATIONS | RM09-L01–RM09-L07 | R02-F01, R02-F03, R02-F06 | Preserve accepted reference; P2 server search/authorized environments remain required. |
-| Accepted instance/version inspection and return | Both original screens | RM09-L03, RM09-I01–RM09-I05 | R03-F01, R03-F04, R03-F05 | Accepted version/presence semantics remain; shared tabs are the R03 addition. |
-| Requested three detail tabs | All three detail screens | RM09-T01–RM09-T03 | R03-F01–R03-F03 | Exactly Instances, Configuration, Capabilities; same application, default Instances, preserved list context. |
+| Accepted instance/version inspection and return | Both original screens | RM09-L03, RM09-I01–RM09-I05 | R03-F01, R03-F04, R03-F05 | Accepted version/presence semantics remain; approved shared tabs receive the additive Scheduled jobs destination. |
+| Requested four detail tabs | All four detail screens | RM09-T01–RM09-T04 | R03-F01–R03-F03, R04-F01 | Add Scheduled jobs to approved Instances, Configuration, Capabilities; same application, default Instances and preserved Back context. |
+| Scheduled job inspection | RM09-SCHEDULED-JOBS | RM09-T04, RM09-J01–RM09-J03 | R04-F01 and specified negative states | Existing inventory API, explicit registration report, scoped definitions/observations; no cron/cadence, inferred timing, fleet aggregate or control authority. |
 | Read-only application configuration list | RM09-CONFIGURATION-LIST | RM09-C01–RM09-C04 | R03-F02; scoped/empty/error states | Required bounded scoped query; no global-page completeness, common binding inference or default/content values. |
 | Management capabilities/current caller | RM09-CAPABILITIES | RM09-K01, RM09-K02 | R03-F03; absent-hint state | Actual implementedApis and exact operationId hint matching. Not evaluated is distinct from Allowed/Not allowed. |
-| RM09-AC01, RM09-AC02 | All four | No approval action in prototype | Partial acceptance and proposed R03 | Exact rendered decision remains pending; production gate/history remain authoritative. |
-| RM09-AC04, RM09-AC05, RM09-AC17 | All four | All reads/tab actions | Denied, incompatible, target/tab change | Exact scoped authorization, response compatibility, opaque identity and exact strings/timestamps remain required. No executable server schema. |
+| RM09-AC01, RM09-AC02 | All five | No approval action in prototype | R03 approved; R04 addition pending | Exact new screenshot decision remains pending; prior approval/history are retained. |
+| RM09-AC04, RM09-AC05, RM09-AC17 | All five | All reads/tab actions | Denied, incompatible, target/tab change | Exact scoped authorization, response compatibility, opaque identity and exact strings/timestamps remain required. No executable server schema. |
 | RM09-AC06 | RM09-APPLICATIONS | Filter/page actions | Accepted list reference | P2 remains required; no loaded-page global search. |
 | RM09-AC07 | RM09-INSTANCES, RM09-CAPABILITIES | Instance/capability reads | R03-F01, R03-F03 | Limited inspection only; Management APIs are distinct from instance inventory/admission/control. |
-| RM09-AC10, RM09-AC15 | All four | Refresh/Retry/Back | Unavailable, stale, denied | Read/session-loss behavior only; no receipt/recovery/mutation coverage. |
-| RM09-AC18, RM09-AC19 | All four | All declared controls | Desktop/keyboard/zoom, bounded pages | Mobile no longer required. No unbounded scan/polling or claim pictures verify runtime accessibility. |
+| RM09-AC10, RM09-AC15 | All five | Refresh/Retry/Back | Unavailable, stale, denied | Read/session-loss behavior only; no receipt/recovery/mutation coverage. |
+| RM09-AC18, RM09-AC19 | All five | All declared controls | Desktop/keyboard/zoom, bounded pages | Mobile no longer required. No unbounded scan/polling or claim pictures verify runtime accessibility. |
 | Deferred broader scope | Outside this slice | No deferred workflow controls | Future work | Sign-in UI, metadata/configuration writes, content/defaults, operation recovery, release/assignment/adoption and remaining inventory/control acceptance need later review. |
-| RM09-AC20 | All four | Read journey only | Synthetic review | Does not provide real-service/browser acceptance or close RM-09. |
-| Initial exclusions | All four | No mutation/execution action | Inspection only | No write/login/metadata/recovery flow, restart, deployment control, automatic rollout, extra inferred tabs or mobile screen. API descriptor text does not enable those workflows. |
+| RM09-AC20 | All five | Read journey only | Synthetic review | Does not provide real-service/browser acceptance or close RM-09. |
+| Initial exclusions | All five | No mutation/execution action | Inspection only | No write/login/metadata/recovery flow, restart, deployment control, automatic rollout, extra inferred tabs or mobile screen. API descriptor text does not enable those workflows. |
 
 Coverage is limited to the described parts of each requirement. A cross-reference
 does not mark the full requirement complete.
@@ -382,4 +459,4 @@ does not mark the full requirement complete.
 
 | Decision | Reviewer | Date | Wireframe SHA-256 | Rationale |
 | --- | --- | --- | --- | --- |
-| Approved | Andrew Spiteri | 2026-11-25T13:39:18Z | `sha256:06582aab7edb438721e3d82c72c08761839474932dbc02cc6fc6e3271e6b155a` | Andrew Spiteri explicitly accepted R03: ok, we will need to add scheduled jobs as well. but the image seems ok. This approves the exact presented R03 desktop Applications/Instances/Configuration metadata/Capabilities design and preserves earlier application-list acceptance. Scheduled jobs is a requested additive follow-up tab; this approval does not pre-approve its unseen design, configuration write flows or broader portal workflows. |
+| Approved | Andrew Spiteri | 2026-11-25T14:14:23Z | `sha256:38af1540c843cb2abcf3e581d7d309a3694afc7dc32a67819bf9eb450e351b68` | Andrew Spiteri approved the exact presented R04 Scheduled jobs image: ok it is good. clicking on an item needs to open the details maybe a side panel can open. This approves the current read-only Scheduled jobs view and four-tab navigation, preserving R03 approval. Item details in a side panel are an additive requested interaction; this decision does not pre-approve an unseen panel, configuration content/writes, runtime scheduling or broader workflows. |

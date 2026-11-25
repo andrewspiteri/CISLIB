@@ -1,78 +1,72 @@
 ---
-title: "RM09 R03 application detail tabs review"
+title: "RM09 R04 Scheduled jobs tab review"
 type: design-review-package
 status: Draft
 change_id: CIS-0029
 ---
 
-# RM09 R03: application detail tabs
+# RM09 R04: Scheduled jobs
 
-Andrew Spiteri accepted the R02 application list and instance direction, then
-requested tabs on the selected application's detail screen. **R03 was approved by Andrew Spiteri, who also requested a Scheduled jobs tab next.** The accepted
-application list remains the reference; it is not being redesigned.
+Andrew Spiteri approved the exact R03 application-detail design and requested
+**Scheduled jobs** as an additional tab. R03 approval is sealed by native CIS,
+with renderer `071d759ed388a2852f15ce82ff9a07ceb3e072991df4e1c50774be8c33ae24b4`
+and manifest `ca0b5b2960776dd6a6d474807c80b54bb2ffc1ee94ef646e0f33847c1d070bc5`,
+preserved in local Git commit `035e22c75a440e2ef61300300cfad48a06d74a5d`.
 
-The desktop detail screen keeps application identity and environment above three
-tabs: **Instances** (default), **Configuration**, and **Capabilities**. Switching
-tabs keeps the exact selected application. Back restores the list filters/page
-and originating focus. No additional tab is inferred from "etc".
+**R04 Scheduled jobs and the four-tab navigation were approved by Andrew Spiteri.** Instances remains the default; Configuration and
+Capabilities retain their approved content. The application-list drawing remains
+unchanged. Mobile and broader write/recovery workflows remain deferred.
 
-- **Instances** preserves the accepted per-instance reported version, presence
-  and Last seen data. Versions are registration reports; different instances may
-  report different versions.
-- **Configuration** lists definition metadata for the selected application and
-  environment: configuration ID, schema version, host scope and source/binding
-  references. It exposes no configuration payload/default values and provides
-  no publication, editing or assignment flow.
-- **Capabilities** lists the Management API operations and advisory access hints
-  for the current caller. It does not treat these as reported instance modules,
-  Jobs or runtime inventory. Missing hints say **Not evaluated**; actual requests
-  still require native authorization.
+## New read-only view
 
-All content remains synthetic. Mobile, production login, metadata editing,
-configuration mutations, result recovery and other broader RM09 workflows remain
-deferred. The source specification stays unchanged.
+Scheduled jobs uses existing Management inventory. Select one reported instance
+registration snapshot, then inspect the jobs declaring scheduled support and
+their reported resource observations. The source context includes registration,
+reported application version, inventory sequence and observed/received times.
+Previous/Next browse bounded inventory-report pages, not a fleet aggregate.
 
-## Current API boundaries
+The preview shows Customer dormancy from CountryData's opt-in maintenance recipe:
+customer-service/customer.dormancy, category lifecycle, resource partition-eu,
+observed mode scheduled, state released and last outcome jobs.completed. That
+resource observation is illustrative. The normal CountryData host is not claimed
+to select this optional recipe.
 
-Instance `applicationVersion` and application `getCapabilities` are delivered
-fields/APIs. A complete application-name/environment search still needs P2.
-A complete selected-application Configuration list additionally needs a bounded
-application/environment definition query: current `getDefinitions` is globally
-paged. Searching only a loaded page or arbitrarily associating common definitions
-would not deliver the intended list. Human session and native resource authority
-remain production prerequisites.
+Last/next occurrence fields are optional and currently not populated by the
+native snapshot. They say **Not reported**. No cron/cadence descriptor is
+transported; no schedule or future run is inferred from source code or state.
+Declared scheduled support is distinct from actual mode, enablement, ownership
+or execution authority. No Run, Pause, Enable or Edit schedule action is added.
 
-See [wireframes](wireframes.md), [design brief](design-brief.md) and
-[contract reconciliation](reconciliation.md) for behavior, exact facts and these
-prerequisites. The [design record](design.md) binds the exact renderer and PNG
-hashes. Its `authority: human-reviewed` metadata names the required approval
-mechanism; it does not itself grant approval.
+No new read API is needed for this bounded selected-report view. Application
+search/authorized environments, scoped configuration-definition completeness
+and real human/native resource authorization remain separate production
+prerequisites. See [reconciliation](reconciliation.md), [wireframes](wireframes.md)
+and [design brief](design-brief.md).
 
-## Decision history and boundary
+## Review and preservation
 
-R01 was revised following the desktop-only request. R02 is preserved at local
-Git commit `6176b895d423ddfbf76936733432191bd2287782`; its renderer was
-`5369b0a8c5cba6c8df8ead9678f6e7f50b7629bf35876fbe5601fbc628cfb496`.
-The user's "this part is ok" accepts that base direction, alongside the explicit
-request to change detail navigation. The native requested-revision record keeps
-that partial acceptance; no blanket approval of an unmodified full manifest is
-inferred. No earlier screenshot is claimed as CIS-verified approved reuse.
+This is an additive revision in CIS-0029, not a rejection of R03. Its existing
+native approval row and event remain historical authority for the exact prior
+payload. The new body has a new digest and requires its own visible decision.
+Native cross-change reuse cannot reuse a design within the same change; no
+CIS-verified reuse mapping is claimed. Existing common drawing code is retained,
+and unchanged application images are checked by hash.
 
-Approval requested next is limited to the three detail tabs and their read-only
-list presentation. It does not approve future configuration write workflows or
-additional tabs. The unchanged application list need not be reconsidered. After
-this UI decision, normal CIS reconciliation of the current scope, direction,
-outcome, plan and owner records must precede production work. Earlier full-scope
-plans remain draft future material.
+The [design record](design.md) binds the exact current renderer and manifest.
+All preview data are synthetic. These PNGs establish no working browser tab,
+live Management connection, runtime schedule or accessibility test pass.
+Normal scope/direction/plan/owner reconciliation precedes production work.
 
 ## Rendered review index
 
-CIS gate: **Approved**. R03 tab design: **approved by Andrew Spiteri**. The requested Scheduled jobs addition is not part of this approval.
-Renderer SHA256: `071d759ed388a2852f15ce82ff9a07ceb3e072991df4e1c50774be8c33ae24b4`.
-Native render-result SHA256: `8450342bbf6487b7bf961ac8b469f8374d4c3ad92f52714d317b21f29a00dab4`.
+Current R04 gate: **PausedForReview**. Only the additive Scheduled jobs design
+awaits approval. The exact prior R03 approval remains preserved.
+Renderer SHA256: `249016b8fde00257a25347205b69f5764052d8be501120f1dea565e12dbcf29d`.
+Native render-result SHA256: `e6be96026ed855f54d8327a2270bc58949198e32f24166c23a4daff6c3e0819a`.
 
-New primary review: Instances, Configuration and Capabilities detail tabs.
-All three application-list PNGs match the accepted R02 reference byte for byte.
+The primary new preview is Scheduled jobs. All three application images still
+match the R03 approved reference byte for byte. Existing detail bodies retain
+their presentation with the additional fourth tab.
 
 | Screen | State | Desktop size | Preview |
 | --- | --- | --- | --- |
@@ -84,7 +78,8 @@ All three application-list PNGs match the accepted R02 reference byte for byte.
 | rm09-instances | empty | 1600 × 1000 | [Open PNG](assets/rm09-instances--empty--desktop.png) |
 | rm09-instances | primary | 1600 × 1000 | [Open PNG](assets/rm09-instances--primary--desktop.png) |
 | rm09-instances | stale | 1600 × 1000 | [Open PNG](assets/rm09-instances--stale--desktop.png) |
+| rm09-scheduled-jobs | primary | 1600 × 1000 | [Open PNG](assets/rm09-scheduled-jobs--primary--desktop.png) |
 
-Eight synthetic desktop frames are review evidence. Static/visual checks and
-the independent model reader found no material presentation issue; they do not
-establish working browser tabs, authorization or live service integration.
+All nine images are synthetic desktop review evidence. Native static checks,
+source-aware review and an independent screenshot reader found no material
+presentation issue. They do not establish functional/browser/accessibility proof.

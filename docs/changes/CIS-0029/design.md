@@ -10,21 +10,20 @@ authority: human-reviewed
 
 # Design approval
 
-**R03 detail tabs approved by Andrew Spiteri.** Andrew Spiteri accepted the
-application/instance direction and requested tabs for Instances, Configuration
-list and Capabilities list. The application list remains unchanged; Instances
-stays the default detail tab. No other tab is inferred from "etc".
+**R04 Scheduled jobs is approved by Andrew Spiteri.**
+Andrew Spiteri accepted the presented R03 image and requested Scheduled jobs.
+The exact prior native approval is preserved in local Git commit `035e22c7`,
+its native event and the approval row below. The native R04 decision now approves the presented Scheduled jobs view. The user requested an additive item-details side panel, which remains to be previewed. Earlier approval is preserved.
 
-R02 is preserved at local Git commit `6176b895`. Native requested-revision
-history below records both the partial acceptance and the requested changes;
-it does not manufacture approval of the unmodified full R02 manifest. R01
-history is also retained. Mobile remains excluded. Wider portal workflows stay
-deferred. The user accepted the exact R03 image and requested Scheduled jobs as a separate additive tab; that unseen design remains to be reviewed. Normal scope/plan reconciliation still precedes production work.
+R04 adds a fourth detail tab and a read-only per-registration inventory view.
+Other accepted bodies and the application list are preserved. Instances remains
+the default. No mobile, scheduler, execution control or write workflow is added.
+Normal scope/plan reconciliation remains necessary before production work.
 ## Inputs and renderer
 
 | Wireframe path | Wireframe SHA-256 | Guideline path | Guideline SHA-256 | Renderer path | Renderer SHA-256 | Node | Sharp | libvips |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `docs/changes/CIS-0029/wireframes.md` | `sha256:06582aab7edb438721e3d82c72c08761839474932dbc02cc6fc6e3271e6b155a` | `docs/design/cis-default-guidelines.md` | `sha256:153abe4d66ef5dc15ebe9c9147635182279625e69a05b8758d1ce8fe3d627b59` | `docs/changes/CIS-0029/assets/render-rm09-application-tabs-r03-screens.mjs` | `sha256:071d759ed388a2852f15ce82ff9a07ceb3e072991df4e1c50774be8c33ae24b4` | v24.15.0 | 0.35.5 | 8.18.7 |
+| `docs/changes/CIS-0029/wireframes.md` | `sha256:38af1540c843cb2abcf3e581d7d309a3694afc7dc32a67819bf9eb450e351b68` | `docs/design/cis-default-guidelines.md` | `sha256:153abe4d66ef5dc15ebe9c9147635182279625e69a05b8758d1ce8fe3d627b59` | `docs/changes/CIS-0029/assets/render-rm09-application-jobs-r04-screens.mjs` | `sha256:249016b8fde00257a25347205b69f5764052d8be501120f1dea565e12dbcf29d` | v24.15.0 | 0.35.5 | 8.18.7 |
 
 High-level UI direction: `docs/design/ui-direction.md` at `sha256:25ef386c6a84bc747b1bd87ab3d7ebe67fdd3de2034c20e4ee8f6fefed8012cc`.
 ## Application shell and component templates
@@ -49,7 +48,7 @@ High-level UI direction: `docs/design/ui-direction.md` at `sha256:25ef386c6a84bc
 
 | Frontend type | Screen IDs | Shell/context | Status |
 | --- | --- | --- | --- |
-| `backoffice` | `RM09-APPLICATIONS`, `RM09-INSTANCES`, `RM09-CONFIGURATION-LIST`, `RM09-CAPABILITIES` | `shell.standard-app` | RM09-APPLICATIONS:Render required, RM09-INSTANCES:Render required, RM09-CONFIGURATION-LIST:Render required, RM09-CAPABILITIES:Render required |
+| `backoffice` | `RM09-APPLICATIONS`, `RM09-INSTANCES`, `RM09-CONFIGURATION-LIST`, `RM09-CAPABILITIES`, `RM09-SCHEDULED-JOBS` | `shell.standard-app` | RM09-APPLICATIONS:Render required, RM09-INSTANCES:Render required, RM09-CONFIGURATION-LIST:Render required, RM09-CAPABILITIES:Render required, RM09-SCHEDULED-JOBS:Render required |
 ## Principal review journeys
 
 1. Filter applications and open one using the accepted R02 list.
@@ -88,18 +87,19 @@ or claim production integration based on these synthetic previews.
 These are review/implementation obligations, not completed functional tests.
 
 - [ ] Accepted application filters, selection and Back context remain intact.
-- [ ] Three exact detail tabs preserve application/environment; Instances is default.
+- [ ] Four exact detail tabs preserve application/environment; Instances is default.
 - [ ] Instance versions, optional last seen and raw presence meanings are preserved.
 - [ ] Configuration list is exact-scope metadata without content/default disclosure.
 - [ ] Capabilities distinguishes advisory true/false/absent hints and actual authority.
 - [ ] Per-tab loading, empty, denied, stale and unavailable results remain distinct.
+- [ ] Jobs distinguishes no inventory, no scheduled definitions and no observations; absent occurrence times remain Not reported.
 - [ ] Target/query switches invalidate obsolete requests; access loss clears data.
 - [ ] Desktop keyboard tabs, focus return, zoom and non-color status remain required.
 
 ## Planned render coverage
 
-Eight desktop frames at 1600 × 1000. Three primary detail previews show the new
-navigation; the application list is the accepted R02 reference.
+Nine desktop frames at 1600 × 1000. The new primary preview is Scheduled jobs;
+existing detail bodies remain approved reference with the fourth tab added.
 
 | Screen ID | States | Review purpose |
 | --- | --- | --- |
@@ -107,6 +107,7 @@ navigation; the application list is the accepted R02 reference.
 | RM09-INSTANCES | Populated, no retained observations, stale | Add tab row while preserving instance facts. |
 | RM09-CONFIGURATION-LIST | Populated | Inspect selected application definition metadata. |
 | RM09-CAPABILITIES | Populated | Inspect Management API discovery and caller hints. |
+| RM09-SCHEDULED-JOBS | Populated | Inspect one registration inventory snapshot and reported scheduled job observations. |
 
 No mobile layouts or future-placeholder tabs are included. Static pictures do
 not establish working tab selection, native service access or accessibility.
@@ -137,11 +138,12 @@ registered and verified by CIS if later selected.
 | `rm09-applications` | `backoffice` | no-matches | desktop | `docs/changes/CIS-0029/assets/rm09-applications--no-matches--desktop.png` | 1600x1000 | `sha256:019d8d34a046b684193201d77756d9ab9519da78a3ac88220ba44fc7e3981fcf` | PNG signature, dimensions, size, renderer stats passed | ReadyForReview |
 | `rm09-applications` | `backoffice` | primary | desktop | `docs/changes/CIS-0029/assets/rm09-applications--primary--desktop.png` | 1600x1000 | `sha256:bfe9387fd1a425980832733d473a40bfcb0139d31c24ce3a0538c6c63ec37134` | PNG signature, dimensions, size, renderer stats passed | ReadyForReview |
 | `rm09-applications` | `backoffice` | unavailable | desktop | `docs/changes/CIS-0029/assets/rm09-applications--unavailable--desktop.png` | 1600x1000 | `sha256:d5c8c0625303b15351743d3e23753032e5917bbf6af7c0dec39b4a38bd6ea8f0` | PNG signature, dimensions, size, renderer stats passed | ReadyForReview |
-| `rm09-capabilities` | `backoffice` | primary | desktop | `docs/changes/CIS-0029/assets/rm09-capabilities--primary--desktop.png` | 1600x1000 | `sha256:1a09584836a21c44db8ca4358e3bc6289be5385c1f9ade4dd912c8ff5693cbb1` | PNG signature, dimensions, size, renderer stats passed | ReadyForReview |
-| `rm09-configuration-list` | `backoffice` | primary | desktop | `docs/changes/CIS-0029/assets/rm09-configuration-list--primary--desktop.png` | 1600x1000 | `sha256:3f43e8f9d4a3bd09bdac755fb283c03c0dab795ea18d51ee9829d037084c4225` | PNG signature, dimensions, size, renderer stats passed | ReadyForReview |
-| `rm09-instances` | `backoffice` | empty | desktop | `docs/changes/CIS-0029/assets/rm09-instances--empty--desktop.png` | 1600x1000 | `sha256:eeaf56e3c877702ed03758cb4824641aa197cb7dce0b59131523d1ed0e2cf446` | PNG signature, dimensions, size, renderer stats passed | ReadyForReview |
-| `rm09-instances` | `backoffice` | primary | desktop | `docs/changes/CIS-0029/assets/rm09-instances--primary--desktop.png` | 1600x1000 | `sha256:e373c976d14ab0fdec609b7b36a5336da09f9296160cb4a75912e60254b8885e` | PNG signature, dimensions, size, renderer stats passed | ReadyForReview |
-| `rm09-instances` | `backoffice` | stale | desktop | `docs/changes/CIS-0029/assets/rm09-instances--stale--desktop.png` | 1600x1000 | `sha256:82f9aca53f1a48ab49dc9c9c02cda9ebaa690a7d9df3d1e7d872d6498198adbc` | PNG signature, dimensions, size, renderer stats passed | ReadyForReview |
+| `rm09-capabilities` | `backoffice` | primary | desktop | `docs/changes/CIS-0029/assets/rm09-capabilities--primary--desktop.png` | 1600x1000 | `sha256:4b6c98b34098605e0a9cc9ca53215d5833889c4a3399d469490a6ef9ae2f3e02` | PNG signature, dimensions, size, renderer stats passed | ReadyForReview |
+| `rm09-configuration-list` | `backoffice` | primary | desktop | `docs/changes/CIS-0029/assets/rm09-configuration-list--primary--desktop.png` | 1600x1000 | `sha256:225e2143c410182316e278b5228f48e35884a4d4d642fcba35eda875d2a9610f` | PNG signature, dimensions, size, renderer stats passed | ReadyForReview |
+| `rm09-instances` | `backoffice` | empty | desktop | `docs/changes/CIS-0029/assets/rm09-instances--empty--desktop.png` | 1600x1000 | `sha256:a47508ad2d5a685144d42ff94f00bff804b403141d3dad7daabcf126bbbdfc36` | PNG signature, dimensions, size, renderer stats passed | ReadyForReview |
+| `rm09-instances` | `backoffice` | primary | desktop | `docs/changes/CIS-0029/assets/rm09-instances--primary--desktop.png` | 1600x1000 | `sha256:532c1317df6ef1e9253995ba025bee2b9d169a130d62d82f2890dfc6d4eb5aa4` | PNG signature, dimensions, size, renderer stats passed | ReadyForReview |
+| `rm09-instances` | `backoffice` | stale | desktop | `docs/changes/CIS-0029/assets/rm09-instances--stale--desktop.png` | 1600x1000 | `sha256:fc72e1d63abdef8ff0ad3d74f2a2489a1fb17694d0fd0dea7e0c394e8e15e9d7` | PNG signature, dimensions, size, renderer stats passed | ReadyForReview |
+| `rm09-scheduled-jobs` | `backoffice` | primary | desktop | `docs/changes/CIS-0029/assets/rm09-scheduled-jobs--primary--desktop.png` | 1600x1000 | `sha256:ff1fe1abc3512a96056166b3f43326503c837fd20bc64006ac5b37869c2e01a7` | PNG signature, dimensions, size, renderer stats passed | ReadyForReview |
 ## Guideline conformance and deviations
 
 | Rule/token | Renderer mapping | Result | Deviation approval |
@@ -165,4 +167,4 @@ the unapproved earlier review package.
 
 | Decision | Reviewer | Date | Wireframe SHA-256 | Renderer SHA-256 | PNG manifest SHA-256 | Rationale |
 | --- | --- | --- | --- | --- | --- | --- |
-| Approved | Andrew Spiteri | 2026-11-25T13:39:18Z | `sha256:06582aab7edb438721e3d82c72c08761839474932dbc02cc6fc6e3271e6b155a` | `sha256:071d759ed388a2852f15ce82ff9a07ceb3e072991df4e1c50774be8c33ae24b4` | `sha256:ca0b5b2960776dd6a6d474807c80b54bb2ffc1ee94ef646e0f33847c1d070bc5` | Andrew Spiteri explicitly accepted R03: ok, we will need to add scheduled jobs as well. but the image seems ok. This approves the exact presented R03 desktop Applications/Instances/Configuration metadata/Capabilities design and preserves earlier application-list acceptance. Scheduled jobs is a requested additive follow-up tab; this approval does not pre-approve its unseen design, configuration write flows or broader portal workflows. |
+| Approved | Andrew Spiteri | 2026-11-25T14:14:23Z | `sha256:38af1540c843cb2abcf3e581d7d309a3694afc7dc32a67819bf9eb450e351b68` | `sha256:249016b8fde00257a25347205b69f5764052d8be501120f1dea565e12dbcf29d` | `sha256:1bbb3907ba5435564cd3a643e6a1fb68407722014644a5b8df5a36dbd7538358` | Andrew Spiteri approved the exact presented R04 Scheduled jobs image: ok it is good. clicking on an item needs to open the details maybe a side panel can open. This approves the current read-only Scheduled jobs view and four-tab navigation, preserving R03 approval. Item details in a side panel are an additive requested interaction; this decision does not pre-approve an unseen panel, configuration content/writes, runtime scheduling or broader workflows. |
