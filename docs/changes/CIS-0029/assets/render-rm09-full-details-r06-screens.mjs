@@ -19,7 +19,7 @@ const provenance = Object.freeze({
   guidelinePath: "docs/design/cis-default-guidelines.md",
   guidelineSha256: "sha256:153abe4d66ef5dc15ebe9c9147635182279625e69a05b8758d1ce8fe3d627b59",
   uiDirectionPath: "docs/design/ui-direction.md",
-  uiDirectionSha256: "sha256:25ef386c6a84bc747b1bd87ab3d7ebe67fdd3de2034c20e4ee8f6fefed8012cc",
+  uiDirectionSha256: "sha256:919ab437633b23909f5149fe72ebba161d85b01a9368b3632ff65ec3753bdede",
   shellTemplate: "shell.standard-app@1.0",
   componentTemplates: [
   "component.page-header",

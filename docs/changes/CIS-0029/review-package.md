@@ -81,8 +81,16 @@ design** on 25 November 2026. Native approval at 17:04:52 UTC binds renderer
 `sha256:ff55f6dafc4710fa865420567cb8e51acdc8968118dca12461abfb47971fed7a`.
 Earlier R04 approval remains preserved. This approves the connected UI design;
 the missing RM-10 contracts described above remain implementation prerequisites.
-Renderer SHA256: `6375438db766391a9c376cf43ed12ec33fe24273e76334092e63e850229f7309`.
-Native render-result SHA256: `ea900731efdbc892051f88c011228ceab24ac785637a79c30de7228b8067ff5d`.
+Original human-reviewed renderer SHA256:
+`6375438db766391a9c376cf43ed12ec33fe24273e76334092e63e850229f7309`.
+Original native render-result SHA256:
+`ea900731efdbc892051f88c011228ceab24ac785637a79c30de7228b8067ff5d`.
+After normal high-level direction reconciliation, native scaffold/render
+refreshed only its generated provenance block. The current renderer is
+`d1e9348ce9174b742ad7d3bc94227decc26014b38955d97950bf387b9bd04aac`;
+all twenty-one PNGs and the manifest remain byte-identical. The existing R06
+decision was recorded against that unchanged visual payload at 17:48:25 UTC.
+This was no new human visual decision; original input remains in Git `ad2449d5`.
 
 Start with the Job panel View full details link, then Job history, Scheduled
 Task Trigger/Job configuration and immutable Event context/configuration.

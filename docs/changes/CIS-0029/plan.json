@@ -1,20 +1,20 @@
 {
-  "authorizationId": null,
-  "actor": "CIS planner",
+  "authorizationId": "cislib:CIS-0029:outcome:dc66ea8b85f04962a869fde8ce1e9939",
+  "actor": "Codex",
   "workItems": [
     {
       "id": "WORK-001",
-      "category": "implementation",
+      "category": "design",
       "complexity": "medium",
       "parentId": null,
       "taskPath": "agent-tasks/WORK-001.md",
-      "title": "RM-09 Management Portal",
+      "title": "Approved desktop backoffice design and current-slice requirements",
       "requirementIds": [],
       "impactIds": [],
       "dependsOn": [],
-      "acceptanceCriteria": "Deliver the shared outcome and its applicable checks.",
-      "validation": "Build the affected component and run its connected checks.",
-      "status": "Draft",
+      "acceptanceCriteria": "Backoffice: preserve original RM09 and all R01-R06 history/costs; approved R06 exact desktop Applications/four-tab/quick-full details design is current through normal UI-direction reconciliation. Current implementation excludes mobile/writes/RM10 runtime and explicitly retains P6/P7/P8. Protect user launch settings. All docs meet the approved current slice.",
+      "validation": "Native design validate and plan validate pass; exact PNG manifest matches approved R06; source/protected file hashes unchanged; source-aware and independent reader reviews retained. Record supported provenance-only reconciliation under actual R06 human decision.",
+      "status": "Complete",
       "taskTypeKey": "core.legacy",
       "taskTypeVersion": "1.0",
       "approvalGate": "none",
@@ -26,20 +26,250 @@
       "storyId": null,
       "instanceKey": "outcome:seed:a0825dfb97b043358515b3f3ffd0a0a6",
       "workOwnerTaskId": null,
-      "authorizationScopeIds": [],
-      "authorizationScopeBasis": null,
-      "workPaths": [],
+      "authorizationScopeIds": [
+        "intake-design"
+      ],
+      "authorizationScopeBasis": "sha256:37661d32d72c195c404e90b4c2aedce890073262160eddd62ceb9b66988b10d5",
+      "workPaths": [
+        "docs/changes/CIS-0029",
+        "docs/design",
+        "docs/specs",
+        "planning/management/portal"
+      ],
       "assignee": null,
       "verificationObligations": [
         {
           "id": "task-contract",
           "criteria": [
-            "Deliver the shared outcome and its applicable checks."
+            "Backoffice: preserve original RM09 and all R01-R06 history/costs; approved R06 exact desktop Applications/four-tab/quick-full details design is current through normal UI-direction reconciliation. Current implementation excludes mobile/writes/RM10 runtime and explicitly retains P6/P7/P8. Protect user launch settings. All docs meet the approved current slice."
           ],
-          "description": "Build the affected component and run its connected checks.",
+          "description": "Native design validate and plan validate pass; exact PNG manifest matches approved R06; source/protected file hashes unchanged; source-aware and independent reader reviews retained. Record supported provenance-only reconciliation under actual R06 human decision.",
           "evidenceRoute": "review",
           "evidenceExpectations": [
-            "Build the affected component and run its connected checks."
+            "Native design validate and plan validate pass; exact PNG manifest matches approved R06; source/protected file hashes unchanged; source-aware and independent reader reviews retained. Record supported provenance-only reconciliation under actual R06 human decision."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-002",
+      "category": "backend",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-002.md",
+      "title": "Native independently validated human operator authority",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "acceptanceCriteria": "Implement application-local independently validated human/delegated JWT identity through current Security extension points, strict fixed issuer/tenant/audience/client/delegated scope and trusted resource grants. Preserve workload Entra strictness, native listener isolation and distinct human/calling-application attribution. Include current signed-token/native fixtures and documentation; no copied actor headers or new auth framework.",
+      "validation": "Meaningful affected unit/native HTTPS signed-token tests prove correct user projection plus wrong issuer/audience/client/scope/app token/forged identity/resource denial. Format changed C# and build affected projects. Controlled issuer is explicitly not live Entra proof; independent review checks responsibility growth.",
+      "status": "InProgress",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:59faadf688ef4873a9a9964a04da7b39",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "management-prerequisites"
+      ],
+      "authorizationScopeBasis": "sha256:9d34e1d9a49e8b8eeb74b7fa8b4652642da6a2b59cfc20058bfce3c6f1c2e589",
+      "workPaths": [
+        "implementations/csharp",
+        "docs/modules/management",
+        "docs/changes/CIS-0029"
+      ],
+      "assignee": null,
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "Implement application-local independently validated human/delegated JWT identity through current Security extension points, strict fixed issuer/tenant/audience/client/delegated scope and trusted resource grants. Preserve workload Entra strictness, native listener isolation and distinct human/calling-application attribution. Include current signed-token/native fixtures and documentation; no copied actor headers or new auth framework."
+          ],
+          "description": "Meaningful affected unit/native HTTPS signed-token tests prove correct user projection plus wrong issuer/audience/client/scope/app token/forged identity/resource denial. Format changed C# and build affected projects. Controlled issuer is explicitly not live Entra proof; independent review checks responsibility growth.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Meaningful affected unit/native HTTPS signed-token tests prove correct user projection plus wrong issuer/audience/client/scope/app token/forged identity/resource denial. Format changed C# and build affected projects. Controlled issuer is explicitly not live Entra proof; independent review checks responsibility growth."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-003",
+      "category": "backend",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-003.md",
+      "title": "Bounded authorized portal discovery contracts and clients",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "acceptanceCriteria": "Provide server-side bounded identity/display-name search and exact environment filtering, authorized environment enumeration and exact application/environment Configuration-definition query. Native per-resource authorization precedes page/cursor disclosure; canonical filter/actor/profile/policy cursor binding preserves original operation recovery. Use compatible optional backend query interfaces; update OpenAPI/schema/C#/TS clients together. Include tests/docs, no whole-fleet query in Next.",
+      "validation": "Existing native/provider and portable client tests cover beyond-first-page matches, hidden apps/environments/sources, malformed/Unicode bounds, filter/policy cursor mismatch and old omitted-filter callers. Exact SQL filters before paging, bounded scan behavior and cancellation reviewed. Build affected projects, scoped C# formatting, independent responsibility review.",
+      "status": "Draft",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:5cd40f9465df491994f60b341db2461d",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "management-prerequisites"
+      ],
+      "authorizationScopeBasis": "sha256:9d34e1d9a49e8b8eeb74b7fa8b4652642da6a2b59cfc20058bfce3c6f1c2e589",
+      "workPaths": [
+        "contracts",
+        "conformance",
+        "implementations/csharp",
+        "implementations/typescript/packages",
+        "implementations/typescript/tests",
+        "docs/modules/management",
+        "docs/changes/CIS-0029"
+      ],
+      "assignee": null,
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "Provide server-side bounded identity/display-name search and exact environment filtering, authorized environment enumeration and exact application/environment Configuration-definition query. Native per-resource authorization precedes page/cursor disclosure; canonical filter/actor/profile/policy cursor binding preserves original operation recovery. Use compatible optional backend query interfaces; update OpenAPI/schema/C#/TS clients together. Include tests/docs, no whole-fleet query in Next."
+          ],
+          "description": "Existing native/provider and portable client tests cover beyond-first-page matches, hidden apps/environments/sources, malformed/Unicode bounds, filter/policy cursor mismatch and old omitted-filter callers. Exact SQL filters before paging, bounded scan behavior and cancellation reviewed. Build affected projects, scoped C# formatting, independent responsibility review.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Existing native/provider and portable client tests cover beyond-first-page matches, hidden apps/environments/sources, malformed/Unicode bounds, filter/policy cursor mismatch and old omitted-filter callers. Exact SQL filters before paging, bounded scan behavior and cancellation reviewed. Build affected projects, scoped C# formatting, independent responsibility review."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-004",
+      "category": "frontend",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-004.md",
+      "title": "Independent portal host and OIDC session boundary",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "acceptanceCriteria": "Backoffice: add independent Next/TypeScript host using supported exact dependency pins and maintained OIDC code/PKCE session adapter. Management tokens remain server-only with secure HttpOnly cookies, callback/state/nonce/PKCE and origin/redirect controls, expiry/sign-out/revocation, per-request credentials and cancellation. Portable packages remain framework-free. Public responses traverse explicit cache policy (auth no-store); health has no database I/O, auth uses only the maintained owned session adapter with no direct Management repository access; no auth/test framework. Tests/docs/license notices included.",
+      "validation": "Focused host/session tests and build verify request isolation, denied browser token APIs, authenticated access, expiry/revocation, callback/return validation, origin/CSRF rules and cancellation. Check current supported versions/licenses and physical storage before install/build. Document separate owned session schema and local-versus-live identity evidence. Independent review checks responsibility expansion.",
+      "status": "Draft",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:ecad0252531a467fab988f00caf14fc4",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "portal",
+        "integration"
+      ],
+      "authorizationScopeBasis": "sha256:b2121a841254ff5f31a1197b7f4b995161dc36c7e27fd6b8e17ede20d750005b",
+      "workPaths": [
+        "implementations/typescript",
+        "docs/modules/management",
+        "docs/changes/CIS-0029",
+        "planning/management/portal"
+      ],
+      "assignee": null,
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "Backoffice: add independent Next/TypeScript host using supported exact dependency pins and maintained OIDC code/PKCE session adapter. Management tokens remain server-only with secure HttpOnly cookies, callback/state/nonce/PKCE and origin/redirect controls, expiry/sign-out/revocation, per-request credentials and cancellation. Portable packages remain framework-free. Public responses traverse explicit cache policy (auth no-store); health has no database I/O, auth uses only the maintained owned session adapter with no direct Management repository access; no auth/test framework. Tests/docs/license notices included."
+          ],
+          "description": "Focused host/session tests and build verify request isolation, denied browser token APIs, authenticated access, expiry/revocation, callback/return validation, origin/CSRF rules and cancellation. Check current supported versions/licenses and physical storage before install/build. Document separate owned session schema and local-versus-live identity evidence. Independent review checks responsibility expansion.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Focused host/session tests and build verify request isolation, denied browser token APIs, authenticated access, expiry/revocation, callback/return validation, origin/CSRF rules and cancellation. Check current supported versions/licenses and physical storage before install/build. Document separate owned session schema and local-versus-live identity evidence. Independent review checks responsibility expansion."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-005",
+      "category": "frontend",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-005.md",
+      "title": "Approved desktop inspection UI and connected behavior",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-002",
+        "WORK-003",
+        "WORK-004"
+      ],
+      "acceptanceCriteria": "Backoffice: implement approved R06 Applications filters, selected-app Instances/Configuration/Capabilities/Scheduled jobs, read-only quick panels and Job Overview/local Configuration. Keep app/env/registration/report/scoped identities and reported versions; truthful Not reported/unknown/unavailable states. Run history and Task/Event APIs unavailable until RM10; no synthetic production records or inferred cron/bindings. Abort stale reads, clear denied session state, preserve keyboard/Escape/focus/context. Include runnable docs/tests/review; no new journeys.",
+      "validation": "Focused UI and existing connected native/provider tests prove bounded paging, per-registration versions, definition metadata only, inventory identity, target switching/cancellation/stale response, denial/session expiry and panel keyboard/focus behavior. Actual desktop screenshots compared with approved R06; material new journey requires screenshot review. Build affected clients/portal, record proof limits and native costs; no broad qualification campaign.",
+      "status": "Draft",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:8c8463e5c3a440758bce30594fc0f24e",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "portal",
+        "integration"
+      ],
+      "authorizationScopeBasis": "sha256:b2121a841254ff5f31a1197b7f4b995161dc36c7e27fd6b8e17ede20d750005b",
+      "workPaths": [
+        "implementations/typescript",
+        "implementations/csharp/tests",
+        "docs/modules/management",
+        "docs/changes/CIS-0029",
+        "planning/management/portal"
+      ],
+      "assignee": null,
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "Backoffice: implement approved R06 Applications filters, selected-app Instances/Configuration/Capabilities/Scheduled jobs, read-only quick panels and Job Overview/local Configuration. Keep app/env/registration/report/scoped identities and reported versions; truthful Not reported/unknown/unavailable states. Run history and Task/Event APIs unavailable until RM10; no synthetic production records or inferred cron/bindings. Abort stale reads, clear denied session state, preserve keyboard/Escape/focus/context. Include runnable docs/tests/review; no new journeys."
+          ],
+          "description": "Focused UI and existing connected native/provider tests prove bounded paging, per-registration versions, definition metadata only, inventory identity, target switching/cancellation/stale response, denial/session expiry and panel keyboard/focus behavior. Actual desktop screenshots compared with approved R06; material new journey requires screenshot review. Build affected clients/portal, record proof limits and native costs; no broad qualification campaign.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Focused UI and existing connected native/provider tests prove bounded paging, per-registration versions, definition metadata only, inventory identity, target switching/cancellation/stale response, denial/session expiry and panel keyboard/focus behavior. Actual desktop screenshots compared with approved R06; material new journey requires screenshot review. Build affected clients/portal, record proof limits and native costs; no broad qualification campaign."
           ],
           "sharedGateIds": [],
           "basisReferences": []

@@ -309,3 +309,48 @@ synthetic history/task/event examples still conditional on P6/P7/P8. It neither
 delivers nor authorizes an RM-10 runtime. Normal current-scope, outcome, task and
 finite-owner reconciliation precedes production implementation under the
 standing delegation; another work-allocation question is not required.
+| WORK-001 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2669; failed=357; possibleTokenSavings=591; ledgerDigest=sha256:8fa42a443d476548c4372e05dc16cbd5d4f5fc77026fc5b2e19906fef46506f8 |
+
+## Approved desktop execution boundary
+
+Native R06 approval was recorded at 17:04:52 UTC. Twelve transcribed R02–R06
+answers and normal native UI operations reconciled the old NoUI baseline.
+Existing-target initialization retained false applicability and failed; the
+original and failed records were preserved before normal fresh initialization.
+No managed hash was edited. Postgraph status is Active, valid and current.
+
+The graph completed in 438,506 ms: exit 0, partial, 56,670 nodes, 332,601 edges,
+zero errors and 80 warnings. It predates later task metadata and is not final
+implementation proof. The first authorization check overlapped that build and
+was blocked. After drainage and a passing status check, the same request
+succeeded. This suggests a transient overlap; it does not prove a source defect.
+Both receipts and costs remain. No source-CIS campaign was opened.
+
+Native scaffold/render refreshed only the generated provenance block. All 21
+PNGs and manifest ff55f6da remain byte-identical to the actual R06 approval.
+Current renderer d1e9348c binds the current direction. The first rerender omitted
+the known isolated Sharp runtime and failed; supplying that pinned runtime
+passed. The existing screenshot decision was recorded against these unchanged
+pixels, without claiming another human review.
+
+The narrow outcome and five medium contracts validate without errors or
+warnings. Design validation passes. Docs validation has zero errors and retained
+historical warnings; the adopted guideline's missing catalog entry was added.
+A descriptive storage reference was rejected. The corrected allocation reuses
+`CISLIB-CIS-0001-STORAGE-2026-11-10`, preserving one 48-hour/48-attempt allocation,
+one-hour restoration reserve, 6 GiB ceiling, 64 MiB reserve and all prior costs.
+Native adoption does not erase external conservative accounting.
+
+Original source 1574ec26 and protected launch settings ea7e7219 remain unchanged.
+WORK-001 is Complete for its actual design/intake acceptance and native checks.
+Production leaves remain separate. No runtime, consumer test, installation,
+cleanup, push or merge is claimed at this boundary. The original full
+20-scenario specification is not complete.
+
+Docker showed zero active containers, 1.06 GB images, 144.3 MB volumes and
+410.3 MB build cache. Admission counts all retained bytes, an 8 MiB rounding
+allowance and operation-specific growth while preserving the 2 GiB Docker
+maximum inside 6 GiB. No old images, volumes or cache were deleted. New npm,
+.next and browser outputs are counted. Runtime pins stay unchanged. Stable
+Auth.js replaces the uninstalled Better Auth proposal for the bounded provider
+I/O reason recorded in dependency-decision.md.

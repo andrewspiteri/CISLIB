@@ -10,12 +10,13 @@ authority: human-reviewed
 
 # Design approval
 
-**R06 full-details navigation/history/configuration awaits screenshot review.**
+**R06 connected navigation/history/configuration was approved by Andrew Spiteri.**
 The user requested more detail beyond the R05 quick panel, referring to the
 prior RM-10 discussion. R05 was saved as unapproved Git checkpoint `f947e78c`
 then revised through the native requested-change mechanism. R04's exact earlier
 approval remains preserved in Git `ed65c3f1` and native history; it is not rejected
-or silently extended to the new workflow.
+or silently extended to the new workflow. The explicit R06 decision below
+approves that workflow's design, subject to its named backend prerequisites.
 
 R06 adds View full details on the job panel, dedicated Job details, shared scoped
 run history, Scheduled Task settings with Trigger/Job tabs and immutable Event
@@ -26,9 +27,9 @@ write or execution control is introduced by this review. Mobile stays excluded.
 
 | Wireframe path | Wireframe SHA-256 | Guideline path | Guideline SHA-256 | Renderer path | Renderer SHA-256 | Node | Sharp | libvips |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `docs/changes/CIS-0029/wireframes.md` | `sha256:40d9e22cd90e68221daf2ea4be385ed683e022abdf797ef8f86cc632a2a0645c` | `docs/design/cis-default-guidelines.md` | `sha256:153abe4d66ef5dc15ebe9c9147635182279625e69a05b8758d1ce8fe3d627b59` | `docs/changes/CIS-0029/assets/render-rm09-full-details-r06-screens.mjs` | `sha256:6375438db766391a9c376cf43ed12ec33fe24273e76334092e63e850229f7309` | v24.15.0 | 0.35.5 | 8.18.7 |
+| `docs/changes/CIS-0029/wireframes.md` | `sha256:40d9e22cd90e68221daf2ea4be385ed683e022abdf797ef8f86cc632a2a0645c` | `docs/design/cis-default-guidelines.md` | `sha256:153abe4d66ef5dc15ebe9c9147635182279625e69a05b8758d1ce8fe3d627b59` | `docs/changes/CIS-0029/assets/render-rm09-full-details-r06-screens.mjs` | `sha256:d1e9348ce9174b742ad7d3bc94227decc26014b38955d97950bf387b9bd04aac` | v24.15.0 | 0.35.5 | 8.18.7 |
 
-High-level UI direction: `docs/design/ui-direction.md` at `sha256:25ef386c6a84bc747b1bd87ab3d7ebe67fdd3de2034c20e4ee8f6fefed8012cc`.
+High-level UI direction: `docs/design/ui-direction.md` at `sha256:919ab437633b23909f5149fe72ebba161d85b01a9368b3632ff65ec3753bdede`.
 ## Application shell and component templates
 
 | Template ID | Version | Kind | Source | Purpose | Status |
@@ -173,8 +174,8 @@ registered and verified by CIS if later selected.
 
 | Rule/token | Renderer mapping | Result | Deviation approval |
 | --- | --- | --- | --- |
-| Governed UI direction/guidelines | Native R02 scaffold binds source digests; existing product direction remains unchanged | Scaffolded; exact visible review pending | None granted. |
-| Visible environment/target and synthetic marker | Both desktop templates and all state variants | Specified; rendered review pending | None granted. |
+| Governed UI direction/guidelines | Native R06 rendering binds source digests; normal narrow direction reconciliation follows the explicit user decision | Exact R06 pack approved; provenance refresh must preserve its pixels | Desktop backoffice scope explicitly approved. |
+| Visible environment/target and synthetic marker | Both desktop templates and all state variants | Rendered; exact R06 pack approved | Preview data remains synthetic; never production authority. |
 | Desktop accessibility | Contrast, focus, labels, zoom, non-color status and persistent feedback | Intent specified; actual keyboard/accessibility behavior unverified | Mobile excluded by latest user instruction. |
 | Exact source facts | Per-instance reported versions, raw presence, last-seen evidence and bounded pages | Specified against existing contracts; filtering needs P2 | None granted. |
 
@@ -193,4 +194,4 @@ the unapproved earlier review package.
 
 | Decision | Reviewer | Date | Wireframe SHA-256 | Renderer SHA-256 | PNG manifest SHA-256 | Rationale |
 | --- | --- | --- | --- | --- | --- | --- |
-| Approved | Andrew Spiteri | 2026-11-25T17:04:52Z | `sha256:40d9e22cd90e68221daf2ea4be385ed683e022abdf797ef8f86cc632a2a0645c` | `sha256:6375438db766391a9c376cf43ed12ec33fe24273e76334092e63e850229f7309` | `sha256:ff55f6dafc4710fa865420567cb8e51acdc8968118dca12461abfb47971fed7a` | Andrew Spiteri explicitly selected Approve connected design for the exact R06 package (renderer6375438db766) including quick panels, View full details, Job Overview/Run history/Configuration and linked Scheduled Task/Event details. Approval covers the read-only desktop UI design and current scope; history/event/task synthetic examples still depend on named P6/P7/P8 RM-10 contracts. It does not claim a delivered scheduler/history backend or authorize a separate RM-10 runtime implementation. Earlier R04 authority remains preserved; normal CIS current-scope/plan/owner reconciliation precedes production work under the existing delegated bounded allocation. |
+| Approved | Andrew Spiteri | 2026-11-25T17:48:25Z | `sha256:40d9e22cd90e68221daf2ea4be385ed683e022abdf797ef8f86cc632a2a0645c` | `sha256:d1e9348ce9174b742ad7d3bc94227decc26014b38955d97950bf387b9bd04aac` | `sha256:ff55f6dafc4710fa865420567cb8e51acdc8968118dca12461abfb47971fed7a` | Record the existing explicit R06 Approve connected design decision of25November2026 at17:04:52UTC after normal native high-level direction reconciliation. All21 PNGs and combined coverage are byte-identical to that actual approved payload (comparison .cis/local/testing/rm09/r06-provenance-pixel-comparison.json); the custom layout is unchanged and only the complete native-generated provenance block was refreshed through scaffold/render. This carries the existing screenshot decision, not a new human visual review or RM10 runtime/write/mobile authority. Automatic design reconcile requires feature authority that this outcome route does not claim. |
