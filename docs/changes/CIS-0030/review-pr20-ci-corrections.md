@@ -78,4 +78,51 @@ strict native TRX guard (`rm09c-pr20-ci-browser-retry`, 155.509 seconds reported
 by the native run). This includes the persisted Configuration/Operations/Audit,
 map and original-key assertions in each parent C# case. Host, issuer, browser,
 replica and owned service cleanup settle. The actual Ubuntu standard service
-retry remains pending; local passes do not substitute for that lane.
+retry subsequently passed as recorded below.
+
+## Ubuntu proof and merge
+
+[Run 46020514070](https://github.com/andrewspiteri/CISLIB/actions/runs/46020514070),
+job 140578639066, passed the unchanged full service selection: **364 passed,
+zero failed, zero skipped**. The ordinary strict TRX guard reported the same
+364 results and 1064.840 seconds. This includes the original 363 cases and the
+new pooled lifecycle regression. Every preparation, build, artifact-retention
+and post-job cleanup step succeeded; the C# build reported zero warnings/errors.
+
+The runner tested merge tree `6a0ac6dc4963a3c2a39909f12510dc4ecf55ad96`,
+combining feature head `488ca26167a4eccc2da973c1ef9e713901309fc7` with unchanged
+main `6c70cee807f12caddf40cd1b443e4a20045d35aa`. After rechecking both refs,
+[PR 20](https://github.com/andrewspiteri/CISLIB/pull/20) was merged as
+`ad28e172af122ec1540d37ff041e58676a15ca2b`. Its entire Git tree equals the
+passing candidate tree. Local main was then fast-forwarded. This later closeout
+updates only documentation/CIS records; implementation and test blobs stay exact.
+
+The complete successful job log and its 1,279,004-ms actual interval are retained
+locally, charged once to WORK-202 and shared with WORK-203. The first failed run,
+local red/failed qualification, cleanup manifests and all historical costs remain
+retained. Remote disk peak was not measured; the job log is not a physical-storage
+qualification claim. Independent review confirmed the twelve qualified source
+hashes, both local TRX reports, all four successful host reports and actual joined
+resource events. The existing diagnostic `hostClosed=false` aggregate remains
+recorded separately from those successful native joins.
+
+WORK-199, WORK-202 and WORK-203 are Complete against actual Ubuntu evidence;
+the supported final plan validation passes.
+Earlier completed owners, future unallocated Scheduler work, pins, reserves and
+all shared ceilings remain unchanged. The unrelated untracked CountryData launch
+settings retain SHA-256
+`ea7e7219222183193f0361ae674998f1edc43a3789f118748c59f166a4d29784`.
+
+The local main checkout normalized the generated test CSV's mixed record/quoted
+line endings. Closeout restored its exact already-bound SHA-256
+`2809d70bf4c49e0f9d09791cc1346e23747f954638f6883fd1ef7011ec43c95a`;
+values, the bound digest and Git-normalized content did not change. One rejected
+projection attempt and one unsupported direct review-to-complete attempt remain
+in the cost journal. Closure then used the supported review-to-InProgress-to-
+Complete transitions, without launching additional implementation tests.
+
+The final local sample recorded zero owned runtime processes, 111 logical attempts
+against the ordinary 125-attempt allowance, and 2,924,052 ms ordinary time remaining.
+Counted storage was 6,291,131,874 bytes, leaving 84,210,206 bytes above the retained
+64-MiB restoration reserve. Each closing owner remained within its own allocation.
+These are sampled local facts, with the earlier accounting discrepancy preserved.

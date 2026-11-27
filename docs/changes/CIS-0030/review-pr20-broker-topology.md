@@ -25,5 +25,7 @@ before/after queue and exchange inventories must match exactly.
 
 No runtime topology behavior, TLS, durable queue properties, permissions,
 128-queue/32-connection limits, image/package pins or shared resource ceilings
-change. Focused format/build/native results and the existing full Ubuntu service
-retry remain pending at source handoff; authored tests are not execution proof.
+change. Qualification subsequently passed: scoped format/build with zero
+warnings/errors, two focused native cases, four current-UX browser cases, and
+all 364 selected Ubuntu service cases with zero skips. See the exact run and
+retained failure/accounting history in [the shared verification record](review-pr20-ci-corrections.md).

@@ -2,7 +2,7 @@
 title: "WORK-199 Prepare portal build and headed browser in existing service CI"
 type: agent-task
 status: Draft
-task_status: ReadyForReview
+task_status: Complete
 task_id: WORK-199
 parent_id: none
 category: backend
@@ -29,11 +29,11 @@ Prepare portal build and headed browser in existing service CI
 
 ## Acceptance criteria
 
-- [ ] Correct review87d18ba6P2CIpreparation in the existingUbuntu service job. Build the production portal and prepare the exact pinned Next correction before selected portal tests, invoke selected npm11.12.1CLI directly (avoid nested bare npm), verify/provision already selected msedge and required display tools and run actual headed native window-resize tests under a sufficiently sized Xvfb display. Preserve Node24.16, npm11.12.1, .NETpins, existing test selection/actual exit and strict TRXguard. Prefer runner-provided browser/display; no browser replacement, new job/framework, hidden skips or conversion to headless/emulated window proof.
+- [x] Correct review87d18ba6P2CIpreparation in the existingUbuntu service job. Build the production portal and prepare the exact pinned Next correction before selected portal tests, invoke selected npm11.12.1CLI directly (avoid nested bare npm), verify/provision already selected msedge and required display tools and run actual headed native window-resize tests under a sufficiently sized Xvfb display. Preserve Node24.16, npm11.12.1, .NETpins, existing test selection/actual exit and strict TRXguard. Prefer runner-provided browser/display; no browser replacement, new job/framework, hidden skips or conversion to headless/emulated window proof.
 
 ## Targeted validation
 
-- [ ] Inspect pinned installed Playwright and primary official runner/browser guidance; validate workflow syntax/command order and correct captured native exit. Execute appropriate current pinned production build and affected native browser regressions on the available local host. A successfulUbuntuCIpath requires its actual authorized runner execution and must remain explicitly pending if unavailable; Windows checks are separate. Prepare a concrete reviewable patch before any required externalpublication/CIexecution approval; this task grants no push/merge/release. Keep runtime/artifact ownership and counted-storage limits; include docs/independent review.
+- [x] Inspect pinned installed Playwright and primary official runner/browser guidance; validate workflow syntax/command order and correct captured native exit. Execute appropriate current pinned production build and affected native browser regressions on the available local host. A successfulUbuntuCIpath requires its actual authorized runner execution and must remain explicitly pending if unavailable; Windows checks are separate. Prepare a concrete reviewable patch before any required externalpublication/CIexecution approval; this task grants no push/merge/release. Keep runtime/artifact ownership and counted-storage limits; include docs/independent review.
 
 ## Completion evidence
 
@@ -41,4 +41,7 @@ Prepare portal build and headed browser in existing service CI
 | --- | --- | --- |
 
 | Source and local qualification | Ready for remote CI review | [Prepared CI correction and actual local evidence](../review-87d-ci.md); 212 pure checks, production build, five parsed shell blocks and headed native regression pass. |
-| Ubuntu Actions execution | Pending | No publication/remote-run authority is included for this new payload; no Ubuntu pass is claimed. |
+| Ubuntu Actions execution | Passed | Current user publication/merge authorization enabled [actual run 46020514070](https://github.com/andrewspiteri/CISLIB/actions/runs/46020514070): 364/364, zero failures/skips, all preparation/build/cleanup steps successful. First failed run retained. |
+
+| Final native and Ubuntu qualification | Passed | [Exact candidate, 2 + 4 local cases, 364 Ubuntu cases, independent review, merge and retained accounting](../review-pr20-ci-corrections.md). Earlier failed evidence remains retained. |
+| CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=3489; failed=380; possibleTokenSavings=591; ledgerDigest=sha256:89f3718ffea24d9bef54874a88820ed23927f01dd8a9865d19a90c7e5c60c280 |
