@@ -149,6 +149,28 @@ public sealed partial class PostgreSqlManagementStore
                 delta = checked(delta + bytes - (exists ? reader.GetInt64(1) : 0) + (exists ? 0 : 128));
                 bindings.Add((id, app, definition, binding.HostApplicationName, bytes, !exists));
             }
+            await using (DbCommand preserved = ManagementSql.Command(connection, transaction, $"""
+                SELECT count(*) FROM {Table("configuration_definition")} d WHERE d.enabled AND NOT(d.definition_id=ANY(string_to_array(@selected,',')::uuid[]))
+                    AND (NOT d.manifest_managed OR EXISTS(SELECT 1 FROM {Table("configuration_binding")} b
+                        WHERE b.definition_id=d.definition_id AND NOT b.manifest_managed))
+                """, ("selected", string.Join(',', definitions.Values.Select(value => value.ToString("D"))))))
+            {
+                if ((long)(await preserved.ExecuteScalarAsync(token))! + definitions.Count > 4096)
+                {
+                    return ConfigurationEffect.Reject("management.configuration.capacity_exceeded");
+                }
+            }
+            foreach (var application in bindings.GroupBy(item => item.Application))
+            {
+                await using DbCommand preserved = ManagementSql.Command(connection, transaction, $"""
+                    SELECT count(*) FROM {Table("configuration_binding")} WHERE application_id=@app AND NOT manifest_managed
+                        AND NOT(definition_id=ANY(string_to_array(@selected,',')::uuid[]))
+                    """, ("app", application.Key), ("selected", string.Join(',', application.Select(item => item.Definition.ToString("D")))));
+                if ((long)(await preserved.ExecuteScalarAsync(token))! + application.Count() > 256)
+                {
+                    return ConfigurationEffect.Reject("management.configuration.capacity_exceeded");
+                }
+            }
             var sources = new List<(Guid Id, Guid Definition, string Environment, Guid? Application, Guid? Binding, long Bytes, bool New)>();
             foreach (ManagementConfigurationCommonSource source in selected.Manifest.CommonSources)
             {
@@ -178,7 +200,10 @@ public sealed partial class PostgreSqlManagementStore
             }
 
             // All immutable/precondition/capacity checks precede any catalog effect.
-            await Execute($"UPDATE {Table("configuration_definition")} SET enabled=false");
+            await Execute($"""
+                UPDATE {Table("configuration_definition")} d SET enabled=false WHERE d.manifest_managed
+                    AND NOT EXISTS(SELECT 1 FROM {Table("configuration_binding")} b WHERE b.definition_id=d.definition_id AND NOT b.manifest_managed)
+                """);
             foreach (var definition in addedDefinitions)
             {
                 ManagementConfigurationSchema value = JsonSerializer.Deserialize<ManagementConfigurationSchema>(definition.Body, ManagementConfigurationOptions.Json)!;
@@ -196,16 +221,20 @@ public sealed partial class PostgreSqlManagementStore
             }
             foreach (Guid definition in definitions.Values)
             {
-                await Execute($"UPDATE {Table("configuration_definition")} SET enabled=true WHERE definition_id=@id", ("id", definition));
+                await Execute($"UPDATE {Table("configuration_definition")} SET enabled=true,manifest_managed=true WHERE definition_id=@id", ("id", definition));
             }
             await Execute($"UPDATE {Table("management_capacity")} SET application_count=application_count+@count WHERE singleton=true", ("count", addedApplications.Count));
-            await Execute($"UPDATE {Table("configuration_binding")} SET enabled=false; UPDATE {Table("configuration_source")} SET enabled=false");
+            await Execute($"""
+                UPDATE {Table("configuration_binding")} SET enabled=false WHERE manifest_managed;
+                UPDATE {Table("configuration_source")} s SET enabled=false WHERE s.binding_id IS NULL
+                    OR EXISTS(SELECT 1 FROM {Table("configuration_binding")} b WHERE b.binding_id=s.binding_id AND b.manifest_managed)
+                """);
             foreach (var binding in bindings)
             {
                 await Execute($"""
                     INSERT INTO {Table("configuration_binding")}(binding_id,application_id,definition_id,host_scope,logical_bytes)
                     VALUES(@id,@application,@definition,@host,@bytes) ON CONFLICT(binding_id)
-                    DO UPDATE SET host_scope=EXCLUDED.host_scope,logical_bytes=EXCLUDED.logical_bytes,enabled=true
+                    DO UPDATE SET host_scope=EXCLUDED.host_scope,logical_bytes=EXCLUDED.logical_bytes,enabled=true,manifest_managed=true
                     """, ("id", binding.Id), ("application", binding.Application), ("definition", binding.Definition), ("host", binding.Host), ("bytes", binding.Bytes));
                 if (binding.New)
                 {

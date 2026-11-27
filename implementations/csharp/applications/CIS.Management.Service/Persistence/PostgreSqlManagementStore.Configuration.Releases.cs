@@ -96,6 +96,11 @@ public sealed partial class PostgreSqlManagementStore
         {
             return null;
         }
+        return ReadConfigurationRelease(reader);
+    }
+
+    private static ManagementConfigurationRelease ReadConfigurationRelease(DbDataReader reader)
+    {
         if (reader.GetInt64(10) is < 1 or > 1024 * 1024)
         {
             throw new Backends.ManagementBackendException("management.configuration.content_unavailable");
@@ -104,7 +109,7 @@ public sealed partial class PostgreSqlManagementStore
             reader.GetInt64(3).ToString(System.Globalization.CultureInfo.InvariantCulture), reader.GetString(4),
             reader.IsDBNull(5) ? new("absent") : new("present", reader.GetGuid(5).ToString("D")),
             reader.IsDBNull(6) ? new("absent") : new("present", reader.GetGuid(6).ToString("D")), reader.GetString(7),
-            ManagementSql.Timestamp(reader, 8), reader.GetString(9), ConfigurationReleaseETag(releaseId.ToString("D")));
+            ManagementSql.Timestamp(reader, 8), reader.GetString(9), ConfigurationReleaseETag(reader.GetGuid(0).ToString("D")));
     }
 
     private static string ConfigurationReleaseETag(string id) => "\"configuration.release." + id + "\"";

@@ -41,7 +41,7 @@ jobs:
       - name: Install pinned Management client runtime
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: "24.15.0"
+          node-version: "24.16.0"
           check-latest: false
           package-manager-cache: false
 
@@ -52,12 +52,15 @@ jobs:
           NPM_CONFIG_CACHE: ${{ runner.temp }}/cislib-management-npm
         run: |
           set -euo pipefail
-          test "$(node --version)" = "v24.15.0"
-          test "$(npm --version)" = "11.12.1"
-          npm ci --ignore-scripts --no-audit --no-fund
-          npm run build
-          npm test
-          npm run check:browser
+          test "$(node --version)" = "v24.16.0"
+          npm install --prefix "$RUNNER_TEMP/cislib-npm" \
+            --ignore-scripts --no-audit --no-fund --no-save --package-lock=false npm@11.12.1
+          npm_cli="$RUNNER_TEMP/cislib-npm/node_modules/npm/bin/npm-cli.js"
+          test "$(node "$npm_cli" --version)" = "11.12.1"
+          node "$npm_cli" ci --ignore-scripts --no-audit --no-fund
+          node "$npm_cli" run build
+          node "$npm_cli" test
+          node "$npm_cli" run check:browser
 
       - name: Install pinned SDK
         uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0

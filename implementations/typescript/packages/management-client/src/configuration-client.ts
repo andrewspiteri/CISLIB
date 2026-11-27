@@ -293,7 +293,7 @@ function checkOperation(value: ConfigurationOperationResult, call: Call): void {
   if (value.result !== undefined) {
     const expectedKind = call.operationName === names.catalog ? "catalogApplied" : call.operationName === names.publication ? "sourcePublished"
       : call.operationName === names.release ? "releaseCreated" : call.operationName === names.assignment ? "assignmentsReplaced" : undefined;
-    if (["catalogApplied", "sourcePublished", "releaseCreated", "assignmentsReplaced"].includes(value.result.kind)) {
+    if (["catalogApplied", "sourcePublished", "releaseCreated", "assignmentsReplaced", "configurationCreated"].includes(value.result.kind)) {
       echo(expectedKind === undefined || value.result.kind === expectedKind);
       if (call.sourceId !== undefined) { echo(value.result.sourceId === call.sourceId); }
       if (call.binding !== undefined) {

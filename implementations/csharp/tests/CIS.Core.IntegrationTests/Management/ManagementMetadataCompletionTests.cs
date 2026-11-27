@@ -188,10 +188,13 @@ public sealed class ManagementMetadataCompletionTests
             CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            bool lookup = capabilities.Count == 1 && capabilities[0] == "management.operations.read";
+            bool execute = capabilities.Count == 2
+                && capabilities.Contains("management.applications.metadata.write", StringComparer.Ordinal)
+                && capabilities.Contains("management.operations.read", StringComparer.Ordinal);
             if (target.Application != local.Application || target.Environment != local.Environment
                 || target.ResourceType != "management.application" || target.ResourceIdentifier != applicationId
-                || capabilities.Count != 1
-                || capabilities[0] is not ("management.applications.metadata.write" or "management.operations.read"))
+                || !lookup && !execute)
             {
                 throw new InvalidOperationException("Unexpected authority request in the narrow provider-fault proof.");
             }

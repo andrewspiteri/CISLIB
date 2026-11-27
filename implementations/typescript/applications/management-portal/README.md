@@ -1,18 +1,31 @@
 # Management portal host
 
-This independent Next application supplies the approved desktop inspection
-surface. It reuses `@cislib/management-client/server` and the Management service's
+This independent Next application supplies desktop inspection and explicitly
+authorized operator workflows. It reuses `@cislib/management-client/server` and the Management service's
 native resource authorization. The portable SDKs acquire no Next, React, Node
 session or database dependency.
 
-The current increment is read-only. Applications, instances, definition metadata,
-actual API descriptors/advisory hints and complete reported Jobs inventories use
-delivered APIs. Run history and typed Task/Event services remain RM-10
+Applications, instances, definition metadata
+and complete reported Jobs inventories use delivered APIs. Names and reported
+versions lead; exact identifiers remain under Technical details with Copy.
+Capabilities separates application feature groups from secondary Service API
+details. The trusted logical catalog is unavailable in this portal; reported
+Jobs and HTTP descriptors do not become executable feature definitions.
+See the [inspection guide](../../../../docs/modules/management/portal-inspection.md).
+Run history and typed Task/Event services remain RM-10
 prerequisites; production never substitutes demonstration records for them.
+
+Display [metadata editing](../../../../docs/modules/management/portal-metadata.md),
+exact [Configuration authoring/publication and separate releases](../../../../docs/modules/management/portal-configuration.md),
+reviewed [whole-map assignment](../../../../docs/modules/management/portal-configuration-assignment.md)
+and bounded [adoption observations](../../../../docs/modules/management/portal-configuration-adoption.md)
+use the existing native service. Each guide separates implemented behavior,
+actual focused proof and pending or unreliable platform observations. Publishing,
+creating a release, assigning it and a consumer reporting acceptance are separate actions.
 
 ## Build and run
 
-Use Node **24.15.0**, npm **11.12.1** and the checked-in workspace lock. From
+Use Node **24.16.0**, npm **11.12.1** and the checked-in workspace lock. From
 `implementations/typescript`:
 
 ```text
@@ -22,6 +35,19 @@ npm run build:portal
 npm run migrate --workspace @cislib/management-portal
 npm run start --workspace @cislib/management-portal
 ```
+
+The portal build prepares one digest-checked response-close correction for the
+pinned Next16.4.6 dependency. Startup verifies it before loading Next and does
+not write deployment files. This lets an aborted response settle its actual
+transport wait while producer work remains owned. See the
+[correction and real HTTP regression](../../../../docs/changes/CIS-0030/next-response-close-correction.md).
+Review the correction when changing the framework version.
+
+The current Configuration workflow is documented in
+[Configuration versions](../../../../docs/modules/management/portal-configuration-versions.md).
+Its [automated testing guide and combination matrix](../../../../docs/changes/CIS-0030/configuration-testing.md)
+give the focused ordinary Node command and named Playwright/native MSTest cases,
+including independent SQL, Operations, Audit and cleanup assertions.
 
 Migration is an explicit deployment action against a newly selected, separately
 owned session database/schema. The host never creates or repairs tables during
@@ -68,7 +94,9 @@ identifier URI/scope and the exact callback
 `entra-management` profile separately validates its API audience, tenant,
 issuer, portal client `azp`, required short `scp` and exact issuer/object-ID
 mapping. Grant the actual Management application/environment and resolved
-application/source resources. The portal's current grants should be read-only.
+application/source resources. Select only the reads each operator needs. Authoring
+additionally requires the applicable native write and original-result lookup
+grant bundle at the actual source or binding; action hints grant no authority.
 The delegated scope is authentication context, not a substitute for native
 resource permission; it does not inherently prohibit writes in other clients.
 
@@ -83,6 +111,20 @@ workload fallback establishes an operator. This choice uses stable Auth.js
 
 ## Session and HTTP boundaries
 
+The host uses `Referrer-Policy: same-origin`, so ordinary same-origin sign-in and
+sign-out forms retain their Origin header while cross-origin navigation omits
+the referrer. Exact Origin validation and the maintained CSRF check remain
+required. One runtime Content Security Policy permits form destinations only at
+the portal and its independently configured concrete HTTPS OIDC authority (a DNS
+hostname or `127.0.0.1`, as supported by CSP); a
+build-time policy cannot accidentally block that configured redirect.
+
+The direct host disables Next response compression. The local native browser
+proof exposed retained request promises with compression enabled; the same
+journey and every actual shutdown join completed with it disabled. An existing
+deployment proxy can own compression independently. Request handlers still
+settle before Next and session infrastructure are retired.
+
 Only the opaque secure HttpOnly, host-scoped session ticket reaches the browser.
 Database sessions are checked for every protected read and can be revoked by
 deleting the selected session. A callback-local adapter wrapper caps the stored
@@ -90,6 +132,14 @@ session and cookie to the validated access-token expiry (less a 30-second safety
 margin) and at most one hour. Session reads do not extend that expiry. No
 `offline_access` is requested; unexpected refresh/ID tokens are discarded and
 the schema rejects their persistence. Expiry requires ordinary reauthentication.
+
+The isolated local review fixture issues its synthetic operator tokens only
+within the explicitly bounded review lease, up to one hour. A later sign-in
+receives the remaining lease rather than a fresh hour; the same 30-second
+credential safety margin applies. Ordinary automated fixture tokens retain their
+ten-minute lifetime. The host closes at the stated review deadline regardless of
+browser activity. These fixture lifetimes do not change production expiry,
+revocation, provider validation or refresh-token policy.
 
 An already valid local session must sign out before signing in again, preventing
 the library's normal account-linking flow. Expired sessions are removed on read,
@@ -115,7 +165,7 @@ Authentication and protected read responses are private/no-store. Public
 I/O; it is liveness, not current Management readiness.
 
 The host admits at most 64 handlers, with at most eight protected Management
-reads. The session pool has four connections, a three-second connection limit
+calls, including admitted commands and original-result lookups. The session pool has four connections, a three-second connection limit
 and five-second query/server-statement limits. OIDC has eight sockets, an
 eight-second complete request deadline and one-MiB response ceiling. The ninth
 OIDC request is rejected before native admission; closed request/response/socket
@@ -157,10 +207,13 @@ production use.
 
 ## Protected read API
 
-`src/portal-model.ts` is the browser-safe projection boundary. Replies are
+`src/portal-model.ts` and the dedicated Configuration projections are the
+browser-safe boundaries. Replies are
 `{state:"ready", value:...}` or an explicit unauthenticated, denied, not-found,
 invalid or unavailable state. They contain no credentials, raw SDK result,
-transport headers, default/payload JSON or arbitrary inventory module details.
+transport headers or arbitrary inventory module details. Inspection omits
+default/payload JSON. The dedicated Configuration routes can return exact selected
+source content and declared defaults only under their independent native grants.
 Current application authorization precedes service-wide capability descriptors.
 Hints remain advisory.
 
@@ -171,12 +224,12 @@ Hints remain advisory.
 | `/applications/{id}` | One actual authorized application. |
 | `/applications/{id}/instances?cursor=` | 25 registrations, with each reported version preserved. |
 | `/applications/{id}/configuration?cursor=` | 25 exact application definitions, metadata only. |
-| `/applications/{id}/capabilities` | Actual implemented APIs and distinct per-API advisory hints. |
+| `/applications/{id}/capabilities` | Explicit unavailable logical feature groups, with separate Service API diagnostics and advisory hints. |
 | `/applications/{id}/inventory?cursor=` | One complete bounded registration inventory, never truncated jobs. |
 
 Inventory provides a registration UUID and application version, not an instance
 label. The UI may use a label only from an already returned matching instance;
-otherwise it displays the UUID/Not reported. It never scans all instance pages
+otherwise it displays Not reported with the exact UUID in Technical details. It never scans all instance pages
 or infers report-time history, recurrence, worker authority or configuration
 bindings.
 
@@ -237,5 +290,75 @@ These source relationships are not passing results. Actual executions, counts
 and evidence limits belong to [CIS-0029 verification](../../../../docs/changes/CIS-0029/verification.md).
 No live Entra, production session-store deployment, external encryption or release
 qualification is established by authored source or controlled local fixtures.
+
+### Interactive local fixture
+
+For manual desktop testing, the existing host-only C# fixture also accepts an
+explicit opt-in session. It starts fresh isolated PostgreSQL/RabbitMQ services,
+the real Management service and ordinary production portal, plus a test-only
+signed OIDC issuer. There is no production demo or authentication bypass.
+Build the integration project and portal first, and run under an active bounded
+native-work owner. Keep the fixture process alive while testing.
+
+Set `CIS_PORTAL_MANUAL_CONTROL_DIRECTORY` to a new ordinary directory below
+`.artifacts/management-portal/CIS-0029/WORK-006`,
+`CIS_PORTAL_MANUAL_LEASE_SECONDS` to 30–3600, and
+`CIS_PORTAL_MANUAL_OPEN_BROWSER` to `true`. Select only the host-only test above;
+use a runsettings test-session timeout longer than the lease plus startup and
+cleanup. Ordinary invocations without these variables still run their original
+automated assertions and shut down normally.
+
+The fixture opens a new isolated Edge window. Its context accepts the owned
+local test certificates; native backend TLS validation stays enabled and no
+trust-store entry is installed. Read `status.json` in the control directory for
+the generated portal URL and expiry. A separate ordinary browser may show a
+local certificate warning.
+
+Choose **Operator A — Country Services and Billing Worker editor** on **Local
+test sign-in** to inspect/edit both samples, or **Operator B — Billing Worker
+reader** for read-only Billing access. No password is required for these isolated
+synthetic identities. Their actual native identities remain `managed-a` and
+`managed-b`. See the [manual review data guide](../../../../docs/modules/management/portal-manual-review-data.md)
+for the regional instance versions, closed/unreported registrations, Shared and
+Application JSON examples, and reported Refresh country cache job. These are
+native snapshots; they naturally become stale without further reports. The
+fixture supplies no Scheduler execution/history or typed Task/Event records.
+
+The manual host lease is 30–3600 seconds. Synthetic access tokens are minted at
+each sign-in for the remaining captured lease, with the ordinary 30-second
+session safety margin; signing in again does not restart the lease. Ordinary
+automated tokens still last ten minutes. Production sessions remain capped at
+the earlier one-hour limit or actual access-token expiry minus that margin;
+activity does not extend them and no refresh token is retained. Sign out to
+switch operators, or reauthenticate after expiry. Publishing and assignment
+still require explicit reviewed commands; editing never enables autosave.
+
+A sufficiently long manual lease also schedules one actual protected read after
+130 seconds using a separate, hidden read-only identity. `status.json` records
+pending/passed/failed/cancelled continuity independently of live browser and
+cleanup state. A short lease or cancelled probe does not establish continuity.
+Current live continuity and cleanup remain pending until their real results are
+recorded; source assertions and pure/build checks alone do not establish them.
+
+The manual fixture also seeds retained baseline/candidate/Finance releases, a
+complete assignment map with trusted cohort pins, and two historical consumer
+adoption reports. Operator A can author Configuration, publish/release, review
+assignment changes and inspect adoption; Operator B remains read-only. Historical
+Applied/Faulted reports are intentionally separate from the current desired map
+and do not claim fresh consumer convergence. These remain isolated test records
+served through the real native APIs, not production fallback data or Scheduler
+execution/history.
+
+Create `stop.request` in the control directory to request normal cleanup, or let
+the one-hour maximum lease expire. `status.json` reports Node host/browser/issuer
+drainage; `fixture-cleanup.json` reports C# fixture cleanup separately. Wait for
+the parent test runner to exit successfully before treating assembly-owned
+containers as disposed. Generated credentials and keys stay in owned private
+fixture directories and are removed after actual native work settles.
+
+`node tests/manual-browser-smoke.mjs <control-directory>` verifies the actual
+chooser, sign-in/sign-out/reauthentication forms, native target isolation and
+seeded data, then requests stop and writes a safe report. It consumes the same
+existing fixture and finite work owner; it does not provision another service.
 
 Retain [third-party notices](THIRD_PARTY_NOTICES.md) with deployment artifacts.

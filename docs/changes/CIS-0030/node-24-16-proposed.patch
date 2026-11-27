@@ -1,0 +1,117 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -56,5 +56,5 @@
+ TypeScript packages.
+ Before selecting those cases, run `npm ci`, `npm run build`, `npm test` and
+-`npm run check:browser` from `implementations/typescript`, using Node **24.15.0**
++`npm run check:browser` from `implementations/typescript`, using Node **24.16.0**
+ and npm **11.12.1**. The existing service CI job performs these steps and selects
+ both `RequiresDocker` and `RequiresNode` cases. The native-fetch `RequiresNode`
+diff --git a/.github/workflows/service-tests.yml b/.github/workflows/service-tests.yml
+--- a/.github/workflows/service-tests.yml
++++ b/.github/workflows/service-tests.yml
+@@ -42,5 +42,5 @@
+         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+         with:
+-          node-version: "24.15.0"
++          node-version: "24.16.0"
+           check-latest: false
+           package-manager-cache: false
+@@ -53,10 +53,13 @@
+         run: |
+           set -euo pipefail
+-          test "$(node --version)" = "v24.15.0"
+-          test "$(npm --version)" = "11.12.1"
+-          npm ci --ignore-scripts --no-audit --no-fund
+-          npm run build
+-          npm test
+-          npm run check:browser
++          test "$(node --version)" = "v24.16.0"
++          npm install --prefix "$RUNNER_TEMP/cislib-npm" \
++            --ignore-scripts --no-audit --no-fund --no-save --package-lock=false npm@11.12.1
++          npm_cli="$RUNNER_TEMP/cislib-npm/node_modules/npm/bin/npm-cli.js"
++          test "$(node "$npm_cli" --version)" = "11.12.1"
++          node "$npm_cli" ci --ignore-scripts --no-audit --no-fund
++          node "$npm_cli" run build
++          node "$npm_cli" test
++          node "$npm_cli" run check:browser
+ 
+       - name: Install pinned SDK
+diff --git a/docs/references/test-suite-profile.md b/docs/references/test-suite-profile.md
+--- a/docs/references/test-suite-profile.md
++++ b/docs/references/test-suite-profile.md
+@@ -76,5 +76,5 @@
+ Central Management uses these same MSTest projects and owned service fixtures.
+ Its real HTTPS/SQL/broker and same-service C#/Node cases carry `RequiresDocker`.
+-Build the pinned Node24.15.0/npm11.12.1 TypeScript workspace first, as described
++Build the pinned Node24.16.0/npm11.12.1 TypeScript workspace first, as described
+ in its [guide](../../implementations/typescript/README.md); the existing service
+ workflow does so before running the native service selection. Browser type checks
+diff --git a/implementations/csharp/tests/README.md b/implementations/csharp/tests/README.md
+--- a/implementations/csharp/tests/README.md
++++ b/implementations/csharp/tests/README.md
+@@ -51,5 +51,5 @@
+ caller-cancellation cases without Docker. First build the
+ [TypeScript workspace](../../typescript/README.md) using its pinned Node
+-24.15.0/npm 11.12.1 setup. Then select the existing integration project with
++24.16.0/npm 11.12.1 setup. Then select the existing integration project with
+ `--filter "TestCategory=RequiresNode"`. `CIS_TEST_NODE_EXECUTABLE` may explicitly
+ select that native Node executable; otherwise it must be on PATH. Missing Node or
+diff --git a/implementations/typescript/README.md b/implementations/typescript/README.md
+--- a/implementations/typescript/README.md
++++ b/implementations/typescript/README.md
+@@ -7,5 +7,5 @@
+ compiler remains TypeScript 5.9.3. The portal owns its Next.js/React, OIDC/session
+ and PostgreSQL dependencies. SDK browser and server exports acquire no portal
+-framework or session dependency. Use Node 24.15.0 and npm 11.12.1 for the
++framework or session dependency. Use Node 24.16.0 and npm 11.12.1 for the
+ repository commands:
+ 
+diff --git a/implementations/typescript/package.json b/implementations/typescript/package.json
+--- a/implementations/typescript/package.json
++++ b/implementations/typescript/package.json
+@@ -6,5 +6,5 @@
+   "packageManager": "npm@11.12.1",
+   "engines": {
+-    "node": "24.15.0",
++    "node": "24.16.0",
+     "npm": "11.12.1"
+   },
+diff --git a/implementations/typescript/package-lock.json b/implementations/typescript/package-lock.json
+--- a/implementations/typescript/package-lock.json
++++ b/implementations/typescript/package-lock.json
+@@ -17,5 +17,5 @@
+       },
+       "engines": {
+-        "node": "24.15.0",
++        "node": "24.16.0",
+         "npm": "11.12.1"
+       }
+@@ -45,5 +45,5 @@
+       },
+       "engines": {
+-        "node": "24.15.0",
++        "node": "24.16.0",
+         "npm": "11.12.1"
+       }
+diff --git a/implementations/typescript/applications/management-portal/README.md b/implementations/typescript/applications/management-portal/README.md
+--- a/implementations/typescript/applications/management-portal/README.md
++++ b/implementations/typescript/applications/management-portal/README.md
+@@ -26,5 +26,5 @@
+ ## Build and run
+ 
+-Use Node **24.15.0**, npm **11.12.1** and the checked-in workspace lock. From
++Use Node **24.16.0**, npm **11.12.1** and the checked-in workspace lock. From
+ `implementations/typescript`:
+ 
+diff --git a/implementations/typescript/applications/management-portal/package.json b/implementations/typescript/applications/management-portal/package.json
+--- a/implementations/typescript/applications/management-portal/package.json
++++ b/implementations/typescript/applications/management-portal/package.json
+@@ -4,5 +4,5 @@
+   "private": true,
+   "type": "module",
+-  "engines": { "node": "24.15.0", "npm": "11.12.1" },
++  "engines": { "node": "24.16.0", "npm": "11.12.1" },
+   "scripts": {
+     "build": "node scripts/patch-next-response-drain.mjs && next build --webpack",

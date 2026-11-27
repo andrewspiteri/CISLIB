@@ -3,11 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "engines": { "node": "24.15.0", "npm": "11.12.1" },
+  "engines": { "node": "24.16.0", "npm": "11.12.1" },
   "scripts": {
-    "build": "next build --webpack",
+    "build": "node scripts/patch-next-response-drain.mjs && next build --webpack",
     "start": "node server.mts",
-    "dev": "node server.mts --development",
+    "dev": "node scripts/patch-next-response-drain.mjs && node server.mts --development",
     "migrate": "node scripts/migrate.mts",
     "test": "node --test --test-concurrency=1 tests/*.test.mjs"
   },

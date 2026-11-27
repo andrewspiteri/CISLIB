@@ -202,7 +202,7 @@ the server's frozen mapping or be learned solely from a configuration snapshot.
 
 ## Migration, storage and evidence boundary
 
-Explicit migration upgrades versions one and two to version three, preserving
+Explicit migration upgrades versions one through three to version four, preserving
 existing applications, metadata, authority, original result scopes and outgoing
 Audit. Repeated migration validates the retained authority/root rather than minting
 new ones. Ordinary startup performs no repair or DDL. Version three installs the

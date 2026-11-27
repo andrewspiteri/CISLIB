@@ -10,7 +10,7 @@ internal static partial class ManagementEndpoints
     static partial void AddMetadataFeatures(List<ManagementFeature> features)
     {
         features.Add(new("replaceApplicationMetadata", 1, "PUT", "/applications/{applicationId}/metadata",
-            ["management.applications.metadata.write"]));
+            ["management.applications.metadata.write", "management.operations.read"]));
         features.Add(new("getMetadataOperation", 1, "GET", "/applications/{applicationId}/metadata-operations/{operationKey}",
             ["management.operations.read"]));
     }

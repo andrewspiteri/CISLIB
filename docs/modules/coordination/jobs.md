@@ -47,6 +47,65 @@ jobs have no fallback handler. Category registration must exist in the same scop
 `Inspect(offset, pageSize)` copies a deterministic bounded page; inspection and
 disabled scheduled definitions need no scheduling provider.
 
+## Explicit execution compatibility and worker metadata
+
+`JobExecutionContract` optionally attaches exact execution/recovery declarations
+to a `JobHandlerBinding`. It is separate from the scheduled `InputContract`:
+changing an input DTO or comparing application release numbers does not establish
+the semantics that a worker can start or recover. Each supported list copies at
+most sixteen distinct `MessageContract` values. The current contract must appear
+in `SupportedStarts`; an empty `SupportedRecoveries` explicitly declares no
+original-result recovery support. Matching names/versions are ordinal and exact,
+with no newer-version or semantic-version inference. `CheckpointContract` is
+optional application-owned continuation metadata.
+
+```csharp
+var execution = new MessageContract("customer.dormancy.execution", 3);
+var compatibility = new JobExecutionContract(
+    execution,
+    supportedStarts: [execution],
+    supportedRecoveries: [new("customer.dormancy.execution", 2), execution],
+    operationName: "CustomerDormancy");
+JobHandlerBinding binding = JobHandlerBinding
+    .Scheduled<DormancyInput, CustomerDormancyJob>(definition, dormancyCodec)
+    .WithExecutionContract(compatibility);
+services.AddScoped<CustomerDormancyJob>();
+services.AddSingleton(binding);
+```
+
+Register this decorated binding once for the exact job before freezing the
+catalog. `WithExecutionContract` returns a new binding; it does not alter an
+existing registration or catalog. Existing Continuous, Scheduled and Combined
+factories and convenience registrations keep their signatures, codec/invocation
+behavior and null `ExecutionContract` when unselected. Attaching metadata resolves
+no services, constructs no handler and does not encode or decode input.
+
+`OperationName` is the actual consumer-registered native business-operation alias,
+using the existing one-to-64-character Operations alias rules. It is never derived
+from a job or handler name. Null permits passive legacy inspection and declares
+no reliable execution alias; selected scheduler activation must require the
+appropriate real operation registration through its separate integration.
+
+`JobWorkerBuildIdentity` copies application version, immutable build identifier
+and handler identifier (each at most 512 UTF-8 bytes), plus optional source revision
+(128 bytes). `Capture(applicationVersion, handlerType, sourceRevision)` inspects
+only already loaded non-dynamic type/module metadata. It identifies the handler
+module by MVID, includes its metadata token and hashes the exact closed-type graph
+so generic arguments and array shapes remain distinct. It also hashes the actual
+Jobs interface-map target method MVID/token and declaring type, preserving an
+inherited callback's implementation and detecting an actual override. Capture
+admits at most sixteen callback targets, with each captured type graph bounded to
+64 nodes and sixteen generic/element levels; it reads no file or custom
+attribute and constructs/initializes no handler. The supplied application release
+is display metadata, and the result is not binary attestation or authorization.
+
+This passive API does not change dispatch or capture attempt entry. Per-attempt
+integration must first resolve and verify the actual runtime handler against its
+registered binding, then capture that runtime class before business callback
+entry. Inspecting a registered Type alone is not evidence that it executed.
+Original build/handler attribution must remain with an established original
+outcome when another build later performs recovery.
+
 ## Settings and authorization remain separate
 
 `JobConfigurationSnapshot` is a detached complete local revision with explicit

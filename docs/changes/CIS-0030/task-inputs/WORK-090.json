@@ -1,0 +1,105 @@
+{
+  "tasks": [
+    {
+      "title": "Implement qualified scheduler persistence, trusted catalog and coherent active revisions",
+      "scopeIds": [
+        "capability-contracts",
+        "configuration-portal",
+        "scheduler",
+        "integration"
+      ],
+      "paths": [
+        "implementations/csharp/applications/CIS.Management.Service/Backends",
+        "implementations/csharp/applications/CIS.Management.Service/Persistence",
+        "implementations/csharp/applications/CIS.Management.Service/Configuration",
+        "implementations/csharp/applications/CIS.Management.Service/Scheduling",
+        "implementations/csharp/applications/CIS.Management.Service/ManagementServiceOptions.cs",
+        "implementations/csharp/applications/CIS.Management.Service/ManagementServiceApplication.cs",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Management",
+        "docs/modules/management"
+      ],
+      "dependsOn": [
+        "WORK-080"
+      ],
+      "complexity": "medium",
+      "category": "backend",
+      "acceptanceCriteria": "Extend the one Management PostgreSQL authority through explicit versioned migration/readiness and optional scheduler backend companion. Persist trusted immutable definition/configured-trigger/task revisions, logical identities, desired/active references and bounded execution capsules with positive configured quota; normal startup does no DDL and unselected consumers stay compatible. Apply trusted catalog conflicts and guarded task preview/promotion using exact original Operations/Audit conventions and RM08 publication/release/assignment/owner-adoption. Prior active revision remains until coherent promotion/disable; shared changes visibly revalidate every affected task against current preconditions without overwriting edits. Definitions are passive; unsupported mapper/editor/identity/contract blocks activation. Preserve exact names/IDs and configuration ownership; no arbitrary executable handler creation. Owns RM10-AC01, RM10-AC02, RM10-AC03, RM10-AC11, RM10-AC12, RM10-AC13, RM10-AC27, RM10-AC28, RM10-AC29, RM10-AC31, RM10-AC35, RM10-AC40.",
+      "validation": "Prove explicit migration from retained schema, startup read-only readiness, trusted version conflicts and exact target authorization. Run native guarded active-revision/shared-edit/adoption/ETag races and original operation replay/Audit rollback cases. Reserve shared schema edits to this owner; document options, transaction/lock order, adoption boundaries and migration. Include meaningful focused native/unit or browser checks for this implementation, affected documentation, and proportionate independent review; preserve failures and actual joined cleanup. Do not turn authored tests or reused evidence from different source bytes into a pass."
+    },
+    {
+      "title": "Implement atomic event fanout, manual admission and protected receipts",
+      "scopeIds": [
+        "scheduler",
+        "integration"
+      ],
+      "paths": [
+        "implementations/csharp/applications/CIS.Management.Service/Scheduling",
+        "implementations/csharp/applications/CIS.Management.Service/Persistence",
+        "implementations/csharp/applications/CIS.Management.Service/Backends",
+        "implementations/csharp/applications/CIS.Management.Service/Http",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Management",
+        "docs/modules/management"
+      ],
+      "dependsOn": [
+        "WORK-151",
+        "WORK-040"
+      ],
+      "complexity": "medium",
+      "category": "backend",
+      "acceptanceCriteria": "Implement authenticated programmatic event submission, authorized original receipt lookup and task-specific run-now over one original Management transaction. Check prior identity before new selection, compare immutable semantic digest, retain zero-run receipts and original selected run set across edits/pause/replay. Validate complete active task/mapping/resource/configuration capsules, deterministic trusted transformations including calendar-local-date, exact native source/target scope and all byte/fanout/quota/settlement reservations before commit. Commit every selected run, receipt and bounded existing outbox intent atomically or none; producer acceptance may redact unauthorized target identities/counts. Manual execution targets exactly one enabled authorized task, never shared trigger siblings. Serialize task disable/pending cancel with attempt admission; unknown never becomes noncommit or another-key work. Owns RM10-AC02, RM10-AC08, RM10-AC09, RM10-AC10, RM10-AC11, RM10-AC13, RM10-AC14, RM10-AC20, RM10-AC21, RM10-AC24, RM10-AC25, RM10-AC31.",
+      "validation": "Use two real Management roots/SQL authority to exercise identical/conflicting duplicate, zero-run replay after enable/edit, source pause, invalid selected mapping, exact64 fanout and combined-byte/capacity boundaries, known noncommit/uncertain commit recovery, both disable/cancel admission orders and redacted authorized receipt disclosure. Document source responsibility and original identities. Include meaningful focused native/unit or browser checks for this implementation, affected documentation, and proportionate independent review; preserve failures and actual joined cleanup. Do not turn authored tests or reused evidence from different source bytes into a pass."
+    },
+    {
+      "title": "Implement authoritative calendar evaluator and bounded replicated production",
+      "scopeIds": [
+        "scheduler",
+        "integration"
+      ],
+      "paths": [
+        "implementations/csharp/src/CIS.Core/Jobs",
+        "implementations/csharp/applications/CIS.Management.Service/Scheduling",
+        "implementations/csharp/applications/CIS.Management.Service/Persistence",
+        "implementations/csharp/tests/CIS.Core.UnitTests/Jobs",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Management",
+        "docs/modules/coordination",
+        "docs/modules/management"
+      ],
+      "dependsOn": [
+        "WORK-151",
+        "WORK-152"
+      ],
+      "complexity": "medium",
+      "category": "backend",
+      "acceptanceCriteria": "Implement one pure BCL evaluator shared by authoritative preview and Management calendar production for FixedDelay/Daily/Weekly. Validate IANA zone, Skip invalid local times and OnceAtEarlierInstant repeats, explicit missed policies/defaults and bounded chronological catch-up. In one qualified transaction atomically arbitrate due instant/event/run set/progress across replicas, with canonical instant identity independent of revision. Active boundary changes supersede unadmitted old backlog honestly; unchanged pause/resume retains cursor. FixedDelay has exactly one designated TaskId/predecessor/successor, completion-relative timing, explicit immediate/Continue choices and default terminal pause; unresolved predecessor never advances and manual runs never advance it. Use existing sequential Management readiness/lifecycle with at most100 due records per yielding batch; no self-bootstrap cycle, per-trigger thread, unbounded ticks or poll history. Owns RM10-AC04, RM10-AC05, RM10-AC06, RM10-AC07, RM10-AC13, RM10-AC34.",
+      "validation": "Use controllable time for zone/unavailable zone/DST/preview, boundary edits, all missed policies/window/batch and FixedDelay retry/unknown/disabled-task/resume/delay edit cases. Reuse real two-root PostgreSQL arbitration and commit-boundary interruption proof for no duplicate/lost cursor progress. Document production policies and quiet bounded idle behavior. Include meaningful focused native/unit or browser checks for this implementation, affected documentation, and proportionate independent review; preserve failures and actual joined cleanup. Do not turn authored tests or reused evidence from different source bytes into a pass."
+    },
+    {
+      "title": "Implement durable run/attempt history, report reconciliation and protected retention",
+      "scopeIds": [
+        "scheduler",
+        "integration",
+        "portal",
+        "intake-design"
+      ],
+      "paths": [
+        "implementations/csharp/applications/CIS.Management.Service/Scheduling",
+        "implementations/csharp/applications/CIS.Management.Service/Persistence",
+        "implementations/csharp/applications/CIS.Management.Service/Backends",
+        "implementations/csharp/applications/CIS.Management.Service/Http",
+        "implementations/csharp/src/CIS.Core/Management",
+        "implementations/typescript/packages/management-client",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Management",
+        "docs/modules/management",
+        "docs/changes/CIS-0030"
+      ],
+      "dependsOn": [
+        "WORK-151",
+        "WORK-152"
+      ],
+      "complexity": "medium",
+      "category": "backend",
+      "acceptanceCriteria": "Persist/query the same durable logical runs and meaningful attempts for task/job/event views, with separate admission/entry/business-outcome/settlement and occurred/received observations, exact original operation and captured settings references. Authorize actual application/resource/run/attempt and every page/filter/detail; producer admission grants no target-history disclosure. Authenticate immutable sequenced reports: identical replay idempotent, conflicting same sequence refused, older progress cannot overwrite, late authorized original completion evidence may resolve unknown without reviving ownership. Retain actual immutable per-attempt release/build/handler and execution/recovery role; recovering build never steals original effect attribution. Coalesce ordinary progress5seconds, validate16KiB summaries/protected references, bound milestones/diagnostics and state growth. Use existing bounded cleanup/cached metrics-health owners: terminal details30days, aggregates180days, never prune unresolved/unsettled responsibility or needed compact receipts; quota reserves completion/recovery headroom and refuses new work. Owns RM10-AC16, RM10-AC17, RM10-AC22, RM10-AC23, RM10-AC24, RM10-AC25, RM10-AC30, RM10-AC34, RM10-AC36, RM10-AC38, RM10-AC40; this also supplies actual API and acceptance references for the approved history UI.",
+      "validation": "Use real native store/auth fixtures for duplicates/conflicts/lower/late reports, mixed-version recovered outcomes/unknown provenance, exact original-result evidence, task/job same-row totals, hidden filters/totals/cursors/details, progress/result bounds, protected history pruning/replay and settlement quota. Coordinate schema solely with WORK-151. Document logical versus physical quota, replay horizons, stale/unknown states and source/attempt authority. Include meaningful focused native/unit or browser checks for this implementation, affected documentation, and proportionate independent review; preserve failures and actual joined cleanup. Do not turn authored tests or reused evidence from different source bytes into a pass."
+    }
+  ]
+}

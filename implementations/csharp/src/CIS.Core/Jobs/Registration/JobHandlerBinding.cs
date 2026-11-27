@@ -11,7 +11,8 @@ public sealed class JobHandlerBinding
 
     private JobHandlerBinding(JobDefinition definition, Type handlerType,
         Func<JobExecutionContext, CancellationToken, Task<ContinuousIterationResult>>? continuous,
-        Func<JobExecutionContext, CancellationToken, Task<ScheduledJobResult>>? scheduled, MessageContract? inputContract)
+        Func<JobExecutionContext, CancellationToken, Task<ScheduledJobResult>>? scheduled, MessageContract? inputContract,
+        JobExecutionContract? executionContract = null)
     {
         ArgumentNullException.ThrowIfNull(definition);
         if (handlerType.IsAbstract || handlerType.ContainsGenericParameters)
@@ -28,6 +29,7 @@ public sealed class JobHandlerBinding
         Definition = definition;
         HandlerType = handlerType;
         InputContract = inputContract;
+        ExecutionContract = executionContract;
         this.continuous = continuous;
         this.scheduled = scheduled;
     }
@@ -73,6 +75,19 @@ public sealed class JobHandlerBinding
     public MessageContract? InputContract
     {
         get;
+    }
+
+    /// <summary>Gets optional exact execution/recovery metadata; null preserves the unselected existing Jobs behavior.</summary>
+    public JobExecutionContract? ExecutionContract
+    {
+        get;
+    }
+
+    /// <summary>Returns a new passive binding with exact compatibility declarations, preserving its handler, codec and invokers.</summary>
+    public JobHandlerBinding WithExecutionContract(JobExecutionContract executionContract)
+    {
+        ArgumentNullException.ThrowIfNull(executionContract);
+        return new(Definition, HandlerType, continuous, scheduled, InputContract, executionContract);
     }
 
     internal Task<ContinuousIterationResult> InvokeContinuousAsync(JobExecutionContext context, CancellationToken token)

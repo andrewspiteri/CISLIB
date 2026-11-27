@@ -527,3 +527,63 @@ No push, merge, publication or external deployment occurred.
 | WORK-003 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2718; failed=357; possibleTokenSavings=591; ledgerDigest=sha256:dc1f0ff0e04010a16b51f75d877968abe0d8389f8902b263dab58c05a7050eee |
 | WORK-004 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2724; failed=357; possibleTokenSavings=591; ledgerDigest=sha256:13b3701feb30eba1ccf3b5b52851075c542a3552893a509f3a9ab25cb6f417bd |
 | WORK-005 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2734; failed=357; possibleTokenSavings=591; ledgerDigest=sha256:aa03c50c65aec759ebb903f1ccdc9748ac971300e806b9fd7a1642e2c552443a |
+
+## Interactive local session and browser-auth correction (WORK-006/007)
+
+The user requested a locally running portal with test data. One supporting manual
+fixture task reuses the existing isolated native fixture, ordinary production host
+and genuine controlled-issuer OIDC flow. The source work, all agents, native runs,
+docs and one-hour lease share the original 48-hour/48-attempt allocation; no new
+physical pool or resource increase was created. Completed owners were preserved.
+WORK-006 remains active while its finite manual session owns native resources.
+
+Actual new evidence: affected C# scoped formatting/verification and build passed
+with zero warnings/errors; 15 policy/manual-control tests passed; final production
+Next build passed; the ordinary native host test passed with 26 scenarios; five
+actual browser scenarios passed, including chooser/PKCE, both applications,
+per-instance versions, Configuration/Jobs, sign-out/reauthentication and restricted
+Operator B. Three genuine code exchanges occurred. The test fixture then stopped
+normally: actual process, stdout, stderr, IPC, issuer sockets and private session
+owners joined; C# roles/schema/Management owners and assembly containers disposed,
+and the parent test exited zero. Exact paths/hashes are retained in
+`.cis/local/testing/rm09-manual/verified-evidence.json`.
+
+The initial real browser form failed with403 under the old no-referrer policy.
+The correction uses same-origin referrer policy in both header layers, retains
+strict exact-Origin/CSRF checks (including rejection of null Origin), and moves
+CSP to one runtime owner permitting only self and the independently configured
+concrete HTTPS issuer. Wildcard/policy-metacharacter and unsupported literal-IP
+origins are rejected. The actual four form submissions reported the exact portal
+Origin and same-origin site. No production demo/auth bypass was introduced.
+
+A Windows atomic-status rename lock and a Playwright header-capture omission were
+corrected. Status publication is awaited only at explicit lifecycle boundaries,
+with finite Windows-only lock retry; native event callbacks cannot throw from
+status publication. Every helper cleanup is attempted independently. Further
+focused browser runs exposed retained Next page/API promises after responses and
+network sockets closed. Fixed temporary phase observations identified the wait;
+all failed runs and exact verified-child compensation remain retained. Signalling
+Next close earlier did not settle those promises and that speculative ordering
+was removed. Next's supported compress:false setting resolved the observed hang
+in the same browser journey while preserving every actual shutdown join. Direct
+host responses are uncompressed; no library patch, new dependency or static-file
+framework was added. Temporary diagnostics were removed. Handler shutdown now
+settles all individual handlers even on fault, and observes removal bookkeeping.
+
+Only newly generated regenerable webpack caches from these builds were disposed,
+with exact verified paths, no linked entries and retained per-file hashes. Current
+C# outputs, compiled Next output and all reports were preserved; no historical
+cache/image/database/volume or user launch settings was removed. See the two
+manual webpack disposal records, including the explicit corrected aggregate for
+the first manifest's null total. The unchanged6GiB ceiling/64MiB reserve and2GiB
+Docker allowance continue to apply.
+
+The final human session uses a newly owned isolated visible Edge context with a
+context-only local TLS exception; backend validation remains enabled and no trust
+store is changed. Operator A can read both synthetic applications; B only managed-b.
+managed-a reports1.0.0 and2.4.2 and includes metadata/job snapshots. Snapshot
+presence can become stale; RM10 history/typed Task/Event data remains unavailable.
+A stop file or at most one-hour lease requests normal joined cleanup. This is local
+controlled evidence, not a live Entra/deployment, broader qualification or release.
+No push or merge occurred.
+| WORK-007 | CIS tool-usage snapshot | `.cis/local/feedback/tool-usage.jsonl` | Recorded | invocations=2779; failed=359; possibleTokenSavings=591; ledgerDigest=sha256:f075dbf3cdcd08c9bc98342bf9af925fdef9dffd965a79b4ec0f601cd2b78af4 |

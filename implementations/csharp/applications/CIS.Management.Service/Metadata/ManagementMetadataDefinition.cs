@@ -19,7 +19,7 @@ internal static class ManagementMetadataDefinition
         => new(Name, "management", FingerprintContract, new Normalizer(), new ResultCodec(),
             root => new ScopeResolver(root.GetRequiredService<ManagementMetadataTarget>()), new()
             {
-                ExecuteCapabilities = ["management.applications.metadata.write"],
+                ExecuteCapabilities = ["management.applications.metadata.write", "management.operations.read"],
                 LookupCapabilities = ["management.operations.read"],
                 MaximumCanonicalBytes = 32768,
                 MaximumResultBytes = 65536,

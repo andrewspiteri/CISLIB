@@ -32,6 +32,24 @@ internal sealed class ManagementCursor(ManagementServiceOptions options, Func<Ma
         return EncodeCore(endpoint, actor, size, last, "configuration-adoption-ordinal");
     }
 
+    internal string EncodeConfigurationCohort(string endpoint, string actor, int size, string last)
+    {
+        if (!ManagementWire.IsOperationKey(last))
+        {
+            throw new ArgumentException("Use the exact disclosed Configuration cohort position.", nameof(last));
+        }
+        return EncodeCore(endpoint, actor, size, last, "configuration-cohort-ordinal");
+    }
+
+    internal string EncodeConfigurationRelease(string endpoint, string actor, int size, string last)
+    {
+        if (!ManagementConfigurationReleasePosition.TryRead(last, out _, out _))
+        {
+            throw new ArgumentException("Use the exact retained-release position.", nameof(last));
+        }
+        return EncodeCore(endpoint, actor, size, last, "configuration-release-created-desc");
+    }
+
     private string EncodeCore(string endpoint, string actor, int size, string last, string order)
     {
         ManagementAuthoritySnapshot authority = currentAuthority();
@@ -48,6 +66,12 @@ internal sealed class ManagementCursor(ManagementServiceOptions options, Func<Ma
 
     internal bool TryDecodeConfigurationAdoption(string? value, string endpoint, string actor, int size, out string? after)
         => TryDecodeCore(value, endpoint, actor, size, "configuration-adoption-ordinal", out after);
+
+    internal bool TryDecodeConfigurationCohort(string? value, string endpoint, string actor, int size, out string? after)
+        => TryDecodeCore(value, endpoint, actor, size, "configuration-cohort-ordinal", out after);
+
+    internal bool TryDecodeConfigurationRelease(string? value, string endpoint, string actor, int size, out string? after)
+        => TryDecodeCore(value, endpoint, actor, size, "configuration-release-created-desc", out after);
 
     private bool TryDecodeCore(string? value, string endpoint, string actor, int size, string order, out string? after)
     {
@@ -96,6 +120,8 @@ internal sealed class ManagementCursor(ManagementServiceOptions options, Func<Ma
     private static bool ValidPosition(string order, string last) => order switch
     {
         "configuration-adoption-ordinal" => IsAdoptionPosition(last),
+        "configuration-cohort-ordinal" => ManagementWire.IsOperationKey(last),
+        "configuration-release-created-desc" => ManagementConfigurationReleasePosition.TryRead(last, out _, out _),
         "environment-utf8-ordinal" => ManagementWire.IsScalarText(last, 255),
         _ => ManagementWire.IsUuid(last)
     };

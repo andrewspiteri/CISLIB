@@ -11,8 +11,11 @@ import type { PortalRuntime } from "./runtime.ts";
 import { issuer, providerId, sessionCookieName, sessionMaximumSeconds, tokenExpiryMarginSeconds } from "./config.ts";
 import { allowedAuthAction, hasUniqueBoundedParameters, mapVerifiedOperator, safeReturnUrl, sameOriginMutation } from "./auth-policy.ts";
 import type { VerifiedOperator } from "./auth-policy.ts";
+import { createPortalSessionContext } from "./session-context.ts";
+import { capturePortalContext } from "../portal-context.ts";
+import type { PortalSessionContext } from "../portal-context.ts";
 
-interface OperatorSession extends Session { readonly operatorId?: string; }
+interface OperatorSession extends Session { readonly operatorId?: string; readonly portalContext?: PortalSessionContext; }
 export class PortalAuthenticationRequired extends Error {
   constructor() { super("Sign in to inspect applications."); this.name = "PortalAuthenticationRequired"; }
 }
@@ -22,6 +25,7 @@ export function createAuthOptions(runtime: PortalRuntime): NextAuthOptions {
   const config = runtime.config;
   const base = PostgresAdapter(runtime.pool);
   let login: VerifiedOperator | undefined;
+  let validatedSession: { readonly userId: string; readonly context: PortalSessionContext } | undefined;
 
   const adapter: Adapter = {
     // The stable v4 caller omits id; the maintained adapter returns the database's generated UUID.
@@ -46,22 +50,30 @@ export function createAuthOptions(runtime: PortalRuntime): NextAuthOptions {
       return await base.createSession!({ ...input, expires });
     },
     async getSessionAndUser(token) {
+      validatedSession = undefined;
+      if (runtime.stopping) { return null; }
       const result = await base.getSessionAndUser!(token);
-      if (result !== null && (!(result.session.expires instanceof Date) || result.session.expires.getTime() <= Date.now())) {
+      if (result === null) { return null; }
+      if (!(result.session.expires instanceof Date) || !Number.isSafeInteger(result.session.expires.getTime())
+        || result.session.expires.getTime() <= Date.now()) {
         await base.deleteSession!(token);
         return null;
       }
+      if (result.session.sessionToken !== token || result.session.userId !== result.user.id) { return null; }
+      const context = createPortalSessionContext(config, result.user.id, result.session.sessionToken, result.session.expires.getTime());
+      if (context === undefined) { return null; }
+      validatedSession = { userId: result.user.id, context };
       return result;
     },
     async updateSession(input) {
       const existing = await base.getSessionAndUser!(input.sessionToken);
-      if (existing === null || existing.session.expires.getTime() <= Date.now()) { return null; }
+      if (existing === null || existing.session.expires.getTime() <= Date.now()) { validatedSession = undefined; return null; }
       const expires = input.expires === undefined ? existing.session.expires
         : new Date(Math.min(existing.session.expires.getTime(), input.expires.getTime()));
       await base.updateSession!({ ...input, expires });
       return { ...existing.session, ...input, expires };
     },
-    async deleteSession(token) { await base.deleteSession!(token); }
+    async deleteSession(token) { validatedSession = undefined; await base.deleteSession!(token); }
   };
   return {
     adapter,
@@ -100,7 +112,13 @@ export function createAuthOptions(runtime: PortalRuntime): NextAuthOptions {
         return true;
       },
       async session({ session, user }) {
-        return { expires: session.expires, user: { name: user.name ?? "Operator" }, operatorId: user.id };
+        if (runtime.stopping || validatedSession === undefined || validatedSession.userId !== user.id
+          || Date.parse(session.expires) !== validatedSession.context.expiresAtMs || validatedSession.context.expiresAtMs <= Date.now()) {
+          validatedSession = undefined;
+          throw new Error("OPERATOR_SESSION_DENIED");
+        }
+        return { expires: session.expires, user: { name: user.name ?? "Operator" }, operatorId: user.id,
+          portalContext: validatedSession.context };
       },
       async redirect({ url }) { return safeReturnUrl(url, config.origin); }
     },
@@ -115,11 +133,19 @@ export function createAuthOptions(runtime: PortalRuntime): NextAuthOptions {
 
 /** Tokens are looked up only after the current opaque database session is validated. */
 export async function managementCredential(signal: AbortSignal): Promise<CredentialAttachment> {
+  return (await managementAuthorization(signal)).credential;
+}
+
+/** Browser-safe associations accompany the same existing session/account reads, never a second authentication lookup. */
+export async function managementAuthorization(signal: AbortSignal): Promise<{
+  readonly credential: CredentialAttachment; readonly context: PortalSessionContext;
+}> {
   signal.throwIfAborted();
   const runtime = borrowRuntime();
   const session = await getServerSession(createAuthOptions(runtime)) as OperatorSession | null;
   signal.throwIfAborted();
-  if (session?.operatorId === undefined) { throw new PortalAuthenticationRequired(); }
+  const context = capturePortalContext(session?.portalContext);
+  if (session?.operatorId === undefined || context === undefined || context.expiresAtMs <= Date.now()) { throw new PortalAuthenticationRequired(); }
   const account = await runtime.pool.query<{ access_token: string | null; expires_at: string | number | null; providerAccountId: string }>(
     'SELECT access_token, expires_at, "providerAccountId" FROM accounts WHERE "userId"=$1 AND provider=$2 LIMIT 2',
     [session.operatorId, providerId]);
@@ -132,7 +158,9 @@ export async function managementCredential(signal: AbortSignal): Promise<Credent
     || expiry <= Math.floor(Date.now() / 1000) + tokenExpiryMarginSeconds) {
     throw new PortalAuthenticationRequired();
   }
-  return { kind: "bearer", token: value.access_token };
+  const expiresAtMs = Math.min(context.expiresAtMs, (expiry - tokenExpiryMarginSeconds) * 1000);
+  if (expiresAtMs <= Date.now()) { throw new PortalAuthenticationRequired(); }
+  return { credential: { kind: "bearer", token: value.access_token }, context: Object.freeze({ ...context, expiresAtMs }) };
 }
 
 /** Positive path/method and input allowlists surround the maintained handler. */

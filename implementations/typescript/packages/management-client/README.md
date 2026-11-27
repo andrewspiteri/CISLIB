@@ -53,3 +53,25 @@ and narrow same-session conditional snapshot reuse. See the
 [TypeScript configuration guide](../../../../docs/modules/management/typescript.md)
 and canonical Management contract. Existing `ManagementClient` behavior remains
 available.
+
+## Optional scheduler and application features
+
+`ManagementSchedulerClient` supplies typed operator, Event-producer and Worker
+methods through separate structural ports. It starts no worker or recurrence.
+`ManagementApplicationCatalogClient` reads trusted logical Job/Trigger-provider/
+rule-engine descriptions and separate instance participation;
+`ManagementConfigurationAdministrationClient` reads source/binding action hints
+and trusted cohort choices. Existing Management and Configuration client
+substitutes gain no compulsory methods. HTTP API capabilities retain their
+existing protocol meaning.
+
+All three companions reuse the portable request owner, per-call credentials and
+one entry deadline, including asynchronous integrity checks and actual cleanup.
+Writes, Events, admission and reports never retry automatically. Administrative
+creation retains the chosen UUID/key with `If-None-Match: *`; updates and manual
+admission use one strong ETag. Keep the original key after uncertainty and use
+its resource-specific lookup. A committed original result can coexist with
+failed current HTTP cleanup; neither implies rollback. Source-scoped Event
+references, Int64 strings, pinned settings and actual worker build facts remain
+exact. See the [portable Scheduler contract](../../../../contracts/management/v1/scheduler-contract.md).
+The clients and declarations establish no installed backend or deployment proof.

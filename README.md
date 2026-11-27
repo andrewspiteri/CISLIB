@@ -11,11 +11,17 @@ Core. The [TypeScript workspace](implementations/typescript/README.md) contains
 the portable client foundation and Management SDK, plus a separate private
 [desktop Management portal](implementations/typescript/applications/management-portal/README.md).
 The portal owns its Next.js, React, OIDC/session and database dependencies;
-the portable SDKs gain none of them. Its approved current slice is read-only:
+the portable SDKs gain none of them. Desktop inspection includes
 Applications, Instances, Configuration metadata, Capabilities and reported
 Scheduled jobs with quick details and full Job details. Run history and typed Task/Event services
 remain unavailable until their RM-10 contracts are delivered. See the portal
 guide for its explicit build, session-schema migration and run commands.
+
+The portal also contains explicitly authorized display metadata and Configuration
+authoring: exact source preview/publication, separate coherent releases, reviewed
+whole-map assignment and bounded adoption observations. Current implementation
+and native proof limits are recorded in the linked module guides and CIS-0030;
+these workflows do not implement the Scheduler or make publication imply adoption.
 
 Run commands from `implementations/csharp` so `global.json` selects SDK **10.0.401**. The selected qualification runtime is **10.0.12**; install its ASP.NET Core shared framework as well.
 
@@ -49,7 +55,7 @@ extended stress categories; full release qualification remains separate.
 The Management same-service and native-fetch HTTPS cases also need the built
 TypeScript packages.
 Before selecting those cases, run `npm ci`, `npm run build`, `npm test` and
-`npm run check:browser` from `implementations/typescript`, using Node **24.15.0**
+`npm run check:browser` from `implementations/typescript`, using Node **24.16.0**
 and npm **11.12.1**. The existing service CI job performs these steps and selects
 both `RequiresDocker` and `RequiresNode` cases. The native-fetch `RequiresNode`
 cases need no Docker. Set

@@ -1,0 +1,27 @@
+{
+  "tasks": [
+    {
+      "title": "Implement atomic event fanout, manual admission and protected receipts",
+      "scopeIds": [
+        "scheduler",
+        "integration"
+      ],
+      "paths": [
+        "implementations/csharp/applications/CIS.Management.Service/Scheduling",
+        "implementations/csharp/applications/CIS.Management.Service/Persistence",
+        "implementations/csharp/applications/CIS.Management.Service/Backends",
+        "implementations/csharp/applications/CIS.Management.Service/Http",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Management",
+        "docs/modules/management"
+      ],
+      "dependsOn": [
+        "WORK-157",
+        "WORK-172"
+      ],
+      "complexity": "medium",
+      "category": "backend",
+      "acceptanceCriteria": "Implement authenticated programmatic event submission, authorized original receipt lookup and task-specific run-now over one original Management transaction. Check prior identity before new selection, compare immutable semantic digest, retain zero-run receipts and original selected run set across edits/pause/replay. Validate complete active task/mapping/resource/configuration capsules, deterministic trusted transformations including calendar-local-date, exact native source/target scope and all byte/fanout/quota/settlement reservations before commit. Commit every selected run, receipt and bounded existing outbox intent atomically or none; producer acceptance may redact unauthorized target identities/counts. Manual execution targets exactly one enabled authorized task, never shared trigger siblings. Serialize task disable/pending cancel with attempt admission; unknown never becomes noncommit or another-key work. Owns RM10-AC02, RM10-AC08, RM10-AC09, RM10-AC10, RM10-AC11, RM10-AC13, RM10-AC14, RM10-AC20, RM10-AC21, RM10-AC24, RM10-AC25, RM10-AC31.",
+      "validation": "Use two real Management roots/SQL authority to exercise identical/conflicting duplicate, zero-run replay after enable/edit, source pause, invalid selected mapping, exact64 fanout and combined-byte/capacity boundaries, known noncommit/uncertain commit recovery, both disable/cancel admission orders and redacted authorized receipt disclosure. Document source responsibility and original identities. Include meaningful focused native/unit or browser checks for this implementation, affected documentation, and proportionate independent review; preserve failures and actual joined cleanup. Do not turn authored tests or reused evidence from different source bytes into a pass. Verify this owner consumes only the declared medium prerequisites (WORK-157, WORK-172) and keeps the original parent accounting pool; broad provenance containers are not early completion prerequisites."
+    }
+  ]
+}

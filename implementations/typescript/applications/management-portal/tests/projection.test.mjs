@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { projectCapabilities, projectDefinition, projectInventory } from "../src/server/projection.ts";
+import { reportedLabel } from "../src/portal-model.ts";
 
 test("configuration inspection omits defaults and schema values while retaining exact source identity", () => {
   const projected = projectDefinition({ kind: "application", configurationId: "settings", schemaVersion: "1", sourceId: "source",
@@ -15,14 +16,18 @@ test("configuration inspection omits defaults and schema values while retaining 
   assert.throws(() => projectDefinition({ kind: "common" }));
 });
 
-test("capabilities preserve actual APIs while absent hints remain unevaluated", () => {
+test("missing logical catalog remains unavailable while actual APIs stay secondary and absent hints remain unevaluated", () => {
   const value = projectCapabilities({ applicationId: "app", implementedApis: [
     { operationId: "read", version: 1, method: "GET", path: "/read", requiredCapabilities: ["read"] },
     { operationId: "write", version: 1, method: "PUT", path: "/write", requiredCapabilities: ["write"] }
-  ], callerHints: [{ operationId: "read", allowed: false }] });
-  assert.equal(value.implementedApis[0].callerHint, "denied");
-  assert.equal(value.implementedApis[1].callerHint, "notEvaluated");
-  assert.equal(value.implementedApis[1].method, "PUT");
+  ], callerHints: [{ operationId: "read", allowed: false }], jobs: [{ displayName: "not-a-trusted-definition" }] });
+  assert.equal(value.catalog.state, "unsupported");
+  assert.match(value.catalog.message, /unavailable in this portal/u);
+  assert.equal(value.serviceApis[0].callerHint, "denied");
+  assert.equal(value.serviceApis[1].callerHint, "notEvaluated");
+  assert.equal(value.serviceApis[1].method, "PUT");
+  assert.equal("implementedApis" in value, false);
+  assert.equal(JSON.stringify(value).includes("not-a-trusted-definition"), false);
 });
 
 test("inventory keeps the whole scoped report and unknown observations but excludes arbitrary modules", () => {
@@ -35,6 +40,16 @@ test("inventory keeps the whole scoped report and unknown observations but exclu
   assert.equal(value.applicationVersion, "2.4.2+build.18");
   assert.equal(value.inventory.jobs[0].effectiveConfiguration.enabled, false);
   assert.equal(value.inventory.jobs[0].observations[0].state, "unknown-state");
+  assert.equal("definitionVersion" in value.inventory.jobs[0], false);
   assert.equal(JSON.stringify(value).includes("not-for-the-portal"), false);
   assert.equal("modules" in value.inventory, false);
+});
+
+test("readable reported labels are retained while UUIDs remain technical identifiers", () => {
+  const uuid = "11111111-2222-4333-8444-aaaaaaaaaaaa";
+  assert.equal(reportedLabel(uuid, "Reported instance"), "Reported instance");
+  assert.equal(reportedLabel(uuid.toUpperCase(), "Reported instance"), "Reported instance");
+  for (const label of ["Country data service", "seed-a", "Customer dormancy", "customer.dormancy", "partition-eu", "Café 日本語", "<reported label>"]) {
+    assert.equal(reportedLabel(label, "Not named"), label);
+  }
 });

@@ -6,7 +6,7 @@ This workspace contains the portable RM-07 `@cislib/client-core` and
 The SDK packages have no external runtime dependencies; their development
 compiler remains TypeScript 5.9.3. The portal owns its Next.js/React, OIDC/session
 and PostgreSQL dependencies. SDK browser and server exports acquire no portal
-framework or session dependency. Use Node 24.15.0 and npm 11.12.1 for the
+framework or session dependency. Use Node 24.16.0 and npm 11.12.1 for the
 repository commands:
 
 ```sh
@@ -27,12 +27,15 @@ unit substitutes do not establish SQL, native authentication or deployment proof
 
 The [portal build/run guide](applications/management-portal/README.md#build-and-run)
 documents its separate `npm run build:portal`, explicit session-schema migration
-and application start commands. Its current approved desktop slice is read-only:
+and application start commands. Its desktop inspection includes
 filterable Applications, Instances with reported versions, Configuration metadata,
 Capabilities and reported Scheduled jobs, with quick details and full Job details. Run history
 and typed Task/Event services remain unavailable pending RM-10; production uses
-no demonstration records to replace them. Portal configuration and native
-Management authorization are independent of portable client construction.
+no demonstration records to replace them. Explicit metadata and Configuration
+authoring, reviewed whole-map assignment and bounded adoption views reuse native
+resource permissions and original-key recovery; see the portal guides for their
+actual scoped verification. Portal configuration and native Management
+authorization are independent of portable client construction.
 
 ```ts
 import { ManagementClient } from "@cislib/management-client";

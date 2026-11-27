@@ -3,18 +3,51 @@ using System.Net.Mime;
 using CIS.Management.Service.Configuration;
 using CIS.Management.Wire;
 using CIS.Security;
+using Microsoft.AspNetCore.Http.Features;
 
 namespace CIS.Management.Service.Http;
 
 internal static class ManagementConfigurationHttp
 {
+    internal static bool HasRequestBody(HttpContext context)
+        => context.Features.Get<IHttpRequestBodyDetectionFeature>()?.CanHaveBody is true
+            || context.Request.ContentLength > 0 || context.Request.Headers.TransferEncoding.Count != 0;
+
     internal static async ValueTask<bool> Allowed(HttpContext context, string capability, string type, string id)
-        => (await context.RequestServices.GetRequiredService<ICapabilityAuthorizer>().AuthorizeAsync(capability,
-            new(EnvironmentOptions.ApplicationName, EnvironmentOptions.EnvironmentName, type, id), context.RequestAborted)).IsAllowed;
+        => await ManagementConfigurationAuthorization.AllowedAsync(context.RequestServices.GetRequiredService<ICapabilityAuthorizer>(),
+            context.RequestServices.GetRequiredService<Persistence.PostgreSqlManagementStore>(), capability, type, id, context.RequestAborted);
+
+    internal static async ValueTask<bool> AllowedBundle(HttpContext context, IReadOnlyList<string> capabilities, string type, string id)
+        => await ManagementConfigurationAuthorization.AllowedBundleAsync(context.RequestServices.GetRequiredService<ICapabilityAuthorizer>(),
+            context.RequestServices.GetRequiredService<Persistence.PostgreSqlManagementStore>(), capabilities, type, id, context.RequestAborted);
 
     internal static IResult Json<T>(T value, int status = 200) where T : class
         => new Encoded(ManagementConfigurationWire.EncodeResponse(value), status,
             status >= 400 ? "application/problem+json" : MediaTypeNames.Application.Json);
+
+    internal static IResult Json<T>(T value, ManagementConfigurationWireLimits limits) where T : class
+        => new Encoded(ManagementConfigurationWire.EncodeResponse(value, limits), 200, MediaTypeNames.Application.Json);
+
+    internal static IResult EditorContext(ManagementConfigurationEditorContext value, ManagementConfigurationWireLimits limits)
+    {
+        byte[] bytes = ManagementConfigurationWire.EncodeResponse(value, limits);
+        ManagementConfigurationEditorContext captured = ManagementConfigurationWire.DecodeResponse<ManagementConfigurationEditorContext>(bytes, limits)!;
+        if (captured.Defaults.State == "available"
+            && !ManagementConfigurationStructure.Validate(captured.Shape, captured.Defaults.DefaultsJson!, complete: true).Valid)
+        {
+            throw new ArgumentException("The declared defaults do not match the immutable structural declaration.", nameof(value));
+        }
+        return new Encoded(bytes, 200, MediaTypeNames.Application.Json);
+    }
+
+    internal static IResult CandidatePreview(ManagementConfigurationCandidatePreview value, ManagementConfigurationWireLimits limits)
+        => new Encoded(ManagementConfigurationWire.EncodeResponse(value, limits), 200, MediaTypeNames.Application.Json);
+
+    internal static IResult Actions(ManagementConfigurationActions value)
+        => new Encoded(ManagementSchedulerWire.EncodeResponse(value), 200, MediaTypeNames.Application.Json);
+
+    internal static IResult Cohorts(ManagementPage<ManagementConfigurationCohortChoice> value)
+        => new Encoded(ManagementSchedulerWire.EncodeResponse(value), 200, MediaTypeNames.Application.Json);
 
     internal static IResult Problem(HttpContext context, int status, string code,
         ManagementOperationReference? operation = null, ManagementConfigurationOperationResult? result = null)

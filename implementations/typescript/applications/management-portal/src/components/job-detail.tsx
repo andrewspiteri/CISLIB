@@ -4,9 +4,9 @@ import Link from "next/link";
 import * as Tabs from "@radix-ui/react-tabs";
 import { useState } from "react";
 import type { PortalApplication, PortalInventory, PortalPage } from "../portal-model";
-import { JobDefinitionFacts, JobObservationFacts, ReportFacts, jobLink, jobRows } from "./application-detail";
+import { JobDefinitionFacts, JobObservationFacts, ReportFacts, categoryName, jobLink, jobRows } from "./application-detail";
 import type { ListContext } from "./application-detail";
-import { Badge, Empty, Fact, Facts, ReadNotice, Shell, isUnauthenticated, queryUrl, ready, usePortalRead } from "./shared";
+import { Badge, Empty, Fact, Facts, ReadNotice, Shell, TechnicalDetails, isUnauthenticated, queryUrl, ready, reportedLabel, usePortalRead } from "./shared";
 
 export interface JobTarget {
   readonly registration?: string; readonly report?: string; readonly scope?: string; readonly job?: string;
@@ -27,15 +27,17 @@ export function JobDetail({ applicationId, target, context }: { applicationId: s
     && item.observation?.resourceId === target.resource && item.observation?.mode === target.mode);
   const back = queryUrl(`/applications/${applicationId}`, { tab: "jobs", cursor: target.cursor, ...context });
   const view = target.view === "task" || target.view === "event" ? target.view : "job";
-  return <Shell signedIn={!blocked}><Link className="back-link" href={back}>← Back to scheduled jobs</Link>
-    <div className="page-heading"><div><div className="eyebrow">{application !== undefined ? `${application.application} / ${application.environment}` : "Application details"}</div>
-      <h1>{view === "job" ? selected?.job.displayName ?? "Job details" : view === "task" ? "Scheduled task details" : "Event details"}</h1>
-      {selected !== undefined ? <p>{selected.job.executionScope} / {selected.job.jobId} <Badge>{view === "job" ? "Reported job" : "Unavailable"}</Badge></p> : null}</div><button onClick={() => refresh(value => value + 1)} disabled={applicationState.busy || reportState.busy}>Refresh</button></div>
+  return <Shell signedIn={!blocked}><Link className="back-link job-back-link" href={back}>← Back to scheduled jobs</Link>
+    <div className="page-heading job-heading"><div><div className="eyebrow">{application !== undefined ? `${application.metadata.displayName || application.application} / ${application.environment}` : "Application details"}</div>
+      <h1>{view === "job" ? selected === undefined ? "Job details" : reportedLabel(selected.job.displayName, "Reported job") : view === "task" ? "Scheduled task details" : "Event details"}</h1>
+      {selected !== undefined ? <p>{categoryName(selected.report, selected.job)} <Badge>{view === "job" ? "Reported job" : "Unavailable"}</Badge></p> : null}
+      {application === undefined ? null : <TechnicalDetails fields={[{ label: "Application ID", value: application.applicationId }, { label: "Application identity", value: application.application }]} />}</div><button onClick={() => refresh(value => value + 1)} disabled={applicationState.busy || reportState.busy}>Refresh</button></div>
     <ReadNotice state={blocked && reportState.reply?.state === "unauthenticated" ? reportState : applicationState} />{application !== undefined ? <ReadNotice state={reportState} /> : null}
     {application !== undefined && ready(reportState) !== undefined && selected === undefined ? <Empty title="Selected report or job unavailable">The exact registration, report, job and resource observation are no longer present on this inventory page. Return to Scheduled jobs and select a current item.</Empty> : null}
-    {selected !== undefined ? view === "job" ? <Tabs.Root value={tab} onValueChange={setTab}><Tabs.List className="tabs" aria-label="Job details"><Tabs.Trigger value="overview">Overview</Tabs.Trigger><Tabs.Trigger value="history">Run history</Tabs.Trigger><Tabs.Trigger value="configuration">Configuration</Tabs.Trigger></Tabs.List>
+    {selected !== undefined ? view === "job" ? <Tabs.Root value={tab} onValueChange={setTab}><Tabs.List className="tabs job-tabs" aria-label="Job details"><Tabs.Trigger value="overview">Overview</Tabs.Trigger><Tabs.Trigger value="history">Run history</Tabs.Trigger><Tabs.Trigger value="configuration">Configuration</Tabs.Trigger></Tabs.List>
       <Tabs.Content className="tab-content job-overview" value="overview"><div className="detail-grid"><section className="card"><h2>Job definition</h2><JobDefinitionFacts {...selected} /></section><section className="card"><h2>Selected resource observation</h2><JobObservationFacts {...selected} />
-        {selected.observation?.observedOwner !== undefined ? <><h3>Observed owner</h3><Facts><Fact label="Application">{selected.observation.observedOwner.ownerApplication}</Fact><Fact label="Instance">{selected.observation.observedOwner.instanceId}</Fact><Fact label="Generation">{selected.observation.observedOwner.generation}</Fact></Facts><p className="muted">An observed owner is historical report context, not a current lease or permission.</p></> : null}</section></div>
+        {selected.observation?.observedOwner !== undefined ? <><h3>Observed owner</h3><Facts><Fact label="Application">{reportedLabel(selected.observation.observedOwner.ownerApplication, "Reported owner application")}</Fact><Fact label="Generation">{selected.observation.observedOwner.generation}</Fact></Facts>
+          <TechnicalDetails fields={[{ label: "Observed owner instance ID", value: selected.observation.observedOwner.instanceId }]} /><p className="muted">An observed owner is historical report context, not a current lease or permission.</p></> : null}</section></div>
         <section className="card selected-report"><ReportFacts report={selected.report} compact /></section>
         <Related applicationId={applicationId} selected={selected} cursor={target.cursor} context={context} /></Tabs.Content>
       <Tabs.Content className="tab-content" value="history"><Unavailable kind="Run history">This service has no run-history API. No execution records or occurrence outcomes are inferred from the latest inventory.</Unavailable><Related applicationId={applicationId} selected={selected} cursor={target.cursor} context={context} /></Tabs.Content>

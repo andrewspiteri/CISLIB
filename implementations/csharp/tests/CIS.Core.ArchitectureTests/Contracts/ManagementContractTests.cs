@@ -12,6 +12,8 @@ public sealed class ManagementContractTests
 
     private static readonly JsonDocument Schema = Read("contracts/management/v1/contract.schema.json");
 
+    private static readonly JsonDocument SchedulerSchema = Read("contracts/management/v1/scheduler.schema.json");
+
     private static readonly JsonDocument Wire = Read("conformance/management/v1/wire-cases.json");
 
     private static readonly JsonDocument OpenApi = Read("contracts/management/v1/openapi.json");
@@ -275,6 +277,12 @@ public sealed class ManagementContractTests
         if (reference.StartsWith(canonical, StringComparison.Ordinal))
         {
             return Schema.RootElement.GetProperty("$defs").GetProperty(reference[canonical.Length..]);
+        }
+
+        const string scheduler = "./scheduler.schema.json#/$defs/";
+        if (reference.StartsWith(scheduler, StringComparison.Ordinal))
+        {
+            return SchedulerSchema.RootElement.GetProperty("$defs").GetProperty(reference[scheduler.Length..]);
         }
 
         Assert.IsTrue(reference.StartsWith("#/$defs/", StringComparison.Ordinal)

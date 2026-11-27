@@ -8,14 +8,33 @@ type ObjectValue = Record<string, unknown>;
 export function validateConfiguration(schema: ConfigurationSchema, value: unknown, request: boolean,
   limits: ConfigurationWireLimits, checks: ConfigurationIntegrityCheck[]): void {
   if (request && !["ConfigurationCatalogCommand", "ConfigurationPublicationCommand", "ConfigurationReleaseCommand",
-    "ConfigurationAssignmentCommand", "ConfigurationValidationCommand", "ConfigurationPreviewCommand", "ConfigurationStatusReport"].includes(schema)) {
+    "ConfigurationAssignmentCommand", "ConfigurationValidationCommand", "ConfigurationPreviewCommand", "ConfigurationCandidatePreviewCommand", "ConfigurationCreationCommand", "ConfigurationStatusReport"].includes(schema)) {
     throw new TypeError("Select a declared configuration command.");
   }
   if (!request && ["ConfigurationCatalogCommand", "ConfigurationPublicationCommand", "ConfigurationReleaseCommand",
-    "ConfigurationAssignmentCommand", "ConfigurationValidationCommand", "ConfigurationPreviewCommand"].includes(schema)) {
+    "ConfigurationAssignmentCommand", "ConfigurationValidationCommand", "ConfigurationPreviewCommand", "ConfigurationCandidatePreviewCommand", "ConfigurationCreationCommand"].includes(schema)) {
     throw new TypeError("Select a declared configuration response.");
   }
   switch (schema) {
+    case "ConfigurationCreationCommand": {
+      const object = shape(value, true, ["commandVersion", "configurationId", "intent", "reason"]);
+      version(object.commandVersion); portable(object.configurationId); reason(object.reason);
+      requireValue(object.intent === "createGeneric" || object.intent === "reuseGeneric"); return;
+    }
+    case "ConfigurationCreationContext": {
+      const object = shape(value, false, ["applicationId", "application", "environment", "eTag", "schemaVersion", "hostApplicationName"]);
+      id(object.applicationId); scalar(object.application, 255); scalar(object.environment, 255); etag(object.eTag);
+      requireValue(object.schemaVersion === "1"); host(object.hostApplicationName); return;
+    }
+    case "ConfigurationSummary": summary(value); return;
+    case "ConfigurationSummaryPage": {
+      const sources = new Set<string>(), bindings = new Set<string>(), definitions = new Set<string>();
+      page(value, item => {
+        summary(item); const row = item as ObjectValue, definition = JSON.stringify([row.configurationId, row.schemaVersion]);
+        requireValue(!sources.has(row.sourceId as string) && !bindings.has(row.bindingId as string) && !definitions.has(definition));
+        sources.add(row.sourceId as string); bindings.add(row.bindingId as string); definitions.add(definition);
+      }); return;
+    }
     case "ConfigurationCatalogCommand": {
       const object = shape(value, true, ["commandVersion", "manifestDigest", "reason"]);
       version(object.commandVersion); digest(object.manifestDigest); reason(object.reason); return;
@@ -39,6 +58,27 @@ export function validateConfiguration(schema: ConfigurationSchema, value: unknow
     }
     case "ConfigurationDefinition": definition(value, limits); return;
     case "ConfigurationDefinitionPage": page(value, item => definition(item, limits)); return;
+    case "ConfigurationEditorContext": editorContext(value, limits); return;
+    case "ConfigurationCandidatePreviewCommand": {
+      const object = shape(value, true, ["commandVersion", "applicationId", "configurationId", "schemaVersion", "selectedSource", "sourceId",
+        "sourceETag", "assignmentETag", "commonSource", "applicationSource", "payloadJson"]);
+      version(object.commandVersion); candidateIdentity(object); reference(object.commonSource, true); reference(object.applicationSource, true);
+      configurationSourceBytes(object.payloadJson, limits); return;
+    }
+    case "ConfigurationCandidatePreview": {
+      const object = shape(value, false, ["bindingId", "applicationId", "environment", "configurationId", "schemaVersion", "hostApplicationName",
+        "selectedSource", "sourceId", "sourceETag", "assignmentETag", "commonSource", "applicationSource", "draftSha256", "structurallyValid",
+        "redacted", "changes", "issues", "currentAssignment", "recipients"]);
+      candidateIdentity(object); id(object.bindingId); scalar(object.environment, 255); scalar(object.hostApplicationName, 255);
+      requireValue(object.hostApplicationName !== "CommonConfiguration"); digest(object.draftSha256);
+      preview(object, limits);
+      requireValue(object.redacted !== true || (object.changes as unknown[]).length === 0);
+      requireValue(object.redacted !== true || (object.issues as ObjectValue[]).every(item => !has(item, "path")));
+      requireValue((object.currentAssignment as ObjectValue).eTag === object.assignmentETag
+        && (object.currentAssignment as ObjectValue).bindingId === object.bindingId
+        && (object.currentAssignment as ObjectValue).environment === object.environment);
+      return;
+    }
     case "ConfigurationCatalog": catalog(value); return;
     case "ConfigurationSource": {
       const object = shape(value, false, ["sourceId", "configurationId", "schemaVersion", "environment", "kind", "eTag", "publications"], ["applicationId"]);
@@ -53,6 +93,15 @@ export function validateConfiguration(schema: ConfigurationSchema, value: unknow
     case "ConfigurationPublicationPage": page(value, item => publication(item, false, limits, checks)); return;
     case "ConfigurationPublication": publication(value, true, limits, checks); return;
     case "ConfigurationRelease": release(value); return;
+    case "ConfigurationReleasePage": {
+      const identities = new Set<string>();
+      page(value, item => {
+        release(item);
+        const identity = (item as ObjectValue).releaseId as string;
+        requireValue(!identities.has(identity)); identities.add(identity);
+      });
+      return;
+    }
     case "ConfigurationAssignmentMap": assignmentMap(value, limits); return;
     case "ConfigurationSnapshot": validateDesired(value); validateSnapshotContent(value, limits, checks); return;
     case "ConfigurationValidationResult": {
@@ -85,6 +134,49 @@ function definition(value: unknown, limits: ConfigurationWireLimits): void {
   declaration(object.shape, 1, limits);
   optional(object, "defaultsJson", item => configurationSourceBytes(item, limits));
   optional(object, "description", item => scalar(item, 2048, true));
+}
+
+function host(value: unknown): void { scalar(value, 255); requireValue(value !== "CommonConfiguration"); }
+function summary(value: unknown): void {
+  const object = shape(value, false, ["applicationId", "environment", "configurationId", "schemaVersion", "sourceId", "bindingId",
+    "hostApplicationName", "origin", "hasCohortOverrides"], ["description", "modifiedAtUtc"]);
+  applicationDefinition(object); scalar(object.environment, 255); id(object.sourceId); id(object.bindingId); host(object.hostApplicationName);
+  scalar(object.origin, 64); boolean(object.hasCohortOverrides); optional(object, "description", item => scalar(item, 2048, true));
+  optional(object, "modifiedAtUtc", item => requireValue(isTimestamp(item)));
+}
+function editorContext(value: unknown, limits: ConfigurationWireLimits): void {
+  const object = shape(value, false, ["bindingId", "applicationId", "application", "environment", "configurationId", "schemaVersion",
+    "hostApplicationName", "shape", "selectedSource", "commonSource", "applicationSource", "defaults"], ["description"]);
+  id(object.bindingId); applicationDefinition(object);
+  for (const name of ["application", "environment", "hostApplicationName"]) { scalar(object[name], 255); }
+  requireValue(object.hostApplicationName !== "CommonConfiguration");
+  declaration(object.shape, 1, limits);
+  optional(object, "description", item => scalar(item, 2048, true));
+  requireValue(object.selectedSource === "common" || object.selectedSource === "application");
+  const common = editorSource(object.commonSource);
+  const application = editorSource(object.applicationSource);
+  requireValue(common.sourceId === undefined || application.sourceId === undefined || common.sourceId !== application.sourceId);
+  const selected = object.selectedSource === "common" ? common : application;
+  const defaults = shape(object.defaults, false, ["state"], ["defaultsJson"]);
+  requireValue(["available", "redacted", "unavailable"].includes(String(defaults.state)));
+  if (defaults.state === "available") {
+    requireValue(selected.state === "available");
+    configurationSourceBytes(defaults.defaultsJson, limits);
+  } else { requireValue(!has(defaults, "defaultsJson")); }
+  if (selected.state === "absent" || selected.state === "unavailable") { requireValue(defaults.state === "unavailable"); }
+  if (selected.state === "redacted") { requireValue(defaults.state === "redacted"); }
+}
+function editorSource(value: unknown): ObjectValue {
+  const object = shape(value, false, ["state"], ["sourceId"]);
+  requireValue(["available", "absent", "redacted", "unavailable"].includes(String(object.state)));
+  if (object.state === "available") { id(object.sourceId); }
+  else if (object.state === "unavailable") { optional(object, "sourceId", id); }
+  else { requireValue(!has(object, "sourceId")); }
+  return object;
+}
+function candidateIdentity(object: ObjectValue): void {
+  applicationDefinition(object); id(object.sourceId); etag(object.sourceETag); etag(object.assignmentETag);
+  requireValue(object.selectedSource === "common" || object.selectedSource === "application");
 }
 function declaration(value: unknown, depth: number, limits: ConfigurationWireLimits): void {
   requireValue(depth <= limits.maximumJsonDepth);
@@ -224,16 +316,20 @@ function preview(value: unknown, limits: ConfigurationWireLimits): void {
 }
 function decision(value: unknown, limits: ConfigurationWireLimits): void {
   const object = shape(value, false, ["commandVersion", "kind", "decision", "code", "decidedAtUtc"],
-    ["catalogId", "manifestDigest", "sourceId", "publicationId", "sha256", "applicationId", "configurationId", "schemaVersion", "releaseId", "generation", "eTag", "intent", "assignment"]);
+    ["catalogId", "manifestDigest", "sourceId", "publicationId", "sha256", "applicationId", "configurationId", "schemaVersion", "releaseId", "generation", "eTag", "intent", "assignment", "bindingId", "hostApplicationName", "sourceETag"]);
   version(object.commandVersion); scalar(object.kind, 64); scalar(object.decision, 64); code(object.code); time(object.decidedAtUtc);
-  for (const field of ["catalogId", "sourceId", "publicationId", "applicationId", "releaseId"]) { optional(object, field, id); }
+  for (const field of ["catalogId", "sourceId", "publicationId", "applicationId", "releaseId", "bindingId"]) { optional(object, field, id); }
   for (const field of ["manifestDigest", "sha256"]) { optional(object, field, digest); }
   optional(object, "configurationId", portable); optional(object, "schemaVersion", integer); optional(object, "generation", integer);
   optional(object, "eTag", etag); optional(object, "intent", item => scalar(item, 64)); optional(object, "assignment", item => assignmentMap(item, limits));
+  optional(object, "hostApplicationName", host); optional(object, "sourceETag", etag);
   switch (object.kind) {
     case "catalogApplied": required(object, ["catalogId", "manifestDigest", "eTag"]); break;
     case "sourcePublished": required(object, ["sourceId", "publicationId", "sha256", "eTag"]); break;
     case "releaseCreated": required(object, ["applicationId", "configurationId", "schemaVersion", "releaseId", "eTag"]); break;
+    case "configurationCreated":
+      required(object, ["applicationId", "configurationId", "schemaVersion", "sourceId", "bindingId", "hostApplicationName", "sourceETag", "eTag"]);
+      requireValue(object.schemaVersion === "1"); break;
     case "assignmentsReplaced":
       required(object, ["applicationId", "configurationId", "schemaVersion", "generation", "eTag", "intent", "assignment"]);
       for (const field of ["applicationId", "configurationId", "schemaVersion", "generation", "eTag"]) { requireValue(object[field] === (object.assignment as ObjectValue)[field]); }

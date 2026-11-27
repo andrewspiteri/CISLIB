@@ -99,12 +99,30 @@ public sealed class ManagementConfigurationCatalogTests
             (await Definitions(actor)).Items.Select(item => item.SourceId).ToArray());
         using HttpResponseMessage finalInfo = await actor.GetAsync("service-info");
         ManagementServiceInfo installed = ManagementWire.DecodeResponse<ManagementServiceInfo>(await finalInfo.Content.ReadAsByteArrayAsync())!;
-        Assert.IsTrue(installed.Features.Any(feature => feature.OperationId == "publishConfigurationSource"));
-        Assert.IsTrue(installed.Features.Any(feature => feature.OperationId == "createConfigurationRelease"));
-        Assert.IsTrue(installed.Features.Any(feature => feature.OperationId == "reportConfigurationStatus"));
-        Assert.AreEqual(19, installed.Features.Count(feature => feature.OperationId.Contains("Configuration", StringComparison.Ordinal)));
-        Assert.AreEqual(32, installed.Features.Count);
-        Assert.AreEqual(32, installed.Features.Select(feature => feature.OperationId).Distinct(StringComparer.Ordinal).Count());
+        string[] configurationOperations =
+        [
+            "getConfigurationCatalog", "applyConfigurationCatalog", "getConfigurationCatalogOperation",
+            "getConfigurationDefinitions", "getApplicationConfigurationDefinitions", "validateConfiguration",
+            "getConfigurationSource", "publishConfigurationSource", "getConfigurationPublication", "getConfigurationPublicationOperation",
+            "previewConfiguration", "createConfigurationRelease", "getConfigurationRelease", "getConfigurationAssignments",
+            "replaceConfigurationAssignments", "getConfigurationReleaseOperation", "getConfigurationAssignmentOperation",
+            "getRegistrationConfiguration", "reportConfigurationStatus", "getConfigurationStatus",
+            "getConfigurationSourceActions", "getConfigurationBindingActions", "getConfigurationCohorts", "getConfigurationEditorContext",
+            "previewConfigurationCandidate", "listConfigurationReleases", "getConfigurationBindingStatus",
+            "getConfigurationCreationContext", "createConfiguration", "getConfigurationCreationOperation", "getConfigurationSummaries"
+        ];
+        string[] managementOperations =
+        [
+            "getServiceInfo", "registerInstance", "getRegistrationControl", "closeRegistration", "reportObservation", "replaceInventory",
+            "listApplications", "getApplication", "listInstances", "listInventory", "getApplicationCapabilities",
+            "replaceApplicationMetadata", "getMetadataOperation", "queryApplications", "listEnvironments"
+        ];
+        // Include the scoped definitions and discovery companions rather than carrying forward stale pre-RM09 totals.
+        CollectionAssert.AreEquivalent(configurationOperations, installed.Features
+            .Where(feature => feature.OperationId.Contains("Configuration", StringComparison.Ordinal)).Select(feature => feature.OperationId).ToArray());
+        CollectionAssert.AreEquivalent(configurationOperations.Concat(managementOperations).ToArray(),
+            installed.Features.Select(feature => feature.OperationId).ToArray());
+        Assert.AreEqual(installed.Features.Count, installed.Features.Select(feature => feature.OperationId).Distinct(StringComparer.Ordinal).Count());
     }
 
     [TestMethod]

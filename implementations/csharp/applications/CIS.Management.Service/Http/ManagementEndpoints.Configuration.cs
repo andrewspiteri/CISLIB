@@ -18,7 +18,7 @@ internal static partial class ManagementEndpoints
         new("getConfigurationDefinitions", 1, "GET", "/configuration/definitions", [ManagementConfigurationCapabilities.DefinitionsRead]),
         new("validateConfiguration", 1, "POST", "/configuration/validate", [ManagementConfigurationCapabilities.Validate]),
         new("getConfigurationSource", 1, "GET", "/configuration/sources/{sourceId}", [ManagementConfigurationCapabilities.DefinitionsRead]),
-        new("publishConfigurationSource", 1, "POST", "/configuration/sources/{sourceId}/publications", [ManagementConfigurationCapabilities.Publish]),
+        new("publishConfigurationSource", 1, "POST", "/configuration/sources/{sourceId}/publications", [ManagementConfigurationCapabilities.Publish, ManagementConfigurationCapabilities.OperationsRead]),
         new("getConfigurationPublication", 1, "GET", "/configuration/publications/{publicationId}", [ManagementConfigurationCapabilities.ContentRead]),
         new("getConfigurationPublicationOperation", 1, "GET", "/configuration/sources/{sourceId}/publication-operations/{operationKey}", [ManagementConfigurationCapabilities.OperationsRead])
     ];
@@ -39,6 +39,12 @@ internal static partial class ManagementEndpoints
         group.MapPost("/configuration/sources/{sourceId}/publications", PublishConfiguration);
         group.MapGet("/configuration/publications/{publicationId}", ConfigurationPublication);
         group.MapGet("/configuration/sources/{sourceId}/publication-operations/{operationKey}", ConfigurationPublicationOperation);
+        MapConfigurationActions(group);
+        MapConfigurationCreation(group);
+        MapConfigurationEditor(group);
+        MapConfigurationCandidatePreview(group);
+        MapConfigurationBindingReads(group);
+        MapConfigurationCohorts(group);
         MapConfigurationDistribution(group);
         MapConfigurationSnapshots(group);
         MapConfigurationAdoption(group);
@@ -54,6 +60,13 @@ internal static partial class ManagementEndpoints
         ManagementStoreResult<ManagementConfigurationCatalog> catalog = await backend.ReadCatalogAsync(token);
         return catalog.IsKnownCommitted && catalog.Value?.Ready is true
             ? Array.AsReadOnly(CatalogFeatures.Concat(PublicationFeatures).Concat(DistributionFeatures).Concat(SnapshotFeatures).Concat(AdoptionFeatures)
+                .Concat(ConfigurationActionFeatures)
+                .Concat(backend is IManagementConfigurationCreationBackend ? ConfigurationCreationFeatures : [])
+                .Concat(backend is IManagementConfigurationCohortBackend ? ConfigurationCohortFeatures : [])
+                .Concat(backend is IManagementConfigurationEditorBackend ? ConfigurationEditorFeatures : [])
+                .Concat(backend is IManagementConfigurationCandidatePreviewBackend ? ConfigurationCandidateFeatures : [])
+                .Concat(backend is IManagementConfigurationReleaseHistoryBackend ? ConfigurationReleaseHistoryFeatures : [])
+                .Concat(backend is IManagementConfigurationBindingAdoptionBackend ? ConfigurationBindingStatusFeatures : [])
                 .Concat(backend is IManagementApplicationConfigurationBackend
                     ? new[] { new ManagementFeature("getApplicationConfigurationDefinitions", 1, "GET", "/applications/{applicationId}/configuration-definitions",
                         ["management.applications.read", ManagementConfigurationCapabilities.DefinitionsRead]) } : []).ToArray())

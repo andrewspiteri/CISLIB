@@ -1,6 +1,7 @@
 import { open } from "node:fs/promises";
 import type { Pool } from "pg";
-import { createNodeManagementClient, createNodeManagementConfigurationClient } from "@cislib/management-client/server";
+import { createNodeHttpsTransport, createNodeManagementClient, createNodeManagementConfigurationClient } from "@cislib/management-client/server";
+import { ManagementConfigurationAdministrationClient } from "@cislib/management-client";
 import type { ManagementClient, ManagementConfigurationClient } from "@cislib/management-client";
 import type { PortalConfig } from "./config.ts";
 import { OidcHttpAgent } from "./oidc-http.ts";
@@ -16,9 +17,10 @@ export class PortalRuntime {
   readonly oidc: OidcHttpAgent;
   readonly management: ManagementClient;
   readonly configuration: ManagementConfigurationClient;
+  readonly configurationAdministration: ManagementConfigurationAdministrationClient;
   private readonly stop = new AbortController();
   private disposal: Promise<void> | undefined;
-  private activeReads = 0;
+  private activeRequests = 0;
 
   constructor(config: PortalConfig, ca?: Uint8Array) {
     this.config = config;
@@ -28,18 +30,21 @@ export class PortalRuntime {
     const options = { baseUrl: config.managementUrl, ...(ca === undefined ? {} : { ca }), timeoutMs: 30000 };
     this.management = createNodeManagementClient(options);
     this.configuration = createNodeManagementConfigurationClient(options);
+    this.configurationAdministration = new ManagementConfigurationAdministrationClient({ baseUrl: config.managementUrl, timeoutMs: 30000,
+      transport: createNodeHttpsTransport({ origin: new URL(config.managementUrl).origin, ...(ca === undefined ? {} : { ca }) }) });
     this.pool.on("error", () => { console.error("[Portal] Session store connection failed."); });
   }
 
   get stopping(): boolean { return this.stop.signal.aborted; }
   get signal(): AbortSignal { return this.stop.signal; }
+  get activeRequestCount(): number { return this.activeRequests; }
 
-  enterRead(): (() => void) | undefined {
-    if (this.stopping || this.activeReads >= 8) { return undefined; }
-    this.activeReads += 1;
+  enterRequest(): (() => void) | undefined {
+    if (this.stopping || this.activeRequests >= 8) { return undefined; }
+    this.activeRequests += 1;
     let released = false;
     return () => {
-      if (!released) { released = true; this.activeReads -= 1; }
+      if (!released) { released = true; this.activeRequests -= 1; }
     };
   }
 

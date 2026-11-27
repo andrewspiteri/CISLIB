@@ -44,6 +44,9 @@ export function captureConfig(environment: NodeJS.ProcessEnv): PortalConfig {
   if (authority.pathname !== "/" || authority.search || authority.hash) {
     throw new TypeError("The OIDC authority must be one fixed HTTPS origin.");
   }
+  if (!/^[a-z0-9.-]+$/iu.test(authority.hostname) || isIP(authority.hostname) !== 0 && authority.hostname !== "127.0.0.1") {
+    throw new TypeError("The OIDC authority must have one concrete DNS hostname or 127.0.0.1 supported by browser form policy.");
+  }
   const tenantId = guid(required(environment, "CIS_PORTAL_TENANT_ID"));
   const clientId = guid(required(environment, "CIS_PORTAL_CLIENT_ID"));
   const audience = guid(required(environment, "CIS_PORTAL_MANAGEMENT_AUDIENCE"));

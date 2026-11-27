@@ -1,0 +1,53 @@
+{
+  "tasks": [
+    {
+      "title": "Integrate durable attempt entry captured settings and exact execution contracts",
+      "scopeIds": [
+        "capability-contracts",
+        "configuration-portal",
+        "intake-design",
+        "integration",
+        "portal",
+        "scheduler"
+      ],
+      "paths": [
+        "implementations/csharp/src/CIS.Core/Jobs",
+        "implementations/csharp/src/CIS.Core/Management",
+        "implementations/csharp/src/CIS.CommonTesting",
+        "implementations/csharp/tests/CIS.Core.UnitTests/Jobs",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Coordination",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Management",
+        "docs/modules/coordination",
+        "docs/modules/management"
+      ],
+      "dependsOn": [],
+      "complexity": "medium",
+      "category": "lifecycle",
+      "acceptanceCriteria": "Integrate the optional durable scheduler attempt-entry gate into existing Jobs after actual workload scope/current authorization/RM05 grant and before effect-producing callback. Record admitted provenance and separately observe actual entry; unknown/refused admission never enters code. Recheck local/managed/drain/lease/compatibility after awaits and preserve exact stable-key occupancy, original operation and actual callback/scope settlement. Add typed detached captured business settings without replacing live Configuration roots, and explicit binding-owned start/recover/checkpoint compatibility; event-driven external occurrences need no fake calendar while legacy recurrence stays compatible. Changing profile aliases or release labels cannot reinterpret old admitted identity/settings/contracts. Owns runtime slices of RM10-AC03, RM10-AC11, RM10-AC12, RM10-AC13, RM10-AC14, RM10-AC15, RM10-AC17, RM10-AC18, RM10-AC23, RM10-AC29, RM10-AC31, RM10-AC32, RM10-AC36, RM10-AC39, RM10-AC40.",
+      "validation": "Extend existing Jobs unit/native owners for legacy external/calendar compatibility, both cancel/disable entry orders, gate rechecks after held awaits, actual native workload/scoped grant, detached old settings versus live root, unsupported contract and uncooperative held callback cleanup. Document precise entry/admission/business/settlement distinctions and review independently. This initial unstarted split still has generated inherited dependencies; the controller must refine its concrete prerequisite/ownership validation through the supported child update before activating implementation."
+    },
+    {
+      "title": "Integrate managed worker rescan immutable build provenance and drain compatibility",
+      "scopeIds": [
+        "scheduler",
+        "capability-contracts",
+        "integration"
+      ],
+      "paths": [
+        "implementations/csharp/src/CIS.Core/Jobs",
+        "implementations/csharp/src/CIS.Core/Management",
+        "implementations/csharp/src/CIS.CommonTesting",
+        "implementations/csharp/tests/CIS.Core.UnitTests/Jobs",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Coordination",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Management",
+        "docs/modules/coordination",
+        "docs/modules/management"
+      ],
+      "dependsOn": [],
+      "complexity": "medium",
+      "category": "lifecycle",
+      "acceptanceCriteria": "Deliver the concrete Management-backed run source and bounded worker ready-run rescan using the existing managed bootstrap/control/reconciliation and Jobs owners. Each actual local immutable handler/startup build/contract binding is checked before selecting/entering work and copied to durable attempts; payload/desire labels do not supply authority or build identity. Missing compatible workers retain same pending/unknown run with bounded NoCompatibleWorkerVersion and no business retry consumed. Close new runs/retries/acquisitions/continuous iterations during local drain or Management outage, retain entered finite code/renewal/settlement dependencies, and join actual callback/scope lifetime. Reconnect/restart rescan authoritative responsibility; no lost local prompt or new independent execution fleet/lease/retry engine. Owns worker/lifecycle slices of RM10-AC01, RM10-AC14, RM10-AC17, RM10-AC18, RM10-AC19, RM10-AC20, RM10-AC29, RM10-AC32, RM10-AC36, RM10-AC37, RM10-AC38, RM10-AC39, RM10-AC40.",
+      "validation": "Reuse existing actual native Management/Jobs/Coordination fixtures for closed-bootstrap/admission and current build/identity/contract selection, bounded rescan/reconnect, old-build finite drain and continuous next-iteration refusal. Test missing compatibility and unsupported rollback without changing ownership key or captured run. Keep original-outcome interrupted effect proof with delivery integration; document deployment/drain limits and review independently. This initial unstarted split still has generated inherited dependencies; the controller must refine its concrete prerequisite/ownership validation through the supported child update before activating implementation."
+    }
+  ]
+}

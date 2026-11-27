@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 import type { FormEvent } from "react";
 import type { PortalApplication, PortalPage } from "../portal-model";
-import { Badge, Empty, Pager, ReadNotice, Shell, isUnauthenticated, queryUrl, ready, usePages, usePortalRead } from "./shared";
+import { applicationRoute } from "../portal-routes.ts";
+import { Badge, Empty, Pager, ReadNotice, Shell, TechnicalDetails, isUnauthenticated, queryUrl, ready, usePages, usePortalRead } from "./shared";
 
 export function Applications({ initialQuery = "", initialEnvironment = "", initialCursor }: {
   initialQuery?: string; initialEnvironment?: string; initialCursor?: string
@@ -50,10 +51,13 @@ export function Applications({ initialQuery = "", initialEnvironment = "", initi
     {options?.nextCursor !== undefined || envPages.hasPrevious ? <div className="environment-pages"><Pager pages={envPages} nextCursor={options?.nextCursor} busy={environments.busy} label="Environment choices" /></div> : null}
     {environments.reply !== undefined && environments.reply.state !== "ready" && !blocked ? <ReadNotice state={environments} restart={envPages.reset} /> : null}
     <ReadNotice state={blocked ? (applications.reply?.state === "unauthenticated" ? applications : environments) : applications} restart={pages.reset} />
-    {data !== undefined ? <><div className="table-frame"><table><thead><tr><th>Application</th><th>Environment</th><th>Application ID</th></tr></thead><tbody>
-      {data.items.map(app => <tr key={app.applicationId}><td><Link className="item-link" href={queryUrl(`/applications/${app.applicationId}`, { fromQuery: query, fromEnvironment: environment, fromCursor: pages.cursor })}>{app.metadata.displayName || app.application}</Link>
+    {data !== undefined ? <><div className="table-frame"><table><thead><tr><th>Application</th><th>Environment</th><th>Details</th></tr></thead><tbody>
+      {data.items.map(app => <tr key={app.applicationId}><td><Link className="item-link" href={applicationRoute({ applicationId: app.applicationId, applicationName: app.metadata.displayName || app.application,
+        tab: "instances", context: { fromQuery: query, fromEnvironment: environment, ...(pages.cursor === undefined ? {} : { fromCursor: pages.cursor }) } })}>{app.metadata.displayName || app.application}</Link>
         <span className="row-subtitle">{app.application}</span>{app.metadata.description !== undefined ? <span className="row-description">{app.metadata.description}</span> : null}</td>
-        <td><Badge>{app.environment}</Badge></td><td className="identifier">{app.applicationId}</td></tr>)}
+        <td><Badge>{app.environment}</Badge></td><td><TechnicalDetails fields={[
+          { label: "Application ID", value: app.applicationId }, { label: "Metadata revision", value: app.metadataRevision }
+        ]} /></td></tr>)}
     </tbody></table>{data.items.length === 0 ? <Empty title="No matching applications">No applications match these filters within your access.</Empty> : null}</div>
       <Pager pages={pages} nextCursor={data.nextCursor} busy={applications.busy} label={`${data.items.length} applications on this page`} /></> : null}
     <p className="footnote">Application identity and environment are retained when you open an application. This is a bounded page, not a fleet total.</p>

@@ -186,3 +186,13 @@ metadata and a frame digest/length rather than input frames. Read the
 [scheduled guide](../../../../docs/modules/coordination/scheduled-testing.md) and
 [CountryData recipe examples](../../examples/CountryData.UnitTests/Coordination)
 before treating scripts as evidence for another boundary.
+
+`ScriptedManagementSchedulerClient` supplies the optional Scheduler, trigger-event,
+worker, application-catalog and Configuration-administration ports. Queue a typed
+call-result wrapper with its finite `ScriptedManagementSchedulerCallKind`; an
+unexpected API or wrapper type fails the call. Its queue and safe identity records
+are bounded (16 by default). Pending calls can observe cancellation or remain held
+until explicit release, and `Clear` does not abandon an admitted call. Records omit
+payloads, settings, ETags, credentials and caller context. These scripts exercise
+consumer decisions; real scheduling, authorization, checksums, provider atomicity
+and worker settlement need their corresponding native tests.

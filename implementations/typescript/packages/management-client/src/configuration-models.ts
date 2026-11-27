@@ -2,6 +2,23 @@ import type { ClientCallResult } from "@cislib/client-core";
 import type { KnownValue, OperationReference, OperationRejection, Page, TransactionFacts } from "./models.js";
 import { knownValue } from "./models.js";
 
+/** Native generic-v1 creation scope. It is metadata, not a publication or mutable schema template. */
+export interface ConfigurationCreationContext {
+  readonly applicationId: string; readonly application: string; readonly environment: string;
+  readonly eTag: string; readonly schemaVersion: "1"; readonly hostApplicationName: string;
+}
+export interface ConfigurationCreationCommand {
+  readonly commandVersion: 1; readonly configurationId: string; readonly intent: "createGeneric" | "reuseGeneric"; readonly reason: string;
+}
+/** Metadata-only origin of one actual application binding; payload/defaults are not included. */
+export interface ConfigurationSummary {
+  readonly applicationId: string; readonly environment: string; readonly configurationId: string; readonly schemaVersion: string;
+  readonly sourceId: string; readonly bindingId: string; readonly hostApplicationName: string; readonly origin: string;
+  readonly hasCohortOverrides: boolean; readonly description?: string;
+  /** Default-assigned selected layer publication time, not latest source history or assignment time. */
+  readonly modifiedAtUtc?: string;
+}
+
 export interface ConfigurationShape {
   readonly kind: "object" | "array" | "dictionary" | "string" | "number" | "integer" | "boolean";
   readonly nullable: boolean;
@@ -10,6 +27,65 @@ export interface ConfigurationShape {
   readonly allowedValues?: readonly string[];
 }
 export interface ConfigurationMember { readonly name: string; readonly required: boolean; readonly shape: ConfigurationShape; }
+/** Exact catalog source availability, independent of any publication or assignment. */
+export type ConfigurationEditorSource = { readonly state: "available"; readonly sourceId: string }
+  | { readonly state: "unavailable"; readonly sourceId?: string }
+  | { readonly state: "absent" | "redacted"; readonly sourceId?: never };
+/** Declared root defaults only; these are not a consumer's accepted/effective values. */
+export type ConfigurationEditorDefaults = { readonly state: "available"; readonly defaultsJson: string }
+  | { readonly state: "redacted" | "unavailable"; readonly defaultsJson?: never };
+/** One authorized binding and its actual bounded source pair; no payload, history or action authority. */
+export interface ConfigurationEditorContext {
+  readonly bindingId: string;
+  readonly applicationId: string;
+  readonly application: string;
+  readonly environment: string;
+  readonly configurationId: string;
+  readonly schemaVersion: string;
+  readonly hostApplicationName: string;
+  readonly shape: ConfigurationShape;
+  readonly selectedSource: "common" | "application";
+  readonly commonSource: ConfigurationEditorSource;
+  readonly applicationSource: ConfigurationEditorSource;
+  readonly defaults: ConfigurationEditorDefaults;
+  readonly description?: string;
+}
+/** One unpublished candidate layer and explicit immutable baseline references. */
+export interface ConfigurationCandidatePreviewCommand {
+  readonly commandVersion: 1;
+  readonly applicationId: string;
+  readonly configurationId: string;
+  readonly schemaVersion: string;
+  readonly selectedSource: "common" | "application";
+  readonly sourceId: string;
+  readonly sourceETag: string;
+  readonly assignmentETag: string;
+  readonly commonSource: ConfigurationSourceReference;
+  readonly applicationSource: ConfigurationSourceReference;
+  readonly payloadJson: string;
+}
+/** Native effective-change preview; baseline references are not a publication of the draft. */
+export interface ConfigurationCandidatePreview {
+  readonly bindingId: string;
+  readonly applicationId: string;
+  readonly environment: string;
+  readonly configurationId: string;
+  readonly schemaVersion: string;
+  readonly hostApplicationName: string;
+  readonly selectedSource: "common" | "application";
+  readonly sourceId: string;
+  readonly sourceETag: string;
+  readonly assignmentETag: string;
+  readonly commonSource: ConfigurationSourceReference;
+  readonly applicationSource: ConfigurationSourceReference;
+  readonly draftSha256: string;
+  readonly structurallyValid: boolean;
+  readonly redacted: boolean;
+  readonly changes: readonly ConfigurationChange[];
+  readonly issues: readonly ConfigurationIssue[];
+  readonly currentAssignment: ConfigurationAssignmentMap;
+  readonly recipients: Page<ConfigurationPreviewRecipient>;
+}
 interface DefinitionFacts {
   readonly configurationId: string; readonly schemaVersion: string; readonly sourceId: string; readonly environment: string;
   readonly shape: ConfigurationShape; readonly defaultsJson?: string; readonly description?: string;
@@ -112,6 +188,7 @@ export interface ConfigurationDecision {
   readonly catalogId?: string; readonly manifestDigest?: string; readonly sourceId?: string; readonly publicationId?: string;
   readonly sha256?: string; readonly applicationId?: string; readonly configurationId?: string; readonly schemaVersion?: string;
   readonly releaseId?: string; readonly generation?: string; readonly eTag?: string; readonly intent?: string; readonly assignment?: ConfigurationAssignmentMap;
+  readonly bindingId?: string; readonly hostApplicationName?: string; readonly sourceETag?: string;
 }
 interface ConfigurationResultFacts {
   readonly operation: OperationReference; readonly resultSource: string; readonly originalCompletion: string; readonly attemptCompletion?: TransactionFacts;
@@ -140,7 +217,8 @@ export const knownConfigurationIntent = (value: string): KnownValue => knownValu
 export const knownConfigurationCompatibility = (value: string): KnownValue => knownValue(value, ["reportedCompatible", "unknown"]);
 export const knownConfigurationFreshness = (value: string): KnownValue => knownValue(value, ["fresh", "stale", "offline", "unknown", "noInstances"]);
 export const knownConfigurationConvergence = (value: string): KnownValue => knownValue(value, ["pending", "applied", "rejected", "pendingRestart", "faulted", "unknown", "noInstances"]);
-export const knownConfigurationDecisionKind = (value: string): KnownValue => knownValue(value, ["catalogApplied", "sourcePublished", "releaseCreated", "assignmentsReplaced"]);
+export const knownConfigurationDecisionKind = (value: string): KnownValue => knownValue(value, ["catalogApplied", "sourcePublished", "releaseCreated", "assignmentsReplaced", "configurationCreated"]);
+export const knownConfigurationOrigin = (value: string): KnownValue => knownValue(value, ["shared", "applicationOverride", "applicationOnly", "defaultsOnly", "unassigned", "mixed", "protected", "unavailable"]);
 export const knownConfigurationOriginalCompletion = (value: string): KnownValue => knownValue(value, ["committed", "notCommitted", "unknown"]);
 export const knownConfigurationResultSource = (value: string): KnownValue => knownValue(value, ["prepared", "replayed", "found"]);
 export function knownConfigurationBusinessDecision(value: ConfigurationOperationResult): KnownValue {

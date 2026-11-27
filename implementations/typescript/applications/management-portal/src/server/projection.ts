@@ -41,7 +41,8 @@ export function projectCapabilities(value: Capabilities): PortalCapabilities {
   const hints = new Map(value.callerHints.map(item => [item.operationId, item.allowed]));
   return {
     applicationId: value.applicationId,
-    implementedApis: value.implementedApis.map(item => ({
+    catalog: { state: "unsupported", message: "Trusted application feature catalog inspection is unavailable in this portal." },
+    serviceApis: value.implementedApis.map(item => ({
       operationId: item.operationId, version: item.version, method: item.method, path: item.path,
       requiredCapabilities: [...item.requiredCapabilities],
       callerHint: !hints.has(item.operationId) ? "notEvaluated" : hints.get(item.operationId) ? "allowed" : "denied"

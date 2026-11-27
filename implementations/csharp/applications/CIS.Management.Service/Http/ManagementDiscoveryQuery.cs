@@ -21,30 +21,8 @@ internal static class ManagementDiscoveryQuery
         query = new();
         size = 100;
         cursor = null;
-        string? rawTarget = context.Features.Get<IHttpRequestFeature>()?.RawTarget;
-        string raw = string.IsNullOrEmpty(rawTarget) ? context.Request.QueryString.Value ?? string.Empty : rawTarget;
-        int question = raw.IndexOf('?');
-        raw = question < 0 ? string.Empty : raw[(question + 1)..];
-        if (raw.Length > 16384)
-        {
-            return false;
-        }
-        var values = new Dictionary<string, string>(StringComparer.Ordinal);
-        try
-        {
-            foreach (string pair in raw.Split('&', StringSplitOptions.RemoveEmptyEntries))
-            {
-                int equals = pair.IndexOf('=');
-                string name = Decode(equals < 0 ? pair : pair[..equals]);
-                string value = Decode(equals < 0 ? string.Empty : pair[(equals + 1)..]);
-                if (name is not ("pageSize" or "cursor") && (!filters || name is not ("query" or "environment"))
-                    || !values.TryAdd(name, value))
-                {
-                    return false;
-                }
-            }
-        }
-        catch (Exception error) when (error is FormatException or DecoderFallbackException or EncoderFallbackException)
+        if (!TryReadValues(context, filters ? ["pageSize", "cursor", "query", "environment"] : ["pageSize", "cursor"],
+            out Dictionary<string, string> values))
         {
             return false;
         }
@@ -66,6 +44,76 @@ internal static class ManagementDiscoveryQuery
             return false;
         }
         query = new(search, environment);
+        return true;
+    }
+
+    internal static bool TryReadConfigurationCohorts(HttpContext context, out string schemaVersion, out int size, out string? cursor)
+        => TryReadConfigurationPage(context, out schemaVersion, out size, out cursor);
+
+    internal static bool TryReadConfigurationPage(HttpContext context, out string schemaVersion, out int size, out string? cursor)
+    {
+        schemaVersion = string.Empty;
+        size = 100;
+        cursor = null;
+        if (!TryReadValues(context, ["schemaVersion", "pageSize", "cursor"], out Dictionary<string, string> values)
+            || !values.TryGetValue("schemaVersion", out string? schema) || !ManagementWire.IsOrderedInteger(schema))
+        {
+            return false;
+        }
+        schemaVersion = schema;
+        if (values.TryGetValue("pageSize", out string? rawSize)
+            && (!int.TryParse(rawSize, NumberStyles.None, CultureInfo.InvariantCulture, out size) || size is < 1 or > 500))
+        {
+            return false;
+        }
+        values.TryGetValue("cursor", out cursor);
+        return ManagementWire.IsPageRequest(new(size, cursor));
+    }
+
+    internal static bool TryReadConfigurationEditor(HttpContext context, out string schemaVersion, out string source)
+    {
+        schemaVersion = string.Empty;
+        source = string.Empty;
+        if (!TryReadValues(context, ["schemaVersion", "source"], out Dictionary<string, string> values)
+            || values.Count != 2 || !values.TryGetValue("schemaVersion", out string? schema)
+            || !ManagementWire.IsOrderedInteger(schema) || !values.TryGetValue("source", out string? selected)
+            || selected is not ("common" or "application"))
+        {
+            return false;
+        }
+        schemaVersion = schema;
+        source = selected;
+        return true;
+    }
+
+    private static bool TryReadValues(HttpContext context, string[] allowedNames, out Dictionary<string, string> values)
+    {
+        values = new(StringComparer.Ordinal);
+        string? rawTarget = context.Features.Get<IHttpRequestFeature>()?.RawTarget;
+        string raw = string.IsNullOrEmpty(rawTarget) ? context.Request.QueryString.Value ?? string.Empty : rawTarget;
+        int question = raw.IndexOf('?');
+        raw = question < 0 ? string.Empty : raw[(question + 1)..];
+        if (raw.Length > 16384)
+        {
+            return false;
+        }
+        try
+        {
+            foreach (string pair in raw.Split('&', StringSplitOptions.RemoveEmptyEntries))
+            {
+                int equals = pair.IndexOf('=');
+                string name = Decode(equals < 0 ? pair : pair[..equals]);
+                string value = Decode(equals < 0 ? string.Empty : pair[(equals + 1)..]);
+                if (!allowedNames.Contains(name, StringComparer.Ordinal) || !values.TryAdd(name, value))
+                {
+                    return false;
+                }
+            }
+        }
+        catch (Exception error) when (error is FormatException or DecoderFallbackException or EncoderFallbackException)
+        {
+            return false;
+        }
         return true;
     }
 

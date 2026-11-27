@@ -50,7 +50,7 @@ Run All also selects service, native Node, performance and extended stress cases
 `RequiresNode` selects actual default-fetch HTTPS body disconnect, deadline and
 caller-cancellation cases without Docker. First build the
 [TypeScript workspace](../../typescript/README.md) using its pinned Node
-24.15.0/npm 11.12.1 setup. Then select the existing integration project with
+24.16.0/npm 11.12.1 setup. Then select the existing integration project with
 `--filter "TestCategory=RequiresNode"`. `CIS_TEST_NODE_EXECUTABLE` may explicitly
 select that native Node executable; otherwise it must be on PATH. Missing Node or
 unbuilt packages fail the selected test. The existing service CI job already

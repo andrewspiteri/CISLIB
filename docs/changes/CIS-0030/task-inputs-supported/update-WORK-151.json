@@ -1,0 +1,32 @@
+{
+  "tasks": [
+    {
+      "title": "Define passive trusted capability and scheduler execution contracts",
+      "scopeIds": [
+        "capability-contracts",
+        "configuration-portal",
+        "intake-design",
+        "integration",
+        "portal",
+        "scheduler"
+      ],
+      "paths": [
+        "contracts/management/v1",
+        "conformance",
+        "implementations/csharp/src/CIS.Core/Jobs/Contracts",
+        "implementations/csharp/src/CIS.Core/Jobs/Registration",
+        "implementations/csharp/src/CIS.Core/Management/Contracts",
+        "docs/modules/management",
+        "docs/modules/coordination",
+        "docs/changes/CIS-0030"
+      ],
+      "dependsOn": [
+        "WORK-020-BACKOFFICE"
+      ],
+      "complexity": "medium",
+      "category": "contract",
+      "acceptanceCriteria": "Deliver passive immutable versioned trusted application capability/trigger/job/form descriptions and optional scheduler/resource eligibility ports, including input/result/event/execution/recovery/checkpoint contracts, exact worker build and identity-binding references, detached run settings, supported finite operations/hints and all selected RM10 defaults/bounds. Keep logical trusted definitions separate from observed per-instance participation and from Management API endpoint capabilities. Existing binding constructors/unmanaged consumers/independent backends remain compatible; unknown kinds/contracts remain unavailable. Presence cannot install schema, schema cannot load code, and capture performs no handlers/provider I/O. This owns the passive contract slice of RM09-AC01, RM09-AC04, RM09-AC05, RM09-AC07, RM09-AC16, RM09-AC20 and RM10-AC01, RM10-AC02, RM10-AC03, RM10-AC12, RM10-AC24, RM10-AC27, RM10-AC29, RM10-AC32, RM10-AC36, RM10-AC39, RM10-AC40.",
+      "validation": "Run focused passive binding/public contract unit cases for exact identity, version conflicts, required fields, supported operations and forbidden executable hints; check no handler/network resolution and existing API compatibility. Document trusted owner/observations, captured identity/contract and finite form semantics; include proportionate independent review. Verify this owner consumes only the declared medium prerequisites (WORK-020-BACKOFFICE) and keeps the original parent accounting pool; broad provenance containers are not early completion prerequisites."
+    }
+  ]
+}

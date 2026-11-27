@@ -24,6 +24,9 @@ test("configuration fixes trusted endpoints and scope without reading ambient fa
   assert.throws(() => captureConfig({ ...environment, NEXTAUTH_URL: "https://portal.example/other" }));
   assert.throws(() => captureConfig({ ...environment, CIS_PORTAL_ALLOWED_SUBJECTS: `${subject},${subject}` }));
   assert.throws(() => captureConfig({ ...environment, CIS_PORTAL_TENANT_ID: "00000000-0000-0000-0000-000000000000" }));
+  for (const authority of ["https://*.example.test", "https://issuer.example.test;other", "https://issuer'.example.test", "https://[::1]", "https://192.0.2.4"]) {
+    assert.throws(() => captureConfig({ ...environment, CIS_PORTAL_AUTHORITY_ORIGIN: authority }));
+  }
 });
 
 test("session store accepts only the owned namespace and validated remote TLS", () => {
@@ -78,6 +81,7 @@ test("auth HTTP allowlist denies tokens, account administration, alternative pro
 test("mutating auth requests require the fixed portal origin", () => {
   assert.equal(sameOriginMutation(new Headers({ origin: config.origin }), config.origin), true);
   assert.equal(sameOriginMutation(new Headers(), config.origin), false);
+  assert.equal(sameOriginMutation(new Headers({ origin: "null", "sec-fetch-site": "same-origin" }), config.origin), false);
   assert.equal(sameOriginMutation(new Headers({ origin: "https://other.example" }), config.origin), false);
   assert.equal(sameOriginMutation(new Headers({ origin: config.origin, "sec-fetch-site": "cross-site" }), config.origin), false);
 });

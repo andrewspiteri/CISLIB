@@ -59,7 +59,7 @@ public sealed class ConfigurationContractTests
     }
 
     [TestMethod]
-    public void OpenApiDeclaresNineteenFixedAuthenticatedOperationsAndSpecificBounds()
+    public void OpenApiDeclaresFixedAuthenticatedConfigurationOperationsAndSpecificBounds()
     {
         (string Method, string Path, string Id)[] operations =
         [
@@ -81,7 +81,11 @@ public sealed class ConfigurationContractTests
             ("get", "/configuration/catalog/operations/{operationKey}", "getConfigurationCatalogOperation"),
             ("get", "/configuration/sources/{sourceId}/publication-operations/{operationKey}", "getConfigurationPublicationOperation"),
             ("get", "/applications/{applicationId}/configuration/{configurationId}/release-operations/{operationKey}", "getConfigurationReleaseOperation"),
-            ("get", "/applications/{applicationId}/configuration/{configurationId}/assignment-operations/{operationKey}", "getConfigurationAssignmentOperation")
+            ("get", "/applications/{applicationId}/configuration/{configurationId}/assignment-operations/{operationKey}", "getConfigurationAssignmentOperation"),
+            ("get", "/applications/{applicationId}/configuration-creations/context", "getConfigurationCreationContext"),
+            ("post", "/applications/{applicationId}/configuration-creations", "createConfiguration"),
+            ("get", "/applications/{applicationId}/configuration-creation-operations/{operationKey}", "getConfigurationCreationOperation"),
+            ("get", "/applications/{applicationId}/configuration-summaries", "getConfigurationSummaries")
         ];
 
         foreach ((string method, string path, string id) in operations)
@@ -89,7 +93,8 @@ public sealed class ConfigurationContractTests
             JsonElement operation = OpenApi.RootElement.GetProperty("paths").GetProperty(path).GetProperty(method);
             Assert.AreEqual(id, operation.GetProperty("operationId").GetString());
             Assert.AreEqual("configuration", operation.GetProperty("x-cis-rest-operation-alias").GetString());
-            Assert.AreEqual(1048576, operation.GetProperty("x-cis-max-request-bytes").GetInt32());
+            int requestBytes = id is "getConfigurationCreationContext" or "getConfigurationCreationOperation" or "getConfigurationSummaries" ? 0 : 1048576;
+            Assert.AreEqual(requestBytes, operation.GetProperty("x-cis-max-request-bytes").GetInt32());
             foreach (JsonElement security in operation.GetProperty("security").EnumerateArray())
             {
                 Assert.IsTrue(security.EnumerateObject().Any(), id);
@@ -110,6 +115,79 @@ public sealed class ConfigurationContractTests
         Assert.IsFalse(conditional.GetProperty("responses").GetProperty("304").TryGetProperty("content", out _));
         Assert.AreEqual("read-only", OpenApi.RootElement.GetProperty("paths").GetProperty("/configuration/validate")
             .GetProperty("post").GetProperty("x-cis-effect").GetString());
+    }
+
+    [TestMethod]
+    public void OptionalEditorContextIsOneBodylessBoundedNativeConfigurationRead()
+    {
+        JsonElement operation = OpenApi.RootElement.GetProperty("paths")
+            .GetProperty("/applications/{applicationId}/configuration/{configurationId}/editor-context").GetProperty("get");
+        Assert.AreEqual("getConfigurationEditorContext", operation.GetProperty("operationId").GetString());
+        Assert.AreEqual("configuration", operation.GetProperty("x-cis-rest-operation-alias").GetString());
+        Assert.AreEqual(0, operation.GetProperty("x-cis-max-request-bytes").GetInt32());
+        Assert.AreEqual(1048576, operation.GetProperty("x-cis-max-response-bytes").GetInt32());
+        Assert.IsFalse(operation.TryGetProperty("requestBody", out _));
+        CollectionAssert.AreEquivalent(new[] { "schemaVersion", "source" }, operation.GetProperty("parameters").EnumerateArray()
+            .Where(parameter => parameter.GetProperty("in").GetString() == "query")
+            .Select(parameter => parameter.GetProperty("name").GetString()!).ToArray());
+        Assert.IsTrue(operation.GetProperty("security").EnumerateArray().All(requirement => requirement.EnumerateObject().Any()));
+        JsonElement schema = Schema.RootElement.GetProperty("$defs").GetProperty("ConfigurationEditorContext");
+        Assert.IsTrue(schema.GetProperty("required").EnumerateArray().Any(value => value.GetString() == "shape"));
+        Assert.IsFalse(schema.GetProperty("properties").TryGetProperty("objectDefaults", out _));
+    }
+
+    [TestMethod]
+    public void BindingReleaseHistoryAndAdoptionAreOptionalBodylessReadsWithExactSchemaSelectors()
+    {
+        foreach ((string suffix, string operationId, string schemaName) in new[]
+        {
+            ("releases", "listConfigurationReleases", "ConfigurationReleasePage"),
+            ("status", "getConfigurationBindingStatus", "ConfigurationAdoptionPage")
+        })
+        {
+            JsonElement operation = OpenApi.RootElement.GetProperty("paths")
+                .GetProperty("/applications/{applicationId}/configuration/{configurationId}/" + suffix).GetProperty("get");
+            Assert.AreEqual(operationId, operation.GetProperty("operationId").GetString());
+            Assert.AreEqual("configuration", operation.GetProperty("x-cis-rest-operation-alias").GetString());
+            Assert.AreEqual("read-only", operation.GetProperty("x-cis-effect").GetString());
+            Assert.AreEqual(0, operation.GetProperty("x-cis-max-request-bytes").GetInt32());
+            Assert.AreEqual(1048576, operation.GetProperty("x-cis-max-response-bytes").GetInt32());
+            Assert.IsFalse(operation.TryGetProperty("requestBody", out _));
+            JsonElement[] parameters = operation.GetProperty("parameters").EnumerateArray()
+                .Where(parameter => parameter.GetProperty("in").GetString() == "query").ToArray();
+            CollectionAssert.AreEquivalent(new[] { "schemaVersion", "pageSize", "cursor" },
+                parameters.Select(parameter => parameter.GetProperty("name").GetString()!).ToArray());
+            Assert.IsTrue(parameters.Single(parameter => parameter.GetProperty("name").GetString() == "schemaVersion")
+                .GetProperty("required").GetBoolean());
+            Assert.IsTrue(operation.GetProperty("security").EnumerateArray().All(requirement => requirement.EnumerateObject().Any()));
+            Assert.IsTrue(operation.GetProperty("responses").GetProperty("200").GetProperty("content").GetProperty("application/json")
+                .GetProperty("schema").GetProperty("$ref").GetString()!.EndsWith("/" + schemaName, StringComparison.Ordinal));
+        }
+        JsonElement page = Schema.RootElement.GetProperty("$defs").GetProperty("ConfigurationReleasePage");
+        Assert.AreEqual(500, page.GetProperty("properties").GetProperty("items").GetProperty("maxItems").GetInt32());
+        Assert.IsTrue(page.GetProperty("properties").GetProperty("items").GetProperty("items").GetProperty("$ref")
+            .GetString()!.EndsWith("/ConfigurationRelease", StringComparison.Ordinal));
+        Assert.IsFalse(Find("configuration-releases-duplicate-id-runtime").GetProperty("valid").GetBoolean());
+        Assert.IsTrue(Find("configuration-releases-duplicate-id-runtime").GetProperty("schemaValid").GetBoolean());
+    }
+
+    [TestMethod]
+    public void CandidatePreviewIsAnOptionalReadWithClosedDraftAndDistinctPublicationFreeResult()
+    {
+        JsonElement operation = OpenApi.RootElement.GetProperty("paths").GetProperty("/configuration/candidate-preview").GetProperty("post");
+        Assert.AreEqual("previewConfigurationCandidate", operation.GetProperty("operationId").GetString());
+        Assert.AreEqual("configuration", operation.GetProperty("x-cis-rest-operation-alias").GetString());
+        Assert.AreEqual("read-only", operation.GetProperty("x-cis-effect").GetString());
+        Assert.AreEqual(1048576, operation.GetProperty("x-cis-max-request-bytes").GetInt32());
+        JsonElement command = Schema.RootElement.GetProperty("$defs").GetProperty("ConfigurationCandidatePreviewCommand");
+        Assert.IsFalse(command.GetProperty("additionalProperties").GetBoolean());
+        foreach (string field in new[] { "payloadJson", "sourceId", "sourceETag", "assignmentETag", "commonSource", "applicationSource" })
+        {
+            Assert.IsTrue(command.GetProperty("required").EnumerateArray().Any(value => value.GetString() == field), field);
+        }
+        JsonElement response = Schema.RootElement.GetProperty("$defs").GetProperty("ConfigurationCandidatePreview");
+        Assert.IsFalse(response.GetProperty("properties").TryGetProperty("publicationId", out _));
+        Assert.IsTrue(response.GetProperty("properties").TryGetProperty("draftSha256", out _));
     }
 
     [TestMethod]

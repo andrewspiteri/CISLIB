@@ -1,0 +1,32 @@
+{
+  "tasks": [
+    {
+      "title": "Implement native resource action eligibility and exact operator grant enforcement",
+      "scopeIds": [
+        "capability-contracts",
+        "configuration-portal",
+        "intake-design",
+        "integration",
+        "portal",
+        "scheduler"
+      ],
+      "paths": [
+        "implementations/csharp/applications/CIS.Management.Service/Http",
+        "implementations/csharp/applications/CIS.Management.Service/Security",
+        "implementations/csharp/applications/CIS.Management.Service/Backends",
+        "implementations/csharp/src/CIS.Core/Management",
+        "implementations/typescript/packages/management-client",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Management",
+        "docs/modules/management"
+      ],
+      "dependsOn": [
+        "WORK-151",
+        "WORK-152"
+      ],
+      "complexity": "medium",
+      "category": "security",
+      "acceptanceCriteria": "Deliver finite existing Configuration source/binding administrative action eligibility using actual stored targets and current native ICapabilityAuthorizer. Metadata replacement and Configuration publication/release/assignment submission and replay require same-resource original-result recovery grant bundles; mutations and recovery independently reauthorize after preview or grant changes. Preserve independently validated human versus workload identity, existing strict Entra semantics and hidden-resource behavior, with no portal fallback/copied-claim/inventory authority. Only installed native actions are advertised. This is the existing RM09/RM08 action and grant slice; Scheduler Task/manual/cancel runtime remains unstarted under the explicit BRD contract-only steering, with its original obligations preserved in future leaves and scheduler-contract-followups.md. No Scheduler or complete RM09 acceptance is claimed.",
+      "validation": "Use the existing native Management auth/HTTPS fixture for source/binding and metadata grant bundles, write without lookup, wrong-resource lookup, direct new/replayed writes, independent recovery after write revocation, hidden targets, unsupported backends and actual HTTP2 body framing. Retain native41 passed0 failed0 skipped, zero-warning build, scoped format and independent review evidence. Document exact native resources, finite action IDs and honest Scheduler unavailability. Consume only WORK-151/WORK-152 prerequisites and the existing WORK-040 parent pool; no new capacity or Scheduler runtime authority."
+    }
+  ]
+}

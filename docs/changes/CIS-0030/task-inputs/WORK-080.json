@@ -1,0 +1,30 @@
+{
+  "tasks": [
+    {
+      "title": "Define trusted application capability and scheduler contracts before persistence",
+      "scopeIds": [
+        "capability-contracts",
+        "scheduler",
+        "configuration-portal",
+        "integration"
+      ],
+      "paths": [
+        "contracts/management/v1",
+        "conformance",
+        "implementations/csharp/src/CIS.Core/Jobs",
+        "implementations/csharp/src/CIS.Core/Management",
+        "implementations/csharp/src/CIS.CommonTesting",
+        "implementations/typescript/packages/management-client",
+        "docs/modules/management",
+        "docs/modules/coordination"
+      ],
+      "dependsOn": [
+        "WORK-020-BACKOFFICE"
+      ],
+      "complexity": "medium",
+      "category": "contract",
+      "acceptanceCriteria": "Deliver passive versioned trusted trigger/job/form descriptions, explicit execution/recovery/checkpoint and build identities, immutable task/event/run/attempt/captured-settings contracts, strict limits/defaults and typed optional scheduler/eligibility/cohort interfaces plus compatible C#/TypeScript client/wire shapes. Preserve Management API-capabilities semantics separately from application capability definitions and existing constructors/independent substitutes. Ordinary instance presence cannot provision trusted schemas. Fixed finite hints/mappers/lookups grant no code execution or authority; unknown versions/states remain unavailable. No handler construction, provider I/O or schema installation occurs at capture. This is the contract portion of RM09-AC01, RM09-AC04, RM09-AC05, RM09-AC07, RM09-AC08, RM09-AC09, RM09-AC10, RM09-AC16, RM09-AC17, RM09-AC19, RM09-AC20; RM10-AC01, RM10-AC02, RM10-AC03, RM10-AC08, RM10-AC12, RM10-AC24, RM10-AC25, RM10-AC27, RM10-AC28, RM10-AC29, RM10-AC32, RM10-AC36, RM10-AC39, RM10-AC40.",
+      "validation": "Run focused passive-binding, exact contract/schema/wire and CommonTesting consumer cases, including old constructors and backends, decimal counters, unknown values, combined byte/depth limits and forbidden executable hints. Verify the complete codec/alias/client registration and documented type/owner semantics. Include meaningful focused native/unit or browser checks for this implementation, affected documentation, and proportionate independent review; preserve failures and actual joined cleanup. Do not turn authored tests or reused evidence from different source bytes into a pass."
+    }
+  ]
+}

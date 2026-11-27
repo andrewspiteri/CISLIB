@@ -3,9 +3,9 @@ using CIS.RestClient;
 
 namespace CIS.Management;
 
-/// <summary>One of four fixed durable decisions. It retains metadata and references, never source payloads.</summary>
+/// <summary>One fixed durable decision. It retains metadata and references, never source payloads.</summary>
 /// <param name="CommandVersion">Supported recorded version, initially one.</param>
-/// <param name="Kind">catalogApplied, sourcePublished, releaseCreated or assignmentsReplaced.</param>
+/// <param name="Kind">catalogApplied, configurationCreated, sourcePublished, releaseCreated or assignmentsReplaced.</param>
 /// <param name="Decision">Raw original business decision, retaining future values.</param>
 /// <param name="Code">Safe stable business code.</param>
 /// <param name="DecidedAtUtc">Original precise decision time.</param>
@@ -28,6 +28,24 @@ public sealed record ManagementConfigurationDecision(int CommandVersion, string 
     string? SchemaVersion = null, string? ReleaseId = null, string? Generation = null, string? ETag = null,
     string? Intent = null, ManagementConfigurationAssignmentMap? Assignment = null)
 {
+    /// <summary>Gets the creation decision's actual newly prepared binding UUID.</summary>
+    public string? BindingId
+    {
+        get; init;
+    }
+
+    /// <summary>Gets the creation decision's actual application host scope.</summary>
+    public string? HostApplicationName
+    {
+        get; init;
+    }
+
+    /// <summary>Gets the creation decision's initial source precondition; publication remains separate.</summary>
+    public string? SourceETag
+    {
+        get; init;
+    }
+
     /// <summary>Gets the original decision interpretation without treating unknown as success.</summary>
     [JsonIgnore]
     public ManagementKnownValue KnownDecision => new(Decision, Decision is "applied" or "rejected");
@@ -35,7 +53,7 @@ public sealed record ManagementConfigurationDecision(int CommandVersion, string 
     /// <summary>Gets the fixed decision family without inventing a generic command dispatcher.</summary>
     [JsonIgnore]
     public ManagementKnownValue KnownKind => new(Kind,
-        Kind is "catalogApplied" or "sourcePublished" or "releaseCreated" or "assignmentsReplaced");
+        Kind is "catalogApplied" or "sourcePublished" or "releaseCreated" or "assignmentsReplaced" or "configurationCreated");
 
     /// <summary>Gets the original assignment intent without converting a future response value to replace.</summary>
     [JsonIgnore]

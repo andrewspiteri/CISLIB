@@ -1,0 +1,31 @@
+{
+  "tasks": [
+    {
+      "title": "Deliver application metadata review confirmation and original-key recovery",
+      "scopeIds": [
+        "portal",
+        "configuration-portal",
+        "integration",
+        "intake-design"
+      ],
+      "paths": [
+        "implementations/typescript/applications/management-portal",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Management",
+        "docs/modules/management",
+        "docs/changes/CIS-0030"
+      ],
+      "dependsOn": [
+        "WORK-151",
+        "WORK-152",
+        "WORK-171",
+        "WORK-155",
+        "WORK-156",
+        "WORK-173"
+      ],
+      "complexity": "medium",
+      "category": "frontend",
+      "acceptanceCriteria": "Deliver approved displayName/description author-review-confirm via explicit same-origin authenticated BFF and existing native Metadata operations. Bind exact application/user/session/service, current ETag and write plus original-result lookup grant bundle; retain shared minimal payload-free receipts before submission and recover the same original key after lost response/reload. Independently reauthorize direct write/recovery, preserve original commit versus current read cleanup, conflict/grant/expiry/denial states; no automatic write replay, new-key fallback, cross-user late refill or persisted payload. Reuse sibling technical disclosure and protected drafts; no Scheduler dependency/runtime. Owns metadata/recovery portions of RM09-AC02/03/04/06/08/09/10/12/14/15/16/17/18/19/20. Clear description explicitly previews empty and submits native omission-to-clear, never null; canonical identity stays read-only. Dirty Cancel/Back confirms discard and declining remains in the draft.",
+      "validation": "Use existing native Metadata/Operations/Audit and auth/browser fixtures for actual ETag race, same-key uncertain recovery/reload with one effect/Audit, direct BFF CSRF/current grant/session refusals, receipt/draft isolation and keyboard/review screenshots. Include focused tests/docs/independent review in this owner; no new test campaign. Refine the direct dependency to the current-inspection sibling once native IDs exist. Keep original WORK-100-BACKOFFICE pool; no extra capacity. Check clear-description review, dirty Cancel/Back rejection, and unresolved NotFound/expired/lookup-denied outcomes retaining the original key."
+    }
+  ]
+}

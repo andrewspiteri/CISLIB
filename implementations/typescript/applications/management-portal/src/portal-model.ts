@@ -1,6 +1,9 @@
+import type { PortalSessionContext } from "./portal-context.ts";
+
 /** Browser-safe, read-only projections. Native credentials and arbitrary module data never cross this boundary. */
-export type PortalReply<T> = { readonly state: "ready"; readonly value: T }
-  | { readonly state: "unauthenticated" | "denied" | "not-found" | "invalid" | "unavailable"; readonly message: string };
+export type PortalReply<T> = ({ readonly state: "ready"; readonly value: T }
+  | { readonly state: "unauthenticated" | "denied" | "not-found" | "invalid" | "unavailable"; readonly message: string })
+  & { readonly context?: PortalSessionContext };
 
 export interface PortalPage<T> { readonly items: readonly T[]; readonly nextCursor?: string; }
 export interface PortalApplication {
@@ -49,7 +52,12 @@ export interface PortalCapability {
   readonly requiredCapabilities: readonly string[];
   readonly callerHint: "allowed" | "denied" | "notEvaluated";
 }
-export interface PortalCapabilities { readonly applicationId: string; readonly implementedApis: readonly PortalCapability[]; }
+/** Current feature availability is explicit; service HTTP diagnostics are never application definitions. */
+export interface PortalCapabilities {
+  readonly applicationId: string;
+  readonly catalog: { readonly state: "unsupported"; readonly message: string };
+  readonly serviceApis: readonly PortalCapability[];
+}
 export interface PortalCategory {
   readonly executionScope: string;
   readonly categoryId: string;
@@ -92,4 +100,9 @@ export interface PortalInventory {
     readonly categories: readonly PortalCategory[];
     readonly jobs: readonly PortalJob[];
   };
+}
+
+/** A reported UUID remains exact technical data; it is not manufactured into a human-readable name. */
+export function reportedLabel(value: string, unnamed: string): string {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu.test(value) ? unnamed : value;
 }

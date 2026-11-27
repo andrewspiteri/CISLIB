@@ -4,6 +4,18 @@ public static partial class ManagementConfigurationWire
 {
     private static object Freeze(object value) => value switch
     {
+        ManagementPage<ManagementConfigurationSummary> summaries => summaries with { Items = Copy(summaries.Items) },
+        ManagementConfigurationCandidatePreview candidate => candidate with
+        {
+            Changes = Copy(candidate.Changes),
+            Issues = Copy(candidate.Issues),
+            CurrentAssignment = MapCopy(candidate.CurrentAssignment),
+            Recipients = candidate.Recipients with
+            {
+                Items = Copy(candidate.Recipients.Items)
+            }
+        },
+        ManagementConfigurationEditorContext editor => editor with { Shape = ShapeCopy(editor.Shape) },
         ManagementConfigurationDefinition definition => DefinitionCopy(definition),
         ManagementConfigurationSource source => source with
         {
@@ -48,6 +60,7 @@ public static partial class ManagementConfigurationWire
             Items = Array.AsReadOnly(page.Items.Select(DefinitionCopy).ToArray())
         },
         ManagementPage<ManagementConfigurationPublicationMetadata> page => page with { Items = Copy(page.Items) },
+        ManagementPage<ManagementConfigurationRelease> page => page with { Items = Copy(page.Items) },
         ManagementPage<ManagementConfigurationAdoptionEntry> page => page with { Items = Copy(page.Items) },
         _ => value
     };

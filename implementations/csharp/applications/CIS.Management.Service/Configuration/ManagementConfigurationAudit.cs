@@ -19,7 +19,7 @@ internal static class ManagementConfigurationAudit
     {
         public void Validate(ManagementConfigurationAuditDetails details)
         {
-            if (!ManagementWire.IsUuid(details.ResourceId) || details.Family is not ("catalog" or "publication" or "release" or "assignment")
+            if (!ManagementWire.IsUuid(details.ResourceId) || details.Family is not ("catalog" or "publication" or "release" or "assignment" or "creation")
                 || !ManagementWire.IsUtf8Text(details.Reason, 1024)
                 || details.PublicationId is not null && !ManagementWire.IsUuid(details.PublicationId)
                 || details.Digest is not null && !ManagementConfigurationWire.IsSha256(details.Digest)

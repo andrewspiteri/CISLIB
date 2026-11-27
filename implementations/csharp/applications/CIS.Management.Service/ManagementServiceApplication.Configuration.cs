@@ -16,6 +16,7 @@ public static partial class ManagementServiceApplication
             builder.Services.AddCisOperation(ManagementConfigurationOperations.Publication());
             builder.Services.AddCisOperation(ManagementConfigurationOperations.Release());
             builder.Services.AddCisOperation(ManagementConfigurationOperations.Assignment());
+            builder.Services.AddCisOperation(ManagementConfigurationOperations.Creation());
         }
     }
 }

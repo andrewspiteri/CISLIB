@@ -18,3 +18,5 @@ Derived under `cislib:CIS-0029:outcome:dc66ea8b85f04962a869fde8ce1e9939` by Code
 | WORK-003 | [Bounded authorized portal discovery contracts and clients](agent-tasks/WORK-003.md) | Complete | WORK-001 |
 | WORK-004 | [Independent portal host and OIDC session boundary](agent-tasks/WORK-004.md) | Complete | WORK-001 |
 | WORK-005 | [Approved desktop inspection UI and connected behavior](agent-tasks/WORK-005.md) | Complete | WORK-001 |
+| WORK-006 | [Interactive local portal fixture with synthetic test data](agent-tasks/WORK-006.md) | InProgress | WORK-005 |
+| WORK-007 | [Preserve strict origin validation for ordinary portal authentication forms](agent-tasks/WORK-007.md) | Complete | WORK-005 |

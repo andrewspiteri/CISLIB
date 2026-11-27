@@ -1,0 +1,26 @@
+{
+  "tasks": [
+    {
+      "title": "Implement protected in-memory drafts and late-response session isolation",
+      "scopeIds": [
+        "portal",
+        "configuration-portal",
+        "scheduler",
+        "integration"
+      ],
+      "paths": [
+        "implementations/typescript/applications/management-portal/src",
+        "implementations/typescript/applications/management-portal/tests",
+        "docs/modules/management"
+      ],
+      "dependsOn": [
+        "WORK-155",
+        "WORK-153"
+      ],
+      "complexity": "medium",
+      "category": "data",
+      "acceptanceCriteria": "Deliver shared protected in-memory draft/request state used by upcoming metadata/Configuration/task flows. Session expiry/signout/user switch clears affected protected content/drafts/receipts and blocks writes/recovery; permission loss clears protected values and leaves only same-user minimal receipts when appropriate. Track exact user/application/environment/definition/schema request context so cancellation or a late old response cannot refill a different user's or environment's screen. Retain only dated allowed snapshots on transient outage, disable submissions and queue nothing until fresh state. Drafts are memory-only with unsaved navigation protection; no payload persistence. Owns state-lifetime slices of RM09-AC09, RM09-AC10, RM09-AC12, RM09-AC14, RM09-AC17, RM09-AC19 and RM10-AC28, RM10-AC29.",
+      "validation": "Use existing controlled delayed-request/session tests for switch/signout/expiry/grant loss, same-user receipt restoration, definition changes and exact protected state clearing. Include keyboard/navigation protection where this primitive affects it, documentation and independent review; actual full UI journeys remain with their component owners. Verify this owner consumes only the declared medium prerequisites (WORK-155, WORK-153) and keeps the original parent accounting pool; broad provenance containers are not early completion prerequisites."
+    }
+  ]
+}

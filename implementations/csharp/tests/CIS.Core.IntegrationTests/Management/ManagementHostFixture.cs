@@ -65,6 +65,11 @@ internal sealed class ManagementHostFixture : IAsyncDisposable
     private readonly List<RestHttpTransport> clientTransports = [];
 
     internal ManagementServiceOptions Options { get; private set; } = null!;
+
+    internal PostgreSqlManagementStore CreateSetupStore()
+    {
+        return new(setup!.GetRequiredService<ILocalTransactionFactory>(), Options.Persistence);
+    }
     internal NpgsqlDataSource Source { get; private set; } = null!;
     internal string ApplicationA { get; private set; } = "";
     internal string ApplicationB { get; private set; } = "";
@@ -85,7 +90,7 @@ internal sealed class ManagementHostFixture : IAsyncDisposable
 
     internal static async Task<ManagementHostFixture> CreateAsync(int replicas = 2, bool start = true,
         long maximumRetainedEnvelopeBytes = 64L * 1024 * 1024, ManagementBackendOptions? backendOptions = null,
-        ManagementConfigurationOptions? configuration = null)
+        ManagementConfigurationOptions? configuration = null, string? initialInstanceNameA = null, string? initialInstanceNameB = null)
     {
         var fixture = new ManagementHostFixture();
         try
@@ -132,9 +137,9 @@ internal sealed class ManagementHostFixture : IAsyncDisposable
             await ManagementDatabase.InstallAsync(transactions, fixture.Options, CancellationToken.None);
             var store = new PostgreSqlManagementStore(transactions, fixture.Options.Persistence);
             ManagementStoreResult<ManagementRegistrationReceipt> a = await store.RegisterAsync(Owner("workload-a", "managed-a"),
-                fixture.RegistrationA, Request("seed-a"));
+                fixture.RegistrationA, Request(initialInstanceNameA ?? "seed-a"));
             ManagementStoreResult<ManagementRegistrationReceipt> b = await store.RegisterAsync(Owner("workload-b", "managed-b"),
-                fixture.RegistrationB, Request("seed-b"));
+                fixture.RegistrationB, Request(initialInstanceNameB ?? "seed-b"));
             Assert.IsTrue(a.IsKnownCommitted, a.Code);
             Assert.IsTrue(b.IsKnownCommitted, b.Code);
             fixture.ApplicationA = a.Value!.ApplicationId;

@@ -1,0 +1,842 @@
+{
+  "contract": "cis.management.scheduler",
+  "version": 1,
+  "caseCount": 98,
+  "validationBoundary": "Literal independently authored wire inputs. schemaValid proves only the existing structural evaluator/JSON parser boundary. valid additionally requires native duplicate/Unicode/UTF-8/range/calendar/reference rules; neither flag proves provider authorization, atomicity, truth of provenance or cleanup.",
+  "cases": [
+    {
+      "id": "scheduler-task-command-passive-exact-settings",
+      "schema": "SchedulerTaskCommand",
+      "direction": "request",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"commandVersion\":1,\"taskId\":\"33333333-3333-3333-3333-333333333333\",\"definition\":{\"name\":\"Daily customer check\",\"trigger\":{\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"triggerId\":\"22222222-2222-2222-2222-222222222222\"},\"job\":{\"ownerApplication\":\"Demo.CountryData\",\"kind\":\"job\",\"executionScope\":\"customer-service\",\"definitionId\":\"customer.dormancy\",\"definitionVersion\":\"1\"},\"resource\":{\"kind\":\"constant\",\"constant\":\"Europe\"},\"inputMappings\":[{\"targetPath\":\"/PartitionId\",\"kind\":\"constant\",\"constantJson\":\"\\\"Europe\\\"\"}],\"jobConfiguration\":{\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"customer.settings\",\"schemaVersion\":\"1\",\"releaseId\":\"88888888-8888-8888-8888-888888888888\",\"assignmentGeneration\":\"9007199254740993\"},\"executionProfileId\":\"app-default\",\"enabled\":false},\"reason\":\"Create the named scheduled task.\"}",
+      "expected": {
+        "assignmentGeneration": "9007199254740993"
+      }
+    },
+    {
+      "id": "scheduler-task-command-requires-reason",
+      "schema": "SchedulerTaskCommand",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"commandVersion\":1,\"taskId\":\"33333333-3333-3333-3333-333333333333\",\"definition\":{\"name\":\"Daily customer check\",\"trigger\":{\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"triggerId\":\"22222222-2222-2222-2222-222222222222\"},\"job\":{\"ownerApplication\":\"Demo.CountryData\",\"kind\":\"job\",\"executionScope\":\"customer-service\",\"definitionId\":\"customer.dormancy\",\"definitionVersion\":\"1\"},\"resource\":{\"kind\":\"constant\",\"constant\":\"Europe\"},\"inputMappings\":[{\"targetPath\":\"/PartitionId\",\"kind\":\"constant\",\"constantJson\":\"\\\"Europe\\\"\"}],\"jobConfiguration\":{\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"customer.settings\",\"schemaVersion\":\"1\",\"releaseId\":\"88888888-8888-8888-8888-888888888888\",\"assignmentGeneration\":\"9007199254740993\"},\"executionProfileId\":\"app-default\",\"enabled\":false}}"
+    },
+    {
+      "id": "scheduler-task-command-rejects-forged-execution-principal",
+      "schema": "SchedulerTaskCommand",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"commandVersion\":1,\"taskId\":\"33333333-3333-3333-3333-333333333333\",\"definition\":{\"name\":\"Daily customer check\",\"trigger\":{\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"triggerId\":\"22222222-2222-2222-2222-222222222222\"},\"job\":{\"ownerApplication\":\"Demo.CountryData\",\"kind\":\"job\",\"executionScope\":\"customer-service\",\"definitionId\":\"customer.dormancy\",\"definitionVersion\":\"1\"},\"resource\":{\"kind\":\"constant\",\"constant\":\"Europe\"},\"inputMappings\":[{\"targetPath\":\"/PartitionId\",\"kind\":\"constant\",\"constantJson\":\"\\\"Europe\\\"\"}],\"jobConfiguration\":{\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"customer.settings\",\"schemaVersion\":\"1\",\"releaseId\":\"88888888-8888-8888-8888-888888888888\",\"assignmentGeneration\":\"9007199254740993\"},\"executionProfileId\":\"app-default\",\"enabled\":false},\"reason\":\"Create the named scheduled task.\",\"executedAs\":{\"subject\":\"forged\"}}"
+    },
+    {
+      "id": "scheduler-input-mapping-rejects-mixed-sources",
+      "schema": "CommandSchedulerInputMapping",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"targetPath\":\"/PartitionId\",\"kind\":\"constant\",\"constantJson\":\"\\\"Europe\\\"\",\"sourcePath\":\"/partitionId\"}"
+    },
+    {
+      "id": "scheduler-constant-json-grammar-is-runtime-rule",
+      "schema": "CommandSchedulerInputMapping",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"targetPath\":\"/PartitionId\",\"kind\":\"constant\",\"constantJson\":\"{invalid\"}"
+    },
+    {
+      "id": "scheduler-resource-mapping-rejects-two-resources",
+      "schema": "CommandSchedulerResourceMapping",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"kind\":\"constant\",\"constant\":\"Europe\",\"eventPath\":\"/resource\"}"
+    },
+    {
+      "id": "scheduler-calendar-daily-exact-time-only",
+      "schema": "CommandSchedulerCalendar",
+      "direction": "request",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"form\":\"daily\",\"missedRunPolicy\":\"runLatestOnce\",\"localTime\":\"02:00:00.0000000\",\"timeZoneId\":\"Europe/Malta\"}"
+    },
+    {
+      "id": "scheduler-calendar-rejects-truncated-local-time",
+      "schema": "CommandSchedulerCalendar",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"form\":\"daily\",\"missedRunPolicy\":\"runLatestOnce\",\"localTime\":\"02:00\",\"timeZoneId\":\"Europe/Malta\"}"
+    },
+    {
+      "id": "scheduler-calendar-weekday-uniqueness-is-runtime-rule",
+      "schema": "CommandSchedulerCalendar",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"form\":\"weekly\",\"missedRunPolicy\":\"runLatestOnce\",\"localTime\":\"02:00:00.0000000\",\"timeZoneId\":\"Europe/Malta\",\"weekdays\":[1,1]}"
+    },
+    {
+      "id": "scheduler-calendar-delay-numeric-ceiling-is-runtime-rule",
+      "schema": "CommandSchedulerCalendar",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"form\":\"fixedDelay\",\"missedRunPolicy\":\"skip\",\"delayMs\":\"9999999999\"}"
+    },
+    {
+      "id": "scheduler-calendar-unknown-response-form-is-inert",
+      "schema": "SchedulerCalendar",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"form\":\"futureCalendar\",\"missedRunPolicy\":\"futurePolicy\"}",
+      "expected": {
+        "knownForm": false
+      }
+    },
+    {
+      "id": "scheduler-event-command-retains-correlation-scalars",
+      "schema": "SchedulerEventCommand",
+      "direction": "request",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"commandVersion\":1,\"eventId\":\"44444444-4444-4444-4444-444444444444\",\"occurredAtUtc\":\"2026-11-25T01:00:00.0000000Z\",\"contract\":{\"name\":\"calendar.instant\",\"version\":1},\"payloadJson\":\"{\\\"instantUtc\\\":\\\"2026-11-25T01:00:00.0000000Z\\\"}\",\"scheduledAtUtc\":\"2026-11-25T01:00:00.0000000Z\",\"correlationId\":\"éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé\",\"causationId\":\"99999999-9999-9999-9999-999999999999\"}"
+    },
+    {
+      "id": "scheduler-event-command-rejects-forged-worker-build",
+      "schema": "SchedulerEventCommand",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"commandVersion\":1,\"eventId\":\"44444444-4444-4444-4444-444444444444\",\"occurredAtUtc\":\"2026-11-25T01:00:00.0000000Z\",\"contract\":{\"name\":\"calendar.instant\",\"version\":1},\"payloadJson\":\"{\\\"instantUtc\\\":\\\"2026-11-25T01:00:00.0000000Z\\\"}\",\"scheduledAtUtc\":\"2026-11-25T01:00:00.0000000Z\",\"correlationId\":\"éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé\",\"causationId\":\"99999999-9999-9999-9999-999999999999\",\"build\":{\"applicationVersion\":\"2.4.1\",\"buildId\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"handlerId\":\"customer.dormancy/2026.11.24.1\"}}"
+    },
+    {
+      "id": "scheduler-event-command-payload-duplicate-is-runtime-rule",
+      "schema": "SchedulerEventCommand",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"commandVersion\":1,\"eventId\":\"44444444-4444-4444-4444-444444444444\",\"occurredAtUtc\":\"2026-11-25T01:00:00.0000000Z\",\"contract\":{\"name\":\"calendar.instant\",\"version\":1},\"payloadJson\":\"{\\\"instantUtc\\\":\\\"a\\\",\\\"instantUtc\\\":\\\"b\\\"}\",\"scheduledAtUtc\":\"2026-11-25T01:00:00.0000000Z\",\"correlationId\":\"éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé\",\"causationId\":\"99999999-9999-9999-9999-999999999999\"}"
+    },
+    {
+      "id": "scheduler-receipt-committed-undisclosed-selection",
+      "schema": "SchedulerEventReceipt",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"triggerId\":\"22222222-2222-2222-2222-222222222222\",\"eventId\":\"44444444-4444-4444-4444-444444444444\",\"disposition\":\"accepted\",\"acceptedAtUtc\":\"2026-11-25T01:00:00.0000000Z\"}",
+      "expected": {
+        "runIdsAbsent": true,
+        "runCountAbsent": true
+      }
+    },
+    {
+      "id": "scheduler-receipt-authoritative-zero-run-selection",
+      "schema": "SchedulerEventReceipt",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"triggerId\":\"22222222-2222-2222-2222-222222222222\",\"eventId\":\"44444444-4444-4444-4444-444444444444\",\"disposition\":\"accepted\",\"acceptedAtUtc\":\"2026-11-25T01:00:00.0000000Z\",\"runIds\":[],\"runCount\":0}"
+    },
+    {
+      "id": "scheduler-receipt-does-not-leak-count-with-hidden-ids",
+      "schema": "SchedulerEventReceipt",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"triggerId\":\"22222222-2222-2222-2222-222222222222\",\"eventId\":\"44444444-4444-4444-4444-444444444444\",\"disposition\":\"accepted\",\"acceptedAtUtc\":\"2026-11-25T01:00:00.0000000Z\",\"runCount\":1}"
+    },
+    {
+      "id": "scheduler-receipt-run-count-matching-is-runtime-rule",
+      "schema": "SchedulerEventReceipt",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"triggerId\":\"22222222-2222-2222-2222-222222222222\",\"eventId\":\"44444444-4444-4444-4444-444444444444\",\"disposition\":\"accepted\",\"acceptedAtUtc\":\"2026-11-25T01:00:00.0000000Z\",\"runIds\":[\"55555555-5555-5555-5555-555555555555\"],\"runCount\":2}"
+    },
+    {
+      "id": "scheduler-capsule-existing-command-and-original-business-key",
+      "schema": "SchedulerRunCapsule",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"runId\":\"55555555-5555-5555-5555-555555555555\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"taskId\":\"33333333-3333-3333-3333-333333333333\",\"taskRevision\":\"9007199254740993\",\"trigger\":{\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"triggerId\":\"22222222-2222-2222-2222-222222222222\"},\"eventId\":\"44444444-4444-4444-4444-444444444444\",\"job\":{\"ownerApplication\":\"Demo.CountryData\",\"kind\":\"job\",\"executionScope\":\"customer-service\",\"definitionId\":\"customer.dormancy\",\"definitionVersion\":\"1\"},\"resourceId\":\"Europe\",\"inputEnvelopeJson\":\"{\\\"envelopeVersion\\\":1,\\\"messageId\\\":\\\"55555555-5555-5555-5555-555555555555\\\",\\\"kind\\\":\\\"command\\\",\\\"messageType\\\":\\\"customer.dormancy.input\\\",\\\"schemaVersion\\\":1,\\\"producerApplication\\\":\\\"CIS.Management\\\",\\\"producerEnvironment\\\":\\\"Development\\\",\\\"createdAtUtc\\\":\\\"2026-11-25T01:00:00.0000000Z\\\",\\\"payload\\\":{\\\"PartitionId\\\":\\\"Europe\\\"},\\\"operation\\\":{\\\"operationName\\\":\\\"customer.dormancy\\\",\\\"requestedScope\\\":\\\"customer-service/Europe\\\",\\\"key\\\":\\\"business:key/with?punctuation\\\"}}\",\"executionContract\":{\"name\":\"customer.execution\",\"version\":1},\"originalOperation\":{\"operationName\":\"customer.dormancy\",\"requestedScope\":\"customer-service/Europe\",\"key\":\"business:key/with?punctuation\"},\"jobSettings\":{\"selection\":{\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"customer.settings\",\"schemaVersion\":\"1\",\"releaseId\":\"88888888-8888-8888-8888-888888888888\",\"assignmentGeneration\":\"9007199254740993\"},\"payloadJson\":\"{}\",\"sha256\":\"44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a\"},\"executionIdentity\":{\"application\":\"Demo.CountryData\",\"environment\":\"Development\",\"issuer\":\"https://issuer.example.invalid/v2.0\",\"subject\":\"country-workload\",\"bindingId\":\"country-workload-v1\",\"profileId\":\"app-default\"},\"configuredBy\":{\"kind\":\"user\",\"issuer\":\"https://issuer.example.invalid/v2.0\",\"subject\":\"operator-object\",\"displayName\":\"Demo operations\"},\"producer\":{\"kind\":\"application\",\"issuer\":\"https://issuer.example.invalid/v2.0\",\"subject\":\"calendar-workload\",\"application\":\"CIS.Management\",\"environment\":\"Development\"},\"scheduledAtUtc\":\"2026-11-25T01:00:00.0000000Z\",\"eventOccurredAtUtc\":\"2026-11-25T01:00:00.0000000Z\",\"eventReceivedAtUtc\":\"2026-11-25T01:00:01.0000000Z\",\"executionSettings\":{\"idleDelayTicks\":\"1\",\"timeoutTicks\":\"42336000000000\",\"maximumDrainTicks\":\"300000000\",\"acquisitionRetryDelayTicks\":\"50000000\"}}",
+      "expected": {
+        "originalKey": "business:key/with?punctuation",
+        "taskRevision": "9007199254740993"
+      }
+    },
+    {
+      "id": "scheduler-captured-settings-digest-is-runtime-rule",
+      "schema": "SchedulerCapturedSettings",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"selection\":{\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"customer.settings\",\"schemaVersion\":\"1\",\"releaseId\":\"88888888-8888-8888-8888-888888888888\",\"assignmentGeneration\":\"9007199254740993\"},\"payloadJson\":\"{}\",\"sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"}"
+    },
+    {
+      "id": "scheduler-run-attempt-counter-is-lossless",
+      "schema": "SchedulerRun",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"runId\":\"55555555-5555-5555-5555-555555555555\",\"taskId\":\"33333333-3333-3333-3333-333333333333\",\"taskRevision\":\"9007199254740993\",\"eventId\":\"44444444-4444-4444-4444-444444444444\",\"job\":{\"ownerApplication\":\"Demo.CountryData\",\"kind\":\"job\",\"executionScope\":\"customer-service\",\"definitionId\":\"customer.dormancy\",\"definitionVersion\":\"1\"},\"resourceId\":\"Europe\",\"state\":\"retryPending\",\"createdAtUtc\":\"2026-11-25T01:00:00.0000000Z\",\"attemptCount\":\"9007199254740993\",\"nextAttemptAtUtc\":\"2026-11-25T01:01:00.0000000Z\",\"trigger\":{\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"triggerId\":\"22222222-2222-2222-2222-222222222222\"}}",
+      "expected": {
+        "attemptCount": "9007199254740993",
+        "state": "retryPending"
+      }
+    },
+    {
+      "id": "scheduler-run-attempt-count-rejects-number",
+      "schema": "SchedulerRun",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"runId\":\"55555555-5555-5555-5555-555555555555\",\"taskId\":\"33333333-3333-3333-3333-333333333333\",\"taskRevision\":\"9007199254740993\",\"eventId\":\"44444444-4444-4444-4444-444444444444\",\"job\":{\"ownerApplication\":\"Demo.CountryData\",\"kind\":\"job\",\"executionScope\":\"customer-service\",\"definitionId\":\"customer.dormancy\",\"definitionVersion\":\"1\"},\"resourceId\":\"Europe\",\"state\":\"retryPending\",\"createdAtUtc\":\"2026-11-25T01:00:00.0000000Z\",\"attemptCount\":9007199254740992,\"nextAttemptAtUtc\":\"2026-11-25T01:01:00.0000000Z\",\"trigger\":{\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"triggerId\":\"22222222-2222-2222-2222-222222222222\"}}"
+    },
+    {
+      "id": "scheduler-recovery-number-is-not-business-retry-ceiling",
+      "schema": "SchedulerAttempt",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"runId\":\"55555555-5555-5555-5555-555555555555\",\"attemptId\":\"66666666-6666-6666-6666-666666666666\",\"number\":\"9007199254740993\",\"role\":\"recovery\",\"state\":\"settled\",\"admittedAtUtc\":\"2026-11-25T01:00:00.0000000Z\",\"build\":{\"applicationVersion\":\"2.4.1\",\"buildId\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"handlerId\":\"customer.dormancy/2026.11.24.1\"},\"executor\":{\"application\":\"Demo.CountryData\",\"environment\":\"Development\",\"issuer\":\"https://issuer.example.invalid/v2.0\",\"subject\":\"country-workload\",\"bindingId\":\"country-workload-v1\",\"profileId\":\"app-default\"},\"registrationId\":\"77777777-7777-7777-7777-777777777777\",\"effectivePolicy\":\"policy-1\",\"sequence\":\"2\",\"settledAtUtc\":\"2026-11-25T01:00:10.0000000Z\",\"businessCompletion\":\"committed\",\"callbackSettled\":true,\"cleanupSucceeded\":false}",
+      "expected": {
+        "number": "9007199254740993",
+        "role": "recovery"
+      }
+    },
+    {
+      "id": "scheduler-run-detail-attempt-page-has-continuation",
+      "schema": "SchedulerRunDetail",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"run\":{\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"runId\":\"55555555-5555-5555-5555-555555555555\",\"taskId\":\"33333333-3333-3333-3333-333333333333\",\"taskRevision\":\"9007199254740993\",\"eventId\":\"44444444-4444-4444-4444-444444444444\",\"job\":{\"ownerApplication\":\"Demo.CountryData\",\"kind\":\"job\",\"executionScope\":\"customer-service\",\"definitionId\":\"customer.dormancy\",\"definitionVersion\":\"1\"},\"resourceId\":\"Europe\",\"state\":\"retryPending\",\"createdAtUtc\":\"2026-11-25T01:00:00.0000000Z\",\"attemptCount\":\"9007199254740993\",\"nextAttemptAtUtc\":\"2026-11-25T01:01:00.0000000Z\",\"trigger\":{\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"triggerId\":\"22222222-2222-2222-2222-222222222222\"}},\"attempts\":[{\"runId\":\"55555555-5555-5555-5555-555555555555\",\"attemptId\":\"66666666-6666-6666-6666-666666666666\",\"number\":\"9007199254740993\",\"role\":\"recovery\",\"state\":\"settled\",\"admittedAtUtc\":\"2026-11-25T01:00:00.0000000Z\",\"build\":{\"applicationVersion\":\"2.4.1\",\"buildId\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"handlerId\":\"customer.dormancy/2026.11.24.1\"},\"executor\":{\"application\":\"Demo.CountryData\",\"environment\":\"Development\",\"issuer\":\"https://issuer.example.invalid/v2.0\",\"subject\":\"country-workload\",\"bindingId\":\"country-workload-v1\",\"profileId\":\"app-default\"},\"registrationId\":\"77777777-7777-7777-7777-777777777777\",\"effectivePolicy\":\"policy-1\",\"sequence\":\"2\",\"settledAtUtc\":\"2026-11-25T01:00:10.0000000Z\",\"businessCompletion\":\"committed\",\"callbackSettled\":true,\"cleanupSucceeded\":false}],\"capturedContentAccess\":\"redacted\",\"nextAttemptCursor\":\"opaque-next-attempt-page\"}"
+    },
+    {
+      "id": "scheduler-history-query-rejects-mixed-task-event",
+      "schema": "SchedulerHistoryQuery",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"taskId\":\"33333333-3333-3333-3333-333333333333\",\"eventId\":\"44444444-4444-4444-4444-444444444444\",\"triggerApplicationId\":\"11111111-1111-1111-1111-111111111111\",\"triggerId\":\"22222222-2222-2222-2222-222222222222\"}"
+    },
+    {
+      "id": "scheduler-history-query-retains-version-contract-filter",
+      "schema": "SchedulerHistoryQuery",
+      "direction": "request",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"executionScope\":\"customer-service\",\"jobId\":\"customer.dormancy\",\"applicationVersion\":\"2.4.1\",\"buildId\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"executionContract\":{\"name\":\"customer.execution\",\"version\":1}}"
+    },
+    {
+      "id": "scheduler-preview-side-effect-free-exact-whole-draft",
+      "schema": "SchedulerTaskPreviewCommand",
+      "direction": "request",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"commandVersion\":1,\"definition\":{\"name\":\"Daily customer check\",\"trigger\":{\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"triggerId\":\"22222222-2222-2222-2222-222222222222\"},\"job\":{\"ownerApplication\":\"Demo.CountryData\",\"kind\":\"job\",\"executionScope\":\"customer-service\",\"definitionId\":\"customer.dormancy\",\"definitionVersion\":\"1\"},\"resource\":{\"kind\":\"constant\",\"constant\":\"Europe\"},\"inputMappings\":[{\"targetPath\":\"/PartitionId\",\"kind\":\"constant\",\"constantJson\":\"\\\"Europe\\\"\"}],\"jobConfiguration\":{\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"customer.settings\",\"schemaVersion\":\"1\",\"releaseId\":\"88888888-8888-8888-8888-888888888888\",\"assignmentGeneration\":\"9007199254740993\"},\"executionProfileId\":\"app-default\",\"enabled\":false},\"taskId\":\"33333333-3333-3333-3333-333333333333\",\"candidateJobPayloadJson\":\"{}\"}"
+    },
+    {
+      "id": "scheduler-preview-valid-without-bound-draft-is-runtime-rule",
+      "schema": "SchedulerTaskPreview",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"valid\":true,\"issues\":[],\"affectedTasks\":[],\"impactFullyDisclosed\":false,\"nextOccurrencesUtc\":[],\"activationState\":\"pending\",\"draftDigest\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}"
+    },
+    {
+      "id": "scheduler-original-commit-survives-current-cleanup",
+      "schema": "SchedulerOperationResult",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"operation\":{\"name\":\"management.scheduler.task.write\",\"scope\":\"task/native-actor\",\"key\":\"original_1\"},\"resultSource\":\"found\",\"result\":{\"commandVersion\":1,\"kind\":\"taskCreated\",\"decision\":\"applied\",\"code\":\"scheduler.task.created\",\"decidedAtUtc\":\"2026-11-25T01:00:00.0000000Z\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"objectId\":\"33333333-3333-3333-3333-333333333333\",\"revision\":\"1\",\"eTag\":\"\\\"task-1\\\"\"},\"originalCompletion\":\"committed\",\"attemptCompletion\":{\"outcome\":\"notCommitted\",\"cleanupSucceeded\":false,\"cleanupCodes\":[\"transactions.cleanup\"]}}"
+    },
+    {
+      "id": "scheduler-native-rejection-does-not-invent-decision-fields",
+      "schema": "SchedulerOperationResult",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"operation\":{\"name\":\"management.scheduler.task.write\",\"scope\":\"task/native-actor\",\"key\":\"original_1\"},\"resultSource\":\"replayed\",\"originalCompletion\":\"committed\",\"rejection\":{\"code\":\"scheduler.task.invalid\",\"message\":\"The original task was rejected.\"}}"
+    },
+    {
+      "id": "scheduler-operation-rejects-result-and-rejection-together",
+      "schema": "SchedulerOperationResult",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"operation\":{\"name\":\"management.scheduler.task.write\",\"scope\":\"task/native-actor\",\"key\":\"original_1\"},\"resultSource\":\"found\",\"result\":{\"commandVersion\":1,\"kind\":\"taskCreated\",\"decision\":\"applied\",\"code\":\"scheduler.task.created\",\"decidedAtUtc\":\"2026-11-25T01:00:00.0000000Z\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"objectId\":\"33333333-3333-3333-3333-333333333333\",\"revision\":\"1\",\"eTag\":\"\\\"task-1\\\"\"},\"originalCompletion\":\"committed\",\"attemptCompletion\":{\"outcome\":\"notCommitted\",\"cleanupSucceeded\":false,\"cleanupCodes\":[\"transactions.cleanup\"]},\"rejection\":{\"code\":\"scheduler.task.invalid\",\"message\":\"Ambiguous.\"}}"
+    },
+    {
+      "id": "scheduler-unknown-response-state-never-defaults-success",
+      "schema": "SchedulerRun",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"runId\":\"55555555-5555-5555-5555-555555555555\",\"taskId\":\"33333333-3333-3333-3333-333333333333\",\"taskRevision\":\"9007199254740993\",\"eventId\":\"44444444-4444-4444-4444-444444444444\",\"job\":{\"ownerApplication\":\"Demo.CountryData\",\"kind\":\"job\",\"executionScope\":\"customer-service\",\"definitionId\":\"customer.dormancy\",\"definitionVersion\":\"1\"},\"resourceId\":\"Europe\",\"state\":\"futureState\",\"createdAtUtc\":\"2026-11-25T01:00:00.0000000Z\",\"attemptCount\":\"9007199254740993\",\"nextAttemptAtUtc\":\"2026-11-25T01:01:00.0000000Z\",\"futureObservation\":{\"kind\":\"data\"},\"trigger\":{\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"triggerId\":\"22222222-2222-2222-2222-222222222222\"}}",
+      "expected": {
+        "knownState": false
+      }
+    },
+    {
+      "id": "scheduler-capability-logical-job-definition",
+      "schema": "CapabilityDefinition",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"key\":{\"ownerApplication\":\"Demo.CountryData\",\"kind\":\"job\",\"executionScope\":\"customer-service\",\"definitionId\":\"customer.dormancy\",\"definitionVersion\":\"9007199254740993\"},\"displayName\":\"Customer dormancy\",\"supportedOperations\":[\"inspect\",\"configure\"],\"configurationContract\":{\"configurationId\":\"customer.settings\",\"schemaVersion\":\"1\",\"shape\":{\"kind\":\"object\",\"nullable\":false,\"members\":[{\"name\":\"Enabled\",\"required\":false,\"shape\":{\"kind\":\"boolean\",\"nullable\":false}}]}},\"form\":{\"fields\":[{\"path\":\"/Enabled\",\"editor\":\"boolean\",\"label\":\"Enabled\"}]}}",
+      "expected": {
+        "definitionVersion": "9007199254740993"
+      }
+    },
+    {
+      "id": "scheduler-capability-unknown-editor-is-inert-response-data",
+      "schema": "CapabilityDefinition",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"key\":{\"ownerApplication\":\"Demo.CountryData\",\"kind\":\"job\",\"executionScope\":\"customer-service\",\"definitionId\":\"customer.dormancy\",\"definitionVersion\":\"9007199254740993\"},\"displayName\":\"Customer dormancy\",\"supportedOperations\":[\"inspect\",\"configure\"],\"configurationContract\":{\"configurationId\":\"customer.settings\",\"schemaVersion\":\"1\",\"shape\":{\"kind\":\"object\",\"nullable\":false,\"members\":[{\"name\":\"Enabled\",\"required\":false,\"shape\":{\"kind\":\"boolean\",\"nullable\":false}}]}},\"form\":{\"fields\":[{\"path\":\"/Enabled\",\"editor\":\"futureSwitch\",\"label\":\"Enabled\"}]}}",
+      "expected": {
+        "supported": false
+      }
+    },
+    {
+      "id": "scheduler-capability-trusted-command-refuses-unknown-editor",
+      "schema": "CommandCapabilityDefinition",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"key\":{\"ownerApplication\":\"Demo.CountryData\",\"kind\":\"job\",\"executionScope\":\"customer-service\",\"definitionId\":\"customer.dormancy\",\"definitionVersion\":\"9007199254740993\"},\"displayName\":\"Customer dormancy\",\"supportedOperations\":[\"inspect\",\"configure\"],\"configurationContract\":{\"configurationId\":\"customer.settings\",\"schemaVersion\":\"1\",\"shape\":{\"kind\":\"object\",\"nullable\":false,\"members\":[{\"name\":\"Enabled\",\"required\":false,\"shape\":{\"kind\":\"boolean\",\"nullable\":false}}]}},\"form\":{\"fields\":[{\"path\":\"/Enabled\",\"editor\":\"futureSwitch\",\"label\":\"Enabled\"}]}}"
+    },
+    {
+      "id": "scheduler-capability-future-kind-is-inert-response-data",
+      "schema": "CapabilityDefinition",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"key\":{\"ownerApplication\":\"Demo.CountryData\",\"kind\":\"futureFeature\",\"executionScope\":\"customer-service\",\"definitionId\":\"customer.dormancy\",\"definitionVersion\":\"9007199254740993\"},\"displayName\":\"Future exposed feature\",\"supportedOperations\":[\"inspect\"]}",
+      "expected": {
+        "supported": false
+      }
+    },
+    {
+      "id": "scheduler-capability-form-path-resolution-is-runtime-rule",
+      "schema": "CapabilityDefinition",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"key\":{\"ownerApplication\":\"Demo.CountryData\",\"kind\":\"job\",\"executionScope\":\"customer-service\",\"definitionId\":\"customer.dormancy\",\"definitionVersion\":\"9007199254740993\"},\"displayName\":\"Customer dormancy\",\"supportedOperations\":[\"inspect\",\"configure\"],\"configurationContract\":{\"configurationId\":\"customer.settings\",\"schemaVersion\":\"1\",\"shape\":{\"kind\":\"object\",\"nullable\":false,\"members\":[{\"name\":\"Enabled\",\"required\":false,\"shape\":{\"kind\":\"boolean\",\"nullable\":false}}]}},\"form\":{\"fields\":[{\"path\":\"/NotDeclared\",\"editor\":\"text\",\"label\":\"Missing field\"}]}}"
+    },
+    {
+      "id": "scheduler-capability-contract-shape-pair-is-runtime-rule",
+      "schema": "CapabilityDefinition",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"key\":{\"ownerApplication\":\"Demo.CountryData\",\"kind\":\"job\",\"executionScope\":\"customer-service\",\"definitionId\":\"customer.dormancy\",\"definitionVersion\":\"9007199254740993\"},\"displayName\":\"Customer dormancy\",\"supportedOperations\":[\"inspect\",\"configure\"],\"configurationContract\":{\"configurationId\":\"customer.settings\",\"schemaVersion\":\"1\",\"shape\":{\"kind\":\"object\",\"nullable\":false,\"members\":[{\"name\":\"Enabled\",\"required\":false,\"shape\":{\"kind\":\"boolean\",\"nullable\":false}}]}},\"form\":{\"fields\":[{\"path\":\"/Enabled\",\"editor\":\"boolean\",\"label\":\"Enabled\"}]},\"inputContract\":{\"name\":\"customer.input\",\"version\":1}}"
+    },
+    {
+      "id": "scheduler-capability-job-cannot-create-handler-is-runtime-rule",
+      "schema": "CapabilityDefinition",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"key\":{\"ownerApplication\":\"Demo.CountryData\",\"kind\":\"job\",\"executionScope\":\"customer-service\",\"definitionId\":\"customer.dormancy\",\"definitionVersion\":\"9007199254740993\"},\"displayName\":\"Customer dormancy\",\"supportedOperations\":[\"inspect\",\"createConfigured\"],\"configurationContract\":{\"configurationId\":\"customer.settings\",\"schemaVersion\":\"1\",\"shape\":{\"kind\":\"object\",\"nullable\":false,\"members\":[{\"name\":\"Enabled\",\"required\":false,\"shape\":{\"kind\":\"boolean\",\"nullable\":false}}]}},\"form\":{\"fields\":[{\"path\":\"/Enabled\",\"editor\":\"boolean\",\"label\":\"Enabled\"}]}}"
+    },
+    {
+      "id": "scheduler-capability-lookup-cannot-supply-network-url",
+      "schema": "CommandCapabilityDefinition",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"key\":{\"ownerApplication\":\"Demo.CountryData\",\"kind\":\"job\",\"executionScope\":\"customer-service\",\"definitionId\":\"customer.dormancy\",\"definitionVersion\":\"9007199254740993\"},\"displayName\":\"Customer dormancy\",\"supportedOperations\":[\"inspect\",\"configure\"],\"configurationContract\":{\"configurationId\":\"customer.settings\",\"schemaVersion\":\"1\",\"shape\":{\"kind\":\"object\",\"nullable\":false,\"members\":[{\"name\":\"Enabled\",\"required\":false,\"shape\":{\"kind\":\"boolean\",\"nullable\":false}}]}},\"form\":{\"fields\":[],\"lookups\":[{\"id\":\"regions\",\"ownerApplication\":\"Demo.CountryData\",\"executionScope\":\"customer-service\",\"lookupName\":\"regions\",\"contract\":{\"name\":\"customer.regions\",\"version\":1},\"url\":\"https://untrusted.invalid\"}]}}"
+    },
+    {
+      "id": "scheduler-capability-definition-id-utf8-is-runtime-rule",
+      "schema": "CapabilityDefinition",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"key\":{\"ownerApplication\":\"Demo.CountryData\",\"kind\":\"job\",\"executionScope\":\"customer-service\",\"definitionId\":\"ééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé\",\"definitionVersion\":\"9007199254740993\"},\"displayName\":\"Customer dormancy\",\"supportedOperations\":[\"inspect\",\"configure\"],\"configurationContract\":{\"configurationId\":\"customer.settings\",\"schemaVersion\":\"1\",\"shape\":{\"kind\":\"object\",\"nullable\":false,\"members\":[{\"name\":\"Enabled\",\"required\":false,\"shape\":{\"kind\":\"boolean\",\"nullable\":false}}]}},\"form\":{\"fields\":[{\"path\":\"/Enabled\",\"editor\":\"boolean\",\"label\":\"Enabled\"}]}}"
+    },
+    {
+      "id": "scheduler-capability-reported-availability-unknown-is-not-success",
+      "schema": "CapabilityParticipation",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"key\":{\"ownerApplication\":\"Demo.CountryData\",\"kind\":\"job\",\"executionScope\":\"customer-service\",\"definitionId\":\"customer.dormancy\",\"definitionVersion\":\"9007199254740993\"},\"registrationId\":\"11111111-1111-1111-1111-111111111111\",\"inventorySequence\":\"9007199254740993\",\"observedAtUtc\":\"2026-11-25T10:00:00.0000000Z\",\"receivedAtUtc\":\"2026-11-25T10:00:01.0000000Z\",\"availability\":\"futureAvailability\",\"draining\":true}",
+      "expected": {
+        "knownAvailability": false
+      }
+    },
+    {
+      "id": "scheduler-worker-build-actual-registration-fields",
+      "schema": "WorkerBuildReference",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"applicationVersion\":\"2.4.1\",\"buildId\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"handlerId\":\"customer.dormancy/2026.11.24.1\",\"sourceRevision\":\"original-build\"}"
+    },
+    {
+      "id": "scheduler-worker-build-null-source-revision-rejected",
+      "schema": "CommandWorkerBuildReference",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"applicationVersion\":\"2.4.1\",\"buildId\":\"immutable-2026.11.24.1\",\"handlerId\":\"customer.dormancy\",\"sourceRevision\":null}"
+    },
+    {
+      "id": "scheduler-worker-source-revision-utf8-bound-is-runtime-rule",
+      "schema": "WorkerBuildReference",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"applicationVersion\":\"2.4.1\",\"buildId\":\"immutable-2026.11.24.1\",\"handlerId\":\"customer.dormancy\",\"sourceRevision\":\"ééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé\"}"
+    },
+    {
+      "id": "scheduler-worker-build-compatible-response-addition",
+      "schema": "WorkerBuildReference",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"applicationVersion\":\"2.4.1\",\"buildId\":\"immutable-2026.11.24.1\",\"handlerId\":\"customer.dormancy\",\"futureRegistrationFact\":\"data\"}"
+    },
+    {
+      "id": "scheduler-execution-support-exact-contracts",
+      "schema": "JobExecutionSupport",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"currentContract\":{\"name\":\"customer.execution\",\"version\":1},\"supportedStarts\":[{\"name\":\"customer.execution\",\"version\":1}],\"supportedRecoveries\":[{\"name\":\"customer.execution\",\"version\":1}],\"operationName\":\"customer.dormancy\"}"
+    },
+    {
+      "id": "scheduler-execution-support-passive-no-operation",
+      "schema": "JobExecutionSupport",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"currentContract\":{\"name\":\"customer.execution\",\"version\":1},\"supportedStarts\":[{\"name\":\"customer.execution\",\"version\":1}],\"supportedRecoveries\":[]}"
+    },
+    {
+      "id": "scheduler-execution-support-current-membership-is-runtime-rule",
+      "schema": "JobExecutionSupport",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"currentContract\":{\"name\":\"customer.execution\",\"version\":2},\"supportedStarts\":[{\"name\":\"customer.execution\",\"version\":1}],\"supportedRecoveries\":[]}"
+    },
+    {
+      "id": "scheduler-execution-support-rejects-duplicate-start-contract",
+      "schema": "CommandJobExecutionSupport",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"currentContract\":{\"name\":\"customer.execution\",\"version\":1},\"supportedStarts\":[{\"name\":\"customer.execution\",\"version\":1},{\"name\":\"customer.execution\",\"version\":1}],\"supportedRecoveries\":[{\"name\":\"customer.execution\",\"version\":1}],\"operationName\":\"customer.dormancy\"}"
+    },
+    {
+      "id": "scheduler-execution-support-rejects-seventeen-recovery-contracts",
+      "schema": "CommandJobExecutionSupport",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"currentContract\":{\"name\":\"customer.execution\",\"version\":1},\"supportedStarts\":[{\"name\":\"customer.execution\",\"version\":1}],\"supportedRecoveries\":[{\"name\":\"customer.execution\",\"version\":1},{\"name\":\"customer.execution\",\"version\":2},{\"name\":\"customer.execution\",\"version\":3},{\"name\":\"customer.execution\",\"version\":4},{\"name\":\"customer.execution\",\"version\":5},{\"name\":\"customer.execution\",\"version\":6},{\"name\":\"customer.execution\",\"version\":7},{\"name\":\"customer.execution\",\"version\":8},{\"name\":\"customer.execution\",\"version\":9},{\"name\":\"customer.execution\",\"version\":10},{\"name\":\"customer.execution\",\"version\":11},{\"name\":\"customer.execution\",\"version\":12},{\"name\":\"customer.execution\",\"version\":13},{\"name\":\"customer.execution\",\"version\":14},{\"name\":\"customer.execution\",\"version\":15},{\"name\":\"customer.execution\",\"version\":16},{\"name\":\"customer.execution\",\"version\":17}],\"operationName\":\"customer.dormancy\"}"
+    },
+    {
+      "id": "scheduler-execution-support-rejects-null-operation-name",
+      "schema": "CommandJobExecutionSupport",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"currentContract\":{\"name\":\"customer.execution\",\"version\":1},\"supportedStarts\":[{\"name\":\"customer.execution\",\"version\":1}],\"supportedRecoveries\":[{\"name\":\"customer.execution\",\"version\":1}],\"operationName\":null}"
+    },
+    {
+      "id": "scheduler-contract-existing-message-profile",
+      "schema": "MessageContract",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"name\":\"customer/dormancy.input\",\"version\":1}"
+    },
+    {
+      "id": "scheduler-contract-rejects-colon-not-in-message-profile",
+      "schema": "CommandMessageContract",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"name\":\"customer:input\",\"version\":1}"
+    },
+    {
+      "id": "scheduler-contract-rejects-number-as-version-string",
+      "schema": "CommandMessageContract",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"name\":\"customer.input\",\"version\":\"1\"}"
+    },
+    {
+      "id": "scheduler-contract-rejects-zero-version",
+      "schema": "CommandMessageContract",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"name\":\"customer.input\",\"version\":0}"
+    },
+    {
+      "id": "scheduler-contract-additive-response",
+      "schema": "MessageContract",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"name\":\"customer.input\",\"version\":1,\"future\":{\"mode\":\"data\"}}"
+    },
+    {
+      "id": "scheduler-contract-closed-command",
+      "schema": "CommandMessageContract",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"name\":\"customer.input\",\"version\":1,\"handlerType\":\"Forged.Type\"}"
+    },
+    {
+      "id": "scheduler-business-operation-preserves-existing-key",
+      "schema": "MessageOperationReference",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"operationName\":\"customer.dormancy\",\"requestedScope\":\"customer-service/Europe\",\"key\":\"original:key/with?punctuation\"}",
+      "expected": {
+        "key": "original:key/with?punctuation"
+      }
+    },
+    {
+      "id": "scheduler-business-operation-does-not-use-management-field-names",
+      "schema": "CommandMessageOperationReference",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"name\":\"customer.dormancy\",\"scope\":\"customer-service\",\"key\":\"original\"}"
+    },
+    {
+      "id": "scheduler-business-operation-rejects-space-in-key",
+      "schema": "CommandMessageOperationReference",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"operationName\":\"customer.dormancy\",\"requestedScope\":\"customer-service\",\"key\":\"not visible\"}"
+    },
+    {
+      "id": "scheduler-business-scope-utf8-bound-is-runtime-rule",
+      "schema": "MessageOperationReference",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"operationName\":\"customer.dormancy\",\"requestedScope\":\"ééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé\",\"key\":\"original\"}"
+    },
+    {
+      "id": "scheduler-administrative-operation-canonical-key",
+      "schema": "OperationReference",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"name\":\"management.scheduler.task.write\",\"scope\":\"task/native-actor\",\"key\":\"original_1\"}"
+    },
+    {
+      "id": "scheduler-administrative-route-key-does-not-accept-business-punctuation",
+      "schema": "OperationReference",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"name\":\"management.scheduler.task.write\",\"scope\":\"task/native-actor\",\"key\":\"original:key/with?punctuation\"}"
+    },
+    {
+      "id": "scheduler-administrative-route-key-rejects-dot-segment",
+      "schema": "OperationReference",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"name\":\"management.scheduler.task.write\",\"scope\":\"task/native-actor\",\"key\":\"..\"}"
+    },
+    {
+      "id": "scheduler-current-cleanup-separate-from-commit",
+      "schema": "TransactionFacts",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"outcome\":\"committed\",\"cleanupSucceeded\":false,\"cleanupCodes\":[\"transactions.cleanup\"]}"
+    },
+    {
+      "id": "scheduler-future-transaction-state-remains-data",
+      "schema": "TransactionFacts",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"outcome\":\"futureCompletion\",\"cleanupSucceeded\":true,\"futureObservation\":\"retained\"}"
+    },
+    {
+      "id": "scheduler-cleanup-is-boolean-not-null",
+      "schema": "TransactionFacts",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"outcome\":\"committed\",\"cleanupSucceeded\":null}"
+    },
+    {
+      "id": "scheduler-native-rejection-does-not-invent-decision",
+      "schema": "OperationRejection",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"code\":\"scheduler.mapping.invalid\",\"message\":\"The selected mapping cannot be admitted.\"}"
+    },
+    {
+      "id": "scheduler-rejection-requires-native-message",
+      "schema": "OperationRejection",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"code\":\"scheduler.mapping.invalid\"}"
+    },
+    {
+      "id": "scheduler-duplicate-contract-member-is-runtime-rule",
+      "schema": "CommandMessageContract",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"name\":\"customer.input\",\"version\":1,\"version\":2}"
+    },
+    {
+      "id": "scheduler-history-event-requires-exact-source",
+      "schema": "SchedulerHistoryQuery",
+      "direction": "request",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"triggerApplicationId\":\"11111111-1111-1111-1111-111111111111\",\"triggerId\":\"22222222-2222-2222-2222-222222222222\",\"eventId\":\"44444444-4444-4444-4444-444444444444\"}"
+    },
+    {
+      "id": "scheduler-history-event-rejects-global-event-id",
+      "schema": "SchedulerHistoryQuery",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"eventId\":\"44444444-4444-4444-4444-444444444444\"}"
+    },
+    {
+      "id": "scheduler-history-event-rejects-half-source-reference",
+      "schema": "SchedulerHistoryQuery",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"eventId\":\"44444444-4444-4444-4444-444444444444\",\"triggerApplicationId\":\"11111111-1111-1111-1111-111111111111\"}"
+    },
+    {
+      "id": "scheduler-run-rejects-ambiguous-event-without-trigger",
+      "schema": "SchedulerRun",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"runId\":\"55555555-5555-5555-5555-555555555555\",\"taskId\":\"33333333-3333-3333-3333-333333333333\",\"taskRevision\":\"9007199254740993\",\"eventId\":\"44444444-4444-4444-4444-444444444444\",\"job\":{\"ownerApplication\":\"Demo.CountryData\",\"kind\":\"job\",\"executionScope\":\"customer-service\",\"definitionId\":\"customer.dormancy\",\"definitionVersion\":\"1\"},\"resourceId\":\"Europe\",\"state\":\"retryPending\",\"createdAtUtc\":\"2026-11-25T01:00:00.0000000Z\",\"attemptCount\":\"9007199254740993\",\"nextAttemptAtUtc\":\"2026-11-25T01:01:00.0000000Z\"}"
+    },
+    {
+      "id": "scheduler-attempt-observes-acquisition-and-monotonic-duration",
+      "schema": "SchedulerAttempt",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"runId\":\"55555555-5555-5555-5555-555555555555\",\"attemptId\":\"66666666-6666-6666-6666-666666666666\",\"number\":\"9007199254740993\",\"role\":\"recovery\",\"state\":\"settled\",\"admittedAtUtc\":\"2026-11-25T01:00:00.0000000Z\",\"build\":{\"applicationVersion\":\"2.4.1\",\"buildId\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"handlerId\":\"customer.dormancy/2026.11.24.1\"},\"executor\":{\"application\":\"Demo.CountryData\",\"environment\":\"Development\",\"issuer\":\"https://issuer.example.invalid/v2.0\",\"subject\":\"country-workload\",\"bindingId\":\"country-workload-v1\",\"profileId\":\"app-default\"},\"registrationId\":\"77777777-7777-7777-7777-777777777777\",\"effectivePolicy\":\"policy-1\",\"sequence\":\"2\",\"settledAtUtc\":\"2026-11-25T01:00:10.0000000Z\",\"businessCompletion\":\"committed\",\"callbackSettled\":true,\"cleanupSucceeded\":false,\"acquisitionId\":\"99999999-9999-9999-9999-999999999999\",\"durationMs\":\"0\"}",
+      "expected": {
+        "durationMs": "0",
+        "acquisitionId": "99999999-9999-9999-9999-999999999999"
+      }
+    },
+    {
+      "id": "scheduler-attempt-command-retains-native-acquisition",
+      "schema": "SchedulerAttemptCommand",
+      "direction": "request",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"commandVersion\":1,\"attemptId\":\"66666666-6666-6666-6666-666666666666\",\"registrationId\":\"77777777-7777-7777-7777-777777777777\",\"role\":\"recovery\",\"executionContract\":{\"name\":\"customer.execution\",\"version\":1},\"build\":{\"applicationVersion\":\"2.4.1\",\"buildId\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"handlerId\":\"customer.dormancy/2026.11.24.1\"},\"ownershipGeneration\":\"1\",\"acquisitionId\":\"99999999-9999-9999-9999-999999999999\"}"
+    },
+    {
+      "id": "scheduler-attempt-command-rejects-noncanonical-acquisition",
+      "schema": "SchedulerAttemptCommand",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"commandVersion\":1,\"attemptId\":\"66666666-6666-6666-6666-666666666666\",\"registrationId\":\"77777777-7777-7777-7777-777777777777\",\"role\":\"recovery\",\"executionContract\":{\"name\":\"customer.execution\",\"version\":1},\"build\":{\"applicationVersion\":\"2.4.1\",\"buildId\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"handlerId\":\"customer.dormancy/2026.11.24.1\"},\"ownershipGeneration\":\"1\",\"acquisitionId\":\"not-an-acquisition\"}"
+    },
+    {
+      "id": "scheduler-report-duration-is-lossless-monotonic-value",
+      "schema": "SchedulerAttemptReport",
+      "direction": "request",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"commandVersion\":1,\"sequence\":\"3\",\"observedAtUtc\":\"2026-11-25T01:00:00.0000000Z\",\"phase\":\"settled\",\"businessCompletion\":\"committed\",\"callbackSettled\":true,\"cleanupSucceeded\":false,\"durationMs\":\"9007199254740993\"}",
+      "expected": {
+        "durationMs": "9007199254740993"
+      }
+    },
+    {
+      "id": "scheduler-report-rejects-numeric-duration",
+      "schema": "SchedulerAttemptReport",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"commandVersion\":1,\"sequence\":\"3\",\"observedAtUtc\":\"2026-11-25T01:00:00.0000000Z\",\"phase\":\"settled\",\"businessCompletion\":\"committed\",\"callbackSettled\":true,\"cleanupSucceeded\":false,\"durationMs\":10}"
+    },
+    {
+      "id": "scheduler-report-rejects-negative-duration",
+      "schema": "SchedulerAttemptReport",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"commandVersion\":1,\"sequence\":\"3\",\"observedAtUtc\":\"2026-11-25T01:00:00.0000000Z\",\"phase\":\"settled\",\"businessCompletion\":\"committed\",\"callbackSettled\":true,\"cleanupSucceeded\":false,\"durationMs\":\"-1\"}"
+    },
+    {
+      "id": "scheduler-report-duration-int64-ceiling-is-runtime-rule",
+      "schema": "SchedulerAttemptReport",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"commandVersion\":1,\"sequence\":\"3\",\"observedAtUtc\":\"2026-11-25T01:00:00.0000000Z\",\"phase\":\"settled\",\"businessCompletion\":\"committed\",\"callbackSettled\":true,\"cleanupSucceeded\":false,\"durationMs\":\"9223372036854775808\"}"
+    },
+    {
+      "id": "scheduler-execution-settings-preserve-timespan-ticks",
+      "schema": "CommandSchedulerExecutionSettings",
+      "direction": "request",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"idleDelayTicks\":\"1\",\"timeoutTicks\":\"42336000000000\",\"maximumDrainTicks\":\"300000000\",\"acquisitionRetryDelayTicks\":\"50000000\"}",
+      "expected": {
+        "idleDelayTicks": "1"
+      }
+    },
+    {
+      "id": "scheduler-execution-settings-reject-numeric-ticks",
+      "schema": "CommandSchedulerExecutionSettings",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"idleDelayTicks\":1,\"timeoutTicks\":\"42336000000000\",\"maximumDrainTicks\":\"300000000\",\"acquisitionRetryDelayTicks\":\"50000000\"}"
+    },
+    {
+      "id": "scheduler-execution-settings-drain-ceiling-is-runtime-rule",
+      "schema": "CommandSchedulerExecutionSettings",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"idleDelayTicks\":\"1\",\"timeoutTicks\":\"42336000000000\",\"maximumDrainTicks\":\"864000000001\",\"acquisitionRetryDelayTicks\":\"50000000\"}"
+    },
+    {
+      "id": "scheduler-capsule-requires-pinned-execution-settings",
+      "schema": "SchedulerRunCapsule",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"runId\":\"55555555-5555-5555-5555-555555555555\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"taskId\":\"33333333-3333-3333-3333-333333333333\",\"taskRevision\":\"9007199254740993\",\"trigger\":{\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"triggerId\":\"22222222-2222-2222-2222-222222222222\"},\"eventId\":\"44444444-4444-4444-4444-444444444444\",\"job\":{\"ownerApplication\":\"Demo.CountryData\",\"kind\":\"job\",\"executionScope\":\"customer-service\",\"definitionId\":\"customer.dormancy\",\"definitionVersion\":\"1\"},\"resourceId\":\"Europe\",\"inputEnvelopeJson\":\"{\\\"envelopeVersion\\\":1,\\\"messageId\\\":\\\"55555555-5555-5555-5555-555555555555\\\",\\\"kind\\\":\\\"command\\\",\\\"messageType\\\":\\\"customer.dormancy.input\\\",\\\"schemaVersion\\\":1,\\\"producerApplication\\\":\\\"CIS.Management\\\",\\\"producerEnvironment\\\":\\\"Development\\\",\\\"createdAtUtc\\\":\\\"2026-11-25T01:00:00.0000000Z\\\",\\\"payload\\\":{\\\"PartitionId\\\":\\\"Europe\\\"},\\\"operation\\\":{\\\"operationName\\\":\\\"customer.dormancy\\\",\\\"requestedScope\\\":\\\"customer-service/Europe\\\",\\\"key\\\":\\\"business:key/with?punctuation\\\"}}\",\"executionContract\":{\"name\":\"customer.execution\",\"version\":1},\"originalOperation\":{\"operationName\":\"customer.dormancy\",\"requestedScope\":\"customer-service/Europe\",\"key\":\"business:key/with?punctuation\"},\"jobSettings\":{\"selection\":{\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"customer.settings\",\"schemaVersion\":\"1\",\"releaseId\":\"88888888-8888-8888-8888-888888888888\",\"assignmentGeneration\":\"9007199254740993\"},\"payloadJson\":\"{}\",\"sha256\":\"44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a\"},\"executionIdentity\":{\"application\":\"Demo.CountryData\",\"environment\":\"Development\",\"issuer\":\"https://issuer.example.invalid/v2.0\",\"subject\":\"country-workload\",\"bindingId\":\"country-workload-v1\",\"profileId\":\"app-default\"},\"configuredBy\":{\"kind\":\"user\",\"issuer\":\"https://issuer.example.invalid/v2.0\",\"subject\":\"operator-object\",\"displayName\":\"Demo operations\"},\"producer\":{\"kind\":\"application\",\"issuer\":\"https://issuer.example.invalid/v2.0\",\"subject\":\"calendar-workload\",\"application\":\"CIS.Management\",\"environment\":\"Development\"},\"scheduledAtUtc\":\"2026-11-25T01:00:00.0000000Z\",\"eventOccurredAtUtc\":\"2026-11-25T01:00:00.0000000Z\",\"eventReceivedAtUtc\":\"2026-11-25T01:00:01.0000000Z\"}"
+    },
+    {
+      "id": "scheduler-calendar-preserves-single-timespan-tick",
+      "schema": "CommandSchedulerCalendar",
+      "direction": "request",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"form\":\"fixedDelay\",\"missedRunPolicy\":\"runLatestOnce\",\"delayMs\":\"0.0001\"}"
+    },
+    {
+      "id": "scheduler-calendar-rejects-unrepresentable-subtick",
+      "schema": "CommandSchedulerCalendar",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"form\":\"fixedDelay\",\"missedRunPolicy\":\"runLatestOnce\",\"delayMs\":\"0.00001\"}"
+    },
+    {
+      "id": "scheduler-calendar-rejects-noncanonical-trailing-zero",
+      "schema": "CommandSchedulerCalendar",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"form\":\"fixedDelay\",\"missedRunPolicy\":\"runLatestOnce\",\"delayMs\":\"1.0000\"}"
+    },
+    {
+      "id": "scheduler-calendar-rejects-exponent-duration",
+      "schema": "CommandSchedulerCalendar",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"form\":\"fixedDelay\",\"missedRunPolicy\":\"runLatestOnce\",\"delayMs\":\"1e3\"}"
+    },
+    {
+      "id": "scheduler-calendar-rejects-leading-zero-duration",
+      "schema": "CommandSchedulerCalendar",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"form\":\"fixedDelay\",\"missedRunPolicy\":\"runLatestOnce\",\"delayMs\":\"01\"}"
+    },
+    {
+      "id": "scheduler-task-draft-distinguishes-execution-and-business-settings",
+      "schema": "CommandSchedulerTaskDraft",
+      "direction": "request",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"name\":\"Daily customer check\",\"trigger\":{\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"triggerId\":\"22222222-2222-2222-2222-222222222222\"},\"job\":{\"ownerApplication\":\"Demo.CountryData\",\"kind\":\"job\",\"executionScope\":\"customer-service\",\"definitionId\":\"customer.dormancy\",\"definitionVersion\":\"1\"},\"resource\":{\"kind\":\"constant\",\"constant\":\"Europe\"},\"inputMappings\":[{\"targetPath\":\"/PartitionId\",\"kind\":\"constant\",\"constantJson\":\"\\\"Europe\\\"\"}],\"jobConfiguration\":{\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"customer.settings\",\"schemaVersion\":\"1\",\"releaseId\":\"88888888-8888-8888-8888-888888888888\",\"assignmentGeneration\":\"9007199254740993\"},\"executionProfileId\":\"app-default\",\"enabled\":false,\"executionSettings\":{\"idleDelayTicks\":\"1\",\"timeoutTicks\":\"42336000000000\",\"maximumDrainTicks\":\"300000000\",\"acquisitionRetryDelayTicks\":\"50000000\"}}"
+    },
+    {
+      "id": "scheduler-cancellation-has-only-fixed-cancel-intent",
+      "schema": "SchedulerRunCancellationCommand",
+      "direction": "request",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"commandVersion\":1,\"intent\":\"cancel\",\"reason\":\"Operator requested cancellation\"}"
+    },
+    {
+      "id": "scheduler-cancellation-rejects-task-activation-intent",
+      "schema": "SchedulerRunCancellationCommand",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"commandVersion\":1,\"intent\":\"activate\",\"reason\":\"Operator requested cancellation\"}"
+    },
+    {
+      "id": "scheduler-trigger-resume-requires-native-paused-state",
+      "schema": "SchedulerTriggerStateCommand",
+      "direction": "request",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"commandVersion\":1,\"intent\":\"resume\",\"reason\":\"Operator requested cancellation\"}"
+    },
+    {
+      "id": "scheduler-task-rejects-invented-pause-command",
+      "schema": "SchedulerTaskStateCommand",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"commandVersion\":1,\"intent\":\"pause\",\"reason\":\"Operator requested cancellation\"}"
+    },
+    {
+      "id": "scheduler-attempt-command-retains-native-effective-policy",
+      "schema": "SchedulerAttemptCommand",
+      "direction": "request",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"commandVersion\":1,\"attemptId\":\"66666666-6666-6666-6666-666666666666\",\"registrationId\":\"77777777-7777-7777-7777-777777777777\",\"role\":\"recovery\",\"executionContract\":{\"name\":\"customer.execution\",\"version\":1},\"build\":{\"applicationVersion\":\"2.4.1\",\"buildId\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"handlerId\":\"customer.dormancy/2026.11.24.1\"},\"ownershipGeneration\":\"1\",\"acquisitionId\":\"99999999-9999-9999-9999-999999999999\",\"effectivePolicy\":\"policy-1\"}"
+    },
+    {
+      "id": "scheduler-attempt-command-rejects-caller-operation-token",
+      "schema": "SchedulerAttemptCommand",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"commandVersion\":1,\"attemptId\":\"66666666-6666-6666-6666-666666666666\",\"registrationId\":\"77777777-7777-7777-7777-777777777777\",\"role\":\"recovery\",\"executionContract\":{\"name\":\"customer.execution\",\"version\":1},\"build\":{\"applicationVersion\":\"2.4.1\",\"buildId\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"handlerId\":\"customer.dormancy/2026.11.24.1\"},\"ownershipGeneration\":\"1\",\"acquisitionId\":\"99999999-9999-9999-9999-999999999999\",\"effectivePolicy\":\"policy-1\",\"bearerToken\":\"not-authority\"}"
+    }
+  ]
+}

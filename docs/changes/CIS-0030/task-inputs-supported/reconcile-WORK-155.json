@@ -1,0 +1,28 @@
+{
+  "tasks": [
+    {
+      "title": "Implement bounded operator-bound original command receipts",
+      "scopeIds": [
+        "capability-contracts",
+        "configuration-portal",
+        "intake-design",
+        "integration",
+        "portal",
+        "scheduler"
+      ],
+      "paths": [
+        "implementations/typescript/applications/management-portal/src",
+        "implementations/typescript/applications/management-portal/tests",
+        "docs/modules/management"
+      ],
+      "dependsOn": [
+        "WORK-152",
+        "WORK-171"
+      ],
+      "complexity": "medium",
+      "category": "data",
+      "acceptanceCriteria": "Deliver the typed browser session-storage receipt primitive used by portal commands: create original key before submit, retain only operator association/family/exact target/key/time, at most16 receipts with24-hour UI retention, no credentials/claims/payload/draft persistence. Expiry removes only UI references and never backend duplicate protection. Recovery stays with original key/family/target and fresh permission, one selected recovery request at a time; timeout/NotFound/lookup denial cannot authorize automatic replacement work. No server draft database or generic workflow ledger. Owns receipt portions of RM09-AC09, RM09-AC10, RM09-AC12, RM09-AC17, RM09-AC19 and RM10-AC28.",
+      "validation": "Test bounded strict parsing, count/byte/age/family/target, same-user reload and original-key retention through uncertain outcome/lookup refusal with existing portal unit tools. Document UI receipt versus RM03 protection and independently review the implementation. Verify this owner consumes only the declared medium prerequisites (WORK-152, WORK-171) and keeps the original parent accounting pool; broad provenance containers are not early completion prerequisites."
+    }
+  ]
+}

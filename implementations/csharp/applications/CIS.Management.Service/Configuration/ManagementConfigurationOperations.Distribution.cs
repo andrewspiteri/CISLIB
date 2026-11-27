@@ -15,19 +15,17 @@ internal static partial class ManagementConfigurationOperations
 
     internal static OperationDefinition<ManagementReleaseInput, ManagementConfigurationDecision> Release()
         => new(ReleaseName, "management", new("cis.management.configuration.release.input", 1), new ReleaseNormalizer(),
-            new ResultCodec(), services => new ScopeResolver(services.GetRequiredService<ManagementConfigurationTarget>(),
-                ReleaseName, ManagementConfigurationCapabilities.BindingResource), Options(ManagementConfigurationCapabilities.ReleaseCreate));
+            new ResultCodec(), services => Resolver(services, ReleaseName, ManagementConfigurationCapabilities.BindingResource), Options(ManagementConfigurationCapabilities.ReleaseCreate));
 
     internal static OperationDefinition<ManagementAssignmentInput, ManagementConfigurationDecision> Assignment()
         => new(AssignmentName, "management", new("cis.management.configuration.assignment.input", 1), new AssignmentNormalizer(),
-            new ResultCodec(), services => new ScopeResolver(services.GetRequiredService<ManagementConfigurationTarget>(),
-                AssignmentName, ManagementConfigurationCapabilities.BindingResource), Options(ManagementConfigurationCapabilities.AssignmentWrite));
+            new ResultCodec(), services => Resolver(services, AssignmentName, ManagementConfigurationCapabilities.BindingResource), Options(ManagementConfigurationCapabilities.AssignmentWrite));
 
     private sealed class ReleaseNormalizer : IOperationRequestNormalizer<ManagementReleaseInput>
     {
         public NormalizedOperationInput<ManagementReleaseInput> Normalize(ManagementReleaseInput input, OperationScope scope)
         {
-            Require(input.Binding.BindingId, input.IfMatch, scope, ManagementConfigurationCapabilities.BindingResource);
+            Require(input.Binding.BindingId, input.IfMatch, scope, ManagementConfigurationCapabilities.BindingResource, input.Binding.ApplicationId);
             byte[] command = ManagementConfigurationWire.EncodeRequest(input.Command);
             var copy = new ManagementReleaseInput(BindingCopy(input.Binding), input.IfMatch,
                 ManagementConfigurationWire.DecodeRequest<ManagementConfigurationReleaseCommand>(command)!);
@@ -39,7 +37,7 @@ internal static partial class ManagementConfigurationOperations
     {
         public NormalizedOperationInput<ManagementAssignmentInput> Normalize(ManagementAssignmentInput input, OperationScope scope)
         {
-            Require(input.Binding.BindingId, input.IfMatch, scope, ManagementConfigurationCapabilities.BindingResource);
+            Require(input.Binding.BindingId, input.IfMatch, scope, ManagementConfigurationCapabilities.BindingResource, input.Binding.ApplicationId);
             byte[] original = ManagementConfigurationWire.EncodeRequest(input.Command);
             ManagementConfigurationAssignmentCommand owned = ManagementConfigurationWire.DecodeRequest<ManagementConfigurationAssignmentCommand>(original)!;
             owned = owned with

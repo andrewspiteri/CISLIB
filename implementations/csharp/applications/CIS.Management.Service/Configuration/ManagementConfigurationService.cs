@@ -12,7 +12,7 @@ namespace CIS.Management.Service.Configuration;
 public sealed record ManagementConfigurationResponse(int Status, string? Code = null,
     ManagementOperationReference? Operation = null, ManagementConfigurationOperationResult? Result = null);
 
-internal sealed class ManagementConfigurationService(IDurableOperationService operations, ILocalTransactionFactory transactions,
+internal sealed partial class ManagementConfigurationService(IDurableOperationService operations, ILocalTransactionFactory transactions,
     PostgreSqlManagementStore store, ICallerContextAccessor callers, ManagementConfigurationTarget target,
     IAuditCapture capture, IAuditWriter audit, PostgreSqlManagementAuthority authority, ManagementServiceOptions options)
 {
@@ -41,12 +41,12 @@ internal sealed class ManagementConfigurationService(IDurableOperationService op
     internal Task<ManagementConfigurationResponse> LookupCatalogAsync(ManagementConfigurationCatalog catalog, string key,
         CancellationToken token)
         => Lookup(Bind(ManagementConfigurationOperations.CatalogName, ManagementConfigurationCapabilities.CatalogResource,
-            catalog.CatalogId, key), token);
+            catalog.CatalogId, key, lookup: true), token);
 
     internal Task<ManagementConfigurationResponse> LookupPublicationAsync(ManagementConfigurationDefinition source, string key,
         CancellationToken token)
         => Lookup(Bind(ManagementConfigurationOperations.PublicationName, ManagementConfigurationCapabilities.SourceResource,
-            source.SourceId, key), token);
+            source.SourceId, key, lookup: true), token);
 
     internal Task<ManagementConfigurationResponse> CreateReleaseAsync(ManagementConfigurationBindingResource binding, string key,
         string ifMatch, ManagementConfigurationReleaseCommand command, CancellationToken token)
@@ -68,15 +68,15 @@ internal sealed class ManagementConfigurationService(IDurableOperationService op
     }
 
     internal Task<ManagementConfigurationResponse> LookupReleaseAsync(ManagementConfigurationBindingResource binding, string key, CancellationToken token)
-        => Lookup(Bind(ManagementConfigurationOperations.ReleaseName, ManagementConfigurationCapabilities.BindingResource, binding.BindingId, key), token);
+        => Lookup(Bind(ManagementConfigurationOperations.ReleaseName, ManagementConfigurationCapabilities.BindingResource, binding.BindingId, key, lookup: true), token);
 
     internal Task<ManagementConfigurationResponse> LookupAssignmentAsync(ManagementConfigurationBindingResource binding, string key, CancellationToken token)
-        => Lookup(Bind(ManagementConfigurationOperations.AssignmentName, ManagementConfigurationCapabilities.BindingResource, binding.BindingId, key), token);
+        => Lookup(Bind(ManagementConfigurationOperations.AssignmentName, ManagementConfigurationCapabilities.BindingResource, binding.BindingId, key, lookup: true), token);
 
-    private ManagementOperationReference Bind(string name, string resourceType, string resourceId, string key)
+    private ManagementOperationReference Bind(string name, string resourceType, string resourceId, string key, bool lookup = false)
     {
         CallerContext caller = callers.Current ?? throw new InvalidOperationException("A validated native caller is required.");
-        target.Bind(resourceType, resourceId);
+        target.Bind(resourceType, resourceId, lookup);
         return new(name, ManagementConfigurationOperations.Scope(name, caller, resourceId), key);
     }
 

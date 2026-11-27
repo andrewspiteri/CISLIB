@@ -30,15 +30,15 @@ Which user-facing surfaces and audience classifications need one coherent visual
 - Common options: Public web; Customer web; Backoffice web; iOS; Android; Desktop; Embedded; No user-facing UI
 - Advisory starting direction: Include only surfaces established by the Active BRD and technical intent. Keep public, customer, and backoffice experiences explicitly classified.
 - Status: Answered
-- Answered by: Andrew Spiteri (R02-R06 screenshot decisions; transcribed by Codex)
-- Answered at: 2026-11-25T17:14:07.4226297+00:00
+- Answered by: Andrew Spiteri (current explicit completion request transcribed by Codex; R07 visual approval pending)
+- Answered at: 2026-11-25T22:34:39.8785914+00:00
 - Resolution source: human
 - Confidence: confirmed
 - Evidence: Not recorded
 
 #### Recorded answer
 
-Add only the RM09 desktop-browser backoffice Management portal for authorized operators. This is the explicit, narrow exception to the 10 November 2026 global No user-facing UI record, selected by the user's subsequent RM09 request and R02-R06 screenshot decisions. The current delivered step is read-only Applications to application detail: Instances, Configuration list, Capabilities and Scheduled jobs, with item inspection and Job details. Approved Run history, Scheduled Task and immutable Event designs retain their named future backend prerequisites and cannot imply a delivered scheduler/history service. No public/customer UI, mobile/native application, management write workflow or unrelated graphical surface is selected.
+The surface is the existing desktop-browser backoffice Management portal for authorized human operators. The user's current explicit instruction extends the earlier inspection increment to complete the remaining application metadata, Configuration authoring/publication/release/assignment/adoption, Scheduled Task and supported trigger configuration, and real job/task/event/run/attempt history journeys. Capabilities means the application's registered job/task types, exposed engine features and scheduler trigger capabilities, with logical trusted definitions and separately reported instance/version availability; it does not mean the Management HTTP endpoint list. This is current requested product scope, not a claim of implementation or new screenshot approval. Preserve the approved R06 shell and desktop presentation; every uncovered or materially changed visual remains pending R07 review. No public/customer frontend, mobile/native application or unrelated graphical surface is added.
 
 ### UI-Q-002 — Product character
 
@@ -66,15 +66,15 @@ What application shell and primary navigation model should each surface use?
 - Common options: Header only; Header and side navigation; Bottom navigation; Tabs; Master/detail; Document flow; Platform-native shell
 - Advisory starting direction: Choose the smallest persistent shell that supports the product's information architecture. Do not add side or bottom navigation to a simple product without a demonstrated need.
 - Status: Answered
-- Answered by: Andrew Spiteri (R02-R06 screenshot decisions; transcribed by Codex)
-- Answered at: 2026-11-25T17:16:13.8388719+00:00
+- Answered by: Andrew Spiteri (current explicit completion request transcribed by Codex; R07 visual approval pending)
+- Answered at: 2026-11-25T22:35:09.8547325+00:00
 - Resolution source: human
 - Confidence: confirmed
 - Evidence: Not recorded
 
 #### Recorded answer
 
-Use the simple desktop header shown in R06, with Applications as the only top-level destination and no multi-area navigation rail. Applications supports name/identity and authorized-environment filtering. Opening an exact application defaults to Instances and retains its application/environment context across Instances, Configuration, Capabilities and Scheduled jobs tabs. A selected item opens the shared right-side modal inspection panel while its list stays visible. Job View full details opens dedicated detail navigation. Preserve Back, query/cursor, report, scroll and focus context. The approved future Job/Task/Event/history links remain explicit unavailable or prerequisite-dependent reads until their contracts exist.
+Retain R06's CIS/Management rail, Management header and Applications entry, filterable application master/detail flow, visible selected application/environment, and Instances, Configuration, Capabilities and Scheduled jobs context. Lists retain the shared right-side quick panel and explicit View full details navigation where supported. Keep exact-record Back, filter/cursor, report, scroll and focus context. Extend the connected native-data journeys to Configuration review/publication/rollout/adoption, supported configured triggers, Scheduled Tasks and real scoped event/run/attempt history without replacing the shell. Scheduled Task remains the main editor with selectors at task level and exactly Trigger and Job contextual configuration tabs; history is separate. Job details retain Overview, Run history and Configuration. New destinations, mutation navigation or materially changed interactions are proposals until the exact R07 screenshots are approved; existing R06 approval is not reused for unseen screens.
 
 ### UI-Q-004 — Layout and density
 
@@ -84,15 +84,15 @@ What layout rhythm, content width, and information density should guide screens?
 - Common options: Spacious; Balanced; Compact; Data-dense; Single-column; Responsive grid; Master/detail
 - Advisory starting direction: Use an 8 px spacing rhythm, generous outer margins, one dominant action per region, and the lowest density that still supports efficient completion.
 - Status: Answered
-- Answered by: Andrew Spiteri (R02-R06 screenshot decisions; transcribed by Codex)
-- Answered at: 2026-11-25T17:17:08.8796638+00:00
+- Answered by: Andrew Spiteri (current explicit completion request transcribed by Codex; R07 visual approval pending)
+- Answered at: 2026-11-25T22:35:40.6139502+00:00
 - Resolution source: human
 - Confidence: confirmed
 - Evidence: Not recorded
 
 #### Recorded answer
 
-Retain the R06 desktop master/detail layout, bounded readable tables, aligned filters and the 8 px spacing rhythm. Preserve white content surfaces, clear headings, compact status/context fields and readable long application identities, versions and API paths. The approved reference viewport is 1600 by 1000. The right-side modal panel has an independently scrolling body and keeps the underlying list context visible. Do not add cards, multi-area navigation, columns or controls that change the approved information hierarchy.
+Preserve R06's desktop master/detail hierarchy, white readable surfaces, bounded tables, aligned filters, 8 px rhythm and 1600 by 1000 reference. Human names lead each row, heading and selector; owner/environment/version disambiguation remains nearby, while opaque IDs and raw diagnostics move into copyable Advanced details. Use grouped ordinary forms and review sections for the now-required Configuration and scheduling workflows, with one clear primary action per stage and visible target/scope. Keep task-level settings and mapping above the two contextual Trigger and Job tabs, with history separate. Review must make shared-object impact, exact configuration references, partial completed steps and pending adoption/activation readable. The quick panel keeps its independently scrolling body and visible list context. These semantic requirements guide R07; they do not approve unseen columns, form layouts, navigation or action placement. Preserve desktop keyboard/zoom usability without introducing a mobile workflow.
 
 ### UI-Q-005 — Color and theme
 
@@ -120,15 +120,15 @@ What typography, iconography, imagery, and writing tone should the interface use
 - Common options: Sans serif; System typography; Product typeface; Text-first; Icon-supported; Illustration-led; Photography-led
 - Advisory starting direction: Use one highly readable sans-serif family, sentence-case outcome headings, direct evidence-oriented copy, and icons only where they improve recognition.
 - Status: Answered
-- Answered by: Andrew Spiteri (R02-R06 screenshot decisions; transcribed by Codex)
-- Answered at: 2026-11-25T17:19:22.7918665+00:00
+- Answered by: Andrew Spiteri (current explicit completion request transcribed by Codex; R07 visual approval pending)
+- Answered at: 2026-11-25T22:36:07.8740205+00:00
 - Resolution source: human
 - Confidence: confirmed
 - Evidence: Not recorded
 
 #### Recorded answer
 
-Retain Inter, the R06 14-16 px body text and 20-24 px titles, sentence-case labels and direct evidence-oriented copy. Keep canonical identities, raw/open status codes and timestamps readable; distinguish Not reported, Not evaluated and unavailable data. Use icons only where the approved design uses them to support an already named control; no new photography, illustration or decorative image family is selected. Synthetic previews remain identified as synthetic and never substitute for runtime facts.
+Retain Inter, the R06 type scale, sentence-case controls and direct evidence-oriented copy. Prefer permitted application display names, reported instance labels, trusted capability/trigger/job names and actual configured task names over GUID headings. Show owner, environment and relevant version beside names when needed; keep stable IDs, raw ETags, digests and exact timestamps available under Advanced/copy actions rather than hiding diagnostic identity. Do not invent names or derive authority from labels. Distinguish descriptor/schema/execution-contract version, application release, exact attempt build/handler identity, desired release/generation and local applied revision. Use Not reported, Unknown, Not evaluated, Unavailable and No eligible instance precisely; missing history is not zero runs. Synthetic R07 previews remain visibly synthetic. Preserve the restrained icon language and introduce no decorative image family, new palette or rebrand.
 
 ### UI-Q-007 — Reusable component system
 
@@ -138,15 +138,15 @@ Which UI framework, design tokens, and reusable component families are authorita
 - Common options: Existing component system; Classification-selected CIS default; Platform-native components; Custom governed components
 - Advisory starting direction: Preserve an evidenced existing UI system. Otherwise use the platform-specific framework recorded in the UI framework profile and govern shared shell, controls, data display, feedback, overlays, and navigation components.
 - Status: Answered
-- Answered by: Andrew Spiteri (R02-R06 screenshot decisions; transcribed by Codex)
-- Answered at: 2026-11-25T17:20:13.7688810+00:00
+- Answered by: Andrew Spiteri (current explicit completion request transcribed by Codex; R07 visual approval pending)
+- Answered at: 2026-11-25T22:36:34.1001493+00:00
 - Resolution source: human
 - Confidence: confirmed
 - Evidence: Not recorded
 
 #### Recorded answer
 
-Reuse the exact approved R06 visual contracts for the selected CIS shell and component templates: page header, buttons, text input, select, tabs, breadcrumbs, pagination, dialog/right-side inspection panel, alert, table, filter bar, status badge, card, empty state and timeline where applicable. R06's simple header and one Applications destination override the generic shell template's multi-area rail description. Reuse shared production components/tokens for these patterns. The screenshot renderer and its Sharp dependency are design tooling, not a selected production UI framework; this visual answer grants no new package or framework campaign.
+Reuse the existing governed R06 tokens, pinned portal component approach and shared headers/buttons/inputs/selects/tabs/tables/pagers/dialogs/side panels/alerts/badges/cards/empty states. Add the finite controls required by RM10: text, exact numeric, Boolean, enumeration, duration, grouped object fields and the calendar controls supported by accepted descriptors. Form hints must come from trusted provisioned owner descriptions, refer to declared fields and known editor components, and preserve schema/version-specific drafts. They cannot carry arbitrary UI code, React/CLR selectors, scripts, expressions or service URLs. Named lookups resolve authorized registered targets through Management. Configuration uses existing RM08 publication/distribution; a form is not a second store or authority. Reuse bounded exact-payload editing, reviewed command confirmations, whole-map reviews, original-operation receipts, honest adoption and history detail patterns. No new generic UI/schema/rule/auth/DI/test framework or dependency campaign is implied. New visual components and material workflows remain pending R07 screenshots; routine implementation within an accepted design does not require another approval.
 
 ### UI-Q-008 — Responsive and platform adaptation
 
@@ -192,15 +192,15 @@ How should loading, empty, success, warning, error, unavailable, destructive, an
 - Common options: Inline feedback; Status banners; Toast notifications; Skeletons; Progress indicators; Confirmation dialogs; Optimistic updates
 - Advisory starting direction: Every operation needs truthful pending, success, failure, and recovery feedback. Prefer inline feedback; reserve motion for continuity and honor reduced-motion preferences.
 - Status: Answered
-- Answered by: Andrew Spiteri (R02-R06 screenshot decisions; transcribed by Codex)
-- Answered at: 2026-11-25T17:22:43.6745770+00:00
+- Answered by: Andrew Spiteri (current explicit completion request transcribed by Codex; R07 visual approval pending)
+- Answered at: 2026-11-25T22:37:00.5258123+00:00
 - Resolution source: human
 - Confidence: confirmed
 - Evidence: Not recorded
 
 #### Recorded answer
 
-Keep loading, empty, denied, unavailable, stale dated snapshot and incompatible response states distinct. Initial failure offers Retry; failed refresh may retain only the permitted, clearly dated same-scope snapshot. Access/session loss clears protected content; obsolete responses and changed selection cannot repopulate a panel. Missing occurrence times say Not reported; missing history says Run history unavailable and never becomes a successful zero-run result. Preserve the approved persistent inline feedback; no optimistic mutation, new toast system, decorative animation or destructive workflow is selected.
+Preserve distinct loading, no authorized data, no results, unavailable, denied, dated stale snapshot, validation, conflict and incompatible states. Add persistent review and actual native mutation/recovery feedback for the now-requested complete portal: show business acceptance or rejection, original committed/noncommitted/unknown result, and current cleanup observations separately. Freeze the reviewed payload/preconditions and retain the original operation key before submission; never optimistically announce success, automatically retry an uncertain mutation, or infer rollback from cancellation or NotFound recovery. Show source publication, release creation, assignment, owner adoption and executable task activation as separate completed/pending/refused steps; a combined Publish and apply action is not a distributed transaction. Conflicts preserve only still-permitted drafts and require reconciliation. Grant/session/user loss clears protected data and blocks writes; late results cannot repopulate another scope. Outage queues no changes. Manual run and cancellation require real supported durable commands, and cancellation requested does not mean code stopped. Empty history is shown only after an authoritative scoped read; missing support remains unavailable. New confirmations, history/identity states and action meanings require R07 screenshot review; no new toast or decorative motion system is selected.
 
 ### UI-Q-011 — Data and action patterns
 
@@ -210,15 +210,50 @@ Which recurring presentation and action patterns should be standardized?
 - Common options: Flat lists; Tables/grids; Cards; Forms; Inline editing; Search/filter; Bulk actions; Destructive confirmation
 - Advisory starting direction: Standardize only patterns supported by the product's journeys. Keep primary actions obvious, secondary actions compact, and destructive actions explicitly confirmed.
 - Status: Answered
-- Answered by: Andrew Spiteri (R02-R06 screenshot decisions; transcribed by Codex)
-- Answered at: 2026-11-25T17:23:30.5767316+00:00
+- Answered by: Andrew Spiteri (current completion request transcribed by Codex; R07 visuals pending)
+- Answered at: 2026-11-25T22:38:01.7717839+00:00
 - Resolution source: human
 - Confidence: confirmed
 - Evidence: Not recorded
 
 #### Recorded answer
 
-Standardize the approved filterable application table, query-bound Previous/Next paging, exact-identity links/row activation, application detail tabs, current-tab Refresh, readable status badges, shared item inspection panel and context-preserving Back navigation. Use retained data for quick inspection, rather than introducing extra panel reads. Job details retain Overview, Run history and Configuration navigation; future Task configuration has exactly Trigger and Job tabs with history separate, and immutable Event configuration is captured historical context. Keep all current production actions read-only and truthfully unavailable where an explicit prerequisite is missing.
+Standardize the existing application filters, query-bound paging, context-preserving
+lists, shared quick panels and connected full-detail navigation. Correct
+Capabilities to the trusted application feature catalogue: registered job/task
+types, exposed engine features and scheduler trigger capabilities, with separate
+instance/version observations. Preserve the Management HTTP API-capabilities
+protocol for compatibility checks rather than presenting its endpoint list as
+the application's feature catalogue. Lead with permitted human names and show
+opaque IDs and raw diagnostics in copyable Technical details.
+
+Extend these patterns for the now-requested whole portal: display-metadata edits;
+Configuration source authoring/validation, immutable publication and coherent
+release creation; complete assignment/canary/promotion/rollback review; actual
+adoption; and supported Scheduled Task/trigger editing and real event/run/attempt
+history. Use the same explicit target/owner/environment/version context throughout.
+Scheduled Task remains the main configured item, with selectors at task level,
+exactly Trigger and Job contextual configuration tabs, and a separate history
+view or action. Trigger shared settings, application job defaults and task inputs
+remain distinct. Job full details retain Overview, Run history and Configuration;
+Event details show captured historical context.
+
+Known trusted RM10 descriptions drive only finite supported field/calendar
+controls and named authorized lookups. Whole-task preview covers the complete
+draft and shared-object impact, not just the visible tab. Review, original-key
+submission, conflict reconciliation, uncertain-result recovery and partial
+completed steps use the authoritative typed APIs. Show publication, assignment,
+owner adoption and executable task activation separately; neither previews nor
+cancelled waits establish completion. Missing support and unknown outcomes stay
+explicit. No arbitrary UI code, generic expression/schema framework, new
+configuration authority or synthetic production result is introduced.
+
+Preserve the unchanged R06 shell/palette/desktop, focus and Back-context behavior.
+Every uncovered or materially changed visual workflow remains pending exact R07
+screenshots; this answer records requested semantic scope and does not repeat or
+extend the old approval to unseen screens. Backend contracts, routine styling,
+accessibility and focused validation proceed under the current delegated work
+authority without another non-UI permission request.
 
 ### UI-Q-012 — Constraints and exclusions
 
@@ -228,12 +263,12 @@ Which brand assets, mandated conventions, legacy constraints, or explicit visual
 - Common options: Existing brand; Existing shell; Existing design system; White-label; Localization; Offline; No imagery; No animation
 - Advisory starting direction: Record only evidenced constraints. Treat framework replacement, rebranding, new surfaces, and major shell changes as explicit decisions rather than feature-level interpretation.
 - Status: Answered
-- Answered by: Andrew Spiteri (R02-R06 screenshot decisions; transcribed by Codex)
-- Answered at: 2026-11-25T17:24:08.2336271+00:00
+- Answered by: Andrew Spiteri (current explicit completion request transcribed by Codex; R07 visual approval pending)
+- Answered at: 2026-11-25T22:37:25.8511442+00:00
 - Resolution source: human
 - Confidence: confirmed
 - Evidence: Not recorded
 
 #### Recorded answer
 
-Limit this direction to the already approved RM09 desktop backoffice inspection step. Preserve exact R06 layouts, field meaning, selection/return context, original imported guideline bytes and accepted screenshot evidence. Earlier no-UI documents remain retained historical authority, superseded only by this explicit narrow surface decision. No mobile, public/customer frontend, new navigation area, API execution, metadata edit, configuration publication/assignment, scheduling controls, scheduler engine, archive/history store, synthetic production result or unrelated module is added. Future Run history/Task/Event and richer configuration contracts remain explicit named dependencies. Material new visual workflows require the user's screenshot review; routine implementation/accessibility work that preserves this design is delegated.
+The current explicit user request supersedes the prior read-only/deferred scope restriction for the remaining Management portal, including application capability semantics, human-first labels, metadata changes, complete RM08 Configuration workflows and RM10 scheduling/task/history integration. Preserve R06's approved shell/palette/desktop and accepted two-tab Scheduled Task structure, original guideline bytes, historical approvals and actual evidence. Preserve native resource authorization, independently validated human identity, exact preconditions, stable original recovery identity, immutable historical context and current cleanup distinctions. Backend work may proceed independently; all uncovered or materially changed visuals remain pending exact R07 screenshots, and no unseen approval is claimed. Do not add a rule engine, expression language, arbitrary UI-code/schema engine, new authentication/DI/testing framework, portal copy of authoritative management state, second Configuration authority, deployment orchestrator, mobile/public surface or unrelated product. Exposed engine/trigger features must be actually registered; ordinary presence cannot install trusted schemas. Missing backend facts are unavailable rather than fabricated or empty. Do not repeat an approval merely to implement the unchanged accepted editor or perform routine styling, accessibility or focused validation.

@@ -7,7 +7,7 @@ namespace CIS.Management.Service.Persistence;
 /// <summary>Explicit application deployment migration and read-only schema readiness.</summary>
 public static class ManagementSchema
 {
-    public const int Version = 3;
+    public const int Version = 4;
 
     /// <summary>Explicitly installs or upgrades version one without changing retained metadata, results or audit intent.</summary>
     public static Task InstallAsync(ILocalTransactionContext context, string schema,
@@ -36,7 +36,7 @@ public static class ManagementSchema
                         $"SELECT COUNT(*)::integer,COALESCE(min(version),0) FROM {T("management_schema_version")}");
                     await using var reader = await version.ExecuteReaderAsync(token).ConfigureAwait(false);
                     if (!await reader.ReadAsync(token).ConfigureAwait(false) || reader.GetInt32(0) != 1
-                        || reader.GetInt32(1) is not (1 or 2 or Version))
+                        || reader.GetInt32(1) is not (1 or 2 or 3 or Version))
                     {
                         throw new ManagementSchemaException("An existing management schema has an unsupported version.");
                     }
@@ -120,13 +120,24 @@ public static class ManagementSchema
                 }
                 await command.ExecuteNonQueryAsync(token).ConfigureAwait(false);
             }
-            await using var configuration = ManagementSql.Command(connection, transaction,
-                ManagementConfigurationSchemaSql.Installation(schema), ("catalog_id", Guid.NewGuid()));
-            await configuration.ExecuteNonQueryAsync(token).ConfigureAwait(false);
+            if (existingVersion < 3)
+            {
+                await using var configuration = ManagementSql.Command(connection, transaction,
+                    ManagementConfigurationSchemaSql.Installation(schema), ("catalog_id", Guid.NewGuid()));
+                await configuration.ExecuteNonQueryAsync(token).ConfigureAwait(false);
+            }
+            await using (var provenance = ManagementSql.Command(connection, transaction, $"""
+                ALTER TABLE {T("configuration_definition")} ADD COLUMN IF NOT EXISTS manifest_managed boolean NOT NULL DEFAULT true;
+                ALTER TABLE {T("configuration_binding")} ADD COLUMN IF NOT EXISTS manifest_managed boolean NOT NULL DEFAULT true;
+                ALTER TABLE {T("configuration_binding")} ADD COLUMN IF NOT EXISTS predeployment_created boolean NOT NULL DEFAULT false
+                """))
+            {
+                await provenance.ExecuteNonQueryAsync(token).ConfigureAwait(false);
+            }
             await using var advance = ManagementSql.Command(connection, transaction, $"""
                 ALTER TABLE {T("management_schema_version")} DROP CONSTRAINT IF EXISTS management_schema_version_version_check;
-                UPDATE {T("management_schema_version")} SET version=3;
-                ALTER TABLE {T("management_schema_version")} ADD CONSTRAINT management_schema_version_version_check CHECK(version=3)
+                UPDATE {T("management_schema_version")} SET version=4;
+                ALTER TABLE {T("management_schema_version")} ADD CONSTRAINT management_schema_version_version_check CHECK(version=4)
                 """);
             await advance.ExecuteNonQueryAsync(token).ConfigureAwait(false);
         }, cancellationToken);
