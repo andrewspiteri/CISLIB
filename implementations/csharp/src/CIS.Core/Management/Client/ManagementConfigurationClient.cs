@@ -7,7 +7,7 @@ using CIS.RestClient.Http;
 namespace CIS.Management;
 
 /// <summary>Typed configuration calls over one borrowed native REST/security owner, without background work.</summary>
-public sealed class ManagementConfigurationClient : IManagementConfigurationClient
+public sealed partial class ManagementConfigurationClient : IManagementConfigurationClient, IManagementConfigurationEditorClient
 {
     internal const string OperationAlias = "configuration";
     private readonly IRestClient rest;
@@ -42,6 +42,13 @@ public sealed class ManagementConfigurationClient : IManagementConfigurationClie
     public Task<ManagementConfigurationCallResult<ManagementPage<ManagementConfigurationDefinition>>> GetDefinitionsAsync(
         ManagementPageRequest? page = null, ManagementCallOptions? options = null, CancellationToken cancellationToken = default)
         => CallAsync<ManagementPage<ManagementConfigurationDefinition>>("GET", "configuration/definitions", page: page ?? new(), options: options, token: cancellationToken);
+
+    /// <inheritdoc />
+    public Task<ManagementConfigurationCallResult<ManagementPage<ManagementConfigurationDefinition>>> GetApplicationDefinitionsAsync(
+        string applicationId, ManagementPageRequest? page = null, ManagementCallOptions? options = null,
+        CancellationToken cancellationToken = default)
+        => CallAsync<ManagementPage<ManagementConfigurationDefinition>>("GET", "applications/" + Uuid(applicationId) + "/configuration-definitions",
+            page: page ?? new(), options: options, token: cancellationToken);
 
     /// <inheritdoc />
     public Task<ManagementConfigurationCallResult<ManagementConfigurationValidationResult>> ValidateAsync(ManagementConfigurationValidationCommand command,
@@ -167,14 +174,14 @@ public sealed class ManagementConfigurationClient : IManagementConfigurationClie
         CancellationToken token = default) where T : class
     {
         long entered = clock.GetTimestamp();
-        var mapper = new ConfigurationMapper(settings.WireLimits, responseBinding: new(path, schema, body, headers));
+        var mapper = new ConfigurationMapper(settings.WireLimits, responseBinding: new(path, schema, body, headers, maximumPageSize: page?.PageSize));
         RestResult<T> exchange = await SendAsync<T>(entered, method, path, schema, body, page, headers, options, mapper, null, token).ConfigureAwait(false);
         return new(exchange, FinalProblem(exchange, mapper), headers?.Key);
     }
 
     private async Task<RestResult<T>> SendAsync<T>(long entered, string method, string path, string? schema, object? body,
         ManagementPageRequest? page, CommandHeaders? headers, ManagementCallOptions? options, ConfigurationMapper mapper,
-        Func<RestRequestContext, CancellationToken, Task>? configure, CancellationToken token)
+        Func<RestRequestContext, CancellationToken, Task>? configure, CancellationToken token, string? editorSource = null)
     {
         token.ThrowIfCancellationRequested();
         bool schemaRequired = path.StartsWith("applications/", StringComparison.Ordinal) && path.Contains("/configuration/", StringComparison.Ordinal)
@@ -216,6 +223,10 @@ public sealed class ManagementConfigurationClient : IManagementConfigurationClie
         {
             request.Query.Set("schemaVersion", schema);
         }
+        if (editorSource is not null)
+        {
+            request.Query.Set("source", editorSource);
+        }
         if (page is not null)
         {
             request.Query.Set("pageSize", page.PageSize.ToString(CultureInfo.InvariantCulture));
@@ -256,6 +267,8 @@ public sealed class ManagementConfigurationClient : IManagementConfigurationClie
 
     private static RestBody? Body(object? value) => value switch
     {
+        ManagementConfigurationCreationCommand command => RestBody.Json(command),
+        ManagementConfigurationCandidatePreviewCommand command => RestBody.Json(command),
         ManagementConfigurationCatalogCommand command => RestBody.Json(command),
         ManagementConfigurationPublicationCommand command => RestBody.Json(command),
         ManagementConfigurationReleaseCommand command => RestBody.Json(command),
@@ -295,7 +308,7 @@ public sealed class ManagementConfigurationClient : IManagementConfigurationClie
 
     private sealed record CommandHeaders(string Key, string? IfMatch, bool RequiresPrecondition = true);
 
-    private sealed class ExpectedResponse(string path, string? schema, object? body, CommandHeaders? headers)
+    private sealed class ExpectedResponse(string path, string? schema, object? body, CommandHeaders? headers, string? editorSource = null, int? maximumPageSize = null)
     {
         private readonly string[] segments = path.Split('/');
 
@@ -303,6 +316,25 @@ public sealed class ManagementConfigurationClient : IManagementConfigurationClie
         {
             switch (value)
             {
+                case ManagementConfigurationCreationContext creation:
+                    Require(creation.ApplicationId == segments[1]);
+                    break;
+                case ManagementPage<ManagementConfigurationSummary> summaries:
+                    Require(summaries.Items.All(item => item.ApplicationId == segments[1])
+                        && summaries.Items.Count <= (maximumPageSize ?? 100));
+                    break;
+                case ManagementConfigurationCandidatePreview candidate when body is ManagementConfigurationCandidatePreviewCommand candidateCommand:
+                    Require(candidate.ApplicationId == candidateCommand.ApplicationId && candidate.ConfigurationId == candidateCommand.ConfigurationId
+                        && candidate.SchemaVersion == candidateCommand.SchemaVersion && candidate.SelectedSource == candidateCommand.SelectedSource
+                        && candidate.SourceId == candidateCommand.SourceId && candidate.SourceETag == candidateCommand.SourceETag
+                        && candidate.AssignmentETag == candidateCommand.AssignmentETag && candidate.CommonSource == candidateCommand.CommonSource
+                        && candidate.ApplicationSource == candidateCommand.ApplicationSource
+                        && candidate.DraftSha256 == ManagementConfigurationWire.ComputePayloadSha256(candidateCommand.PayloadJson));
+                    break;
+                case ManagementConfigurationEditorContext editor:
+                    CheckApplication(editor.ApplicationId, editor.ConfigurationId, editor.SchemaVersion);
+                    Require(editor.SelectedSource == editorSource);
+                    break;
                 case ManagementConfigurationOperationResult operation:
                     CheckOperation(operation.Operation);
                     CheckDecision(operation.Result);
@@ -324,8 +356,21 @@ public sealed class ManagementConfigurationClient : IManagementConfigurationClie
                     Require(preview.ApplicationId == command.ApplicationId && preview.ConfigurationId == command.ConfigurationId
                         && preview.SchemaVersion == command.SchemaVersion);
                     break;
+                case ManagementPage<ManagementConfigurationRelease> releases:
+                    foreach (ManagementConfigurationRelease item in releases.Items)
+                    {
+                        CheckApplication(item.ApplicationId, item.ConfigurationId, item.SchemaVersion);
+                    }
+                    break;
                 case ManagementPage<ManagementConfigurationAdoptionEntry> page:
                     Require(page.Items.All(item => item.ApplicationId == segments[1]));
+                    if (segments.Length >= 5 && segments[2] == "configuration")
+                    {
+                        foreach (ManagementConfigurationAdoptionEntry item in page.Items)
+                        {
+                            CheckApplication(item.ApplicationId, item.ConfigurationId, item.SchemaVersion);
+                        }
+                    }
                     break;
                 case ManagementReportReceipt receipt when body is ManagementConfigurationStatusReport report:
                     Require(receipt.RegistrationId == segments[1] && receipt.Stream == "configuration-status"
@@ -348,7 +393,8 @@ public sealed class ManagementConfigurationClient : IManagementConfigurationClie
         }
 
         private (string Name, string Kind) Family()
-            => segments[0] == "applications"
+            => segments[0] == "applications" && segments.Length >= 3 && segments[2] is "configuration-creations" or "configuration-creation-operations"
+                ? ("management.configuration.create", "configurationCreated") : segments[0] == "applications"
                 ? segments[4] is "releases" or "release-operations"
                     ? ("management.configuration.release.create", "releaseCreated")
                     : ("management.configuration.assignment.replace", "assignmentsReplaced")
@@ -363,6 +409,12 @@ public sealed class ManagementConfigurationClient : IManagementConfigurationClie
                 return;
             }
             Require(operation.Key == headers.Key && operation.Name == Family().Name);
+            if (Family().Kind == "configurationCreated")
+            {
+                string prefix = "management.configuration.v1/management.configuration.create/" + segments[1] + "/management.actor.v1.";
+                Require(operation.Scope.StartsWith(prefix, StringComparison.Ordinal) && operation.Scope.Length == prefix.Length + 64
+                    && operation.Scope[prefix.Length..].All(character => character is >= '0' and <= '9' or >= 'a' and <= 'f'));
+            }
         }
 
         private void CheckDecision(ManagementConfigurationDecision? decision)
@@ -378,7 +430,15 @@ public sealed class ManagementConfigurationClient : IManagementConfigurationClie
             {
                 Require(decision.SourceId == segments[2]);
             }
-            if (segments[0] == "applications")
+            if (Family().Kind == "configurationCreated")
+            {
+                Require(decision.ApplicationId == segments[1] && decision.SchemaVersion == "1");
+                if (body is ManagementConfigurationCreationCommand creation)
+                {
+                    Require(decision.ConfigurationId == creation.ConfigurationId);
+                }
+            }
+            else if (segments[0] == "applications")
             {
                 CheckApplication(decision.ApplicationId, decision.ConfigurationId, decision.SchemaVersion);
             }

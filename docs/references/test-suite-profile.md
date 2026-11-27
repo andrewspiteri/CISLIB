@@ -75,10 +75,17 @@ test project, lane or harness is introduced.
 
 Central Management uses these same MSTest projects and owned service fixtures.
 Its real HTTPS/SQL/broker and same-service C#/Node cases carry `RequiresDocker`.
-Build the pinned Node24.15.0/npm11.12.1 TypeScript workspace first, as described
+Build the pinned Node24.16.0/npm11.12.1 TypeScript workspace first, as described
 in its [guide](../../implementations/typescript/README.md); the existing service
-workflow does so before running the native service selection. Browser type checks
-and native Node behavior use that workspace's compiler and `node:test`, without
+workflow does so before running the native service selection. Portal host cases
+also require `build:portal`: it prepares the pinned Next correction and production
+output, which the portable build and browser type check do not produce. The
+existing Ubuntu job directly invokes the selected npm CLI for that build,
+verifies the runner-provided Microsoft Edge/Xvfb/`xvfb-run`/`xauth`, and wraps the
+actual service test command in Xvfb for the headed native-window regression.
+It retains the real test exit and strict TRX guard. Missing prerequisites fail;
+the job does not install another browser or silently select headless mode.
+Browser type checks and native Node behavior use that workspace's compiler and `node:test`, without
 a new runner or CIS suite. Package/CommonTesting cases remain Docker-free.
 The [RM-07 verification](../changes/CIS-0024/verification.md) distinguishes actual
 Windows services, Ubuntu managed execution and unexecuted deployment claims.

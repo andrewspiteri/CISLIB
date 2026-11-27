@@ -1,0 +1,14 @@
+{
+  "tasks": [
+    {
+      "title": "Constrain Configuration diff to the actual deployed version",
+      "scopeIds": ["portal", "configuration-portal", "integration"],
+      "paths": ["implementations/typescript/applications/management-portal", "implementations/csharp/tests/CIS.Core.IntegrationTests/Management", "docs/modules/management", "docs/changes/CIS-0030"],
+      "dependsOn": ["WORK-189"],
+      "complexity": "medium",
+      "category": "frontend",
+      "acceptanceCriteria": "Implement the user's later explicit clarification within the approved bottom read-only comparison: the selected saved Configuration version is compared against the actual current uniformly deployed release from the fresh exact assignment map, with no second version picker. Label deployed and selected columns correctly, independently authorize both content reads, retain exact JSON tokens and Shared-reference difference notices, and clear/refresh comparison on deployment/map/session/permission changes. No deployed version, targeted maps, stale or protected state remain explicit; never fabricate an empty baseline or submit mutations. This supporting contract supersedes only the earlier arbitrary-selection phrase in started WORK-190 without rewriting its executable history.",
+      "validation": "Use existing pure and real browser/provider fixture checks to distinguish actual deployed Shared-only JSON from another saved Application version, preserve large numbers/Unicode/false/null, prove no mutation during diff and refreshed baseline after Deploy, and refuse foreign/protected/stale/targeted comparison. Include small docs and independent review within the same shared five-hour implementation pool; no new dependency/framework/backend or separate campaign."
+    }
+  ]
+}

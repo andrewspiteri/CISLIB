@@ -61,8 +61,13 @@ automation identity receives the three explicit `AllOfType` administrative
 resource grants. It is an application actor, not a human portal login. Narrow
 those grants to `ExactResource` plus an actual `ResourceIdentifier` after the
 application has registered if that is the intended operator scope. Human/native
-delegation needs the existing compiled validating integration; this JSON cannot
-create it.
+delegation uses the explicit configured `entra-management` reference described in
+the [operator recipe](../../../../../docs/modules/management/operator-security.md).
+For that selection start from `settings.entra-management.example.json`, replace
+every example tenant/object/client/resource value and retain workload mappings
+and role-bound grants alongside the human mappings. Existing `Mode=entra`
+continues to admit app-only workloads; neither example dynamically loads a
+provider or obtains trust from headers.
 
 The exact container address is intentionally a certificate profile, even for
 local work. `Mode=local` remains loopback-only and cannot bind this private

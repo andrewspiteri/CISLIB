@@ -12,7 +12,16 @@ internal sealed class ManagementCursor(ManagementServiceOptions options, Func<Ma
     private readonly byte[] key = options.CopyCursorSigningKey();
 
     internal string Encode(string endpoint, string actor, int size, string last)
-        => EncodeCore(endpoint, actor, size, last, configurationAdoption: false);
+        => EncodeCore(endpoint, actor, size, last, "uuid-ordinal");
+
+    internal string EncodeEnvironment(string endpoint, string actor, int size, string last)
+    {
+        if (!ManagementWire.IsScalarText(last, 255))
+        {
+            throw new ArgumentException("Supply an exact disclosed environment position.", nameof(last));
+        }
+        return EncodeCore(endpoint, actor, size, last, "environment-utf8-ordinal");
+    }
 
     internal string EncodeConfigurationAdoption(string endpoint, string actor, int size, string last)
     {
@@ -20,24 +29,51 @@ internal sealed class ManagementCursor(ManagementServiceOptions options, Func<Ma
         {
             throw new ArgumentException("Use the exact configuration adoption page position.", nameof(last));
         }
-        return EncodeCore(endpoint, actor, size, last, configurationAdoption: true);
+        return EncodeCore(endpoint, actor, size, last, "configuration-adoption-ordinal");
     }
 
-    private string EncodeCore(string endpoint, string actor, int size, string last, bool configurationAdoption)
+    internal string EncodeConfigurationCohort(string endpoint, string actor, int size, string last)
+    {
+        if (!ManagementWire.IsOperationKey(last))
+        {
+            throw new ArgumentException("Use the exact disclosed Configuration cohort position.", nameof(last));
+        }
+        return EncodeCore(endpoint, actor, size, last, "configuration-cohort-ordinal");
+    }
+
+    internal string EncodeConfigurationRelease(string endpoint, string actor, int size, string last)
+    {
+        if (!ManagementConfigurationReleasePosition.TryRead(last, out _, out _))
+        {
+            throw new ArgumentException("Use the exact retained-release position.", nameof(last));
+        }
+        return EncodeCore(endpoint, actor, size, last, "configuration-release-created-desc");
+    }
+
+    private string EncodeCore(string endpoint, string actor, int size, string last, string order)
     {
         ManagementAuthoritySnapshot authority = currentAuthority();
         byte[] payload = JsonSerializer.SerializeToUtf8Bytes(new CursorPayload(2, NamespaceStamp(authority.NamespaceName), authority.AuthorityId,
-            authority.RecoveryEpoch, endpoint, actor, size, configurationAdoption ? "configuration-adoption-ordinal" : "uuid-ordinal", last));
+            authority.RecoveryEpoch, endpoint, actor, size, order, last));
         return EncodeBase64(payload) + "." + EncodeBase64(HMACSHA256.HashData(key, payload));
     }
 
     internal bool TryDecode(string? value, string endpoint, string actor, int size, out string? after)
-        => TryDecodeCore(value, endpoint, actor, size, configurationAdoption: false, out after);
+        => TryDecodeCore(value, endpoint, actor, size, "uuid-ordinal", out after);
+
+    internal bool TryDecodeEnvironment(string? value, string endpoint, string actor, int size, out string? after)
+        => TryDecodeCore(value, endpoint, actor, size, "environment-utf8-ordinal", out after);
 
     internal bool TryDecodeConfigurationAdoption(string? value, string endpoint, string actor, int size, out string? after)
-        => TryDecodeCore(value, endpoint, actor, size, configurationAdoption: true, out after);
+        => TryDecodeCore(value, endpoint, actor, size, "configuration-adoption-ordinal", out after);
 
-    private bool TryDecodeCore(string? value, string endpoint, string actor, int size, bool configurationAdoption, out string? after)
+    internal bool TryDecodeConfigurationCohort(string? value, string endpoint, string actor, int size, out string? after)
+        => TryDecodeCore(value, endpoint, actor, size, "configuration-cohort-ordinal", out after);
+
+    internal bool TryDecodeConfigurationRelease(string? value, string endpoint, string actor, int size, out string? after)
+        => TryDecodeCore(value, endpoint, actor, size, "configuration-release-created-desc", out after);
+
+    private bool TryDecodeCore(string? value, string endpoint, string actor, int size, string order, out string? after)
     {
         after = null;
         if (value is null)
@@ -66,8 +102,7 @@ internal sealed class ManagementCursor(ManagementServiceOptions options, Func<Ma
             if (cursor is null || cursor.Version != 2 || cursor.NamespaceName != NamespaceStamp(authority.NamespaceName)
                 || cursor.AuthorityId != authority.AuthorityId || cursor.RecoveryEpoch != authority.RecoveryEpoch
                 || cursor.Endpoint != endpoint || cursor.Actor != actor
-                || cursor.Size != size || cursor.Order != (configurationAdoption ? "configuration-adoption-ordinal" : "uuid-ordinal")
-                || !(configurationAdoption ? IsAdoptionPosition(cursor.Last) : ManagementWire.IsUuid(cursor.Last)))
+                || cursor.Size != size || cursor.Order != order || !ValidPosition(order, cursor.Last))
             {
                 return false;
             }
@@ -81,6 +116,15 @@ internal sealed class ManagementCursor(ManagementServiceOptions options, Func<Ma
     }
 
     public void Dispose() => CryptographicOperations.ZeroMemory(key);
+
+    private static bool ValidPosition(string order, string last) => order switch
+    {
+        "configuration-adoption-ordinal" => IsAdoptionPosition(last),
+        "configuration-cohort-ordinal" => ManagementWire.IsOperationKey(last),
+        "configuration-release-created-desc" => ManagementConfigurationReleasePosition.TryRead(last, out _, out _),
+        "environment-utf8-ordinal" => ManagementWire.IsScalarText(last, 255),
+        _ => ManagementWire.IsUuid(last)
+    };
 
     private static bool IsAdoptionPosition(string value)
     {

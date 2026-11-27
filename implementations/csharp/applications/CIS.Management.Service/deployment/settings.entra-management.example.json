@@ -1,0 +1,83 @@
+{
+  "DatabaseConnectionEnvironment": "CIS_MANAGEMENT_POSTGRES",
+  "CursorKeyEnvironment": "CIS_MANAGEMENT_CURSOR_KEY",
+  "BasePath": "/platform",
+  "Security": {
+    "Mode": "entra-management",
+    "Profile": "management-security",
+    "AuthenticationScheme": "management-security",
+    "BusinessAddress": "172.28.7.10",
+    "BusinessPort": 7443,
+    "OperationalPort": 7080,
+    "ServerCertificateFile": "/run/cis/pem/server.pem",
+    "ServerPrivateKeyFile": "/run/cis/pem/server-key.pem",
+    "ServerTrustBundleFile": "/run/cis/pem/server-root.pem",
+    "CertificateRevocation": "ShortLived",
+    "PolicyVersion": "management-entra-example-v1",
+    "EntraTenantId": "11111111-1111-1111-1111-111111111111",
+    "EntraAudience": "66666666-6666-6666-6666-666666666666",
+    "EntraAuthorityHost": "https://login.microsoftonline.com/",
+    "EntraClockSkew": "00:00:30",
+    "EntraPortalClientId": "55555555-5555-5555-5555-555555555555",
+    "EntraOperatorScope": "management.operator",
+    "IdentityMappings": [
+      {
+        "Issuer": "https://login.microsoftonline.com/11111111-1111-1111-1111-111111111111/v2.0",
+        "Subject": "22222222-2222-2222-2222-222222222222",
+        "ClientApplicationId": "33333333-3333-3333-3333-333333333333",
+        "Application": "CountryData",
+        "Environment": "Development",
+        "ActorKind": "Application"
+      },
+      {
+        "Issuer": "https://login.microsoftonline.com/11111111-1111-1111-1111-111111111111/v2.0",
+        "Subject": "44444444-4444-4444-4444-444444444444",
+        "ClientApplicationId": "55555555-5555-5555-5555-555555555555",
+        "Application": "management-portal",
+        "Environment": "Development",
+        "ActorKind": "User"
+      }
+    ],
+    "Grants": [
+      {
+        "Capability": "management.registrations.write",
+        "TargetApplication": "CIS.Management.Service",
+        "TargetEnvironment": "Development",
+        "Issuer": "https://login.microsoftonline.com/11111111-1111-1111-1111-111111111111/v2.0",
+        "Subject": "22222222-2222-2222-2222-222222222222",
+        "RequiredProviderRole": "management.register",
+        "ResourceSelection": "TargetOnly"
+      },
+      {
+        "Capability": "management.applications.read",
+        "TargetApplication": "CIS.Management.Service",
+        "TargetEnvironment": "Development",
+        "Issuer": "https://login.microsoftonline.com/11111111-1111-1111-1111-111111111111/v2.0",
+        "Subject": "44444444-4444-4444-4444-444444444444",
+        "ResourceSelection": "ExactResource",
+        "ResourceType": "management.application",
+        "ResourceIdentifier": "77777777-7777-7777-7777-777777777777"
+      }
+    ]
+  },
+  "Delivery": {
+    "RequireLiveBrokerForReadiness": false,
+    "MaximumRetainedEnvelopeBytes": 67108864,
+    "Broker": {
+      "HostName": "broker.example.test",
+      "Port": 5671,
+      "ServerName": "broker.example.test",
+      "VirtualHost": "/cis-management",
+      "UserName": "management-publisher",
+      "PasswordEnvironment": "CIS_MANAGEMENT_RABBIT_PASSWORD",
+      "SetupUserName": "management-topology-setup",
+      "SetupPasswordEnvironment": "CIS_MANAGEMENT_RABBIT_SETUP_PASSWORD",
+      "SubjectIssuer": "management-broker",
+      "Namespace": "cis.management.local",
+      "ApplicationNamespaceAlias": "management",
+      "MaximumQueueBytes": 67108864,
+      "MaximumQueueMessages": 10000,
+      "SafeDeadLetteringVerified": false
+    }
+  }
+}

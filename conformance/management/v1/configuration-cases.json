@@ -1,9 +1,441 @@
 {
   "contract": "cis.management.configuration",
   "version": 1,
-  "caseCount": 45,
+  "caseCount": 99,
   "validationBoundary": "Independent canonical examples distinguish structural JSON Schema acceptance from exact Unicode/duplicate-name/Int64/payload-integrity and native target/authority semantics. These vectors alone prove no provider or deployment behavior.",
   "cases": [
+    {
+      "id": "configuration-summary-assigned-publication-time-valid",
+      "schema": "ConfigurationSummary",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"applicationId\":\"11111111-1111-4111-8111-111111111111\",\"environment\":\"Development\",\"configurationId\":\"custom.settings\",\"schemaVersion\":\"1\",\"sourceId\":\"33333333-3333-4333-8333-333333333333\",\"bindingId\":\"44444444-4444-4444-8444-444444444444\",\"hostApplicationName\":\"CountryData\",\"origin\":\"shared\",\"hasCohortOverrides\":false,\"modifiedAtUtc\":\"2026-11-26T12:00:00.1234567Z\"}"
+    },
+    {
+      "id": "configuration-summary-modified-offset-refused",
+      "schema": "ConfigurationSummary",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"applicationId\":\"11111111-1111-4111-8111-111111111111\",\"environment\":\"Development\",\"configurationId\":\"custom.settings\",\"schemaVersion\":\"1\",\"sourceId\":\"33333333-3333-4333-8333-333333333333\",\"bindingId\":\"44444444-4444-4444-8444-444444444444\",\"hostApplicationName\":\"CountryData\",\"origin\":\"shared\",\"hasCohortOverrides\":false,\"modifiedAtUtc\":\"2026-11-26T12:00:00.1234567+00:00\"}"
+    },
+    {
+      "id": "configuration-summary-modified-calendar-refused",
+      "schema": "ConfigurationSummary",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"applicationId\":\"11111111-1111-4111-8111-111111111111\",\"environment\":\"Development\",\"configurationId\":\"custom.settings\",\"schemaVersion\":\"1\",\"sourceId\":\"33333333-3333-4333-8333-333333333333\",\"bindingId\":\"44444444-4444-4444-8444-444444444444\",\"hostApplicationName\":\"CountryData\",\"origin\":\"shared\",\"hasCohortOverrides\":false,\"modifiedAtUtc\":\"2026-02-30T12:00:00.1234567Z\"}"
+    },
+    {
+      "id": "configuration-summary-modified-null-refused",
+      "schema": "ConfigurationSummary",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"applicationId\":\"11111111-1111-4111-8111-111111111111\",\"environment\":\"Development\",\"configurationId\":\"custom.settings\",\"schemaVersion\":\"1\",\"sourceId\":\"33333333-3333-4333-8333-333333333333\",\"bindingId\":\"44444444-4444-4444-8444-444444444444\",\"hostApplicationName\":\"CountryData\",\"origin\":\"shared\",\"hasCohortOverrides\":false,\"modifiedAtUtc\":null}"
+    },
+    {
+      "id": "configuration-creation-context-valid",
+      "schema": "ConfigurationCreationContext",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"applicationId\":\"11111111-1111-4111-8111-111111111111\",\"application\":\"country-data\",\"environment\":\"Development\",\"eTag\":\"\\\"creation-context\\\"\",\"schemaVersion\":\"1\",\"hostApplicationName\":\"CountryData\",\"futureOptional\":{\"note\":\"compatible addition\"}}"
+    },
+    {
+      "id": "configuration-creation-context-other-schema",
+      "schema": "ConfigurationCreationContext",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"applicationId\":\"11111111-1111-4111-8111-111111111111\",\"application\":\"country-data\",\"environment\":\"Development\",\"eTag\":\"\\\"creation-context\\\"\",\"schemaVersion\":\"2\",\"hostApplicationName\":\"CountryData\"}"
+    },
+    {
+      "id": "configuration-creation-context-weak-etag",
+      "schema": "ConfigurationCreationContext",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"applicationId\":\"11111111-1111-4111-8111-111111111111\",\"application\":\"country-data\",\"environment\":\"Development\",\"eTag\":\"W/\\\"weak\\\"\",\"schemaVersion\":\"1\",\"hostApplicationName\":\"CountryData\"}"
+    },
+    {
+      "id": "configuration-creation-command-valid",
+      "schema": "ConfigurationCreationCommand",
+      "direction": "request",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"commandVersion\":1,\"configurationId\":\"custom.settings\",\"intent\":\"createGeneric\",\"reason\":\"Create application settings\"}"
+    },
+    {
+      "id": "configuration-creation-command-extra-payload",
+      "schema": "ConfigurationCreationCommand",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"commandVersion\":1,\"configurationId\":\"custom.settings\",\"intent\":\"createGeneric\",\"reason\":\"Create application settings\",\"payloadJson\":\"{}\"}"
+    },
+    {
+      "id": "configuration-creation-command-future-intent",
+      "schema": "ConfigurationCreationCommand",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"commandVersion\":1,\"configurationId\":\"custom.settings\",\"intent\":\"deriveSchema\",\"reason\":\"Create application settings\"}"
+    },
+    {
+      "id": "configuration-creation-command-decimal-version",
+      "schema": "ConfigurationCreationCommand",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"commandVersion\":1.0,\"configurationId\":\"custom.settings\",\"intent\":\"createGeneric\",\"reason\":\"Create application settings\"}"
+    },
+    {
+      "id": "configuration-summary-unknown-origin",
+      "schema": "ConfigurationSummaryPage",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"items\":[{\"applicationId\":\"11111111-1111-4111-8111-111111111111\",\"environment\":\"Development\",\"configurationId\":\"custom.settings\",\"schemaVersion\":\"1\",\"sourceId\":\"33333333-3333-4333-8333-333333333333\",\"bindingId\":\"44444444-4444-4444-8444-444444444444\",\"hostApplicationName\":\"CountryData\",\"origin\":\"future-origin\",\"hasCohortOverrides\":false}]}"
+    },
+    {
+      "id": "configuration-summary-duplicate-source",
+      "schema": "ConfigurationSummaryPage",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"items\":[{\"applicationId\":\"11111111-1111-4111-8111-111111111111\",\"environment\":\"Development\",\"configurationId\":\"custom.settings\",\"schemaVersion\":\"1\",\"sourceId\":\"33333333-3333-4333-8333-333333333333\",\"bindingId\":\"44444444-4444-4444-8444-444444444444\",\"hostApplicationName\":\"CountryData\",\"origin\":\"unassigned\",\"hasCohortOverrides\":false},{\"applicationId\":\"11111111-1111-4111-8111-111111111111\",\"environment\":\"Development\",\"configurationId\":\"another.settings\",\"schemaVersion\":\"1\",\"sourceId\":\"33333333-3333-4333-8333-333333333333\",\"bindingId\":\"22222222-2222-4222-8222-222222222222\",\"hostApplicationName\":\"CountryData\",\"origin\":\"unassigned\",\"hasCohortOverrides\":false}]}"
+    },
+    {
+      "id": "configuration-summary-duplicate-binding",
+      "schema": "ConfigurationSummaryPage",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"items\":[{\"applicationId\":\"11111111-1111-4111-8111-111111111111\",\"environment\":\"Development\",\"configurationId\":\"custom.settings\",\"schemaVersion\":\"1\",\"sourceId\":\"33333333-3333-4333-8333-333333333333\",\"bindingId\":\"44444444-4444-4444-8444-444444444444\",\"hostApplicationName\":\"CountryData\",\"origin\":\"unassigned\",\"hasCohortOverrides\":false},{\"applicationId\":\"11111111-1111-4111-8111-111111111111\",\"environment\":\"Development\",\"configurationId\":\"another.settings\",\"schemaVersion\":\"1\",\"sourceId\":\"22222222-2222-4222-8222-222222222222\",\"bindingId\":\"44444444-4444-4444-8444-444444444444\",\"hostApplicationName\":\"CountryData\",\"origin\":\"unassigned\",\"hasCohortOverrides\":false}]}"
+    },
+    {
+      "id": "configuration-summary-duplicate-definition",
+      "schema": "ConfigurationSummaryPage",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"items\":[{\"applicationId\":\"11111111-1111-4111-8111-111111111111\",\"environment\":\"Development\",\"configurationId\":\"custom.settings\",\"schemaVersion\":\"1\",\"sourceId\":\"33333333-3333-4333-8333-333333333333\",\"bindingId\":\"44444444-4444-4444-8444-444444444444\",\"hostApplicationName\":\"CountryData\",\"origin\":\"unassigned\",\"hasCohortOverrides\":false},{\"applicationId\":\"11111111-1111-4111-8111-111111111111\",\"environment\":\"Development\",\"configurationId\":\"custom.settings\",\"schemaVersion\":\"1\",\"sourceId\":\"22222222-2222-4222-8222-222222222222\",\"bindingId\":\"22222222-2222-4222-8222-222222222222\",\"hostApplicationName\":\"CountryData\",\"origin\":\"unassigned\",\"hasCohortOverrides\":false}]}"
+    },
+    {
+      "id": "configuration-created-decision-valid",
+      "schema": "ConfigurationOperationResult",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"operation\":{\"name\":\"management.configuration.create\",\"scope\":\"management.configuration.v1/management.configuration.create/11111111-1111-4111-8111-111111111111/management.actor.v1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"key\":\"original-create-key\"},\"resultSource\":\"prepared\",\"originalCompletion\":\"committed\",\"result\":{\"commandVersion\":1,\"kind\":\"configurationCreated\",\"decision\":\"applied\",\"code\":\"created\",\"decidedAtUtc\":\"2026-11-26T12:00:00.0000000Z\",\"applicationId\":\"11111111-1111-4111-8111-111111111111\",\"configurationId\":\"custom.settings\",\"schemaVersion\":\"1\",\"sourceId\":\"33333333-3333-4333-8333-333333333333\",\"bindingId\":\"44444444-4444-4444-8444-444444444444\",\"hostApplicationName\":\"CountryData\",\"sourceETag\":\"\\\"configuration.source.1\\\"\",\"eTag\":\"\\\"creation-context-next\\\"\"}}"
+    },
+    {
+      "id": "configuration-created-missing-binding-runtime",
+      "schema": "ConfigurationOperationResult",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"operation\":{\"name\":\"management.configuration.create\",\"scope\":\"management.configuration.v1/management.configuration.create/11111111-1111-4111-8111-111111111111/management.actor.v1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"key\":\"original-create-key\"},\"resultSource\":\"prepared\",\"originalCompletion\":\"committed\",\"result\":{\"commandVersion\":1,\"kind\":\"configurationCreated\",\"decision\":\"applied\",\"code\":\"created\",\"decidedAtUtc\":\"2026-11-26T12:00:00.0000000Z\",\"applicationId\":\"11111111-1111-4111-8111-111111111111\",\"configurationId\":\"custom.settings\",\"schemaVersion\":\"1\",\"sourceId\":\"33333333-3333-4333-8333-333333333333\",\"hostApplicationName\":\"CountryData\",\"sourceETag\":\"\\\"configuration.source.1\\\"\",\"eTag\":\"\\\"creation-context-next\\\"\"}}"
+    },
+    {
+      "id": "configuration-created-other-schema-runtime",
+      "schema": "ConfigurationOperationResult",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"operation\":{\"name\":\"management.configuration.create\",\"scope\":\"management.configuration.v1/management.configuration.create/11111111-1111-4111-8111-111111111111/management.actor.v1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"key\":\"original-create-key\"},\"resultSource\":\"prepared\",\"originalCompletion\":\"committed\",\"result\":{\"commandVersion\":1,\"kind\":\"configurationCreated\",\"decision\":\"applied\",\"code\":\"created\",\"decidedAtUtc\":\"2026-11-26T12:00:00.0000000Z\",\"applicationId\":\"11111111-1111-4111-8111-111111111111\",\"configurationId\":\"custom.settings\",\"schemaVersion\":\"2\",\"sourceId\":\"33333333-3333-4333-8333-333333333333\",\"bindingId\":\"44444444-4444-4444-8444-444444444444\",\"hostApplicationName\":\"CountryData\",\"sourceETag\":\"\\\"configuration.source.1\\\"\",\"eTag\":\"\\\"creation-context-next\\\"\"}}"
+    },
+    {
+      "id": "configuration-releases-valid",
+      "schema": "ConfigurationReleasePage",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"items\":[{\"releaseId\":\"77777777-7777-7777-7777-777777777777\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"environment\":\"Development\",\"commonSource\":{\"state\":\"absent\"},\"applicationSource\":{\"state\":\"absent\"},\"actor\":\"native:operator-a\",\"createdAtUtc\":\"2026-11-26T12:00:00.0000000Z\",\"reason\":\"Reviewed retained settings\",\"eTag\":\"\\\"configuration.release.77777777-7777-7777-7777-777777777777\\\"\"},{\"releaseId\":\"88888888-8888-8888-8888-888888888888\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"environment\":\"Development\",\"commonSource\":{\"state\":\"absent\"},\"applicationSource\":{\"state\":\"absent\"},\"actor\":\"native:operator-a\",\"createdAtUtc\":\"2026-11-25T12:00:00.0000000Z\",\"reason\":\"Earlier retained settings\",\"eTag\":\"\\\"configuration.release.88888888-8888-8888-8888-888888888888\\\"\"}]}"
+    },
+    {
+      "id": "configuration-releases-empty-valid",
+      "schema": "ConfigurationReleasePage",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"items\":[]}"
+    },
+    {
+      "id": "configuration-releases-additive-valid",
+      "schema": "ConfigurationReleasePage",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"items\":[{\"releaseId\":\"77777777-7777-7777-7777-777777777777\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"environment\":\"Development\",\"commonSource\":{\"state\":\"absent\"},\"applicationSource\":{\"state\":\"absent\"},\"actor\":\"native:operator-a\",\"createdAtUtc\":\"2026-11-26T12:00:00.0000000Z\",\"reason\":\"Reviewed retained settings\",\"eTag\":\"\\\"configuration.release.77777777-7777-7777-7777-777777777777\\\"\"},{\"releaseId\":\"88888888-8888-8888-8888-888888888888\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"environment\":\"Development\",\"commonSource\":{\"state\":\"absent\"},\"applicationSource\":{\"state\":\"absent\"},\"actor\":\"native:operator-a\",\"createdAtUtc\":\"2026-11-25T12:00:00.0000000Z\",\"reason\":\"Earlier retained settings\",\"eTag\":\"\\\"configuration.release.88888888-8888-8888-8888-888888888888\\\"\"}],\"extra\":\"additive\"}"
+    },
+    {
+      "id": "configuration-releases-duplicate-id-runtime",
+      "schema": "ConfigurationReleasePage",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"items\":[{\"releaseId\":\"77777777-7777-7777-7777-777777777777\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"environment\":\"Development\",\"commonSource\":{\"state\":\"absent\"},\"applicationSource\":{\"state\":\"absent\"},\"actor\":\"native:operator-a\",\"createdAtUtc\":\"2026-11-26T12:00:00.0000000Z\",\"reason\":\"Reviewed retained settings\",\"eTag\":\"\\\"configuration.release.77777777-7777-7777-7777-777777777777\\\"\"},{\"releaseId\":\"88888888-8888-8888-8888-888888888888\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"environment\":\"Development\",\"commonSource\":{\"state\":\"absent\"},\"applicationSource\":{\"state\":\"absent\"},\"actor\":\"native:operator-a\",\"createdAtUtc\":\"2026-11-25T12:00:00.0000000Z\",\"reason\":\"Earlier retained settings\",\"eTag\":\"\\\"configuration.release.88888888-8888-8888-8888-888888888888\\\"\"},{\"releaseId\":\"77777777-7777-7777-7777-777777777777\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"environment\":\"Development\",\"commonSource\":{\"state\":\"absent\"},\"applicationSource\":{\"state\":\"absent\"},\"actor\":\"native:operator-a\",\"createdAtUtc\":\"2026-11-26T12:00:00.0000000Z\",\"reason\":\"same immutable identity\",\"eTag\":\"\\\"configuration.release.77777777-7777-7777-7777-777777777777\\\"\"}]}"
+    },
+    {
+      "id": "configuration-releases-int64-overflow-runtime",
+      "schema": "ConfigurationReleasePage",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"items\":[{\"releaseId\":\"77777777-7777-7777-7777-777777777777\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"9223372036854775808\",\"environment\":\"Development\",\"commonSource\":{\"state\":\"absent\"},\"applicationSource\":{\"state\":\"absent\"},\"actor\":\"native:operator-a\",\"createdAtUtc\":\"2026-11-26T12:00:00.0000000Z\",\"reason\":\"Reviewed retained settings\",\"eTag\":\"\\\"configuration.release.77777777-7777-7777-7777-777777777777\\\"\"},{\"releaseId\":\"88888888-8888-8888-8888-888888888888\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"environment\":\"Development\",\"commonSource\":{\"state\":\"absent\"},\"applicationSource\":{\"state\":\"absent\"},\"actor\":\"native:operator-a\",\"createdAtUtc\":\"2026-11-25T12:00:00.0000000Z\",\"reason\":\"Earlier retained settings\",\"eTag\":\"\\\"configuration.release.88888888-8888-8888-8888-888888888888\\\"\"}]}"
+    },
+    {
+      "id": "configuration-releases-strong-etag-runtime",
+      "schema": "ConfigurationReleasePage",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"items\":[{\"releaseId\":\"77777777-7777-7777-7777-777777777777\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"environment\":\"Development\",\"commonSource\":{\"state\":\"absent\"},\"applicationSource\":{\"state\":\"absent\"},\"actor\":\"native:operator-a\",\"createdAtUtc\":\"2026-11-26T12:00:00.0000000Z\",\"reason\":\"Reviewed retained settings\",\"eTag\":\"weak\"},{\"releaseId\":\"88888888-8888-8888-8888-888888888888\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"environment\":\"Development\",\"commonSource\":{\"state\":\"absent\"},\"applicationSource\":{\"state\":\"absent\"},\"actor\":\"native:operator-a\",\"createdAtUtc\":\"2026-11-25T12:00:00.0000000Z\",\"reason\":\"Earlier retained settings\",\"eTag\":\"\\\"configuration.release.88888888-8888-8888-8888-888888888888\\\"\"}]}"
+    },
+    {
+      "id": "configuration-releases-invalid-id",
+      "schema": "ConfigurationReleasePage",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"items\":[{\"releaseId\":\"bad\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"environment\":\"Development\",\"commonSource\":{\"state\":\"absent\"},\"applicationSource\":{\"state\":\"absent\"},\"actor\":\"native:operator-a\",\"createdAtUtc\":\"2026-11-26T12:00:00.0000000Z\",\"reason\":\"Reviewed retained settings\",\"eTag\":\"\\\"configuration.release.77777777-7777-7777-7777-777777777777\\\"\"},{\"releaseId\":\"88888888-8888-8888-8888-888888888888\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"environment\":\"Development\",\"commonSource\":{\"state\":\"absent\"},\"applicationSource\":{\"state\":\"absent\"},\"actor\":\"native:operator-a\",\"createdAtUtc\":\"2026-11-25T12:00:00.0000000Z\",\"reason\":\"Earlier retained settings\",\"eTag\":\"\\\"configuration.release.88888888-8888-8888-8888-888888888888\\\"\"}]}"
+    },
+    {
+      "id": "configuration-candidate-command-valid",
+      "schema": "ConfigurationCandidatePreviewCommand",
+      "direction": "request",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"commandVersion\":1,\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"selectedSource\":\"application\",\"sourceId\":\"66666666-6666-6666-6666-666666666666\",\"sourceETag\":\"\\\"configuration.source.0\\\"\",\"assignmentETag\":\"\\\"configuration.map.0\\\"\",\"commonSource\":{\"state\":\"absent\"},\"applicationSource\":{\"state\":\"absent\"},\"payloadJson\":\"{\\\"Greeting\\\":\\\"Café — 日本語\\\",\\\"Enabled\\\":false}\"}"
+    },
+    {
+      "id": "configuration-candidate-preview-valid",
+      "schema": "ConfigurationCandidatePreview",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"environment\":\"Development\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"hostApplicationName\":\"FirstHost\",\"selectedSource\":\"application\",\"sourceId\":\"66666666-6666-6666-6666-666666666666\",\"sourceETag\":\"\\\"configuration.source.0\\\"\",\"assignmentETag\":\"\\\"configuration.map.0\\\"\",\"commonSource\":{\"state\":\"absent\"},\"applicationSource\":{\"state\":\"absent\"},\"draftSha256\":\"6b22cc1785a4a64b26ce415be9c4a3cfbe21aa5b7127644f87004d92192429d9\",\"structurallyValid\":true,\"redacted\":false,\"changes\":[{\"path\":\"/Greeting\",\"kind\":\"overridden\"},{\"path\":\"/Enabled\",\"kind\":\"overridden\"}],\"issues\":[],\"currentAssignment\":{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"environment\":\"Development\",\"eTag\":\"\\\"configuration.map.0\\\"\",\"overrides\":[]},\"recipients\":{\"items\":[]}}"
+    },
+    {
+      "id": "configuration-candidate-exact-lexical-command",
+      "schema": "ConfigurationCandidatePreviewCommand",
+      "direction": "request",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"commandVersion\":1,\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"selectedSource\":\"application\",\"sourceId\":\"66666666-6666-6666-6666-666666666666\",\"sourceETag\":\"\\\"configuration.source.0\\\"\",\"assignmentETag\":\"\\\"configuration.map.0\\\"\",\"commonSource\":{\"state\":\"absent\"},\"applicationSource\":{\"state\":\"absent\"},\"payloadJson\":\"{\\\"Count\\\":9007199254740993,\\\"Escaped\\\":\\\"Café\\\\\\\\u0020日本語\\\",\\\"Enabled\\\":false,\\\"Zero\\\":0,\\\"Optional\\\":null}\"}"
+    },
+    {
+      "id": "configuration-candidate-redacted-valid",
+      "schema": "ConfigurationCandidatePreview",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"environment\":\"Development\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"hostApplicationName\":\"FirstHost\",\"selectedSource\":\"application\",\"sourceId\":\"66666666-6666-6666-6666-666666666666\",\"sourceETag\":\"\\\"configuration.source.0\\\"\",\"assignmentETag\":\"\\\"configuration.map.0\\\"\",\"commonSource\":{\"state\":\"absent\"},\"applicationSource\":{\"state\":\"absent\"},\"draftSha256\":\"6b22cc1785a4a64b26ce415be9c4a3cfbe21aa5b7127644f87004d92192429d9\",\"structurallyValid\":true,\"redacted\":true,\"changes\":[],\"issues\":[],\"currentAssignment\":{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"environment\":\"Development\",\"eTag\":\"\\\"configuration.map.0\\\"\",\"overrides\":[]},\"recipients\":{\"items\":[]}}"
+    },
+    {
+      "id": "configuration-candidate-structural-refusal-valid",
+      "schema": "ConfigurationCandidatePreview",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"environment\":\"Development\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"hostApplicationName\":\"FirstHost\",\"selectedSource\":\"application\",\"sourceId\":\"66666666-6666-6666-6666-666666666666\",\"sourceETag\":\"\\\"configuration.source.0\\\"\",\"assignmentETag\":\"\\\"configuration.map.0\\\"\",\"commonSource\":{\"state\":\"absent\"},\"applicationSource\":{\"state\":\"absent\"},\"draftSha256\":\"6b22cc1785a4a64b26ce415be9c4a3cfbe21aa5b7127644f87004d92192429d9\",\"structurallyValid\":false,\"redacted\":false,\"changes\":[],\"issues\":[{\"code\":\"configuration.structure\"}],\"currentAssignment\":{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"environment\":\"Development\",\"eTag\":\"\\\"configuration.map.0\\\"\",\"overrides\":[]},\"recipients\":{\"items\":[]}}"
+    },
+    {
+      "id": "configuration-candidate-strong-map-precondition-runtime",
+      "schema": "ConfigurationCandidatePreviewCommand",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"commandVersion\":1,\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"selectedSource\":\"application\",\"sourceId\":\"66666666-6666-6666-6666-666666666666\",\"sourceETag\":\"\\\"configuration.source.0\\\"\",\"assignmentETag\":\"weak\",\"commonSource\":{\"state\":\"absent\"},\"applicationSource\":{\"state\":\"absent\"},\"payloadJson\":\"{\\\"Greeting\\\":\\\"Café — 日本語\\\",\\\"Enabled\\\":false}\"}"
+    },
+    {
+      "id": "configuration-candidate-command-closed",
+      "schema": "ConfigurationCandidatePreviewCommand",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"commandVersion\":1,\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"selectedSource\":\"application\",\"sourceId\":\"66666666-6666-6666-6666-666666666666\",\"sourceETag\":\"\\\"configuration.source.0\\\"\",\"assignmentETag\":\"\\\"configuration.map.0\\\"\",\"commonSource\":{\"state\":\"absent\"},\"applicationSource\":{\"state\":\"absent\"},\"payloadJson\":\"{\\\"Greeting\\\":\\\"Café — 日本語\\\",\\\"Enabled\\\":false}\",\"extra\":\"closed\"}"
+    },
+    {
+      "id": "configuration-candidate-selected-source-unknown",
+      "schema": "ConfigurationCandidatePreviewCommand",
+      "direction": "request",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"commandVersion\":1,\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"selectedSource\":\"future\",\"sourceId\":\"66666666-6666-6666-6666-666666666666\",\"sourceETag\":\"\\\"configuration.source.0\\\"\",\"assignmentETag\":\"\\\"configuration.map.0\\\"\",\"commonSource\":{\"state\":\"absent\"},\"applicationSource\":{\"state\":\"absent\"},\"payloadJson\":\"{\\\"Greeting\\\":\\\"Café — 日本語\\\",\\\"Enabled\\\":false}\"}"
+    },
+    {
+      "id": "configuration-candidate-redacted-changes-runtime",
+      "schema": "ConfigurationCandidatePreview",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"environment\":\"Development\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"hostApplicationName\":\"FirstHost\",\"selectedSource\":\"application\",\"sourceId\":\"66666666-6666-6666-6666-666666666666\",\"sourceETag\":\"\\\"configuration.source.0\\\"\",\"assignmentETag\":\"\\\"configuration.map.0\\\"\",\"commonSource\":{\"state\":\"absent\"},\"applicationSource\":{\"state\":\"absent\"},\"draftSha256\":\"6b22cc1785a4a64b26ce415be9c4a3cfbe21aa5b7127644f87004d92192429d9\",\"structurallyValid\":true,\"redacted\":true,\"changes\":[{\"path\":\"/Greeting\",\"kind\":\"overridden\"},{\"path\":\"/Enabled\",\"kind\":\"overridden\"}],\"issues\":[],\"currentAssignment\":{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"environment\":\"Development\",\"eTag\":\"\\\"configuration.map.0\\\"\",\"overrides\":[]},\"recipients\":{\"items\":[]}}"
+    },
+    {
+      "id": "configuration-candidate-redacted-issue-path-runtime",
+      "schema": "ConfigurationCandidatePreview",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"environment\":\"Development\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"hostApplicationName\":\"FirstHost\",\"selectedSource\":\"application\",\"sourceId\":\"66666666-6666-6666-6666-666666666666\",\"sourceETag\":\"\\\"configuration.source.0\\\"\",\"assignmentETag\":\"\\\"configuration.map.0\\\"\",\"commonSource\":{\"state\":\"absent\"},\"applicationSource\":{\"state\":\"absent\"},\"draftSha256\":\"6b22cc1785a4a64b26ce415be9c4a3cfbe21aa5b7127644f87004d92192429d9\",\"structurallyValid\":false,\"redacted\":true,\"changes\":[],\"issues\":[{\"code\":\"configuration.structure\",\"path\":\"/Secret\"}],\"currentAssignment\":{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"environment\":\"Development\",\"eTag\":\"\\\"configuration.map.0\\\"\",\"overrides\":[]},\"recipients\":{\"items\":[]}}"
+    },
+    {
+      "id": "configuration-candidate-map-precondition-echo-runtime",
+      "schema": "ConfigurationCandidatePreview",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"environment\":\"Development\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"hostApplicationName\":\"FirstHost\",\"selectedSource\":\"application\",\"sourceId\":\"66666666-6666-6666-6666-666666666666\",\"sourceETag\":\"\\\"configuration.source.0\\\"\",\"assignmentETag\":\"\\\"configuration.map.0\\\"\",\"commonSource\":{\"state\":\"absent\"},\"applicationSource\":{\"state\":\"absent\"},\"draftSha256\":\"6b22cc1785a4a64b26ce415be9c4a3cfbe21aa5b7127644f87004d92192429d9\",\"structurallyValid\":true,\"redacted\":false,\"changes\":[{\"path\":\"/Greeting\",\"kind\":\"overridden\"},{\"path\":\"/Enabled\",\"kind\":\"overridden\"}],\"issues\":[],\"currentAssignment\":{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"environment\":\"Development\",\"eTag\":\"\\\"foreign\\\"\",\"overrides\":[]},\"recipients\":{\"items\":[]}}"
+    },
+    {
+      "id": "configuration-candidate-map-environment-echo-runtime",
+      "schema": "ConfigurationCandidatePreview",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"environment\":\"Development\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"hostApplicationName\":\"FirstHost\",\"selectedSource\":\"application\",\"sourceId\":\"66666666-6666-6666-6666-666666666666\",\"sourceETag\":\"\\\"configuration.source.0\\\"\",\"assignmentETag\":\"\\\"configuration.map.0\\\"\",\"commonSource\":{\"state\":\"absent\"},\"applicationSource\":{\"state\":\"absent\"},\"draftSha256\":\"6b22cc1785a4a64b26ce415be9c4a3cfbe21aa5b7127644f87004d92192429d9\",\"structurallyValid\":true,\"redacted\":false,\"changes\":[{\"path\":\"/Greeting\",\"kind\":\"overridden\"},{\"path\":\"/Enabled\",\"kind\":\"overridden\"}],\"issues\":[],\"currentAssignment\":{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"environment\":\"Other\",\"eTag\":\"\\\"configuration.map.0\\\"\",\"overrides\":[]},\"recipients\":{\"items\":[]}}"
+    },
+    {
+      "id": "configuration-candidate-valid-with-issues-runtime",
+      "schema": "ConfigurationCandidatePreview",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"environment\":\"Development\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"hostApplicationName\":\"FirstHost\",\"selectedSource\":\"application\",\"sourceId\":\"66666666-6666-6666-6666-666666666666\",\"sourceETag\":\"\\\"configuration.source.0\\\"\",\"assignmentETag\":\"\\\"configuration.map.0\\\"\",\"commonSource\":{\"state\":\"absent\"},\"applicationSource\":{\"state\":\"absent\"},\"draftSha256\":\"6b22cc1785a4a64b26ce415be9c4a3cfbe21aa5b7127644f87004d92192429d9\",\"structurallyValid\":true,\"redacted\":false,\"changes\":[{\"path\":\"/Greeting\",\"kind\":\"overridden\"},{\"path\":\"/Enabled\",\"kind\":\"overridden\"}],\"issues\":[{\"code\":\"configuration.structure\"}],\"currentAssignment\":{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"environment\":\"Development\",\"eTag\":\"\\\"configuration.map.0\\\"\",\"overrides\":[]},\"recipients\":{\"items\":[]}}"
+    },
+    {
+      "id": "configuration-candidate-digest-shape",
+      "schema": "ConfigurationCandidatePreview",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"environment\":\"Development\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"hostApplicationName\":\"FirstHost\",\"selectedSource\":\"application\",\"sourceId\":\"66666666-6666-6666-6666-666666666666\",\"sourceETag\":\"\\\"configuration.source.0\\\"\",\"assignmentETag\":\"\\\"configuration.map.0\\\"\",\"commonSource\":{\"state\":\"absent\"},\"applicationSource\":{\"state\":\"absent\"},\"draftSha256\":\"not-a-digest\",\"structurallyValid\":true,\"redacted\":false,\"changes\":[{\"path\":\"/Greeting\",\"kind\":\"overridden\"},{\"path\":\"/Enabled\",\"kind\":\"overridden\"}],\"issues\":[],\"currentAssignment\":{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"environment\":\"Development\",\"eTag\":\"\\\"configuration.map.0\\\"\",\"overrides\":[]},\"recipients\":{\"items\":[]}}"
+    },
+    {
+      "id": "configuration-candidate-additive-preview-valid",
+      "schema": "ConfigurationCandidatePreview",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"environment\":\"Development\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"hostApplicationName\":\"FirstHost\",\"selectedSource\":\"application\",\"sourceId\":\"66666666-6666-6666-6666-666666666666\",\"sourceETag\":\"\\\"configuration.source.0\\\"\",\"assignmentETag\":\"\\\"configuration.map.0\\\"\",\"commonSource\":{\"state\":\"absent\"},\"applicationSource\":{\"state\":\"absent\"},\"draftSha256\":\"6b22cc1785a4a64b26ce415be9c4a3cfbe21aa5b7127644f87004d92192429d9\",\"structurallyValid\":true,\"redacted\":false,\"changes\":[{\"path\":\"/Greeting\",\"kind\":\"overridden\"},{\"path\":\"/Enabled\",\"kind\":\"overridden\"}],\"issues\":[],\"currentAssignment\":{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"environment\":\"Development\",\"eTag\":\"\\\"configuration.map.0\\\"\",\"overrides\":[]},\"recipients\":{\"items\":[]},\"futureMetadata\":{\"label\":\"additive\"}}"
+    },
+    {
+      "id": "configuration-editor-available-valid",
+      "schema": "ConfigurationEditorContext",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"application\":\"managed-a\",\"environment\":\"Development\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"hostApplicationName\":\"FirstHost\",\"shape\":{\"kind\":\"object\",\"nullable\":false,\"members\":[{\"name\":\"Count\",\"required\":true,\"shape\":{\"kind\":\"integer\",\"nullable\":false}},{\"name\":\"Greeting\",\"required\":true,\"shape\":{\"kind\":\"string\",\"nullable\":false}}]},\"selectedSource\":\"application\",\"commonSource\":{\"state\":\"available\",\"sourceId\":\"55555555-5555-5555-5555-555555555555\"},\"applicationSource\":{\"state\":\"available\",\"sourceId\":\"66666666-6666-6666-6666-666666666666\"},\"defaults\":{\"state\":\"available\",\"defaultsJson\":\"{\\\"Count\\\":9007199254740993,\\\"Greeting\\\":\\\"Café\\\\\\\\u0020日本語\\\"}\"}}"
+    },
+    {
+      "id": "configuration-editor-selected-hidden-valid",
+      "schema": "ConfigurationEditorContext",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"application\":\"managed-a\",\"environment\":\"Development\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"hostApplicationName\":\"FirstHost\",\"shape\":{\"kind\":\"object\",\"nullable\":false,\"members\":[{\"name\":\"Count\",\"required\":true,\"shape\":{\"kind\":\"integer\",\"nullable\":false}},{\"name\":\"Greeting\",\"required\":true,\"shape\":{\"kind\":\"string\",\"nullable\":false}}]},\"selectedSource\":\"common\",\"commonSource\":{\"state\":\"redacted\"},\"applicationSource\":{\"state\":\"available\",\"sourceId\":\"66666666-6666-6666-6666-666666666666\"},\"defaults\":{\"state\":\"redacted\"}}"
+    },
+    {
+      "id": "configuration-editor-disabled-valid",
+      "schema": "ConfigurationEditorContext",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"application\":\"managed-a\",\"environment\":\"Development\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"hostApplicationName\":\"FirstHost\",\"shape\":{\"kind\":\"object\",\"nullable\":false,\"members\":[{\"name\":\"Count\",\"required\":true,\"shape\":{\"kind\":\"integer\",\"nullable\":false}},{\"name\":\"Greeting\",\"required\":true,\"shape\":{\"kind\":\"string\",\"nullable\":false}}]},\"selectedSource\":\"common\",\"commonSource\":{\"state\":\"unavailable\",\"sourceId\":\"55555555-5555-5555-5555-555555555555\"},\"applicationSource\":{\"state\":\"available\",\"sourceId\":\"66666666-6666-6666-6666-666666666666\"},\"defaults\":{\"state\":\"unavailable\"}}"
+    },
+    {
+      "id": "configuration-editor-absent-valid",
+      "schema": "ConfigurationEditorContext",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"application\":\"managed-a\",\"environment\":\"Development\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"hostApplicationName\":\"FirstHost\",\"shape\":{\"kind\":\"object\",\"nullable\":false,\"members\":[{\"name\":\"Count\",\"required\":true,\"shape\":{\"kind\":\"integer\",\"nullable\":false}},{\"name\":\"Greeting\",\"required\":true,\"shape\":{\"kind\":\"string\",\"nullable\":false}}]},\"selectedSource\":\"common\",\"commonSource\":{\"state\":\"absent\"},\"applicationSource\":{\"state\":\"available\",\"sourceId\":\"66666666-6666-6666-6666-666666666666\"},\"defaults\":{\"state\":\"unavailable\"}}"
+    },
+    {
+      "id": "configuration-editor-content-redacted-valid",
+      "schema": "ConfigurationEditorContext",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"application\":\"managed-a\",\"environment\":\"Development\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"hostApplicationName\":\"FirstHost\",\"shape\":{\"kind\":\"object\",\"nullable\":false,\"members\":[{\"name\":\"Count\",\"required\":true,\"shape\":{\"kind\":\"integer\",\"nullable\":false}},{\"name\":\"Greeting\",\"required\":true,\"shape\":{\"kind\":\"string\",\"nullable\":false}}]},\"selectedSource\":\"application\",\"commonSource\":{\"state\":\"available\",\"sourceId\":\"55555555-5555-5555-5555-555555555555\"},\"applicationSource\":{\"state\":\"available\",\"sourceId\":\"66666666-6666-6666-6666-666666666666\"},\"defaults\":{\"state\":\"redacted\"}}"
+    },
+    {
+      "id": "configuration-editor-additive-valid",
+      "schema": "ConfigurationEditorContext",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"application\":\"managed-a\",\"environment\":\"Development\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"hostApplicationName\":\"FirstHost\",\"shape\":{\"kind\":\"object\",\"nullable\":false,\"members\":[{\"name\":\"Count\",\"required\":true,\"shape\":{\"kind\":\"integer\",\"nullable\":false}},{\"name\":\"Greeting\",\"required\":true,\"shape\":{\"kind\":\"string\",\"nullable\":false}}]},\"selectedSource\":\"application\",\"commonSource\":{\"state\":\"available\",\"sourceId\":\"55555555-5555-5555-5555-555555555555\"},\"applicationSource\":{\"state\":\"available\",\"sourceId\":\"66666666-6666-6666-6666-666666666666\"},\"defaults\":{\"state\":\"available\",\"defaultsJson\":\"{\\\"Count\\\":9007199254740993,\\\"Greeting\\\":\\\"Café\\\\\\\\u0020日本語\\\"}\"},\"futureMetadata\":\"bounded future field\"}"
+    },
+    {
+      "id": "configuration-editor-commonSource-unknown",
+      "schema": "ConfigurationEditorContext",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"application\":\"managed-a\",\"environment\":\"Development\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"hostApplicationName\":\"FirstHost\",\"shape\":{\"kind\":\"object\",\"nullable\":false,\"members\":[{\"name\":\"Count\",\"required\":true,\"shape\":{\"kind\":\"integer\",\"nullable\":false}},{\"name\":\"Greeting\",\"required\":true,\"shape\":{\"kind\":\"string\",\"nullable\":false}}]},\"selectedSource\":\"application\",\"commonSource\":{\"state\":\"future\",\"sourceId\":\"55555555-5555-5555-5555-555555555555\"},\"applicationSource\":{\"state\":\"available\",\"sourceId\":\"66666666-6666-6666-6666-666666666666\"},\"defaults\":{\"state\":\"available\",\"defaultsJson\":\"{\\\"Count\\\":9007199254740993,\\\"Greeting\\\":\\\"Café\\\\\\\\u0020日本語\\\"}\"}}"
+    },
+    {
+      "id": "configuration-editor-applicationSource-unknown",
+      "schema": "ConfigurationEditorContext",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"application\":\"managed-a\",\"environment\":\"Development\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"hostApplicationName\":\"FirstHost\",\"shape\":{\"kind\":\"object\",\"nullable\":false,\"members\":[{\"name\":\"Count\",\"required\":true,\"shape\":{\"kind\":\"integer\",\"nullable\":false}},{\"name\":\"Greeting\",\"required\":true,\"shape\":{\"kind\":\"string\",\"nullable\":false}}]},\"selectedSource\":\"application\",\"commonSource\":{\"state\":\"available\",\"sourceId\":\"55555555-5555-5555-5555-555555555555\"},\"applicationSource\":{\"state\":\"future\",\"sourceId\":\"66666666-6666-6666-6666-666666666666\"},\"defaults\":{\"state\":\"available\",\"defaultsJson\":\"{\\\"Count\\\":9007199254740993,\\\"Greeting\\\":\\\"Café\\\\\\\\u0020日本語\\\"}\"}}"
+    },
+    {
+      "id": "configuration-editor-hidden-id-forbidden",
+      "schema": "ConfigurationEditorContext",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"application\":\"managed-a\",\"environment\":\"Development\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"hostApplicationName\":\"FirstHost\",\"shape\":{\"kind\":\"object\",\"nullable\":false,\"members\":[{\"name\":\"Count\",\"required\":true,\"shape\":{\"kind\":\"integer\",\"nullable\":false}},{\"name\":\"Greeting\",\"required\":true,\"shape\":{\"kind\":\"string\",\"nullable\":false}}]},\"selectedSource\":\"application\",\"commonSource\":{\"state\":\"redacted\",\"sourceId\":\"55555555-5555-5555-5555-555555555555\"},\"applicationSource\":{\"state\":\"available\",\"sourceId\":\"66666666-6666-6666-6666-666666666666\"},\"defaults\":{\"state\":\"available\",\"defaultsJson\":\"{\\\"Count\\\":9007199254740993,\\\"Greeting\\\":\\\"Café\\\\\\\\u0020日本語\\\"}\"}}"
+    },
+    {
+      "id": "configuration-editor-redacted-defaults-forbidden",
+      "schema": "ConfigurationEditorContext",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"application\":\"managed-a\",\"environment\":\"Development\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"hostApplicationName\":\"FirstHost\",\"shape\":{\"kind\":\"object\",\"nullable\":false,\"members\":[{\"name\":\"Count\",\"required\":true,\"shape\":{\"kind\":\"integer\",\"nullable\":false}},{\"name\":\"Greeting\",\"required\":true,\"shape\":{\"kind\":\"string\",\"nullable\":false}}]},\"selectedSource\":\"application\",\"commonSource\":{\"state\":\"available\",\"sourceId\":\"55555555-5555-5555-5555-555555555555\"},\"applicationSource\":{\"state\":\"available\",\"sourceId\":\"66666666-6666-6666-6666-666666666666\"},\"defaults\":{\"state\":\"redacted\",\"defaultsJson\":\"{}\"}}"
+    },
+    {
+      "id": "configuration-editor-duplicate-source-runtime",
+      "schema": "ConfigurationEditorContext",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"application\":\"managed-a\",\"environment\":\"Development\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"hostApplicationName\":\"FirstHost\",\"shape\":{\"kind\":\"object\",\"nullable\":false,\"members\":[{\"name\":\"Count\",\"required\":true,\"shape\":{\"kind\":\"integer\",\"nullable\":false}},{\"name\":\"Greeting\",\"required\":true,\"shape\":{\"kind\":\"string\",\"nullable\":false}}]},\"selectedSource\":\"application\",\"commonSource\":{\"state\":\"available\",\"sourceId\":\"55555555-5555-5555-5555-555555555555\"},\"applicationSource\":{\"state\":\"available\",\"sourceId\":\"55555555-5555-5555-5555-555555555555\"},\"defaults\":{\"state\":\"available\",\"defaultsJson\":\"{\\\"Count\\\":9007199254740993,\\\"Greeting\\\":\\\"Café\\\\\\\\u0020日本語\\\"}\"}}"
+    },
+    {
+      "id": "configuration-editor-absent-with-defaults-runtime",
+      "schema": "ConfigurationEditorContext",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"application\":\"managed-a\",\"environment\":\"Development\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"hostApplicationName\":\"FirstHost\",\"shape\":{\"kind\":\"object\",\"nullable\":false,\"members\":[{\"name\":\"Count\",\"required\":true,\"shape\":{\"kind\":\"integer\",\"nullable\":false}},{\"name\":\"Greeting\",\"required\":true,\"shape\":{\"kind\":\"string\",\"nullable\":false}}]},\"selectedSource\":\"application\",\"commonSource\":{\"state\":\"available\",\"sourceId\":\"55555555-5555-5555-5555-555555555555\"},\"applicationSource\":{\"state\":\"absent\"},\"defaults\":{\"state\":\"available\",\"defaultsJson\":\"{\\\"Count\\\":9007199254740993,\\\"Greeting\\\":\\\"Café\\\\\\\\u0020日本語\\\"}\"}}"
+    },
+    {
+      "id": "configuration-editor-duplicate-default-name-runtime",
+      "schema": "ConfigurationEditorContext",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"application\":\"managed-a\",\"environment\":\"Development\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"hostApplicationName\":\"FirstHost\",\"shape\":{\"kind\":\"object\",\"nullable\":false,\"members\":[{\"name\":\"Count\",\"required\":true,\"shape\":{\"kind\":\"integer\",\"nullable\":false}},{\"name\":\"Greeting\",\"required\":true,\"shape\":{\"kind\":\"string\",\"nullable\":false}}]},\"selectedSource\":\"application\",\"commonSource\":{\"state\":\"available\",\"sourceId\":\"55555555-5555-5555-5555-555555555555\"},\"applicationSource\":{\"state\":\"available\",\"sourceId\":\"66666666-6666-6666-6666-666666666666\"},\"defaults\":{\"state\":\"available\",\"defaultsJson\":\"{\\\"same\\\":1,\\\"same\\\":2}\"}}"
+    },
+    {
+      "id": "configuration-editor-selector-unknown",
+      "schema": "ConfigurationEditorContext",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"bindingId\":\"99999999-9999-9999-9999-999999999999\",\"applicationId\":\"11111111-1111-1111-1111-111111111111\",\"application\":\"managed-a\",\"environment\":\"Development\",\"configurationId\":\"shared.settings\",\"schemaVersion\":\"1\",\"hostApplicationName\":\"FirstHost\",\"shape\":{\"kind\":\"object\",\"nullable\":false,\"members\":[{\"name\":\"Count\",\"required\":true,\"shape\":{\"kind\":\"integer\",\"nullable\":false}},{\"name\":\"Greeting\",\"required\":true,\"shape\":{\"kind\":\"string\",\"nullable\":false}}]},\"selectedSource\":\"future\",\"commonSource\":{\"state\":\"available\",\"sourceId\":\"55555555-5555-5555-5555-555555555555\"},\"applicationSource\":{\"state\":\"available\",\"sourceId\":\"66666666-6666-6666-6666-666666666666\"},\"defaults\":{\"state\":\"available\",\"defaultsJson\":\"{\\\"Count\\\":9007199254740993,\\\"Greeting\\\":\\\"Café\\\\\\\\u0020日本語\\\"}\"}}"
+    },
     {
       "id": "configuration-definitionpage-valid",
       "schema": "ConfigurationDefinitionPage",

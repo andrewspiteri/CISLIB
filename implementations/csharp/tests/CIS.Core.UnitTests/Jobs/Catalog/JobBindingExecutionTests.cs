@@ -37,6 +37,15 @@ public sealed class JobBindingExecutionTests
         Assert.AreEqual(42, scope.ServiceProvider.GetRequiredService<CustomerHandler>().Input);
         Assert.ThrowsExactly<ArgumentException>(() => walletBinding.InvokeContinuousAsync(customerContext, default));
         Assert.AreEqual(1, scope.ServiceProvider.GetRequiredService<WalletHandler>().Calls);
+
+        var execution = new MessageContract("execution", 1);
+        var profile = new JobExecutionContract(execution, [execution], [execution]);
+        Assert.AreEqual(ContinuousIterationOutcome.Idle,
+            (await walletBinding.WithExecutionContract(profile).InvokeContinuousAsync(walletContext, default)).Outcome);
+        Assert.AreEqual(ScheduledJobOutcome.Completed,
+            (await customerBinding.WithExecutionContract(profile).InvokeScheduledAsync(customerContext, default)).Outcome);
+        Assert.AreEqual(2, scope.ServiceProvider.GetRequiredService<WalletHandler>().Calls);
+        Assert.AreEqual(42, scope.ServiceProvider.GetRequiredService<CustomerHandler>().Input);
     }
 
     [TestMethod]

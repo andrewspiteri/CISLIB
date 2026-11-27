@@ -86,7 +86,7 @@ internal static partial class ManagementEndpoints
 
         RouteGroupBuilder group = web.MapGroup(prefix.Value!);
         group.MapGet("/service-info", async (HttpContext context, IManagementBackend backend, IManagementConfigurationBackend configuration) => ManagementHttp.Json(new ManagementServiceInfo(
-            EnvironmentOptions.ServiceVersion, [1], Array.AsReadOnly(Features.Concat(await ConfigurationFeatures(configuration, context.RequestAborted)).ToArray()))
+            EnvironmentOptions.ServiceVersion, [1], Array.AsReadOnly(Features.Concat(DiscoveryFeatures(backend)).Concat(await ConfigurationFeatures(configuration, context.RequestAborted)).ToArray()))
         {
             MaximumInventoryRequestBytes = backend.MaximumInventoryRequestBytes
         }, limits: backend.WireLimits));
@@ -96,6 +96,7 @@ internal static partial class ManagementEndpoints
         group.MapPut("/registrations/{registrationId}/inventory", Inventory);
         group.MapDelete("/registrations/{registrationId}", Close);
         group.MapGet("/applications", Applications);
+        group.MapGet("/environments", Environments);
         group.MapGet("/applications/{applicationId}", Application);
         group.MapGet("/applications/{applicationId}/instances", Instances);
         group.MapGet("/applications/{applicationId}/inventory", Inventories);
@@ -229,22 +230,40 @@ internal static partial class ManagementEndpoints
     private static async Task<IResult> Applications(HttpContext context, IManagementBackend store, ManagementCursor cursors)
     {
         const string endpoint = "applications";
-        if (!ManagementHttp.TryPage(context, cursors, endpoint, null, out int size, out string? after))
+        if (!ManagementDiscoveryQuery.TryRead(context, filters: true, out ManagementApplicationQuery query, out int size, out string? rawCursor))
+        {
+            return ManagementHttp.Problem(context, 400, "management.invalid_query");
+        }
+        string scope = ManagementDiscoveryQuery.Scope(ManagementHttp.Caller(context)!, query: query, principal: context.User);
+        if (!cursors.TryDecode(rawCursor, endpoint, scope, size, out string? after))
         {
             return ManagementHttp.Problem(context, 400, "management.cursor.invalid");
+        }
+        bool filtered = query.Query is not null || query.Environment is not null;
+        if (filtered && store is not IManagementDiscoveryBackend)
+        {
+            return ManagementHttp.Problem(context, 501, "management.discovery.unsupported");
         }
         var items = new List<ManagementApplication>();
         int remaining = store.WireLimits.MaximumRegularResponseBytes - 4096;
         bool more = false;
+        int scanned = 0;
         while (true)
         {
-            ManagementStoreResult<IReadOnlyList<ManagementApplication>> batch = await store.ReadApplicationsAsync(after, 16, context.RequestAborted);
+            if (scanned >= DiscoveryScanLimit)
+            {
+                return ManagementHttp.Problem(context, 503, "management.discovery.scan_limit");
+            }
+            ManagementStoreResult<IReadOnlyList<ManagementApplication>> batch = filtered
+                ? await ((IManagementDiscoveryBackend)store).QueryApplicationsAsync(query, after, 16, context.RequestAborted)
+                : await store.ReadApplicationsAsync(after, 16, context.RequestAborted);
             if (batch.Code is not null || batch.Value is null || !batch.IsKnownCommitted)
             {
                 return ManagementHttp.Problem(context, 503, batch.Code ?? "management.transaction_unknown");
             }
             foreach (ManagementApplication candidate in batch.Value)
             {
+                scanned++;
                 after = candidate.ApplicationId;
                 if (!await ManagementHttp.Allowed(context, "management.applications.read", candidate.ApplicationId))
                 {
@@ -269,7 +288,7 @@ internal static partial class ManagementEndpoints
             }
         }
         return ManagementHttp.Json(new ManagementPage<ManagementApplication>(items.AsReadOnly(), more
-            ? ManagementHttp.Cursor(context, cursors, endpoint, null, size, items[^1].ApplicationId) : null), limits: store.WireLimits);
+            ? cursors.Encode(endpoint, scope, size, items[^1].ApplicationId) : null), limits: store.WireLimits);
     }
 
     private static async Task<IResult> Instances(HttpContext context, string applicationId, IManagementBackend store, ManagementCursor cursors)
@@ -348,7 +367,8 @@ internal static partial class ManagementEndpoints
             return ManagementHttp.Problem(context, 404, "management.not_found");
         }
         var hints = new List<ManagementOperationHint>();
-        foreach (ManagementFeature feature in Features)
+        IReadOnlyList<ManagementFeature> implemented = Array.AsReadOnly(Features.Concat(DiscoveryFeatures(store)).ToArray());
+        foreach (ManagementFeature feature in implemented)
         {
             bool allowed = true;
             foreach (string capability in feature.RequiredCapabilities)
@@ -361,7 +381,7 @@ internal static partial class ManagementEndpoints
         IReadOnlyList<ManagementFeature> configuration = await ConfigurationFeatures(
             context.RequestServices.GetRequiredService<IManagementConfigurationBackend>(), context.RequestAborted);
         // Source-scoped hints require a discovered actual source; application grants cannot synthesize them.
-        return ManagementHttp.Json(new ManagementCapabilities(applicationId, Array.AsReadOnly(Features.Concat(configuration).ToArray()),
+        return ManagementHttp.Json(new ManagementCapabilities(applicationId, Array.AsReadOnly(implemented.Concat(configuration).ToArray()),
             hints.AsReadOnly()), limits: store.WireLimits);
     }
 

@@ -47,14 +47,24 @@ Run All also selects service, native Node, performance and extended stress cases
 
 ## Native Management fetch integration
 
-`RequiresNode` selects actual default-fetch HTTPS body disconnect, deadline and
-caller-cancellation cases without Docker. First build the
+`RequiresNode` includes actual default-fetch HTTPS body disconnect, deadline and
+caller-cancellation cases without Docker, plus portal host cases that also
+require their declared services. First build the
 [TypeScript workspace](../../typescript/README.md) using its pinned Node
-24.15.0/npm 11.12.1 setup. Then select the existing integration project with
+24.16.0/npm 11.12.1 setup. Then select the existing integration project with
 `--filter "TestCategory=RequiresNode"`. `CIS_TEST_NODE_EXECUTABLE` may explicitly
 select that native Node executable; otherwise it must be on PATH. Missing Node or
-unbuilt packages fail the selected test. The existing service CI job already
-provisions these prerequisites and includes this category alongside service tests.
+unbuilt packages fail the selected test.
+
+Portal host cases additionally require the production portal build and the
+selected Microsoft Edge browser. Run `npm run build:portal` after the portable
+workspace build; it prepares the pinned Next response-close correction and
+production `.next` output. The version workflow uses a headed Edge window with
+its actual size, so Linux needs Xvfb, `xvfb-run` and `xauth`. The existing service
+CI job verifies the Ubuntu runner's supplied browser/display tools, builds the
+portal with its selected npm CLI, and runs the service selection under Xvfb.
+Missing prerequisites fail explicitly; a type check or portable SDK build is
+not portal startup preparation.
 
 ## PostgreSQL and RabbitMQ integration
 

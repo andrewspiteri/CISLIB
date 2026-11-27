@@ -8,7 +8,50 @@ public static partial class ManagementConfigurationWire
 {
     private static void Value(Type type, JsonElement value, bool request, ManagementConfigurationWireLimits limits)
     {
-        if (type == typeof(ManagementConfigurationCatalogCommand))
+        if (type == typeof(ManagementConfigurationCreationCommand))
+        {
+            Shape(value, true, ["commandVersion", "configurationId", "intent", "reason"]);
+            Version(value);
+            Require(ManagementWire.IsOperationKey(Text(value, "configurationId")));
+            Require(Text(value, "intent") is "createGeneric" or "reuseGeneric");
+            Reason(value);
+        }
+        else if (type == typeof(ManagementConfigurationCreationContext))
+        {
+            Shape(value, false, ["applicationId", "application", "environment", "eTag", "schemaVersion", "hostApplicationName"]);
+            Id(value, "applicationId");
+            Scalar(value, "application", 255);
+            Scalar(value, "environment", 255);
+            ETag(value, "eTag");
+            Require(Text(value, "schemaVersion") == "1");
+            Scalar(value, "hostApplicationName", 255);
+            Require(Text(value, "hostApplicationName") != "CommonConfiguration");
+        }
+        else if (type == typeof(ManagementConfigurationSummary))
+        {
+            Summary(value);
+        }
+        else if (type == typeof(ManagementPage<ManagementConfigurationSummary>))
+        {
+            var sources = new HashSet<string>(StringComparer.Ordinal);
+            var bindings = new HashSet<string>(StringComparer.Ordinal);
+            var identities = new HashSet<(string, string)>();
+            Page(value, item =>
+            {
+                Summary(item);
+                Require(sources.Add(Text(item, "sourceId")) && bindings.Add(Text(item, "bindingId"))
+                    && identities.Add((Text(item, "configurationId"), Text(item, "schemaVersion"))));
+            });
+        }
+        else if (type == typeof(ManagementConfigurationCandidatePreviewCommand))
+        {
+            CandidateCommand(value, limits);
+        }
+        else if (type == typeof(ManagementConfigurationCandidatePreview))
+        {
+            CandidatePreview(value, limits);
+        }
+        else if (type == typeof(ManagementConfigurationCatalogCommand))
         {
             Shape(value, true, ["commandVersion", "manifestDigest", "reason"]);
             Version(value);
@@ -47,6 +90,10 @@ public static partial class ManagementConfigurationWire
             Version(value);
             ApplicationDefinition(value);
             PreviewVariant(value, "assignment", true, limits);
+        }
+        else if (type == typeof(ManagementConfigurationEditorContext))
+        {
+            EditorContext(value, limits);
         }
         else if (type == typeof(ManagementConfigurationDefinition))
         {
@@ -124,6 +171,15 @@ public static partial class ManagementConfigurationWire
         {
             Page(value, item => Publication(item, false, limits));
         }
+        else if (type == typeof(ManagementPage<ManagementConfigurationRelease>))
+        {
+            var releases = new HashSet<string>(StringComparer.Ordinal);
+            Page(value, release =>
+            {
+                Release(release);
+                Require(releases.Add(Text(release, "releaseId")));
+            });
+        }
         else if (type == typeof(ManagementPage<ManagementConfigurationAdoptionEntry>))
         {
             Page(value, Adoption);
@@ -151,6 +207,21 @@ public static partial class ManagementConfigurationWire
         Declaration(value.GetProperty("shape"), 1, limits);
         Optional(value, "defaultsJson", defaults => _ = SourceBytes(Text(defaults), limits));
         OptionalScalar(value, "description", 2048, true);
+    }
+
+    private static void Summary(JsonElement value)
+    {
+        Shape(value, false, ["applicationId", "environment", "configurationId", "schemaVersion", "sourceId", "bindingId", "hostApplicationName", "origin", "hasCohortOverrides"], "description", "modifiedAtUtc");
+        ApplicationDefinition(value);
+        Scalar(value, "environment", 255);
+        Id(value, "sourceId");
+        Id(value, "bindingId");
+        Scalar(value, "hostApplicationName", 255);
+        Require(Text(value, "hostApplicationName") != "CommonConfiguration");
+        Scalar(value, "origin", 64);
+        Boolean(value, "hasCohortOverrides");
+        OptionalScalar(value, "description", 2048, true);
+        Optional(value, "modifiedAtUtc", item => Require(ManagementWire.IsTimestamp(Text(item))));
     }
 
     private static void Declaration(JsonElement value, int depth, ManagementConfigurationWireLimits limits)
@@ -450,13 +521,13 @@ public static partial class ManagementConfigurationWire
     private static void Decision(JsonElement value, ManagementConfigurationWireLimits limits)
     {
         Shape(value, false, ["commandVersion", "kind", "decision", "code", "decidedAtUtc"], "catalogId", "manifestDigest", "sourceId",
-            "publicationId", "sha256", "applicationId", "configurationId", "schemaVersion", "releaseId", "generation", "eTag", "intent", "assignment");
+            "publicationId", "sha256", "applicationId", "configurationId", "schemaVersion", "releaseId", "generation", "eTag", "intent", "assignment", "bindingId", "hostApplicationName", "sourceETag");
         Version(value);
         Scalar(value, "kind", 64);
         Scalar(value, "decision", 64);
         Code(value, "code");
         Time(value, "decidedAtUtc");
-        foreach (string field in new[] { "catalogId", "sourceId", "publicationId", "applicationId", "releaseId" })
+        foreach (string field in new[] { "catalogId", "sourceId", "publicationId", "applicationId", "releaseId", "bindingId" })
         {
             Optional(value, field, item => Require(ManagementWire.IsUuid(Text(item))));
         }
@@ -470,10 +541,16 @@ public static partial class ManagementConfigurationWire
             Optional(value, field, item => Require(ManagementWire.IsOrderedInteger(Text(item))));
         }
         Optional(value, "eTag", item => Require(ManagementWire.IsStrongETag(Text(item))));
+        Optional(value, "sourceETag", item => Require(ManagementWire.IsStrongETag(Text(item))));
+        OptionalScalar(value, "hostApplicationName", 255);
         OptionalScalar(value, "intent", 64);
         Optional(value, "assignment", item => Assignment(item, limits));
         switch (Text(value, "kind"))
         {
+            case "configurationCreated":
+                Required(value, "applicationId", "configurationId", "schemaVersion", "sourceId", "bindingId", "hostApplicationName", "sourceETag", "eTag");
+                Require(Text(value, "schemaVersion") == "1" && Text(value, "hostApplicationName") != "CommonConfiguration");
+                break;
             case "catalogApplied":
                 Required(value, "catalogId", "manifestDigest", "eTag");
                 break;

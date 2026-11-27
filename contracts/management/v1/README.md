@@ -1,5 +1,22 @@
 # Management v1 protocol
 
+The optional unpublished Configuration candidate-preview companion uses exact
+source/map preconditions and explicit baseline references without creating a
+publication identity or effect. See [candidate preview](../../../docs/modules/management/configuration-candidate-preview.md),
+ConfigurationCandidatePreviewCommand and ConfigurationCandidatePreview.
+
+The optional exact Configuration editor-context read returns one actual binding,
+immutable shape and independently authorized selected-source declared defaults.
+It preserves source absence, redaction and disabled/unavailable states without
+adding mutation or runtime authority. See [binding editor context](../../../docs/modules/management/configuration-editor-context.md)
+and the canonical ConfigurationEditorContext schema and conformance vectors.
+
+The additive v1.3 discovery surface supplies literal application queries,
+authorized environment pages and exact-application metadata-only Configuration
+definitions. See [discovery semantics and cursor boundaries](../../../docs/modules/management/discovery.md).
+Existing unfiltered APIs remain supported; unsupported optional backends do not
+advertise the additions.
+
 Use `/management/v1` relative to the configured HTTPS base prefix. Preserve that
 prefix when appending the typed API paths. Bootstrap trust and credentials are
 independent of this service. Every business API uses a selected native
@@ -159,6 +176,16 @@ credentials, stack trace, raw SQL or connection text.
 
 ## Transport and extension
 
+The additive v1.4 [Scheduler/catalogue contract](scheduler-contract.md) defines
+34 fixed optional operations, its [bounded schema](scheduler.schema.json) and
+independent [literal vectors](../../../conformance/management/v1/scheduler-cases.json).
+Logical application capabilities and reported participation are separate from
+the unchanged HTTP API `Capabilities` protocol. Scheduler selection is passive;
+installed native handlers, current authority and existing Jobs ownership remain
+required. Creation, desired-state changes, manual occurrences, cancellation and
+original-key recovery preserve their distinct guarded effects. Contracts and
+clients alone advertise no qualified scheduler backend.
+
 Both SDKs have a 30-second default total deadline covering credentials, HTTP,
 selected read retries and decoding. Retry defaults None; deliberate read policy
 has at most two retries. Cancellation signals actual work, stops later attempts
@@ -246,6 +273,19 @@ authority obligations. Known optional fields are omitted rather than null;
 responses permit additive unknown members and retain explicit unknown status
 values. These vectors establish no database, deployment or lifecycle proof.
 
+Optional exact-binding reads add `GET /applications/{applicationId}/configuration/{configurationId}/releases`
+and the sibling `/status`, both with required `schemaVersion` and bounded
+`pageSize`/opaque `cursor`. Release pages contain existing immutable metadata in
+creation-time/UUID descending order, with unique release IDs and actual binding
+plus per-release DefinitionsRead before paging. Their authorized scan stops at 4096
+rows; exhaustion yields 503 without a partial page. Scoped status retains the
+application's AdoptionRead authority and restricts the exact binding/schema
+before recipient expansion; the earlier app-wide status route is unchanged.
+Both require clean qualified native reads and bind continuation to the current
+actor/profile/policy/principal and exact scope. Missing optional handlers return 501
+after current resource authorization. See the
+[binding-read guide](../../../docs/modules/management/configuration-binding-reads.md).
+
 `GET /configuration/definitions` pages authorized source-qualified descriptors.
 Each row has its actual source ID, environment, kind and shared immutable schema/
 defaults. Application rows also identify the actual application, stable binding
@@ -273,3 +313,57 @@ and cannot be all whitespace. Its non-whitespace message preserves valid Unicode
 at most1024 UTF-8 bytes, including controls other than NUL. These are native
 OperationError bounds, distinct from administrative metadata scalar rules.
 Known typed decision values and unknown additive response values remain readable.
+
+## Optional application Configuration creation and summaries
+
+`GET /applications/{applicationId}/configuration-creations/context` returns one
+authorized generic-v1 creation context with the actual application/environment,
+fixed host scope, schema version `"1"` and opaque strong creation ETag.
+`POST /applications/{applicationId}/configuration-creations` accepts only
+`{commandVersion:1,configurationId,intent,reason}`, where intent is explicitly
+`createGeneric` or `reuseGeneric`. The original `Idempotency-Key` and current
+`If-Match` creation ETag are required. This operation uses the existing native
+`management.configuration.create` family, with Create and OperationsRead on the
+resolved application resource. Its generic schema is fixed by the native owner:
+nonnullable object, no declared members and `{}` defaults. Browser payloads never
+define a schema. Creation performs no publication, coherent release or assignment.
+
+The `configurationCreated` decision identifies the exact application,
+Configuration/schema, source, binding and host, plus distinct source and creation
+ETags. `GET /applications/{applicationId}/configuration-creation-operations/{key}`
+recovers that same original under current OperationsRead without an AppRead or
+content prefetch. Its scope retains the existing native form
+`management.configuration.v1/management.configuration.create/{applicationId}/management.actor.v1.{digest}`.
+NotFound, a failed current read or cleanup, and a known original committed
+decision remain separate facts; no replacement key or automatic replay follows.
+
+`GET /applications/{applicationId}/configuration-summaries` returns bounded
+metadata-only application binding rows. AppRead and actual source/binding
+DefinitionsRead are checked before visible paging. Summary rows contain exact
+source/binding/Configuration/schema/environment identities, host scope, an origin
+observation and `hasCohortOverrides`; they contain no payload, defaults or merged
+values. Origins are `shared`, `applicationOverride`, `applicationOnly`,
+`defaultsOnly`, `unassigned`, `mixed`, `protected` or `unavailable`. Unknown future
+origins remain explicit unknown observations. `mixed` means assigned source pairs
+differ across default/cohort map entries; it is not consumer convergence.
+`defaultsOnly` describes an assigned pair whose two source references are absent.
+Release metadata authorization can yield `protected`; it never fabricates an
+empty source. Continuations are opaque and bound to current native caller,
+policy/profile and the exact application/page request. No fleet/history scan is
+implied. Within a page, source IDs, binding IDs and Configuration/schema pairs are
+unique. Unsupported optional backends return a typed failure, not an empty page.
+
+The optional `modifiedAtUtc` summary field is the exact precise-UTC creation time
+of the default-assigned selected immutable publication: Application when present,
+otherwise Common. It is not the assignment time, a cohort maximum, the newest
+source history entry or a mutable current-value pointer. Defaults-only and
+unassigned rows have no such publication time. Source and release metadata
+authority remain independent: a selected Common publication time also requires
+DefinitionsRead on that actual Common source. Withheld or unavailable dates are
+omitted. Existing positional C# constructors/deconstructors remain intact.
+
+The additive TypeScript `ManagementConfigurationCreationClientPort` exposes these
+four methods on the existing administration client. Previous optional ports gain
+no compulsory members. Requests use the existing one-deadline transport owner,
+fresh per-call credentials and joined decode/cleanup. Writes never retry
+automatically; configured read retries apply only to the existing read policy.

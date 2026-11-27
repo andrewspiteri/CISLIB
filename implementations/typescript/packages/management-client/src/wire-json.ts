@@ -29,6 +29,8 @@ export interface ParsedJson {
   readonly value: unknown;
   readonly objects: ReadonlyMap<string, string>;
   readonly nonIntegerNumbers: ReadonlySet<string>;
+  /** Explicitly selected token text, captured by the same lexical validation pass. */
+  readonly rawValues: ReadonlyMap<string, string>;
 }
 
 export function validUnicode(text: string): boolean {
@@ -48,13 +50,14 @@ export function validUnicode(text: string): boolean {
 
 // This is only the protocol's lexical duplicate/Unicode/depth pass. Native
 // JSON.parse supplies JSON grammar; the fixed DTO validators supply semantics.
-export function parseWireJson(text: string, maximumDepth: number): ParsedJson {
+export function parseWireJson(text: string, maximumDepth: number, capturePaths: ReadonlySet<string> = new Set()): ParsedJson {
   if (!validUnicode(text)) {
     throw new ManagementWireError();
   }
   let index = 0;
   const objects = new Map<string, string>();
   const nonIntegerNumbers = new Set<string>();
+  const rawValues = new Map<string, string>();
   const skip = () => { while (index < text.length && /[\u0020\u0009\u000a\u000d]/u.test(text[index]!)) { index++; } };
   const string = (): string => {
     const start = index++;
@@ -132,6 +135,7 @@ export function parseWireJson(text: string, maximumDepth: number): ParsedJson {
         nonIntegerNumbers.add(path);
       }
     }
+    if (capturePaths.has(path)) { rawValues.set(path, text.slice(start, index)); }
   };
   value(1, "");
   skip();
@@ -139,7 +143,7 @@ export function parseWireJson(text: string, maximumDepth: number): ParsedJson {
     throw new ManagementWireError();
   }
   try {
-    return { value: JSON.parse(text) as unknown, objects, nonIntegerNumbers };
+    return { value: JSON.parse(text) as unknown, objects, nonIntegerNumbers, rawValues };
   } catch {
     throw new ManagementWireError();
   }
@@ -148,8 +152,8 @@ export function parseWireJson(text: string, maximumDepth: number): ParsedJson {
 // Capture only fields that a declared DTO can use as a bounded JSON integer.
 // Unknown numbers, including opaque module data, are not reinterpreted.
 function integerTokenPath(path: string): boolean {
-  return /\/(?:protocolMajor|commandVersion|status|version|validForMs|maximumInventoryRequestBytes|definitionCount|sourceCount|bindingCount|quotaBytes|usedBytes)$/u.test(path)
-    || /\/protocolMajors\/[0-9]+$/u.test(path);
+  return /\/(?:protocolMajor|commandVersion|status|version|validForMs|maximumInventoryRequestBytes|definitionCount|sourceCount|bindingCount|quotaBytes|usedBytes|maximumAttempts|maximumCatchUp|order|runCount|count|envelopeVersion|schemaVersion)$/u.test(path)
+    || /\/(?:protocolMajors|weekdays)\/[0-9]+$/u.test(path);
 }
 
 export function attachOpaqueObjects(value: unknown, path: string, objects: ReadonlyMap<string, string>): void {

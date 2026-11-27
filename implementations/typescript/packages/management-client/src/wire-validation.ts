@@ -4,7 +4,8 @@ import type { ManagementWireLimits } from "./wire-limits.js";
 type ObjectValue = Record<string, unknown>;
 export type ManagementSchema = "RegistrationRequest" | "Observation" | "InventorySnapshot" | "MetadataCommand"
   | "Application" | "MetadataResult" | "Problem" | "RegistrationReceipt" | "ReportReceipt" | "CloseReceipt"
-  | "ServiceInfo" | "ControlConfirmation" | "Capabilities" | "Instance" | "InventoryItem" | "ApplicationPage" | "InstancePage" | "InventoryPage";
+  | "ServiceInfo" | "ControlConfirmation" | "Capabilities" | "Instance" | "InventoryItem" | "ApplicationPage" | "InstancePage" | "InventoryPage"
+  | "EnvironmentEntry" | "EnvironmentPage";
 
 const encoder = new TextEncoder();
 const lifecycle = new Set(["starting", "ready", "stopping", "stopped", "unknown"]);
@@ -80,6 +81,9 @@ export function validateManagement(schema: ManagementSchema, value: unknown, req
       return;
     }
     case "Application": application(value); return;
+    case "EnvironmentEntry": {
+      const object = shape(value, false, ["environment"]); scalar(object.environment, 255); return;
+    }
     case "MetadataResult": metadataResult(value); return;
     case "Problem": problem(value); return;
     case "RegistrationReceipt": {
@@ -115,9 +119,10 @@ export function validateManagement(schema: ManagementSchema, value: unknown, req
     }
     case "Instance": instance(value); return;
     case "InventoryItem": inventoryItem(value, limits); return;
-    case "ApplicationPage": case "InstancePage": case "InventoryPage": {
+    case "ApplicationPage": case "InstancePage": case "InventoryPage": case "EnvironmentPage": {
       const object = shape(value, false, ["items"], ["nextCursor"]);
-      const itemSchema = schema === "ApplicationPage" ? "Application" : schema === "InstancePage" ? "Instance" : "InventoryItem";
+      const itemSchema = schema === "ApplicationPage" ? "Application" : schema === "InstancePage" ? "Instance"
+        : schema === "EnvironmentPage" ? "EnvironmentEntry" : "InventoryItem";
       array(object.items, 500).forEach(item => validateManagement(itemSchema, item, false, limits));
       optional(object, "nextCursor", item => requireValue(isCursor(item))); return;
     }

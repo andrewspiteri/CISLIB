@@ -34,6 +34,11 @@ public static partial class ManagementWire
         {
             Application(value);
         }
+        else if (type == typeof(ManagementEnvironment))
+        {
+            Shape(value, false, ["environment"]);
+            Scalar(value, "environment", 255);
+        }
         else if (type == typeof(ManagementServiceInfo))
         {
             Shape(value, false, ["serviceVersion", "protocolMajors", "features"], "maximumInventoryRequestBytes");
@@ -127,6 +132,10 @@ public static partial class ManagementWire
         else if (type == typeof(ManagementPage<ManagementApplication>))
         {
             Page(value, typeof(ManagementApplication), limits);
+        }
+        else if (type == typeof(ManagementPage<ManagementEnvironment>))
+        {
+            Page(value, typeof(ManagementEnvironment), limits);
         }
         else if (type == typeof(ManagementPage<ManagementInstance>))
         {

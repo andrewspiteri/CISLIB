@@ -10,6 +10,20 @@ namespace CIS.Management.Service.Configuration;
 internal static class ManagementConfigurationComposition
 {
     internal static JsonNode Compose(ManagementConfigurationBindingResource binding, ConfigurationSourcePair pair)
+        => ComposeCore(binding, pair, null, null);
+
+    internal static JsonNode ComposeCandidate(ManagementConfigurationBindingResource binding, ConfigurationSourcePair baseline,
+        string selectedSource, string payloadJson)
+    {
+        if (selectedSource is not ("common" or "application"))
+        {
+            throw new ArgumentException("Select one actual source layer.", nameof(selectedSource));
+        }
+        return ComposeCore(binding, baseline, selectedSource, payloadJson);
+    }
+
+    private static JsonNode ComposeCore(ManagementConfigurationBindingResource binding, ConfigurationSourcePair pair,
+        string? selectedSource, string? payloadJson)
     {
         using JsonDocument defaults = JsonDocument.Parse(binding.DefaultsJson);
         var templates = new Dictionary<string, JsonElement>(StringComparer.Ordinal) { [""] = defaults.RootElement };
@@ -18,8 +32,10 @@ internal static class ManagementConfigurationComposition
             using JsonDocument document = JsonDocument.Parse(template.DefaultsJson);
             templates.Add(template.Path, document.RootElement.Clone());
         }
-        using JsonDocument? common = pair.Common.State == "present" ? JsonDocument.Parse(pair.Common.PayloadJson!) : null;
-        using JsonDocument? application = pair.Application.State == "present" ? JsonDocument.Parse(pair.Application.PayloadJson!) : null;
+        using JsonDocument? common = selectedSource == "common" ? JsonDocument.Parse(payloadJson!)
+            : pair.Common.State == "present" ? JsonDocument.Parse(pair.Common.PayloadJson!) : null;
+        using JsonDocument? application = selectedSource == "application" ? JsonDocument.Parse(payloadJson!)
+            : pair.Application.State == "present" ? JsonDocument.Parse(pair.Application.PayloadJson!) : null;
         var layers = new List<JsonElement> { defaults.RootElement };
         if (common is not null)
         {

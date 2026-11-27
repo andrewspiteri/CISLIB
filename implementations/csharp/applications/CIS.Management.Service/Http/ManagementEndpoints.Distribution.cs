@@ -12,10 +12,10 @@ internal static partial class ManagementEndpoints
     private static readonly ManagementFeature[] DistributionFeatures =
     [
         new("previewConfiguration", 1, "POST", "/configuration/preview", [ManagementConfigurationCapabilities.Preview]),
-        new("createConfigurationRelease", 1, "POST", "/applications/{applicationId}/configuration/{configurationId}/releases", [ManagementConfigurationCapabilities.ReleaseCreate]),
+        new("createConfigurationRelease", 1, "POST", "/applications/{applicationId}/configuration/{configurationId}/releases", [ManagementConfigurationCapabilities.ReleaseCreate, ManagementConfigurationCapabilities.OperationsRead]),
         new("getConfigurationRelease", 1, "GET", "/configuration/releases/{releaseId}", [ManagementConfigurationCapabilities.DefinitionsRead]),
         new("getConfigurationAssignments", 1, "GET", "/applications/{applicationId}/configuration/{configurationId}/assignments", [ManagementConfigurationCapabilities.DefinitionsRead]),
-        new("replaceConfigurationAssignments", 1, "PUT", "/applications/{applicationId}/configuration/{configurationId}/assignments", [ManagementConfigurationCapabilities.AssignmentWrite]),
+        new("replaceConfigurationAssignments", 1, "PUT", "/applications/{applicationId}/configuration/{configurationId}/assignments", [ManagementConfigurationCapabilities.AssignmentWrite, ManagementConfigurationCapabilities.OperationsRead]),
         new("getConfigurationReleaseOperation", 1, "GET", "/applications/{applicationId}/configuration/{configurationId}/release-operations/{operationKey}", [ManagementConfigurationCapabilities.OperationsRead]),
         new("getConfigurationAssignmentOperation", 1, "GET", "/applications/{applicationId}/configuration/{configurationId}/assignment-operations/{operationKey}", [ManagementConfigurationCapabilities.OperationsRead])
     ];

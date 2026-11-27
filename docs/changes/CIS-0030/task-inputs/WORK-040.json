@@ -1,0 +1,29 @@
+{
+  "tasks": [
+    {
+      "title": "Implement native scoped administrative eligibility, cohort choices and grant bundles",
+      "scopeIds": [
+        "configuration-portal",
+        "capability-contracts",
+        "scheduler",
+        "integration"
+      ],
+      "paths": [
+        "implementations/csharp/applications/CIS.Management.Service/Http",
+        "implementations/csharp/applications/CIS.Management.Service/Security",
+        "implementations/csharp/applications/CIS.Management.Service/Backends",
+        "implementations/csharp/src/CIS.Core/Management",
+        "implementations/typescript/packages/management-client",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Management",
+        "docs/modules/management"
+      ],
+      "dependsOn": [
+        "WORK-080"
+      ],
+      "complexity": "medium",
+      "category": "security",
+      "acceptanceCriteria": "Implement bounded authorized source/binding/task action eligibility and trusted cohort discovery using existing native identity/projector/ICapabilityAuthorizer. Resolve actual resources before permission checks; publication, release, assignment and scheduler mutations require their original-result lookup grant bundle. Report exact supported action permissions without leaking cohort issuer/subject membership, hidden resources, counts or cursors. Retain native human/workload distinction and strict existing Entra semantics; no portal application fallback, copied-claim authority, generic permissions engine or grant from reported inventory. Mutation/recovery endpoints independently reauthorize, including after preview and grant loss. This owns the native eligibility/grant portion of RM09-AC03, RM09-AC04, RM09-AC07, RM09-AC10, RM09-AC11, RM09-AC12, RM09-AC15, RM09-AC16 and RM10-AC02, RM10-AC08, RM10-AC14, RM10-AC21, RM10-AC24, RM10-AC29, RM10-AC30; runtime admission/reporting and actual workload execution are owned separately.",
+      "validation": "Reuse native Management HTTPS/authentication fixtures with exact human source/binding/task grants, write-without-lookup, revoked lookup, hidden resource/cohort and cursor tampering, unsupported optional backend and current policy cases. Check portable clients and document exact grant bundles/cohort ownership. Include meaningful focused native/unit or browser checks for this implementation, affected documentation, and proportionate independent review; preserve failures and actual joined cleanup. Do not turn authored tests or reused evidence from different source bytes into a pass."
+    }
+  ]
+}

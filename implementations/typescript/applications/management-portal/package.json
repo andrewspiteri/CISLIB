@@ -1,0 +1,34 @@
+{
+  "name": "@cislib/management-portal",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": "24.16.0", "npm": "11.12.1" },
+  "scripts": {
+    "build": "node scripts/patch-next-response-drain.mjs && next build --webpack",
+    "start": "node server.mts",
+    "dev": "node scripts/patch-next-response-drain.mjs && node server.mts --development",
+    "migrate": "node scripts/migrate.mts",
+    "test": "node --test --test-concurrency=1 tests/*.test.mjs"
+  },
+  "dependencies": {
+    "@auth/pg-adapter": "1.11.3",
+    "@cislib/client-core": "0.1.0",
+    "@cislib/management-client": "0.1.0",
+    "@radix-ui/react-dialog": "1.3.1",
+    "@radix-ui/react-tabs": "1.2.1",
+    "next": "16.4.6",
+    "next-auth": "4.24.15",
+    "pg": "8.23.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "server-only": "0.0.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.1",
+    "@types/node": "24.13.6",
+    "@types/pg": "8.23.1",
+    "@types/react": "19.3.1",
+    "@types/react-dom": "19.3.0"
+  }
+}

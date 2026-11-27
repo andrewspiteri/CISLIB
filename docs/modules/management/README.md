@@ -11,7 +11,7 @@ database and operational ownership.
 Start with the [portable v1 contract](../../../contracts/management/v1/README.md)
 and its checked-in [OpenAPI](../../../contracts/management/v1/openapi.json) and
 [schema](../../../contracts/management/v1/contract.schema.json). They define the
-thirteen foundation APIs and nineteen configuration APIs, finite wire limits,
+foundation and Configuration APIs plus optional companion reads, finite wire limits,
 exact identities, decimal revision/sequence strings, closed requests and
 compatible response additions.
 
@@ -27,8 +27,25 @@ compatible response additions.
 - [Metadata command and recovery](../../../implementations/csharp/applications/CIS.Management.Service/Metadata/README.md):
   original-context Transactions/Operations/Audit integration, ETag concurrency,
   required Audit staging and original-key result recovery.
+- [Portal inspection](portal-inspection.md): readable application and report
+  context, collapsed exact technical identifiers, unavailable logical feature
+  catalog and separate Service API diagnostics.
+- [Portal display metadata](portal-metadata.md): finite explicit review,
+  strong preconditions and original-key recovery.
+- [Portal Configuration authoring](portal-configuration.md): exact source drafts,
+  native candidate preview, immutable publication and separate coherent releases.
+- [Portal whole-map assignment](portal-configuration-assignment.md): explicit
+  Canary, promotion and retained-release rollback without dropping unrelated pins.
+- [Portal adoption](portal-configuration-adoption.md): separate desired,
+  reported accepted and historical versions with bounded pages and independent freshness.
+- [Local portal review data](portal-manual-review-data.md): isolated Country/Billing
+  examples, explicit editor/reader permissions, native assigned JSON and truthful
+  instance/job observations under a finite manual lease.
 - [Configuration contract](configuration-contract.md): exact source-scoped
   discovery, versions, integrity, explicit absence and finite portable APIs.
+- [Configuration editor context](configuration-editor-context.md): one exact
+  binding, its actual Common/Application source pair and independently authorized
+  declared root defaults; no effective-value or action authority.
 - [Configuration service recipe](configuration-service.md): explicit trusted
   `Configuration.ManifestFile`/`QuotaBytes`, authenticated catalog apply, source
   discovery, immutable publication and original-key recovery. Discovery advertises
@@ -42,6 +59,9 @@ compatible response additions.
 - [Configuration adoption](configuration-adoption.md): separately sequenced
   complete reporting, current-assignment convergence and independent freshness
   on the existing reporting and persistence owners.
+- [Exact binding rollout reads](configuration-binding-reads.md): retained immutable
+  release pages and adoption restricted before recipient expansion, with actual
+  native resource authorization and bounded continuation.
 - [Central root acceptance](../configuration/central-snapshots.md) and
   [C# configuration client/store](configuration-client.md): explicit local
   enrollment, strict whole-pair reads, provenance, synchronized retained-root
@@ -63,8 +83,23 @@ compatible response additions.
 - [TypeScript workspace](../../../implementations/typescript/README.md) and
   [management package](../../../implementations/typescript/packages/management-client/README.md):
   portable ES modules, per-call credentials and explicit server-only adapters.
+- [Bounded portal discovery](discovery.md): literal application search, exact
+  environments, authorized environment enumeration, metadata-only application
+  definitions and current read-policy/ticket-bound cursors.
 - [TypeScript configuration client](typescript.md): matching portable contracts,
   awaited native integrity, scoped conditional reads and actual transport results.
+- [Optional Scheduler/catalog clients](scheduler-client.md): passive typed ports,
+  strict bounded wire framing, exact preview context and original-key recovery.
+- [Operator actions](operator-actions.md): exact source/binding eligibility,
+  write and original-result recovery grants, and independent value disclosure.
+- [Trusted cohort choices](configuration-cohorts.md): bounded authorized rollout
+  groups from configured mappings, frozen enrollments and this binding's retained
+  assignments, with no membership disclosure or new write authority.
+- [Portal command references](portal-command-receipts.md): payload-free local
+  original keys, bounded retention and joined lookup selection; authenticated
+  context and command-screen integration remain separate work.
+- [Protected portal state](portal-protected-state.md): real session associations,
+  cross-view response isolation, memory-only drafts and dated outage snapshots.
 
 Validated native credentials and trusted server mappings establish identity.
 Current grants authorize the management service's actual application/environment

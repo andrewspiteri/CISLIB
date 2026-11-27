@@ -1,0 +1,66 @@
+{
+  "tasks": [
+    {
+      "title": "Deliver exact binding release history and scoped adoption reads",
+      "scopeIds": [
+        "capability-contracts",
+        "configuration-portal",
+        "intake-design",
+        "integration",
+        "portal",
+        "scheduler"
+      ],
+      "paths": [
+        "implementations/csharp/applications/CIS.Management.Service",
+        "implementations/csharp/src/CIS.Core/Management",
+        "implementations/csharp/tests/CIS.Core.UnitTests/Management",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Management",
+        "implementations/csharp/tests/CIS.Core.ArchitectureTests/Contracts",
+        "implementations/typescript/packages/management-client",
+        "implementations/typescript/tests",
+        "contracts/management",
+        "conformance/management",
+        "docs/modules/management",
+        "docs/changes/CIS-0030"
+      ],
+      "dependsOn": [
+        "WORK-171",
+        "WORK-154",
+        "WORK-176",
+        "WORK-178"
+      ],
+      "complexity": "medium",
+      "category": "data",
+      "acceptanceCriteria": "Deliver only the two missing bounded reads needed for the accepted Configuration rollout/adoption journey: paged retained immutable releases for one exact enabled binding, and adoption restricted to exact application/configuration/schema before target expansion and paging. Reuse existing release/adoption rows, native resource permissions, qualified clean read, retention, response bounds and cursor authority. Authorize binding and disclosed release resources before the bounded page; bind continuation to exact selector/page/current actor and policy. Keep old optional backend/client compatibility and unfiltered adoption behavior. Do not infer latest/current from UUID order, manufacture release names/versions, reconstruct expired content or fan out across all instances. No mutation, schema/package, Scheduler runtime, new store/framework or broad scan. Same original150 parent and shared allocation; this read prerequisite does not remove the original167 whole-map acceptance.",
+      "validation": "Use existing native PostgreSQL/HTTPS and CSharp/TypeScript wire/client fixtures for exact binding and schema/disabled/foreign refusal, filtered authorization before paging, bounded cursors and changed actor/selector policy, no-instance and mixed adoption with unrelated definitions excluded before pagination, clean cancellation/cleanup and unsupported optional backend. Preserve old unfiltered native status and existing release lookup tests. Canonical independent cases, affected builds, scoped formatting, docs, independent review and actual proof limits belong to this task."
+    },
+    {
+      "title": "Deliver complete reviewed map canary promotion and retained-release rollback",
+      "scopeIds": [
+        "capability-contracts",
+        "configuration-portal",
+        "intake-design",
+        "integration",
+        "portal",
+        "scheduler"
+      ],
+      "paths": [
+        "implementations/typescript/applications/management-portal",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Management",
+        "docs/modules/management",
+        "docs/changes/CIS-0030"
+      ],
+      "dependsOn": [
+        "WORK-171",
+        "WORK-154",
+        "WORK-155",
+        "WORK-156",
+        "WORK-179"
+      ],
+      "complexity": "medium",
+      "category": "frontend",
+      "acceptanceCriteria": "Preserve all original167 desktop review/command acceptance for exact complete Configuration assignment maps, actual authorized cohort choices, explicit default/override retained/removed entries, canary promotion and rollback to an explicitly selected retained immutable release. Use existing RM08 strong preconditions/native typed APIs and independent original receipts; publication/release never auto-assigns. Rollback advances assignment generation; generation is not a release version. Show all affected entries and preserve unrelated overrides. Changed permission/map forces deliberate renewed review; unknown/partial recovery uses same original key without repeated effects, masks, queued mutation, restart or deployment authority. Consume the exact bounded binding rollout reads once the native sibling ID exists. Owns original167 RM09/RM10 requirement portions without Scheduler implementation.",
+      "validation": "Use actual native RM08 whole-map race/promotion/rollback/original recovery plus approved desktop flow showing every affected map entry and retained pin. Cover grants/current session/outage/keyboard, bounded selection and hidden/expired release states. Document operational semantics, independent review and joined ownership; no external deployment proof. Keep original150 parent accounting and full167 requirement provenance."
+    }
+  ]
+}

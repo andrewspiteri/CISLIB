@@ -38,6 +38,10 @@ public sealed class ManagementConfigurationWireTests
         object? value = (schema, direction) switch
         {
             ("ConfigurationCatalogCommand", "request") => ManagementConfigurationWire.DecodeRequest<ManagementConfigurationCatalogCommand>(bytes),
+            ("ConfigurationCreationCommand", "request") => ManagementConfigurationWire.DecodeRequest<ManagementConfigurationCreationCommand>(bytes),
+            ("ConfigurationCreationContext", "response") => ManagementConfigurationWire.DecodeResponse<ManagementConfigurationCreationContext>(bytes),
+            ("ConfigurationSummary", "response") => ManagementConfigurationWire.DecodeResponse<ManagementConfigurationSummary>(bytes),
+            ("ConfigurationSummaryPage", "response") => ManagementConfigurationWire.DecodeResponse<ManagementPage<ManagementConfigurationSummary>>(bytes),
             ("ConfigurationValidationCommand", "request") => ManagementConfigurationWire.DecodeRequest<ManagementConfigurationValidationCommand>(bytes),
             ("ConfigurationPreviewCommand", "request") => ManagementConfigurationWire.DecodeRequest<ManagementConfigurationPreviewCommand>(bytes),
             ("ConfigurationPublicationCommand", "request") => ManagementConfigurationWire.DecodeRequest<ManagementConfigurationPublicationCommand>(bytes),
@@ -45,6 +49,10 @@ public sealed class ManagementConfigurationWireTests
             ("ConfigurationAssignmentCommand", "request") => ManagementConfigurationWire.DecodeRequest<ManagementConfigurationAssignmentCommand>(bytes),
             ("ConfigurationStatusReport", "request") => ManagementConfigurationWire.DecodeRequest<ManagementConfigurationStatusReport>(bytes),
             ("ConfigurationDefinitionPage", "response") => ManagementConfigurationWire.DecodeResponse<ManagementPage<ManagementConfigurationDefinition>>(bytes),
+            ("ConfigurationReleasePage", "response") => ManagementConfigurationWire.DecodeResponse<ManagementPage<ManagementConfigurationRelease>>(bytes),
+            ("ConfigurationCandidatePreviewCommand", "request") => ManagementConfigurationWire.DecodeRequest<ManagementConfigurationCandidatePreviewCommand>(bytes),
+            ("ConfigurationCandidatePreview", "response") => ManagementConfigurationWire.DecodeResponse<ManagementConfigurationCandidatePreview>(bytes),
+            ("ConfigurationEditorContext", "response") => ManagementConfigurationWire.DecodeResponse<ManagementConfigurationEditorContext>(bytes),
             ("ConfigurationCatalog", "response") => ManagementConfigurationWire.DecodeResponse<ManagementConfigurationCatalog>(bytes),
             ("ConfigurationValidationResult", "response") => ManagementConfigurationWire.DecodeResponse<ManagementConfigurationValidationResult>(bytes),
             ("ConfigurationPreview", "response") => ManagementConfigurationWire.DecodeResponse<ManagementConfigurationPreview>(bytes),

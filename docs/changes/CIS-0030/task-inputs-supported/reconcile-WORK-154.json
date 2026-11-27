@@ -1,0 +1,30 @@
+{
+  "tasks": [
+    {
+      "title": "Implement bounded trusted cohort discovery and rollout grant choices",
+      "scopeIds": [
+        "configuration-portal",
+        "capability-contracts",
+        "portal",
+        "integration"
+      ],
+      "paths": [
+        "implementations/csharp/applications/CIS.Management.Service/Http",
+        "implementations/csharp/applications/CIS.Management.Service/Security",
+        "implementations/csharp/applications/CIS.Management.Service/Backends",
+        "implementations/csharp/src/CIS.Core/Management",
+        "implementations/typescript/packages/management-client",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Management",
+        "docs/modules/management"
+      ],
+      "dependsOn": [
+        "WORK-152",
+        "WORK-171"
+      ],
+      "complexity": "medium",
+      "category": "security",
+      "acceptanceCriteria": "Deliver bounded authorized cohort choices for each exact Configuration binding using trusted configured mappings, frozen admitted registration cohort and retained assignment pins consistently with actual map admission. Return meaningful safe identifiers/labels, never issuer/subject membership or a way to invent a cohort from arbitrary text. Reauthorize current binding/read/recovery/action grants and preserve exact scoped cursor authority. Add narrow typed optional backend/client discovery without a generic permissions engine or alternate Configuration authority. This owns cohort/discovery portions of RM09-AC04, RM09-AC07, RM09-AC11, RM09-AC13, RM09-AC15, RM09-AC16, RM09-AC19 and RM10-AC28, RM10-AC29.",
+      "validation": "Prove configured/frozen/pinned cohort consistency, unauthorized source/binding/page/cursor refusal and no membership leakage with existing native fixtures; test finite pages/unknown backends and both SDKs. Document cohort/grant ownership and review this small implementation independently. Verify this owner consumes only the declared medium prerequisites (WORK-152, WORK-171) and keeps the original parent accounting pool; broad provenance containers are not early completion prerequisites."
+    }
+  ]
+}

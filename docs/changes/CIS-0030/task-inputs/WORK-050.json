@@ -1,0 +1,25 @@
+{
+  "tasks": [
+    {
+      "title": "Implement bounded operator receipts and protected draft lifecycle",
+      "scopeIds": [
+        "portal",
+        "configuration-portal",
+        "integration"
+      ],
+      "paths": [
+        "implementations/typescript/applications/management-portal/src",
+        "implementations/typescript/applications/management-portal/tests",
+        "docs/modules/management"
+      ],
+      "dependsOn": [
+        "WORK-080",
+        "WORK-040"
+      ],
+      "complexity": "medium",
+      "category": "data",
+      "acceptanceCriteria": "Deliver a small typed operator-bound session-storage receipt module and in-memory draft lifecycle used by the closed portal mutations. Pre-create each original command identity before submit; store only exact family/target/key/operator association/submitted time, at most16 receipts with24-hour UI retention, no token/payload/draft/claim persistence. Receipt expiry never changes backend duplicate protection. Session expiry/sign-out/user switch clears protected state and prevents stale response refill; grant loss clears protected content and allows only same-user minimal recovery references where still permitted. One selected recovery request at a time, no automatic write resubmission or new key after timeout/NotFound. Do not add a server draft store, new session database authority or generic workflow ledger. This is the state-lifetime portion of RM09-AC09, RM09-AC10, RM09-AC12, RM09-AC14, RM09-AC17, RM09-AC19 and RM10-AC28.",
+      "validation": "Test exact size/count/age/family/target parsing, same-user reload, expiry/signout/switch/grant loss, delayed response suppression and original-key retention through unknown and lookup refusal. Keep payloads only in memory and document receipt lifecycle versus durable Operations protection. Include meaningful focused native/unit or browser checks for this implementation, affected documentation, and proportionate independent review; preserve failures and actual joined cleanup. Do not turn authored tests or reused evidence from different source bytes into a pass."
+    }
+  ]
+}

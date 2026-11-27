@@ -41,6 +41,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Exceptions;
 
 namespace CIS.Tests.IntegrationTests.Management;
 
@@ -56,6 +58,9 @@ internal sealed class ManagementHostFixture : IAsyncDisposable
     private X509Certificate2? authority;
     private IDisposable? databaseLease;
     private IDisposable? brokerLease;
+    private OwnedRabbitService? broker;
+    private string? brokerTopologyNamespace;
+    private int disposed;
     private ServiceProvider? setup;
     private string certificateFile = "";
     private string keyFile = "";
@@ -65,6 +70,11 @@ internal sealed class ManagementHostFixture : IAsyncDisposable
     private readonly List<RestHttpTransport> clientTransports = [];
 
     internal ManagementServiceOptions Options { get; private set; } = null!;
+
+    internal PostgreSqlManagementStore CreateSetupStore()
+    {
+        return new(setup!.GetRequiredService<ILocalTransactionFactory>(), Options.Persistence);
+    }
     internal NpgsqlDataSource Source { get; private set; } = null!;
     internal string ApplicationA { get; private set; } = "";
     internal string ApplicationB { get; private set; } = "";
@@ -85,7 +95,7 @@ internal sealed class ManagementHostFixture : IAsyncDisposable
 
     internal static async Task<ManagementHostFixture> CreateAsync(int replicas = 2, bool start = true,
         long maximumRetainedEnvelopeBytes = 64L * 1024 * 1024, ManagementBackendOptions? backendOptions = null,
-        ManagementConfigurationOptions? configuration = null)
+        ManagementConfigurationOptions? configuration = null, string? initialInstanceNameA = null, string? initialInstanceNameB = null)
     {
         var fixture = new ManagementHostFixture();
         try
@@ -95,6 +105,7 @@ internal sealed class ManagementHostFixture : IAsyncDisposable
             fixture.Source = NpgsqlDataSource.Create(database.CreateConnectionString(4));
             string suffix = Guid.NewGuid().ToString("N");
             OwnedRabbitService broker = await IntegrationServices.GetRabbitAsync();
+            fixture.broker = broker;
             fixture.brokerLease = broker.AcquireClientLease();
             RabbitFixtureInformation information = broker.CaptureInformation();
             RabbitFixturePrincipal principal = information.Principals["service"];
@@ -116,6 +127,8 @@ internal sealed class ManagementHostFixture : IAsyncDisposable
             RabbitMqOptions setupBroker = delivery.CreateBrokerOptions();
             setupBroker.UserName = information.Principals["setup"].User;
             setupBroker.Password = information.Principals["setup"].Password;
+            // Capture ownership before the first declaration: failed installation also owns its partial topology.
+            fixture.brokerTopologyNamespace = setupBroker.Namespace;
             await RabbitMqTopology.InstallAsync(setupBroker, delivery.CreateMessagingSnapshot());
             fixture.Options = new(database.CreateConnectionString(4), RandomNumberGenerator.GetBytes(32),
                 new("rm07_" + suffix), basePath: "/platform", operationsSchema: "rm07_op_" + suffix,
@@ -132,9 +145,9 @@ internal sealed class ManagementHostFixture : IAsyncDisposable
             await ManagementDatabase.InstallAsync(transactions, fixture.Options, CancellationToken.None);
             var store = new PostgreSqlManagementStore(transactions, fixture.Options.Persistence);
             ManagementStoreResult<ManagementRegistrationReceipt> a = await store.RegisterAsync(Owner("workload-a", "managed-a"),
-                fixture.RegistrationA, Request("seed-a"));
+                fixture.RegistrationA, Request(initialInstanceNameA ?? "seed-a"));
             ManagementStoreResult<ManagementRegistrationReceipt> b = await store.RegisterAsync(Owner("workload-b", "managed-b"),
-                fixture.RegistrationB, Request("seed-b"));
+                fixture.RegistrationB, Request(initialInstanceNameB ?? "seed-b"));
             Assert.IsTrue(a.IsKnownCommitted, a.Code);
             Assert.IsTrue(b.IsKnownCommitted, b.Code);
             fixture.ApplicationA = a.Value!.ApplicationId;
@@ -460,6 +473,10 @@ internal sealed class ManagementHostFixture : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
+        if (Interlocked.Exchange(ref disposed, 1) != 0)
+        {
+            return;
+        }
         var errors = new List<Exception>();
         foreach (HttpClient client in clients)
         {
@@ -473,6 +490,16 @@ internal sealed class ManagementHostFixture : IAsyncDisposable
         foreach (RestHttpTransport transport in clientTransports)
         {
             await AttemptAsync(() => transport.DisposeAsync().AsTask());
+        }
+        bool brokerOwnersDrained = errors.Count == 0;
+        bool brokerTopologyRetired = false;
+        if (brokerOwnersDrained)
+        {
+            await AttemptAsync(async () =>
+            {
+                await DeleteOwnedBrokerTopologyAsync();
+                brokerTopologyRetired = true;
+            });
         }
         if (Source is not null && Options is not null)
         {
@@ -492,7 +519,10 @@ internal sealed class ManagementHostFixture : IAsyncDisposable
             await AttemptAsync(() => Source.DisposeAsync().AsTask());
         }
         AttemptDispose(databaseLease);
-        AttemptDispose(brokerLease);
+        if (brokerTopologyRetired)
+        {
+            AttemptDispose(brokerLease);
+        }
         AttemptDispose(authority);
         AttemptDispose(signing);
         AttemptDispose(files);
@@ -522,6 +552,62 @@ internal sealed class ManagementHostFixture : IAsyncDisposable
             catch (Exception error)
             {
                 errors.Add(error);
+            }
+        }
+    }
+
+    private async Task DeleteOwnedBrokerTopologyAsync()
+    {
+        if (brokerTopologyNamespace is null)
+        {
+            return;
+        }
+        OwnedRabbitService owner = broker ?? throw new InvalidOperationException("The captured topology has no owned broker.");
+        string prefix = brokerTopologyNamespace;
+        string expected = owner.Namespace + ".management.";
+        if (!prefix.StartsWith(expected, StringComparison.Ordinal) || prefix.Length != expected.Length + 8
+            || prefix[expected.Length..].Any(character => !Uri.IsHexDigit(character)))
+        {
+            throw new InvalidDataException("Only this fixture's newly generated Management namespace may be removed.");
+        }
+        using var deadline = new CancellationTokenSource(IntegrationServices.CleanupTimeout);
+        RabbitFixtureInformation information = owner.CaptureInformation();
+        await using IConnection connection = await owner.CreateConnectionFactory(information.Principals["setup"])
+            .CreateConnectionAsync(deadline.Token);
+        string queue = prefix + ".quarantine.management.replies";
+        await using (IChannel channel = await connection.CreateChannelAsync(cancellationToken: deadline.Token))
+        {
+            try
+            {
+                QueueDeclareOk existing = await channel.QueueDeclarePassiveAsync(queue, deadline.Token);
+                if (existing.ConsumerCount != 0)
+                {
+                    throw new InvalidOperationException("The exact owned Management queue still has consumers after replica drain.");
+                }
+                // Quorum queues reject conditional deletion. Exact ownership and completed drain bound this deletion.
+                await channel.QueueDeleteAsync(queue, ifUnused: false, ifEmpty: false, cancellationToken: deadline.Token);
+            }
+            catch (OperationInterruptedException error) when (error.ShutdownReason?.ReplyCode == 404)
+            {
+                // Installation may have failed before declaring this exact queue.
+            }
+        }
+        foreach (string exchange in new[]
+        {
+            prefix + ".route." + ManagementDeliveryOptions.AuditRoute,
+            prefix + ".reply.management",
+            prefix + ".native-quarantine.management.replies"
+        })
+        {
+            // A missing declaration closes its channel; each exact resource therefore has a fresh channel.
+            await using IChannel channel = await connection.CreateChannelAsync(cancellationToken: deadline.Token);
+            try
+            {
+                await channel.ExchangeDeleteAsync(exchange, ifUnused: true, cancellationToken: deadline.Token);
+            }
+            catch (OperationInterruptedException error) when (error.ShutdownReason?.ReplyCode == 404)
+            {
+                // Only an absent exact owned resource is an acceptable partial-setup result.
             }
         }
     }

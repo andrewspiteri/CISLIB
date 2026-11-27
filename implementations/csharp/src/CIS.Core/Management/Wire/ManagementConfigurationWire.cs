@@ -175,11 +175,13 @@ public static partial class ManagementConfigurationWire
 
     private static void Supported(Type type, bool request)
     {
-        bool command = type == typeof(ManagementConfigurationCatalogCommand)
+        bool command = type == typeof(ManagementConfigurationCreationCommand) || type == typeof(ManagementConfigurationCandidatePreviewCommand) || type == typeof(ManagementConfigurationCatalogCommand)
             || type == typeof(ManagementConfigurationPublicationCommand) || type == typeof(ManagementConfigurationReleaseCommand)
             || type == typeof(ManagementConfigurationAssignmentCommand) || type == typeof(ManagementConfigurationValidationCommand)
             || type == typeof(ManagementConfigurationPreviewCommand) || type == typeof(ManagementConfigurationStatusReport);
-        bool response = type == typeof(ManagementConfigurationDefinition) || type == typeof(ManagementConfigurationCatalog)
+        bool response = type == typeof(ManagementConfigurationCreationContext) || type == typeof(ManagementConfigurationSummary)
+            || type == typeof(ManagementPage<ManagementConfigurationSummary>) || type == typeof(ManagementConfigurationCandidatePreview) || type == typeof(ManagementConfigurationEditorContext)
+            || type == typeof(ManagementConfigurationDefinition) || type == typeof(ManagementConfigurationCatalog)
             || type == typeof(ManagementConfigurationSource) || type == typeof(ManagementConfigurationPublication)
             || type == typeof(ManagementConfigurationPublicationMetadata) || type == typeof(ManagementConfigurationRelease)
             || type == typeof(ManagementConfigurationAssignmentMap) || type == typeof(ManagementConfigurationSnapshot)
@@ -188,6 +190,7 @@ public static partial class ManagementConfigurationWire
             || type == typeof(ManagementConfigurationProblem) || type == typeof(ManagementConfigurationStatusReport)
             || type == typeof(ManagementPage<ManagementConfigurationDefinition>)
             || type == typeof(ManagementPage<ManagementConfigurationPublicationMetadata>)
+            || type == typeof(ManagementPage<ManagementConfigurationRelease>)
             || type == typeof(ManagementPage<ManagementConfigurationAdoptionEntry>);
         if (request ? !command : !response)
         {

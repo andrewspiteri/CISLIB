@@ -273,18 +273,23 @@ public sealed class ManagementConfigurationCompletionTests
             CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            bool lookup = capabilities.Count == 1 && capabilities[0] == ManagementConfigurationCapabilities.OperationsRead;
             bool catalog = target.ResourceType == ManagementConfigurationCapabilities.CatalogResource && target.ResourceIdentifier == catalogId
-                && capabilities.Count == 1 && capabilities[0] is ManagementConfigurationCapabilities.CatalogApply or ManagementConfigurationCapabilities.OperationsRead;
+                && (lookup || capabilities.Count == 1 && capabilities[0] == ManagementConfigurationCapabilities.CatalogApply);
             bool publication = SourceId is not null && target.ResourceType == ManagementConfigurationCapabilities.SourceResource && target.ResourceIdentifier == SourceId
-                && capabilities.Count == 1 && capabilities[0] is ManagementConfigurationCapabilities.Publish or ManagementConfigurationCapabilities.OperationsRead;
+                && (lookup || IsExecutePair(capabilities, ManagementConfigurationCapabilities.Publish));
             bool binding = BindingId is not null && target.ResourceType == ManagementConfigurationCapabilities.BindingResource && target.ResourceIdentifier == BindingId
-                && capabilities.Count == 1 && capabilities[0] is ManagementConfigurationCapabilities.ReleaseCreate or ManagementConfigurationCapabilities.AssignmentWrite
-                    or ManagementConfigurationCapabilities.OperationsRead;
+                && (lookup || IsExecutePair(capabilities, ManagementConfigurationCapabilities.ReleaseCreate)
+                    || IsExecutePair(capabilities, ManagementConfigurationCapabilities.AssignmentWrite));
             if (target.Application != local.Application || target.Environment != local.Environment || !catalog && !publication && !binding)
             {
                 throw new InvalidOperationException("Unexpected authority request in the bounded configuration commit proof.");
             }
             return ValueTask.FromResult(AuthorizationDecision.Allow);
         }
+
+        private static bool IsExecutePair(IReadOnlyList<string> capabilities, string writeCapability)
+            => capabilities.Count == 2 && capabilities.Contains(writeCapability, StringComparer.Ordinal)
+                && capabilities.Contains(ManagementConfigurationCapabilities.OperationsRead, StringComparer.Ordinal);
     }
 }

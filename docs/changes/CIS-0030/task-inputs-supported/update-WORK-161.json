@@ -1,0 +1,36 @@
+{
+  "tasks": [
+    {
+      "title": "Integrate durable attempt entry captured settings and exact execution contracts",
+      "scopeIds": [
+        "capability-contracts",
+        "configuration-portal",
+        "intake-design",
+        "integration",
+        "portal",
+        "scheduler"
+      ],
+      "paths": [
+        "implementations/csharp/src/CIS.Core/Jobs",
+        "implementations/csharp/src/CIS.Core/Management",
+        "implementations/csharp/src/CIS.CommonTesting",
+        "implementations/csharp/tests/CIS.Core.UnitTests/Jobs",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Coordination",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Management",
+        "docs/modules/coordination",
+        "docs/modules/management"
+      ],
+      "dependsOn": [
+        "WORK-151",
+        "WORK-152",
+        "WORK-157",
+        "WORK-158",
+        "WORK-160"
+      ],
+      "complexity": "medium",
+      "category": "lifecycle",
+      "acceptanceCriteria": "Integrate the optional durable scheduler attempt-entry gate into existing Jobs after actual workload scope/current authorization/RM05 grant and before effect-producing callback. Record admitted provenance and separately observe actual entry; unknown/refused admission never enters code. Recheck local/managed/drain/lease/compatibility after awaits and preserve exact stable-key occupancy, original operation and actual callback/scope settlement. Add typed detached captured business settings without replacing live Configuration roots, and explicit binding-owned start/recover/checkpoint compatibility; event-driven external occurrences need no fake calendar while legacy recurrence stays compatible. Changing profile aliases or release labels cannot reinterpret old admitted identity/settings/contracts. Owns runtime slices of RM10-AC03, RM10-AC11, RM10-AC12, RM10-AC13, RM10-AC14, RM10-AC15, RM10-AC17, RM10-AC18, RM10-AC23, RM10-AC29, RM10-AC31, RM10-AC32, RM10-AC36, RM10-AC39, RM10-AC40.",
+      "validation": "Extend existing Jobs unit/native owners for legacy external/calendar compatibility, both cancel/disable entry orders, gate rechecks after held awaits, actual native workload/scoped grant, detached old settings versus live root, unsupported contract and uncooperative held callback cleanup. Document precise entry/admission/business/settlement distinctions and review independently. Verify this owner consumes only the declared medium prerequisites (WORK-151, WORK-152, WORK-157, WORK-158, WORK-160) and keeps the original parent accounting pool; broad provenance containers are not early completion prerequisites."
+    }
+  ]
+}

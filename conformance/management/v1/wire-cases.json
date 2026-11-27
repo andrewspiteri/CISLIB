@@ -3,7 +3,7 @@
   "version": 1,
   "provenance": "Independently authored exact JSON text vectors. The json string is the wire input; do not normalize, round or reserialize it before a runtime/client check.",
   "validationBoundary": "schemaValid records only acceptance by the repository's existing limited schema evaluator and JSON parser. It does not prove duplicate-name rejection, exact signed-Int64 range, calendar validity, Jobs UTF-8 byte bounds, native catalog uniqueness/references or HTTP authorization/durability. The valid flag is the full wire expectation for actual C# and TypeScript consumer tests.",
-  "caseCount": 85,
+  "caseCount": 90,
   "cases": [
     {
       "id": "registration-current-major",
@@ -783,6 +783,46 @@
       "valid": false,
       "schemaValid": true,
       "json": "{\"serviceVersion\":\"1\",\"protocolMajors\":[1],\"features\":[],\"maximumInventoryRequestBytes\":4194304.0}"
+    },
+    {
+      "id": "environment-exact-unicode-and-compatible-addition",
+      "schema": "EnvironmentEntry",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"environment\":\"Prod+Blue Café\",\"future\":\"retained\"}"
+    },
+    {
+      "id": "environment-empty-is-invalid",
+      "schema": "EnvironmentEntry",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": false,
+      "json": "{\"environment\":\"\"}"
+    },
+    {
+      "id": "environment-page-bounded-and-compatible",
+      "schema": "EnvironmentPage",
+      "direction": "response",
+      "valid": true,
+      "schemaValid": true,
+      "json": "{\"items\":[{\"environment\":\"Development\"}],\"nextCursor\":\"opaque\"}"
+    },
+    {
+      "id": "environment-control-is-runtime-rule",
+      "schema": "EnvironmentEntry",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"environment\":\"Prod\\u0000\"}"
+    },
+    {
+      "id": "environment-duplicate-decoded-name-is-runtime-rule",
+      "schema": "EnvironmentEntry",
+      "direction": "response",
+      "valid": false,
+      "schemaValid": true,
+      "json": "{\"environment\":\"Prod\",\"\\u0065nvironment\":\"Other\"}"
     }
   ]
 }

@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text.Json;
 using CIS.Management.Service.Backends;
+using CIS.Management.Service.Configuration;
 using CIS.Management.Wire;
 using CIS.Transactions.AdoNet;
 
@@ -120,6 +121,18 @@ public sealed partial class PostgreSqlManagementStore
     /// <summary>Projects current assignment and two independent freshness facts; historical acceptance never pins content.</summary>
     public Task<ManagementStoreResult<IReadOnlyList<ManagementConfigurationAdoptionRow>>> ReadConfigurationAdoptionAsync(
         string applicationId, string? after, int take, CancellationToken cancellationToken = default)
+        => ReadConfigurationAdoptionCoreAsync(applicationId, after, take, null, cancellationToken);
+
+    internal Task<ManagementStoreResult<IReadOnlyList<ManagementConfigurationAdoptionRow>>> ReadBindingConfigurationAdoptionAsync(
+        ManagementConfigurationBindingResource binding, string? after, int take, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(binding);
+        return ReadConfigurationAdoptionCoreAsync(binding.ApplicationId, after, take, binding, cancellationToken);
+    }
+
+    private Task<ManagementStoreResult<IReadOnlyList<ManagementConfigurationAdoptionRow>>> ReadConfigurationAdoptionCoreAsync(
+        string applicationId, string? after, int take, ManagementConfigurationBindingResource? scope,
+        CancellationToken cancellationToken)
     {
         Guid application = ManagementSql.Uuid(applicationId, nameof(applicationId));
         Page(take);
@@ -138,6 +151,22 @@ public sealed partial class PostgreSqlManagementStore
                     return Candidate<IReadOnlyList<ManagementConfigurationAdoptionRow>>.Refused("management.configuration.uninitialized");
                 }
             }
+            if (scope is not null)
+            {
+                ManagementConfigurationBindingResource? actual;
+                await using (DbCommand binding = ManagementSql.Command(connection, transaction,
+                    ConfigurationBindingSelect + "WHERE b.binding_id=@binding FOR SHARE OF b", ("binding", Guid.Parse(scope.BindingId))))
+                await using (DbDataReader reader = await binding.ExecuteReaderAsync(sqlToken))
+                {
+                    actual = await reader.ReadAsync(sqlToken) ? ReadConfigurationBinding(reader) : null;
+                }
+                if (actual is null || !actual.Enabled || actual.ApplicationId != applicationId || actual.Environment != scope.Environment
+                    || actual.ConfigurationId != scope.ConfigurationId || actual.SchemaVersion != scope.SchemaVersion
+                    || actual.HostApplicationName != scope.HostApplicationName)
+                {
+                    return Candidate<IReadOnlyList<ManagementConfigurationAdoptionRow>>.Refused("management.configuration.not_found");
+                }
+            }
             var candidates = new List<AdoptionCandidate>();
             await using (DbCommand select = ManagementSql.Command(connection, transaction, $"""
                 WITH targets AS (
@@ -154,6 +183,8 @@ public sealed partial class PostgreSqlManagementStore
                         UNION SELECT s.cohort_id FROM {Table("configuration_session")} s WHERE s.application_id=b.application_id
                     ) cohort
                     WHERE b.application_id=@application AND b.enabled
+                        AND (CAST(@binding AS uuid) IS NULL OR (b.binding_id=CAST(@binding AS uuid)
+                            AND d.configuration_id=@configuration AND d.schema_version=CAST(@version AS bigint)))
                 ), recipients AS (
                     SELECT t.*,s.registration_id,COALESCE(o.release_id,t.default_release_id) desired_release,
                         s.registration_id IS NOT NULL AND EXISTS (
@@ -175,7 +206,9 @@ public sealed partial class PostgreSqlManagementStore
                 LEFT JOIN {Table("management_registration")} r ON r.registration_id=x.registration_id
                 LEFT JOIN {Table("configuration_adoption")} a ON a.registration_id=x.registration_id
                 WHERE (@after IS NULL OR x.position COLLATE "C">@after) ORDER BY x.position COLLATE "C" LIMIT @take
-                """, ("application", application), ("after", after), ("take", take + 1)))
+                """, ("application", application), ("after", after), ("take", take + 1),
+                ("binding", scope is null ? null : Guid.Parse(scope.BindingId)), ("configuration", scope?.ConfigurationId),
+                ("version", scope is null ? null : long.Parse(scope.SchemaVersion, CultureInfo.InvariantCulture))))
             await using (DbDataReader reader = await select.ExecuteReaderAsync(sqlToken))
             {
                 while (await reader.ReadAsync(sqlToken))

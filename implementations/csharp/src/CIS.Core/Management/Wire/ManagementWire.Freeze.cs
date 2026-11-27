@@ -19,6 +19,7 @@ public static partial class ManagementWire
         ManagementMetadataResult result => FreezeResult(result),
         ManagementProblem problem => problem with { Result = problem.Result is null ? null : FreezeResult(problem.Result) },
         ManagementPage<ManagementApplication> page => page with { Items = Copy(page.Items) },
+        ManagementPage<ManagementEnvironment> page => page with { Items = Copy(page.Items) },
         ManagementPage<ManagementInstance> page => page with { Items = Copy(page.Items) },
         ManagementPage<ManagementInventoryEntry> page => page with
         {

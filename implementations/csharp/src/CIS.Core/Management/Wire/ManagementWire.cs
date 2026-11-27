@@ -213,6 +213,7 @@ public static partial class ManagementWire
             || type == typeof(ManagementInstance) || type == typeof(ManagementMetadataResult)
             || type == typeof(ManagementMetadataDecision) || type == typeof(ManagementOperationRejection) || type == typeof(ManagementProblem)
             || type == typeof(ManagementPage<ManagementApplication>) || type == typeof(ManagementPage<ManagementInstance>)
+            || type == typeof(ManagementEnvironment) || type == typeof(ManagementPage<ManagementEnvironment>)
             || type == typeof(ManagementPage<ManagementInventoryEntry>) || type == typeof(ManagementInventoryEntry)
             || type == typeof(ManagementInventorySnapshot);
         if (request ? !supportedRequest : !supportedResponse)

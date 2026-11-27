@@ -2,6 +2,7 @@ using System.Text;
 using System.Security.Cryptography;
 using CIS.Management.Service.Http;
 using CIS.Management.Wire;
+using CIS.Management.Service.Persistence;
 using CIS.Operations;
 using CIS.Operations.Hosting;
 using CIS.Security;
@@ -12,6 +13,7 @@ public static class ManagementConfigurationCapabilities
 {
     public const string CatalogRead = "management.configuration.catalog.read";
     public const string CatalogApply = "management.configuration.catalog.apply";
+    public const string Create = "management.configuration.create";
     public const string DefinitionsRead = "management.configuration.definitions.read";
     public const string ContentRead = "management.configuration.content.read";
     public const string Validate = "management.configuration.validate";
@@ -30,7 +32,7 @@ public static class ManagementConfigurationCapabilities
         get;
     } = Array.AsReadOnly(new[]
     {
-        CatalogRead, CatalogApply, DefinitionsRead, ContentRead, Validate, Publish, OperationsRead, Preview, ReleaseCreate, AssignmentWrite, AdoptionRead
+        CatalogRead, CatalogApply, Create, DefinitionsRead, ContentRead, Validate, Publish, OperationsRead, Preview, ReleaseCreate, AssignmentWrite, AdoptionRead
     });
 }
 
@@ -46,17 +48,21 @@ internal static partial class ManagementConfigurationOperations
 
     internal static OperationDefinition<ManagementCatalogInput, ManagementConfigurationDecision> Catalog()
         => new(CatalogName, "management", new("cis.management.configuration.catalog.input", 1), new CatalogNormalizer(),
-            new ResultCodec(), services => new ScopeResolver(services.GetRequiredService<ManagementConfigurationTarget>(),
-                CatalogName, ManagementConfigurationCapabilities.CatalogResource), Options(ManagementConfigurationCapabilities.CatalogApply));
+            new ResultCodec(), services => Resolver(services, CatalogName, ManagementConfigurationCapabilities.CatalogResource), Options(ManagementConfigurationCapabilities.CatalogApply));
 
     internal static OperationDefinition<ManagementPublicationInput, ManagementConfigurationDecision> Publication()
         => new(PublicationName, "management", new("cis.management.configuration.publication.input", 1), new PublicationNormalizer(),
-            new ResultCodec(), services => new ScopeResolver(services.GetRequiredService<ManagementConfigurationTarget>(),
-                PublicationName, ManagementConfigurationCapabilities.SourceResource), Options(ManagementConfigurationCapabilities.Publish));
+            new ResultCodec(), services => Resolver(services, PublicationName, ManagementConfigurationCapabilities.SourceResource), Options(ManagementConfigurationCapabilities.Publish));
+
+    private static ScopeResolver Resolver(IServiceProvider services, string name, string type)
+        => new(services.GetRequiredService<ManagementConfigurationTarget>(), name, type,
+            services.GetRequiredService<ICapabilityAuthorizer>(), services.GetRequiredService<PostgreSqlManagementStore>());
 
     private static OperationDefinitionOptions Options(string capability) => new()
     {
-        ExecuteCapabilities = [capability],
+        ExecuteCapabilities = capability == ManagementConfigurationCapabilities.CatalogApply
+            ? [capability]
+            : [capability, ManagementConfigurationCapabilities.OperationsRead],
         LookupCapabilities = [ManagementConfigurationCapabilities.OperationsRead],
         MaximumCanonicalBytes = 16384,
         MaximumResultBytes = 65536,
@@ -66,9 +72,10 @@ internal static partial class ManagementConfigurationOperations
     internal static string Scope(string family, CallerContext caller, string resourceId)
         => "management.configuration.v1/" + family + "/" + resourceId + "/" + ManagementActorScope.Create(caller, resourceId);
 
-    private sealed class ScopeResolver(ManagementConfigurationTarget target, string name, string resourceType) : IOperationScopeResolver
+    private sealed class ScopeResolver(ManagementConfigurationTarget target, string name, string resourceType,
+        ICapabilityAuthorizer? authorizer = null, PostgreSqlManagementStore? store = null) : IOperationScopeResolver
     {
-        public ValueTask<OperationScope> ResolveAsync(string operationName, string requestedScope, CallerContext? caller,
+        public async ValueTask<OperationScope> ResolveAsync(string operationName, string requestedScope, CallerContext? caller,
             CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -78,7 +85,23 @@ internal static partial class ManagementConfigurationOperations
             {
                 throw new ArgumentException("The original scope must match the actual resource and native actor.", nameof(requestedScope));
             }
-            return ValueTask.FromResult(new OperationScope(requestedScope, resourceType, id));
+            if (authorizer is not null && store is not null && resourceType is ManagementConfigurationCapabilities.SourceResource or ManagementConfigurationCapabilities.BindingResource)
+            {
+                string write = name == PublicationName ? ManagementConfigurationCapabilities.Publish
+                    : name == ReleaseName ? ManagementConfigurationCapabilities.ReleaseCreate : ManagementConfigurationCapabilities.AssignmentWrite;
+                string[] capabilities = target.Lookup ? [ManagementConfigurationCapabilities.OperationsRead] : [write, ManagementConfigurationCapabilities.OperationsRead];
+                bool exact = (await authorizer.AuthorizeAsync(capabilities,
+                    new(EnvironmentOptions.ApplicationName, EnvironmentOptions.EnvironmentName, resourceType, id), cancellationToken)).IsAllowed;
+                if (!exact)
+                {
+                    ManagementStoreResult<string> proof = await store.ReadNativeGenericApplicationAsync(resourceType, id, cancellationToken);
+                    if (proof.IsKnownCommitted && proof.Value is { } applicationId)
+                    {
+                        return new OperationScope(requestedScope, "management.application", applicationId);
+                    }
+                }
+            }
+            return new OperationScope(requestedScope, resourceType, id);
         }
     }
 
@@ -100,7 +123,7 @@ internal static partial class ManagementConfigurationOperations
     {
         public NormalizedOperationInput<ManagementPublicationInput> Normalize(ManagementPublicationInput input, OperationScope scope)
         {
-            Require(input.Source.SourceId, input.IfMatch, scope, ManagementConfigurationCapabilities.SourceResource);
+            Require(input.Source.SourceId, input.IfMatch, scope, ManagementConfigurationCapabilities.SourceResource, input.Source.ApplicationId);
             ArgumentNullException.ThrowIfNull(input.Command);
             if (input.Command.CommandVersion != 1 || !ManagementWire.IsUtf8Text(input.Command.Reason, 1024))
             {
@@ -129,9 +152,14 @@ internal static partial class ManagementConfigurationOperations
         => OperationCanonicalValue.Sequence([OperationCanonicalValue.Bytes(Encoding.UTF8.GetBytes(resource)),
             OperationCanonicalValue.Bytes(Encoding.UTF8.GetBytes(precondition)), OperationCanonicalValue.Bytes(command)]);
 
-    private static void Require(string id, string etag, OperationScope scope, string type)
+    private static void Require(string id, string etag, OperationScope scope, string type, string? applicationId = null)
     {
-        if (!ManagementWire.IsUuid(id) || !ManagementWire.IsStrongETag(etag) || scope.ResourceType != type || scope.ResourceIdentifier != id)
+        string[] logical = scope.Scope.Split('/');
+        bool original = logical.Length == 4 && logical[0] == "management.configuration.v1" && logical[2] == id
+            && logical[3].StartsWith("management.actor.v1.", StringComparison.Ordinal);
+        bool target = scope.ResourceType == type && scope.ResourceIdentifier == id
+            || ManagementWire.IsUuid(applicationId) && scope.ResourceType == "management.application" && scope.ResourceIdentifier == applicationId;
+        if (!ManagementWire.IsUuid(id) || !ManagementWire.IsStrongETag(etag) || !target || !original)
         {
             throw new ArgumentException("Supply the original actual resource and strong precondition.");
         }
@@ -162,7 +190,12 @@ internal sealed class ManagementConfigurationTarget
         get; private set;
     }
 
-    internal void Bind(string type, string id)
+    internal bool Lookup
+    {
+        get; private set;
+    }
+
+    internal void Bind(string type, string id, bool lookup = false)
     {
         if (ResourceId is not null && (ResourceId != id || ResourceType != type))
         {
@@ -170,5 +203,6 @@ internal sealed class ManagementConfigurationTarget
         }
         ResourceType = type;
         ResourceId = id;
+        Lookup = lookup;
     }
 }

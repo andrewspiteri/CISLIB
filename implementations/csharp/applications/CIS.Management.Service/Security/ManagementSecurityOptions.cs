@@ -74,6 +74,18 @@ public sealed class ManagementSecurityOptions
 
     public TimeSpan EntraClockSkew { get; init; } = TimeSpan.FromSeconds(30);
 
+    /// <summary>The exact portal client accepted by the configured entra-management operator branch.</summary>
+    public string? EntraPortalClientId
+    {
+        get; init;
+    }
+
+    /// <summary>The exact delegated scope required before native operator resource authorization.</summary>
+    public string? EntraOperatorScope
+    {
+        get; init;
+    }
+
     public string? NativeKeyJournalDirectory
     {
         get; init;
@@ -166,6 +178,8 @@ public sealed class ManagementSecurityOptions
             EntraAudience = configuration["EntraAudience"],
             EntraAuthorityHost = new(configuration["EntraAuthorityHost"] ?? "https://login.microsoftonline.com/", UriKind.Absolute),
             EntraClockSkew = configuration.GetValue("EntraClockSkew", TimeSpan.FromSeconds(30)),
+            EntraPortalClientId = configuration["EntraPortalClientId"],
+            EntraOperatorScope = configuration["EntraOperatorScope"],
             NativeKeyJournalDirectory = configuration["NativeKeyJournalDirectory"]
         };
     }
@@ -194,8 +208,9 @@ public sealed class ManagementSecurityOptions
         "local" => SecurityProfileKind.LocalDevelopment,
         "certificate" => SecurityProfileKind.ClientCertificate,
         "entra" => SecurityProfileKind.EntraWorkloadIdentity,
+        "entra-management" => SecurityProfileKind.Native,
         "native" => SecurityProfileKind.Native,
-        _ => throw new ArgumentException("Select local, certificate, entra or an explicitly integrated native security profile.")
+        _ => throw new ArgumentException("Select local, certificate, entra, entra-management or an explicitly integrated native security profile.")
     };
 
     internal ManagementSecurityOptions Capture()
@@ -261,7 +276,7 @@ public sealed class ManagementSecurityOptions
                 AbsolutePath(ClientIssuingAuthorityBundleFile), OptionalPath(ClientIntermediateBundleFile),
                 Mode == "local" ? CertificateRevocationPolicy.Development : CertificateRevocation, MaximumShortLivedLifetime);
         }
-        if (Mode == "entra")
+        if (Mode is "entra" or "entra-management")
         {
             if (!Guid.TryParseExact(EntraTenantId, "D", out _) || string.IsNullOrWhiteSpace(EntraAudience)
                 || EntraAudience.Length > 1024 || !EntraAuthorityHost.IsAbsoluteUri
@@ -271,6 +286,11 @@ public sealed class ManagementSecurityOptions
             {
                 throw new ArgumentException("Configure one explicit Entra tenant, audience, HTTPS authority and finite native clock skew.");
             }
+        }
+
+        if (Mode == "entra-management")
+        {
+            ManagementEntraIdentity.ValidateOptions(this);
         }
 
         return new()
@@ -299,6 +319,8 @@ public sealed class ManagementSecurityOptions
             EntraAudience = EntraAudience,
             EntraAuthorityHost = new(EntraAuthorityHost.AbsoluteUri),
             EntraClockSkew = EntraClockSkew,
+            EntraPortalClientId = EntraPortalClientId,
+            EntraOperatorScope = EntraOperatorScope,
             NativeKeyJournalDirectory = OptionalPath(NativeKeyJournalDirectory),
             BorrowedNativeKeyScope = BorrowedNativeKeyScope,
             NativeProvider = NativeProvider,

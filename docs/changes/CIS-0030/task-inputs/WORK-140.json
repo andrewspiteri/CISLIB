@@ -1,0 +1,32 @@
+{
+  "tasks": [
+    {
+      "title": "Integrate captured scheduled execution, durable entry and worker-version lifecycle",
+      "scopeIds": [
+        "scheduler",
+        "capability-contracts",
+        "integration"
+      ],
+      "paths": [
+        "implementations/csharp/src/CIS.Core/Jobs",
+        "implementations/csharp/src/CIS.Core/Management",
+        "implementations/csharp/src/CIS.CommonTesting",
+        "implementations/csharp/tests/CIS.Core.UnitTests/Jobs",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Coordination",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Management",
+        "docs/modules/coordination",
+        "docs/modules/management"
+      ],
+      "dependsOn": [
+        "WORK-080",
+        "WORK-151",
+        "WORK-152",
+        "WORK-154"
+      ],
+      "complexity": "medium",
+      "category": "lifecycle",
+      "acceptanceCriteria": "Integrate a selected Management-backed run source/worker ready-work rescan into the existing Jobs lifecycle. Permit event-driven external occurrences without fabricated calendars while retaining legacy recurrence validation. After actual native workload scope/authorization/RM05 grant and before callback, invoke the optional durable attempt-admission boundary and record immutable actual build/handler/execution role; recheck managed/local/drain/lease/contract gates after awaits. Provide typed detached captured business settings without changing live Configuration roots. Explicit supported start/recovery contracts and captured issuer-qualified workload identity binding govern replacement/rollback; no newer-version inference or profile-alias substitution. Existing local capacity, stable ownership key, continuous finite iterations, renewals and actual callback/scope settlement remain. Unknown pre-entry admission never enters business code; admitted versus entered versus settled remains distinct. New work closes on outage/drain while original outcome recovery and committed reporting can settle independently. This owns the runtime portion of RM10-AC01, RM10-AC03, RM10-AC11, RM10-AC12, RM10-AC13, RM10-AC14, RM10-AC15, RM10-AC17, RM10-AC18, RM10-AC19, RM10-AC23, RM10-AC29, RM10-AC31, RM10-AC32, RM10-AC36, RM10-AC37, RM10-AC38, RM10-AC39, RM10-AC40.",
+      "validation": "Extend existing Jobs/managed admission/source tests for legacy behavior, pause/cancel versus entry, actual held callback drain, immutable settings, profile remap, unsupported/missing contract and provenance; reuse native application/coordination fixtures for authenticated same-key execution and actual worker-build entry. Verify bounded rescan/reconnect and actual owner join. Document workload identity, graceful deployment, safe rollback/checkpoint limits and recovery role attribution. Include meaningful focused native/unit or browser checks for this implementation, affected documentation, and proportionate independent review; preserve failures and actual joined cleanup. Do not turn authored tests or reused evidence from different source bytes into a pass."
+    }
+  ]
+}

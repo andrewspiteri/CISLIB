@@ -1,0 +1,35 @@
+{
+  "tasks": [
+    {
+      "title": "Implement qualified scheduler persistence, trusted catalog and coherent active revisions",
+      "scopeIds": [
+        "capability-contracts",
+        "configuration-portal",
+        "intake-design",
+        "integration",
+        "portal",
+        "scheduler"
+      ],
+      "paths": [
+        "implementations/csharp/applications/CIS.Management.Service/Backends",
+        "implementations/csharp/applications/CIS.Management.Service/Persistence",
+        "implementations/csharp/applications/CIS.Management.Service/Configuration",
+        "implementations/csharp/applications/CIS.Management.Service/Scheduling",
+        "implementations/csharp/applications/CIS.Management.Service/ManagementServiceOptions.cs",
+        "implementations/csharp/applications/CIS.Management.Service/ManagementServiceApplication.cs",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Management",
+        "docs/modules/management"
+      ],
+      "dependsOn": [
+        "WORK-151",
+        "WORK-152",
+        "WORK-171",
+        "WORK-154"
+      ],
+      "complexity": "medium",
+      "category": "backend",
+      "acceptanceCriteria": "Extend the one Management PostgreSQL authority through explicit versioned migration/readiness and optional scheduler backend companion. Persist trusted immutable definition/configured-trigger/task revisions, logical identities, desired/active references and bounded execution capsules with positive configured quota; normal startup does no DDL and unselected consumers stay compatible. Apply trusted catalog conflicts and guarded task preview/promotion using exact original Operations/Audit conventions and RM08 publication/release/assignment/owner-adoption. Prior active revision remains until coherent promotion/disable; shared changes visibly revalidate every affected task against current preconditions without overwriting edits. Definitions are passive; unsupported mapper/editor/identity/contract blocks activation. Preserve exact names/IDs and configuration ownership; no arbitrary executable handler creation. Owns RM10-AC01, RM10-AC02, RM10-AC03, RM10-AC11, RM10-AC12, RM10-AC13, RM10-AC27, RM10-AC28, RM10-AC29, RM10-AC31, RM10-AC35, RM10-AC40.",
+      "validation": "Prove explicit migration from retained schema, startup read-only readiness, trusted version conflicts and exact target authorization. Run native guarded active-revision/shared-edit/adoption/ETag races and original operation replay/Audit rollback cases. Reserve shared schema edits to this owner; document options, transaction/lock order, adoption boundaries and migration. Include meaningful focused native/unit or browser checks for this implementation, affected documentation, and proportionate independent review; preserve failures and actual joined cleanup. Do not turn authored tests or reused evidence from different source bytes into a pass. Verify this owner consumes only the declared medium prerequisites (WORK-151, WORK-152, WORK-171, WORK-154) and keeps the original parent accounting pool; broad provenance containers are not early completion prerequisites."
+    }
+  ]
+}

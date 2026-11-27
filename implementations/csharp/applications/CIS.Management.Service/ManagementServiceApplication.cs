@@ -10,6 +10,7 @@ using CIS.Transactions.Hosting;
 using Npgsql;
 using CIS.Healthcheck;
 using CIS.Management.Service.Backends;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace CIS.Management.Service;
 
@@ -35,7 +36,7 @@ public static partial class ManagementServiceApplication
             ConfigureMetadata(builder, options);
             builder.Services.AddScoped<PostgreSqlManagementBackend>();
             builder.Services.AddScoped<IManagementBackend>(root => root.GetRequiredService<PostgreSqlManagementBackend>());
-            builder.Services.AddScoped<IManagementConfigurationBackend>(root => root.GetRequiredService<PostgreSqlManagementBackend>());
+            builder.Services.TryAddScoped<IManagementConfigurationBackend>(root => root.GetRequiredService<PostgreSqlManagementBackend>());
             builder.Services.AddSingleton<IHealthReadinessSource>(root => root.GetRequiredService<PostgreSqlManagementAuthority>());
             builder.Services.AddSingleton(root => new ManagementCursor(options,
                 () => root.GetRequiredService<PostgreSqlManagementAuthority>().Current));

@@ -1,0 +1,29 @@
+{
+  "tasks": [
+    {
+      "title": "Deliver scoped event/run/attempt history and worker-provenance details",
+      "scopeIds": [
+        "portal",
+        "scheduler",
+        "integration"
+      ],
+      "paths": [
+        "implementations/typescript/applications/management-portal",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Management",
+        "docs/modules/management"
+      ],
+      "dependsOn": [
+        "WORK-160",
+        "WORK-161",
+        "WORK-162",
+        "WORK-163",
+        "WORK-172",
+        "WORK-156"
+      ],
+      "complexity": "medium",
+      "category": "frontend",
+      "acceptanceCriteria": "Replace unavailable history states only with actual authorized scheduler API records: separate task history, aggregate job history over the same logical runs, event detail and run attempt expansion/linked detail. Preserve exact application/environment/task/job/resource context and bounded filters/pages/cursors. Present captured configuration/revision/identity facts; configured actor, producer, optional requester, actual executor/profile and reported instance remain distinct. Each attempt shows actual release/build/handler and execution/recovery role, mixed-version transitions, NoCompatibleWorkerVersion, unknown original provenance and stale observed ages without desired-version substitution. Distinguish waiting, committed business outcome, unknown, cancel request and actual settlement. Do not reveal unauthorized result/input/detail references or invent task/event bindings/history samples. Owns RM09-AC04, RM09-AC05, RM09-AC06, RM09-AC10, RM09-AC14, RM09-AC15, RM09-AC16, RM09-AC18, RM09-AC19, RM09-AC20 and RM10-AC22, RM10-AC23, RM10-AC24, RM10-AC29, RM10-AC30, RM10-AC36, RM10-AC38, RM10-AC40.",
+      "validation": "Test exact projections, same-run Task/Job identity, mixed-build/recovered original attribution, unknown and stale labels, bounded paging and protected result links. Reuse real authenticated scheduler store/API fixture and desktop checks for history/run/attempt navigation, hidden-target/session-loss/late-response cases and keyboard/focus at approved desktop layout. Broader executed worker recovery evidence remains with native integration owner, not fabricated by this UI fixture. Include meaningful focused native/unit or browser checks for this implementation, affected documentation, and proportionate independent review; preserve failures and actual joined cleanup. Do not turn authored tests or reused evidence from different source bytes into a pass. Verify this owner consumes only the declared medium prerequisites (WORK-160, WORK-161, WORK-162, WORK-163, WORK-172, WORK-156) and keeps the original parent accounting pool; broad provenance containers are not early completion prerequisites."
+    }
+  ]
+}

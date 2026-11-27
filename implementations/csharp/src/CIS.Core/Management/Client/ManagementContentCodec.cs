@@ -20,6 +20,7 @@ public sealed class ManagementContentCodec : IRestContentCodec
             || resultType == typeof(ManagementControlConfirmation)
             || resultType == typeof(ManagementCloseReceipt) || resultType == typeof(ManagementApplication)
             || resultType == typeof(ManagementPage<ManagementApplication>) || resultType == typeof(ManagementPage<ManagementInstance>)
+            || resultType == typeof(ManagementPage<ManagementEnvironment>)
             || resultType == typeof(ManagementPage<ManagementInventoryEntry>) || resultType == typeof(ManagementCapabilities)
             || resultType == typeof(ManagementMetadataResult));
 
@@ -77,6 +78,7 @@ public sealed class ManagementContentCodec : IRestContentCodec
             : typeof(T) == typeof(ManagementCloseReceipt) ? ManagementWire.DecodeResponse<ManagementCloseReceipt>(json, limits)
             : typeof(T) == typeof(ManagementApplication) ? ManagementWire.DecodeResponse<ManagementApplication>(json, limits)
             : typeof(T) == typeof(ManagementPage<ManagementApplication>) ? ManagementWire.DecodeResponse<ManagementPage<ManagementApplication>>(json, limits)
+            : typeof(T) == typeof(ManagementPage<ManagementEnvironment>) ? ManagementWire.DecodeResponse<ManagementPage<ManagementEnvironment>>(json, limits)
             : typeof(T) == typeof(ManagementPage<ManagementInstance>) ? ManagementWire.DecodeResponse<ManagementPage<ManagementInstance>>(json, limits)
             : typeof(T) == typeof(ManagementPage<ManagementInventoryEntry>) ? ManagementWire.DecodeResponse<ManagementPage<ManagementInventoryEntry>>(json, limits)
             : typeof(T) == typeof(ManagementCapabilities) ? ManagementWire.DecodeResponse<ManagementCapabilities>(json, limits)

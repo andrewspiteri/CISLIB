@@ -41,7 +41,7 @@ jobs:
       - name: Install pinned Management client runtime
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: "24.15.0"
+          node-version: "24.16.0"
           check-latest: false
           package-manager-cache: false
 
@@ -52,12 +52,41 @@ jobs:
           NPM_CONFIG_CACHE: ${{ runner.temp }}/cislib-management-npm
         run: |
           set -euo pipefail
-          test "$(node --version)" = "v24.15.0"
-          test "$(npm --version)" = "11.12.1"
-          npm ci --ignore-scripts --no-audit --no-fund
-          npm run build
-          npm test
-          npm run check:browser
+          test "$(node --version)" = "v24.16.0"
+          printf 'CIS_TEST_NODE_EXECUTABLE=%s\n' "$(node -p 'process.execPath')" >> "$GITHUB_ENV"
+          npm install --prefix "$RUNNER_TEMP/cislib-npm" \
+            --ignore-scripts --no-audit --no-fund --no-save --package-lock=false npm@11.12.1
+          npm_cli="$RUNNER_TEMP/cislib-npm/node_modules/npm/bin/npm-cli.js"
+          test "$(node "$npm_cli" --version)" = "11.12.1"
+          node "$npm_cli" ci --ignore-scripts --no-audit --no-fund
+          node "$npm_cli" run build
+          node "$npm_cli" test
+          node "$npm_cli" run check:browser
+
+      - name: Prepare production portal and headed browser
+        working-directory: implementations/typescript
+        timeout-minutes: 4
+        env:
+          NPM_CONFIG_CACHE: ${{ runner.temp }}/cislib-management-npm
+          NEXT_TELEMETRY_DISABLED: "1"
+        run: |
+          set -euo pipefail
+          edge=/opt/microsoft/msedge/msedge
+          if [ ! -x "$edge" ]; then
+            printf 'The ubuntu-24.04 runner must provide Microsoft Edge at %s.\n' "$edge" >&2
+            exit 1
+          fi
+          for tool in Xvfb xvfb-run xauth; do
+            if ! command -v "$tool" > /dev/null; then
+              printf 'Required headed portal browser prerequisite is missing: %s\n' "$tool" >&2
+              exit 1
+            fi
+          done
+          "$edge" --version
+          dpkg-query --show --showformat='${binary:Package} ${Version}\n' xvfb xauth
+          npm_cli="$RUNNER_TEMP/cislib-npm/node_modules/npm/bin/npm-cli.js"
+          node "$npm_cli" run build --workspace @cislib/management-portal
+          test -s applications/management-portal/.next/BUILD_ID
 
       - name: Install pinned SDK
         uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
@@ -104,7 +133,7 @@ jobs:
           results="$RUNNER_TEMP/cislib-service-results"
           mkdir -p "$results"
           set +e
-          dotnet test tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj -c Release --no-build --no-restore --settings tests/CIS.Core.IntegrationTests/service-tests.runsettings --filter "(TestCategory=RequiresDocker|TestCategory=RequiresNode)&TestCategory!=PerformanceObservation&TestCategory!=ExtendedStress" --logger "trx;LogFileName=service-tests.trx" --results-directory "$results"
+          xvfb-run --auto-servernum --server-args='-screen 0 1920x1200x24 -nolisten tcp' dotnet test tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj -c Release --no-build --no-restore --settings tests/CIS.Core.IntegrationTests/service-tests.runsettings --filter "(TestCategory=RequiresDocker|TestCategory=RequiresNode)&TestCategory!=PerformanceObservation&TestCategory!=ExtendedStress" --logger "trx;LogFileName=service-tests.trx" --results-directory "$results"
           service_exit=$?
           set -e
           dotnet run --file eng/VerifyServiceTestReport.cs --artifacts-path "$RUNNER_TEMP/cislib-service-guard" -- "$results/service-tests.trx" "$service_exit"

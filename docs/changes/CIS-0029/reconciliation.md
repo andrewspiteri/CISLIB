@@ -1,0 +1,336 @@
+---
+title: "RM09 current-contract reconciliation"
+type: reference
+status: Draft
+change_id: CIS-0029
+---
+
+# RM-09 source reconciliation and capability map
+
+This is a read-only source assessment of CISLIB baseline
+`6c70cee807f12caddf40cd1b443e4a20045d35aa`, preceding production implementation.
+The [preserved RM-09 specification](../../../planning/management/portal/sources/CISLIB_RM09_Management_Portal_Specification_v1.0.md)
+has SHA-256 `1574ec2624247a95945b68f318e67d0ea4595b8fbd8e116eff149059ad502633`.
+Its inspected pre-RM-08 revision is historical: current source already contains
+the RM-08 configuration service and portable clients. Source presence is not a
+new test result or deployment qualification. No native tests/builds, service
+access, database access or production changes were performed for this assessment.
+The visible design and its explicit user approval remain pending.
+
+## R06 full details and prior-discussion reconciliation
+
+The user requested a full-details link with run history and configuration tabs
+for event/job/task details, referring to the earlier discussion. The connected
+chat **RM-10 Scheduler Brainstorm** was read directly (chat ID
+`6b05b5a1-f610-83eb-af32-00eb434e21ef`), rather than inferring requirements from
+a listing summary. Relevant user/answer turns are
+`7b687bf0-7e84-4c11-bd4e-5d7ef69d5ed2` (Scheduled Task configuration),
+`54202de7-9d09-40d5-8a0b-c4de0663c804` (history/identity), and
+`27afb434-6c56-43c5-8340-5bce3edc3645` (worker versions/deployment).
+This is prior-discussion evidence referenced by the current user, not an import
+of an unseen RM-10 specification or execution authority from an assistant reply.
+
+Preserve the actual agreed model:
+
+- **Scheduled Task** is the main association record, selecting trigger/job and
+  owning resource/input mapping. Its two contextual configuration tabs are
+  **Trigger** and **Job**; history is a separate view/action.
+- A trigger event produces logical task runs; retries/recovery add attempts to
+  the same run and original business-operation identity. Job history and task
+  history query the same records with different scopes; an event shows produced
+  runs or the recorded reason none were produced.
+- History retains captured task/trigger/configuration/contract references and
+  the actual worker release/build per attempt. Executing work and recovering
+  an earlier committed result are separate facts. Current catalog/version data
+  cannot overwrite historical attribution.
+- Workload execution identity is separate from task creator, trigger producer
+  and any human requester. Unknown outcome/reporting loss never becomes a
+  claimed rollback, failure or fresh execution permission.
+
+R06 proposes **View full details** from the job side panel to a dedicated job
+page with Overview, Run history and Configuration. Task links open Scheduled
+Task details with its main settings and exactly Trigger/Job contextual tabs,
+plus a separate View run history action. Event links open immutable Event
+details/produced runs, with Configuration showing captured trigger settings,
+not editing the historical event. The current iteration remains read-only.
+
+| Surface | Delivered boundary | Named prerequisite for production |
+| --- | --- | --- |
+| Job Overview | Definition, selected resource observation and per-registration inventory context. | No new read needed for the current retained snapshot. |
+| Run history | Current snapshots retain no run chronology; Operations supports exact original-result lookup only. | P6: RM-10 authoritative bounded run/attempt capture, protected retention and authorized paged query/client contracts. No history is fabricated from snapshots, logs or operation keys. |
+| Job Configuration | Optional reported local effectiveConfiguration revision/enabled only; enabled composes native host/category/job gates. | P8: explicit policy/descriptor projection and trusted configuration-source/binding mapping before richer settings or any write. Never infer a CountrySettings/job association by name. |
+| Task/Event details and relationships | No typed Management task/event catalog or detail contract exists. | P7: RM-10 stable typed identities, exact application/environment/association scope, authorized detail/relationship reads and captured configuration references. |
+
+The production portal must not enable unsupported history/task/event flows or
+present missing support as an empty successful result. Synthetic populated
+previews show the requested future contract; an explicit unavailable history
+state demonstrates truthfulness. These requirements add no scheduler, event
+bus, general task engine, Audit archive or telemetry store to RM-09. Existing
+Operations/Messaging/Coordination owners remain intact. Any RM-10 implementation
+requires its own imported specification and bounded execution plan.
+
+Source facts: native Jobs snapshots retain at most the latest completed
+observation without resource history (coordination/runtime.md); the Management
+projection transports only local revision/enabled for job configuration
+(JobsManagementInventorySource.cs). No cadence/configuration binding is inferred
+from local source settings. Current typed inventory has modules/categories/jobs,
+not events/tasks/runs. The prior discussion supplies desired behavior, not proof
+that those contracts are delivered.
+
+## R05 item details addition
+
+R04 is natively approved and preserved in Git commit `ed65c3f1`. The user asked
+for item details and suggested a side panel. Instances, Configuration,
+Capabilities and Scheduled jobs can open read-only details from their existing
+authorized response objects; no panel-specific API is needed.
+
+Instance selection is application + registrationId, with optional lastSeenAtUtc.
+Configuration selection includes sourceId and exact application/environment,
+retaining configuration/schema/binding identity; no defaults or content fetch.
+Capability selection uses application + operationId and the actual descriptor;
+paths are descriptive and hints remain advisory. Jobs selection pins application,
+registration, inventory sequence and executionScope/jobId; selected observations
+add resourceId + mode. Do not retarget by display name/index after refresh.
+Access loss clears panel/background; changed report/target/tab clears obsolete
+selection. Close preserves list/report context and returns focus to the item.
+
+## R04 approved Scheduled jobs base
+
+R03 is now natively approved, with the exact prior checkpoint preserved in Git
+commit `035e22c7`. The user requested Scheduled jobs as an additive read-only
+tab. Existing `listInventory(applicationId)` returns cursor pages of complete
+registration snapshots, including registrationId/applicationVersion and the
+inventory sequence/observed/received times. Selecting one bounded report needs
+no new API or application-wide inventory sweep.
+
+Job definitions use (executionScope, jobId) identity and declare supportedModes.
+The view lists scheduled support, separately showing actual resourceId/mode/state
+observations and optional open lastOutcome codes. Category identity also includes
+executionScope. These reports confer no lease, scheduling or execution authority.
+The native JobRuntime snapshot currently leaves optional last/next occurrence
+timestamps absent. Show Not reported; no cron/cadence is transported or inferred.
+CountryData's optional customer.dormancy definition supplies a realistic
+scheduled-support example, while wallet.compaction is continuous-only.
+The synthetic observation remains illustrative; default tutorial selection and
+real-service proof are not claimed.
+
+## R03 approved base
+
+The user accepted the application/instance direction and requested three tabs on
+the selected application's detail screen: Instances, Configuration and
+Capabilities. Keep the application list and instance-version content; only the
+tabbed detail presentation is being revised. Mobile remains excluded. The wider
+screen mappings below remain future assessment.
+
+Configuration lists application-kind `ConfigurationDefinition` metadata for the
+exact selected `applicationId` and `environment`: `configurationId`,
+`schemaVersion`, `hostApplicationName`, `sourceId` and `bindingId`. Omit optional
+defaults and content values. Common definitions have no application/binding/host
+identity, so an arbitrary common row cannot be associated with an application.
+Current `getDefinitions` supports global pageSize/cursor only. A bounded exact
+application/environment query is an additional prerequisite for a complete
+selected-application list; filtering a loaded page is insufficient.
+
+`getCapabilities(applicationId)` supplies `implementedApis` (operationId,
+version, method, path and requiredCapabilities) and `callerHints` (operationId,
+allowed). This is Management API discovery with advisory current-caller hints,
+distinct from reported instance module/category/Job inventory. The current
+service emits foundation API hints but appends configuration features without
+configuration hints. Missing hints remain **Not evaluated**, never inferred
+Allowed or Not allowed. Actual calls still require native authorization.
+No edit/publication/assignment/recovery flow is added by these read-only tabs.
+
+## R02 accepted base direction
+
+The latest user requested desktop-only applications and instance versions,
+step by step. R02 therefore reviews only a filterable applications list and a
+selected application's instance page. Other screen mappings below are retained
+future assessment, not the current UI approval scope. Mobile is excluded.
+
+The existing `Instance.applicationVersion` is required registration-time text
+(1–512 characters). It comes from the application's selected registration
+version, normally the entry application's service version. Show it per instance
+as **Reported app version**; different instances may report different values.
+Later presence updates do not refresh this version assertion. Use the raw
+`active`/`stale`/`closed` presence and separate optional `lastSeenAtUtc` (displayed
+as Not reported when absent). A reported instance label is unverified; opaque
+`registrationId` identifies the process-incarnation record.
+
+No version API addition is needed. Application rows expose neither instance
+counts, versions nor current deployment-state aggregates. Known applications can
+outlive retained instances. P2 server filtering/authorized environments and the
+production human/native authorization boundary remain relevant prerequisites;
+P3/P4 configuration/cohort work is deferred with those screens.
+
+## Current delivered boundary
+
+Use the canonical [OpenAPI](../../../contracts/management/v1/openapi.json),
+[schema](../../../contracts/management/v1/contract.schema.json),
+[portable contract](../../../contracts/management/v1/README.md) and exact-text
+cases under `conformance/management/v1/`. Actual typed client surfaces are
+[Management models](../../../implementations/typescript/packages/management-client/src/models.ts),
+[Management client](../../../implementations/typescript/packages/management-client/src/client.ts),
+[Configuration models](../../../implementations/typescript/packages/management-client/src/configuration-models.ts)
+and [Configuration client](../../../implementations/typescript/packages/management-client/src/configuration-client.ts).
+The [C# contracts](../../../implementations/csharp/src/CIS.Core/Management/Contracts/)
+and service handlers implement the same portable boundary; reflection does not
+replace that contract.
+
+RM-07 inspection, metadata replacement and original-key lookup are delivered.
+RM-08 adds nineteen configuration APIs, trusted catalog provisioning, immutable
+publication/release references, complete guarded assignment maps, preview,
+runtime snapshots, adoption and bounded retention. Configuration is explicitly
+selected, and discovery advertises only the catalog subset until the backend
+reports an initialized catalog. PostgreSQL is the complete selected backend;
+this work does not introduce another authority or adapter. See the
+[service guide](../../../implementations/csharp/applications/CIS.Management.Service/README.md),
+[backend guide](../../../implementations/csharp/applications/CIS.Management.Service/Backends/README.md)
+and [configuration handler selection](../../../implementations/csharp/applications/CIS.Management.Service/Http/ManagementEndpoints.Configuration.cs).
+
+The current TypeScript [Next server example](../../../implementations/typescript/examples/next-server/)
+is a compile-only boundary example. It installs neither a production Next.js
+runtime nor human login/session handling. Those remain RM-09 host responsibilities.
+
+## Screen, field and action mapping
+
+| Proposed screen or journey | Delivered API and facts | Gap or presentation condition |
+| --- | --- | --- |
+| Sign-in/session | Security's native extension can project independently validated users and delegation. | Production Entra authorization-code/PKCE login, server session ownership and independently validating management-audience human/delegated handler/projector are prerequisites. Existing `entra` reference mode is workload-only. |
+| Overview | `getServiceInfo`: protocol versions, implemented APIs, maximum inventory request bytes. | Show actual fetch/connection facts. No fleet aggregate, global health or operator admission projection exists. |
+| Applications | `listApplications`: opaque application ID, trusted application/environment, editable display metadata, metadata revision/ETag. | Only `pageSize` and `cursor` exist. Required global search/environment filtering and authorized environment enumeration need an additive extension. |
+| Application detail | `getApplication`, `listInstances`, `listInventory`, `getCapabilities`: instance evidence, presence, lifecycle/health observations and times, complete modules/categories/jobs, supported APIs and base operation hints. | Distinguish reported and verified identity. Inventory/owner observations do not grant lease or execution authority. No remote restart or operator-facing admission field. |
+| Metadata edit and recovery | `replaceMetadata`, `getMetadataOperation`: display name and optional description, strong precondition, original key, decision, result source, original completion and attempt cleanup. | Omission clears description; explicit null is rejected. Read/write/recovery permissions are separate. A synchronous mutation has no invented queued/running lifecycle. |
+| Configuration directory/source | `getDefinitions`, `getSource`, `getPublication`: exact configuration/schema/source/binding/environment identity, shape, optional captured defaults, source ETag and paged immutable publication metadata. | Definitions are globally authorized and paged. A first-page application filter is not a complete application directory. Definition metadata has no declared host update mode; show reported adoption mode or unknown. |
+| Author/validate/publish | `validate`, `publishSource`: exact `payloadJson`, structural issues, source ETag, reason and original key. | Preserve reviewed source text. Structural validity does not prove every consumer's typed acceptance. Payload/default disclosure requires the actual source's content permission. |
+| Preview and coherent release | `preview`, `createRelease`, `getRelease`: exact source references or explicit absence, current map/precondition, payload-free changes/issues and recipients; immutable release actor/time/reason. | Preview supplies path/kind changes, not before/after values. An optional value diff requires separately authorized content. Release creation uses the current map ETag and activates nothing. |
+| Assign/promote/rollback | `getAssignments`, `replaceAssignments`: complete default/cohort map, ETag, increasing generation and explicit `replace`/`promote`/`rollback` intent. | One binding changes atomically. Inspect an explicit known earlier release with `getRelease` for initial rollback; no release-history API is needed for this bounded flow. |
+| Configured canary selection | Existing map overrides and preview/adoption recipient cohorts reveal those exact observed IDs. | No configured-cohort enumeration exists. A configured offline/new canary cannot be discovered from those observations; a promised configured-canary picker needs the bounded lookup below. |
+| Adoption | `getStatus`: desired version, reported desired/applied/last-successful versions, local revision, update mode/state, live-state validity, safe failure codes, independent registration/adoption freshness, convergence and observation/receipt times. | Keep current convergence separate from historical acceptance. Unknown, stale, offline and no-instance facts differ. Do not calculate fleet ratios from incomplete pages. |
+| Operation detail | `getMetadataOperation` and configuration catalog/publication/release/assignment original-key lookups. | Retain same-operator payload-free receipts and original target/key. This is an incomplete session reference list, not a global operation history, Audit query or cancellation facility. |
+
+Actual inspection/metadata routing is in
+[ManagementEndpoints.cs](../../../implementations/csharp/applications/CIS.Management.Service/Http/ManagementEndpoints.cs)
+and [ManagementEndpoints.Metadata.cs](../../../implementations/csharp/applications/CIS.Management.Service/Http/ManagementEndpoints.Metadata.cs).
+Configuration routing and authority are in
+[catalog/publication handlers](../../../implementations/csharp/applications/CIS.Management.Service/Http/ManagementEndpoints.Configuration.cs),
+[distribution handlers](../../../implementations/csharp/applications/CIS.Management.Service/Http/ManagementEndpoints.Distribution.cs)
+and [adoption handlers](../../../implementations/csharp/applications/CIS.Management.Service/Http/ManagementEndpoints.Configuration.Adoption.cs).
+The [distribution guide](../../../docs/modules/management/configuration-distribution.md)
+and [adoption guide](../../../docs/modules/management/configuration-adoption.md)
+explain those existing meanings.
+
+## Proposed bounded prerequisites
+
+These are proposed scopes for the RM-09 plan, not claims of implementation or
+independent execution authority.
+
+1. **Application search and environments.** Add optional bounded environment and
+   application identity/display-name query fields to an application-specific
+   request, plus bounded authorized environment enumeration. Specify matching,
+   limits and stable ordering in canonical OpenAPI/schema/conformance first.
+   Preserve omitted-filter behavior and ordinary paging for other endpoints.
+   Extend the selected service/backend/PostgreSQL reads and C#/TypeScript clients
+   without requiring the browser to enumerate the fleet. Filter inaccessible
+   resources before response items/cursors; bind the normalized query and
+   appropriate current authorization scope into cursors. Changing filters resets
+   pagination. The existing
+   [page reader](../../../implementations/csharp/applications/CIS.Management.Service/Http/ManagementHttp.cs)
+   rejects fields other than `pageSize`/`cursor`; the existing
+   [store read](../../../implementations/csharp/applications/CIS.Management.Service/Persistence/PostgreSqlManagementStore.Reads.cs)
+   only selects by application UUID position. Do not change original operation
+   actor identity merely to add query-cursor binding: the existing
+   [actor scope](../../../implementations/csharp/applications/CIS.Management.Service/Http/ManagementActorScope.cs)
+   deliberately excludes mutable grants/credentials for recovery.
+2. **Production human/delegated identity.** Integrate maintained Entra OIDC/PKCE
+   login and server-only sessions in the portal host. Use the service's compiled
+   native provider extension to independently validate management token issuer,
+   audience, subject, applicable trusted calling client and resource mapping.
+   Preserve the human initiator separately from the calling application and use
+   complete native read/write/recovery grants. No workload-profile relaxation,
+   arbitrary actor header, application-credential borrowing or development
+   fallback is permitted. Existing native signed fixtures already exercise
+   human/delegated actor isolation and Audit attribution; they do not supply a
+   production Entra reference integration. See
+   [Security native integration](../../../docs/modules/security/README.md),
+   [workload Entra scope](../../../docs/modules/security/entra.md),
+   [ManagementSecurityOptions](../../../implementations/csharp/applications/CIS.Management.Service/Security/ManagementSecurityOptions.cs)
+   and [native fixture projector](../../../implementations/csharp/tests/CIS.Core.IntegrationTests/Management/ManagementHostFixture.cs).
+3. **Configuration journey eligibility.** Base Management hints already cover
+   metadata write and lookup separately. Configuration APIs are advertised as
+   implemented, but the current application capability response does not emit
+   source/binding permission hints. Use the reference deployment's complete
+   operator grant bundle or add small scoped hints to existing actual
+   source/binding reads so the host can avoid enabling a journey without its
+   required recovery permission. Reauthorize submission and lookup in existing
+   authoritative handlers. Do not introduce permission administration or a
+   general introspection framework. Scope source publication/recovery to the
+   actual source and release/assignment/recovery to the actual binding.
+4. **Configured cohort lookup.** If the approved design includes choosing a
+   configured canary absent from current recipients/pins, add a bounded
+   binding-scoped authorized cohort-ID enumeration using the existing trusted
+   mapping, admitted session and retained map authority. Return no mapping
+   subject/credential data. Do not create cohorts or infer membership in the
+   portal. Existing
+   [assignment validation](../../../implementations/csharp/applications/CIS.Management.Service/Persistence/PostgreSqlManagementStore.Configuration.Assignments.cs)
+   already rejects unknown cohort IDs. A view limited to currently observed
+   cohorts must identify that narrower scope explicitly.
+
+No release-history endpoint is proposed: `getRelease` plus a known earlier
+reference supports a truthful initial rollback. No definition-filter endpoint is
+required for an explicitly paged authorized directory. No domain command engine,
+scheduler, restart action, Audit archive or copied portal management database is
+needed.
+
+## Redaction, results and bounds to retain
+
+Existing disclosure is source-scoped: definitions omit `defaultsJson` without
+content-read permission, publication payloads require that permission, and
+preview sets `redacted` while suppressing value-derived changes when the caller
+lacks relevant source content authority. There is no field-level mask-editing
+contract. Do not infer that omitted defaults are empty, generate runtime defaults
+in JavaScript, or publish a displayed redaction as a value.
+
+Persisted success requires the original committed fact and an applied business
+decision. A committed rejection remains rejected; a recovered committed result
+survives a later lookup cleanup failure. NotFound, expiry, timeout or cancelled
+waiting does not establish rollback or permit a new-key retry. Retain exact
+Int64 decimal strings, timestamp text, ETags, operation keys and source bytes.
+
+Reuse current limits: ordinary default requests/responses are 64 KiB/1 MiB;
+complete inventory requests/responses are 4 MiB/8 MiB. Configuration envelopes are
+at most 1 MiB, exact source text 256 KiB, depth sixteen, complete status/enrollment
+256 entries and cohort overrides sixteen. Paging defaults to 100 and caps at
+500. The client defaults to a 30-second entry deadline including preparation,
+credentials, transport, decode and joined cleanup. Writes never retry
+automatically. UI-specific page/receipt/cache/concurrency/polling limits remain
+finite plan decisions within those service/client bounds. See
+[ordinary wire limits](../../../implementations/typescript/packages/management-client/src/wire-limits.ts),
+[configuration limits](../../../implementations/csharp/src/CIS.Core/Management/Wire/ManagementConfigurationWireLimits.cs)
+and the [TypeScript ownership guide](../../../implementations/typescript/README.md).
+
+## Existing verification and maintainer routes
+
+- [C# Management units](../../../implementations/csharp/tests/CIS.Core.UnitTests/Management/)
+  cover clients, wire, bootstrap, reporting, configuration stores and admission.
+- [Native Management integration fixtures](../../../implementations/csharp/tests/CIS.Core.IntegrationTests/Management/)
+  cover PostgreSQL/TLS/identity, metadata and configuration authorization,
+  concurrency, commit uncertainty, cleanup, original-key recovery and required
+  Audit. Reuse `ManagementMetadataTests`, `ManagementSecurityProfileTests`,
+  `ManagementConfigurationCatalogTests`, `ManagementConfigurationDistributionTests`,
+  `ManagementConfigurationCompletionTests` and `ManagementConfigurationAdoptionTests`
+  for affected boundaries.
+- [TypeScript tests](../../../implementations/typescript/tests/) include native
+  `node:test` client/wire/cancellation/configuration cases, package exports,
+  browser compile consumers and real-service consumers. The workspace pins Node
+  24.15.0, npm 11.12.1 and TypeScript 5.9.3. Portable packages currently have no
+  external runtime dependency; Next/session/component dependencies belong in the
+  independent host/UI layer.
+- [RM-08 acceptance](../CIS-0027/acceptance.md) and
+  [verification](../CIS-0027/verification.md) retain actual prior evidence and
+  external-deployment limits. They are not new RM-09 execution. Controlled local
+  identity evidence is not live Entra federation; staged Audit/outbox delivery is
+  not an Audit destination archive; focused passes are not release qualification.
+
+The next reviewable outcome is the visible versioned design package and bounded
+implementation plan. Production screens and write wiring depend on explicit
+approval of that design revision through the retained CIS checkpoint.

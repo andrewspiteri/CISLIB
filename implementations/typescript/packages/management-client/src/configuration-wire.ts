@@ -2,9 +2,11 @@ import { freezeWire, ManagementWireError, parseWireJson, stringifyWire, validUni
 import type { ConfigurationDesiredContext, ConfigurationSnapshot, ConfigurationSnapshotRead, ConfigurationSnapshotTarget } from "./configuration-models.js";
 import { validateConfiguration, validateDesired, validateSnapshotContent, validateTarget, sameConfigurationTarget } from "./configuration-wire-validation.js";
 
-export type ConfigurationSchema = "ConfigurationDefinition" | "ConfigurationDefinitionPage" | "ConfigurationCatalog"
+export type ConfigurationSchema = "ConfigurationDefinition" | "ConfigurationDefinitionPage" | "ConfigurationEditorContext"
+  | "ConfigurationCreationContext" | "ConfigurationCreationCommand" | "ConfigurationSummary" | "ConfigurationSummaryPage"
+  | "ConfigurationCandidatePreviewCommand" | "ConfigurationCandidatePreview" | "ConfigurationCatalog"
   | "ConfigurationCatalogCommand" | "ConfigurationSource" | "ConfigurationPublicationMetadata" | "ConfigurationPublicationPage"
-  | "ConfigurationPublication" | "ConfigurationPublicationCommand" | "ConfigurationRelease" | "ConfigurationReleaseCommand"
+  | "ConfigurationPublication" | "ConfigurationPublicationCommand" | "ConfigurationRelease" | "ConfigurationReleasePage" | "ConfigurationReleaseCommand"
   | "ConfigurationAssignmentMap" | "ConfigurationAssignmentCommand" | "ConfigurationSnapshot" | "ConfigurationValidationCommand"
   | "ConfigurationValidationResult" | "ConfigurationPreviewCommand" | "ConfigurationPreview" | "ConfigurationStatusReport"
   | "ConfigurationAdoptionPage" | "ConfigurationDecision" | "ConfigurationOperationResult" | "ConfigurationProblem";
@@ -146,6 +148,7 @@ function validateIntegerTokens(schema: ConfigurationSchema, tokens: ReadonlySet<
     case "ConfigurationCatalog": selected = /^\/(?:definitionCount|sourceCount|bindingCount|quotaBytes|usedBytes)$/u; break;
     case "ConfigurationCatalogCommand": case "ConfigurationPublicationCommand": case "ConfigurationReleaseCommand":
     case "ConfigurationAssignmentCommand": case "ConfigurationValidationCommand": selected = /^\/commandVersion$/u; break;
+    case "ConfigurationCandidatePreviewCommand": case "ConfigurationCreationCommand": selected = /^\/commandVersion$/u; break;
     case "ConfigurationPreviewCommand": selected = /^\/(?:commandVersion|assignment\/commandVersion)$/u; break;
     case "ConfigurationPreview": selected = /^\/proposedAssignment\/commandVersion$/u; break;
     case "ConfigurationDecision": selected = /^\/commandVersion$/u; break;

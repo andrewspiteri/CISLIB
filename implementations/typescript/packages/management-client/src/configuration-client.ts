@@ -24,6 +24,7 @@ export interface ManagementConfigurationClientOptions {
 /** Structural public substitution port. It starts no polling or framework-owned runtime. */
 export interface ManagementConfigurationClientPort {
   getDefinitions(page?: PageRequest, context?: ClientCallContext): Promise<ConfigurationCallResult<Page<ConfigurationDefinition>>>;
+  getApplicationDefinitions?(applicationId: string, page?: PageRequest, context?: ClientCallContext): Promise<ConfigurationCallResult<Page<ConfigurationDefinition>>>;
   validate(command: ConfigurationValidationCommand, context?: ClientCallContext): Promise<ConfigurationCallResult<ConfigurationValidationResult>>;
   preview(command: ConfigurationPreviewCommand, page?: PageRequest, context?: ClientCallContext): Promise<ConfigurationCallResult<ConfigurationPreview>>;
   getSource(sourceId: string, page?: PageRequest, context?: ClientCallContext): Promise<ConfigurationCallResult<ConfigurationSource>>;
@@ -78,6 +79,10 @@ export class ManagementConfigurationClient implements ManagementConfigurationCli
   }
   getDefinitions(page?: PageRequest, context?: ClientCallContext): Promise<ConfigurationCallResult<Page<ConfigurationDefinition>>> {
     return this.call({ method: "GET", path: () => "configuration/definitions" + pageQuery(page), schema: "ConfigurationDefinitionPage", ...withContext(context) });
+  }
+  getApplicationDefinitions(applicationId: string, page?: PageRequest, context?: ClientCallContext): Promise<ConfigurationCallResult<Page<ConfigurationDefinition>>> {
+    return this.call({ method: "GET", path: () => "applications/" + uuid(applicationId) + "/configuration-definitions" + pageQuery(page),
+      schema: "ConfigurationDefinitionPage", ...withContext(context) });
   }
   validate(command: ConfigurationValidationCommand, context?: ClientCallContext): Promise<ConfigurationCallResult<ConfigurationValidationResult>> {
     return this.call({ method: "POST", path: () => "configuration/validate", schema: "ConfigurationValidationResult",
@@ -288,7 +293,7 @@ function checkOperation(value: ConfigurationOperationResult, call: Call): void {
   if (value.result !== undefined) {
     const expectedKind = call.operationName === names.catalog ? "catalogApplied" : call.operationName === names.publication ? "sourcePublished"
       : call.operationName === names.release ? "releaseCreated" : call.operationName === names.assignment ? "assignmentsReplaced" : undefined;
-    if (["catalogApplied", "sourcePublished", "releaseCreated", "assignmentsReplaced"].includes(value.result.kind)) {
+    if (["catalogApplied", "sourcePublished", "releaseCreated", "assignmentsReplaced", "configurationCreated"].includes(value.result.kind)) {
       echo(expectedKind === undefined || value.result.kind === expectedKind);
       if (call.sourceId !== undefined) { echo(value.result.sourceId === call.sourceId); }
       if (call.binding !== undefined) {

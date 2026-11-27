@@ -8,7 +8,20 @@ The single maintained runnable tutorial is [CountryData](implementations/csharp/
 product application with portable C# and TypeScript clients and explicit process
 reporting. Its database and native identity/delivery dependencies remain outside
 Core. The [TypeScript workspace](implementations/typescript/README.md) contains
-only the small client foundation and management SDK.
+the portable client foundation and Management SDK, plus a separate private
+[desktop Management portal](implementations/typescript/applications/management-portal/README.md).
+The portal owns its Next.js, React, OIDC/session and database dependencies;
+the portable SDKs gain none of them. Desktop inspection includes
+Applications, Instances, Configuration metadata, Capabilities and reported
+Scheduled jobs with quick details and full Job details. Run history and typed Task/Event services
+remain unavailable until their RM-10 contracts are delivered. See the portal
+guide for its explicit build, session-schema migration and run commands.
+
+The portal also contains explicitly authorized display metadata and Configuration
+authoring: exact source preview/publication, separate coherent releases, reviewed
+whole-map assignment and bounded adoption observations. Current implementation
+and native proof limits are recorded in the linked module guides and CIS-0030;
+these workflows do not implement the Scheduler or make publication imply adoption.
 
 Run commands from `implementations/csharp` so `global.json` selects SDK **10.0.401**. The selected qualification runtime is **10.0.12**; install its ASP.NET Core shared framework as well.
 
@@ -42,7 +55,7 @@ extended stress categories; full release qualification remains separate.
 The Management same-service and native-fetch HTTPS cases also need the built
 TypeScript packages.
 Before selecting those cases, run `npm ci`, `npm run build`, `npm test` and
-`npm run check:browser` from `implementations/typescript`, using Node **24.15.0**
+`npm run check:browser` from `implementations/typescript`, using Node **24.16.0**
 and npm **11.12.1**. The existing service CI job performs these steps and selects
 both `RequiresDocker` and `RequiresNode` cases. The native-fetch `RequiresNode`
 cases need no Docker. Set
@@ -91,7 +104,7 @@ A local development package is not a published release. Scoped checks and curren
 
 `contracts/` and `conformance/` hold portable specifications and behavioral fixtures. C# source, tests, examples and build assets live under `implementations/csharp/`. `planning/` retains authoritative definitions and concise decisions; historical campaign payloads are available only where Git history still contains them. Existing historical reports establish no current acceptance claim.
 
-Minimal CIS import is installed alongside the native workflow. The [product BRD](docs/specs/business-requirements.md), [technical intent](docs/specs/technical-intent-spec.md), [overall solution design](docs/architecture/overall-solution-design.md), [component sheet](docs/references/component-sheet.md) and [no-UI direction](docs/design/ui-direction.md) are Active and approved by Andrew Spiteri. [CIS-0001](docs/changes/CIS-0001/proposal.md) retains its approved [plan](docs/changes/CIS-0001/plan.md), durable [WORK-001 contract](docs/changes/CIS-0001/agent-tasks/WORK-001.md) and authorized finite allocation.
+Minimal CIS import is installed alongside the native workflow. The [product BRD](docs/specs/business-requirements.md), [technical intent](docs/specs/technical-intent-spec.md), [overall solution design](docs/architecture/overall-solution-design.md), [component sheet](docs/references/component-sheet.md) and [UI direction](docs/design/ui-direction.md) retain their approved baselines. The UI direction records the explicitly approved RM-09 desktop backoffice addition to the earlier no-UI scope. [CIS-0001](docs/changes/CIS-0001/proposal.md) retains its approved [plan](docs/changes/CIS-0001/plan.md), durable [WORK-001 contract](docs/changes/CIS-0001/agent-tasks/WORK-001.md) and authorized finite allocation.
 
 The bounded CIS adoption unit result is verified: **2 passed, 0 failed, 0 skipped**, with zero pending unit batches. The retained native pass verifies through the corrected CIS reader without another test launch; the original interrupted attempt remains inconclusive and charged. CIS-0001/WORK-001 is Complete under its approved plan, with no active reservation or recovery hold. The [adoption checkpoint](planning/cis/cleanup-disposition.md#practical-workflow-repair-continuation) records controlled disposal, retry, actual accounting and the reader correction. Original namespace proof is not a prerequisite for retrying disposable unit work. That result's source, test selection, profile, toolchain, approvals and finite limits are unchanged. Its canonical plan contains only the completed WORK-001. No engineering-quality policy or full release qualification is adopted. Other unimplemented modules and languages remain specifications rather than active scaffolding.
 

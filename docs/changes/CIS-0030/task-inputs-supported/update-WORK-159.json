@@ -1,0 +1,28 @@
+{
+  "tasks": [
+    {
+      "title": "Implement authoritative calendar evaluator and bounded replicated production",
+      "scopeIds": [
+        "scheduler",
+        "integration"
+      ],
+      "paths": [
+        "implementations/csharp/src/CIS.Core/Jobs",
+        "implementations/csharp/applications/CIS.Management.Service/Scheduling",
+        "implementations/csharp/applications/CIS.Management.Service/Persistence",
+        "implementations/csharp/tests/CIS.Core.UnitTests/Jobs",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Management",
+        "docs/modules/coordination",
+        "docs/modules/management"
+      ],
+      "dependsOn": [
+        "WORK-157",
+        "WORK-158"
+      ],
+      "complexity": "medium",
+      "category": "backend",
+      "acceptanceCriteria": "Implement one pure BCL evaluator shared by authoritative preview and Management calendar production for FixedDelay/Daily/Weekly. Validate IANA zone, Skip invalid local times and OnceAtEarlierInstant repeats, explicit missed policies/defaults and bounded chronological catch-up. In one qualified transaction atomically arbitrate due instant/event/run set/progress across replicas, with canonical instant identity independent of revision. Active boundary changes supersede unadmitted old backlog honestly; unchanged pause/resume retains cursor. FixedDelay has exactly one designated TaskId/predecessor/successor, completion-relative timing, explicit immediate/Continue choices and default terminal pause; unresolved predecessor never advances and manual runs never advance it. Use existing sequential Management readiness/lifecycle with at most100 due records per yielding batch; no self-bootstrap cycle, per-trigger thread, unbounded ticks or poll history. Owns RM10-AC04, RM10-AC05, RM10-AC06, RM10-AC07, RM10-AC13, RM10-AC34.",
+      "validation": "Use controllable time for zone/unavailable zone/DST/preview, boundary edits, all missed policies/window/batch and FixedDelay retry/unknown/disabled-task/resume/delay edit cases. Reuse real two-root PostgreSQL arbitration and commit-boundary interruption proof for no duplicate/lost cursor progress. Document production policies and quiet bounded idle behavior. Include meaningful focused native/unit or browser checks for this implementation, affected documentation, and proportionate independent review; preserve failures and actual joined cleanup. Do not turn authored tests or reused evidence from different source bytes into a pass. Verify this owner consumes only the declared medium prerequisites (WORK-157, WORK-158) and keeps the original parent accounting pool; broad provenance containers are not early completion prerequisites."
+    }
+  ]
+}

@@ -1,0 +1,4823 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cislib.dev/contracts/management/v1/scheduler.schema.json",
+  "title": "CISLIB Management scheduler v1 portable contract",
+  "$defs": {
+    "Uuid": {
+      "type": "string",
+      "minLength": 36,
+      "maxLength": 36,
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "x-cis-nonempty-uuid": true
+    },
+    "PositiveInt64": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 19,
+      "pattern": "^[1-9][0-9]{0,18}$",
+      "x-cis-int64-maximum": "9223372036854775807"
+    },
+    "NonnegativeInt64": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]{0,18})$",
+      "x-cis-int64-maximum": "9223372036854775807"
+    },
+    "UtcInstant": {
+      "type": "string",
+      "minLength": 28,
+      "maxLength": 28,
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{7}Z$",
+      "x-cis-valid-utc-calendar": true
+    },
+    "AdministrativeOperationKey": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9._~-]{1,128}$"
+    },
+    "BusinessOperationKey": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[\\u0021-\\u007e]{1,128}$",
+      "description": "Existing Operations/MessageOperationReference key; broader than a Management HTTP route key."
+    },
+    "StrongETag": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 256,
+      "pattern": "^\"[\\u0021\\u0023-\\u007e]+\"$"
+    },
+    "MessageContract": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._/-]{1,128}$"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        }
+      },
+      "required": [
+        "name",
+        "version"
+      ],
+      "additionalProperties": true
+    },
+    "CommandMessageContract": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._/-]{1,128}$"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        }
+      },
+      "required": [
+        "name",
+        "version"
+      ],
+      "additionalProperties": false
+    },
+    "MessageOperationReference": {
+      "type": "object",
+      "properties": {
+        "operationName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$"
+        },
+        "requestedScope": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 256
+        },
+        "key": {
+          "$ref": "#/$defs/BusinessOperationKey"
+        }
+      },
+      "required": [
+        "operationName",
+        "requestedScope",
+        "key"
+      ],
+      "additionalProperties": true
+    },
+    "CommandMessageOperationReference": {
+      "type": "object",
+      "properties": {
+        "operationName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$"
+        },
+        "requestedScope": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 256
+        },
+        "key": {
+          "$ref": "#/$defs/BusinessOperationKey"
+        }
+      },
+      "required": [
+        "operationName",
+        "requestedScope",
+        "key"
+      ],
+      "additionalProperties": false
+    },
+    "OperationReference": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$"
+        },
+        "scope": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 256
+        },
+        "key": {
+          "$ref": "#/$defs/AdministrativeOperationKey"
+        }
+      },
+      "required": [
+        "name",
+        "scope",
+        "key"
+      ],
+      "additionalProperties": true
+    },
+    "TransactionFacts": {
+      "type": "object",
+      "properties": {
+        "outcome": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-known-values": [
+            "committed",
+            "notCommitted",
+            "unknown"
+          ]
+        },
+        "cleanupSucceeded": {
+          "type": "boolean"
+        },
+        "cleanupCodes": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 16,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "x-cis-control-free": true,
+            "x-cis-non-whitespace": true,
+            "x-cis-max-utf8-bytes": 128
+          }
+        }
+      },
+      "required": [
+        "outcome",
+        "cleanupSucceeded"
+      ],
+      "additionalProperties": true
+    },
+    "OperationRejection": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[\\u0020-\\u007e]+$",
+          "x-cis-non-whitespace": true
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "x-cis-max-utf8-bytes": 1024,
+          "x-cis-valid-unicode-without-nul": true,
+          "x-cis-non-whitespace": true
+        }
+      },
+      "required": [
+        "code",
+        "message"
+      ],
+      "additionalProperties": true
+    },
+    "WorkerBuildReference": {
+      "type": "object",
+      "properties": {
+        "applicationVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 512
+        },
+        "buildId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 512,
+          "x-cis-runtime-worker-provenance": true
+        },
+        "handlerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 512,
+          "x-cis-runtime-worker-provenance": true
+        },
+        "sourceRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 128
+        }
+      },
+      "required": [
+        "applicationVersion",
+        "buildId",
+        "handlerId"
+      ],
+      "additionalProperties": true
+    },
+    "CommandWorkerBuildReference": {
+      "type": "object",
+      "properties": {
+        "applicationVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 512
+        },
+        "buildId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 512,
+          "x-cis-runtime-worker-provenance": true
+        },
+        "handlerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 512,
+          "x-cis-runtime-worker-provenance": true
+        },
+        "sourceRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 128
+        }
+      },
+      "required": [
+        "applicationVersion",
+        "buildId",
+        "handlerId"
+      ],
+      "additionalProperties": false
+    },
+    "JobExecutionSupport": {
+      "type": "object",
+      "properties": {
+        "currentContract": {
+          "$ref": "#/$defs/MessageContract"
+        },
+        "supportedStarts": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "items": {
+            "$ref": "#/$defs/MessageContract"
+          },
+          "x-cis-distinct-message-contracts": true
+        },
+        "supportedRecoveries": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 16,
+          "items": {
+            "$ref": "#/$defs/MessageContract"
+          },
+          "x-cis-distinct-message-contracts": true
+        },
+        "checkpointContract": {
+          "$ref": "#/$defs/MessageContract"
+        },
+        "operationName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$"
+        }
+      },
+      "required": [
+        "currentContract",
+        "supportedStarts",
+        "supportedRecoveries"
+      ],
+      "additionalProperties": true,
+      "x-cis-current-contract-in-supported-starts": true,
+      "x-cis-omitted-operation-name": "passive-inspection-only"
+    },
+    "CommandJobExecutionSupport": {
+      "type": "object",
+      "properties": {
+        "currentContract": {
+          "$ref": "#/$defs/CommandMessageContract"
+        },
+        "supportedStarts": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "items": {
+            "$ref": "#/$defs/CommandMessageContract"
+          },
+          "x-cis-distinct-message-contracts": true
+        },
+        "supportedRecoveries": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 16,
+          "items": {
+            "$ref": "#/$defs/CommandMessageContract"
+          },
+          "x-cis-distinct-message-contracts": true
+        },
+        "checkpointContract": {
+          "$ref": "#/$defs/CommandMessageContract"
+        },
+        "operationName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$"
+        }
+      },
+      "required": [
+        "currentContract",
+        "supportedStarts",
+        "supportedRecoveries"
+      ],
+      "additionalProperties": false,
+      "x-cis-current-contract-in-supported-starts": true,
+      "x-cis-omitted-operation-name": "passive-inspection-only"
+    },
+    "CapabilityKey": {
+      "type": "object",
+      "properties": {
+        "ownerApplication": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255,
+          "x-cis-control-free": true
+        },
+        "kind": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$",
+          "x-known-values": [
+            "job",
+            "triggerProvider",
+            "ruleEngine"
+          ]
+        },
+        "executionScope": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "x-cis-control-free": true,
+          "x-cis-max-utf8-bytes": 256
+        },
+        "definitionId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-control-free": true,
+          "x-cis-max-utf8-bytes": 128
+        },
+        "definitionVersion": {
+          "$ref": "#/$defs/PositiveInt64"
+        }
+      },
+      "required": [
+        "ownerApplication",
+        "kind",
+        "executionScope",
+        "definitionId",
+        "definitionVersion"
+      ],
+      "additionalProperties": true
+    },
+    "ConfigurationMember": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "x-cis-control-free": true
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "shape": {
+          "$ref": "#/$defs/ConfigurationShape"
+        }
+      },
+      "required": [
+        "name",
+        "required",
+        "shape"
+      ],
+      "additionalProperties": true
+    },
+    "ConfigurationShape": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "object",
+            "array",
+            "dictionary",
+            "string",
+            "number",
+            "integer",
+            "boolean"
+          ]
+        },
+        "nullable": {
+          "type": "boolean"
+        },
+        "members": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 256,
+          "items": {
+            "$ref": "#/$defs/ConfigurationMember"
+          }
+        },
+        "element": {
+          "$ref": "#/$defs/ConfigurationShape"
+        },
+        "allowedValues": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 256,
+          "items": {
+            "type": "string",
+            "maxLength": 1024,
+            "x-cis-control-free": true,
+            "x-cis-max-utf8-bytes": 1024
+          }
+        }
+      },
+      "required": [
+        "kind",
+        "nullable"
+      ],
+      "additionalProperties": true,
+      "x-cis-max-depth": 16,
+      "x-cis-max-shape-nodes": 1024,
+      "x-cis-unique-member-names-and-allowed-values": true,
+      "oneOf": [
+        {
+          "required": [
+            "members"
+          ],
+          "properties": {
+            "kind": {
+              "const": "object"
+            }
+          },
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "element"
+                ]
+              },
+              {
+                "required": [
+                  "allowedValues"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "required": [
+            "element"
+          ],
+          "properties": {
+            "kind": {
+              "enum": [
+                "array",
+                "dictionary"
+              ]
+            }
+          },
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "members"
+                ]
+              },
+              {
+                "required": [
+                  "allowedValues"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "properties": {
+            "kind": {
+              "const": "string"
+            }
+          },
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "members"
+                ]
+              },
+              {
+                "required": [
+                  "element"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "properties": {
+            "kind": {
+              "enum": [
+                "number",
+                "integer",
+                "boolean"
+              ]
+            }
+          },
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "members"
+                ]
+              },
+              {
+                "required": [
+                  "element"
+                ]
+              },
+              {
+                "required": [
+                  "allowedValues"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "ConfigurationContractReference": {
+      "type": "object",
+      "properties": {
+        "configurationId": {
+          "$ref": "#/$defs/AdministrativeOperationKey"
+        },
+        "schemaVersion": {
+          "$ref": "#/$defs/PositiveInt64"
+        },
+        "shape": {
+          "$ref": "#/$defs/ConfigurationShape"
+        }
+      },
+      "required": [
+        "configurationId",
+        "schemaVersion",
+        "shape"
+      ],
+      "additionalProperties": true
+    },
+    "FormFieldHint": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "x-cis-control-free": true,
+          "x-cis-max-utf8-bytes": 1024,
+          "pattern": "^/(?:[^~]|~[01])*$"
+        },
+        "editor": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$",
+          "x-known-values": [
+            "text",
+            "number",
+            "boolean",
+            "enum",
+            "duration",
+            "group",
+            "calendar"
+          ]
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "x-cis-control-free": true,
+          "x-cis-max-utf8-bytes": 256
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 2048,
+          "x-cis-control-free": true,
+          "x-cis-max-utf8-bytes": 2048
+        },
+        "groupId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$"
+        },
+        "order": {
+          "type": "integer",
+          "minimum": -10000,
+          "maximum": 10000,
+          "x-cis-default": 0
+        },
+        "unit": {
+          "type": "string",
+          "enum": [
+            "milliseconds",
+            "seconds",
+            "minutes",
+            "hours",
+            "days",
+            "bytes",
+            "count",
+            "percent"
+          ]
+        },
+        "readOnly": {
+          "type": "boolean",
+          "x-cis-default": false
+        },
+        "lookupId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$"
+        }
+      },
+      "required": [
+        "path",
+        "editor",
+        "label"
+      ],
+      "additionalProperties": true,
+      "x-cis-declared-object-field-path": true,
+      "x-cis-known-editor-shape-compatibility": true,
+      "x-cis-duration-requires-time-unit": true
+    },
+    "FormGroup": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "x-cis-control-free": true,
+          "x-cis-max-utf8-bytes": 256
+        },
+        "order": {
+          "type": "integer",
+          "minimum": -10000,
+          "maximum": 10000,
+          "x-cis-default": 0
+        }
+      },
+      "required": [
+        "id",
+        "label"
+      ],
+      "additionalProperties": true
+    },
+    "NamedLookupReference": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$"
+        },
+        "ownerApplication": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255,
+          "x-cis-control-free": true
+        },
+        "executionScope": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "x-cis-control-free": true,
+          "x-cis-max-utf8-bytes": 256
+        },
+        "lookupName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$"
+        },
+        "contract": {
+          "$ref": "#/$defs/MessageContract"
+        }
+      },
+      "required": [
+        "id",
+        "ownerApplication",
+        "executionScope",
+        "lookupName",
+        "contract"
+      ],
+      "additionalProperties": true
+    },
+    "FormDescription": {
+      "type": "object",
+      "properties": {
+        "fields": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 128,
+          "items": {
+            "$ref": "#/$defs/FormFieldHint"
+          }
+        },
+        "groups": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 32,
+          "items": {
+            "$ref": "#/$defs/FormGroup"
+          }
+        },
+        "lookups": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 16,
+          "items": {
+            "$ref": "#/$defs/NamedLookupReference"
+          }
+        }
+      },
+      "required": [
+        "fields"
+      ],
+      "additionalProperties": true,
+      "x-cis-distinct-field-paths-group-ids-lookup-ids": true,
+      "x-cis-field-group-and-lookup-references-must-exist": true
+    },
+    "CapabilityDefinition": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/CapabilityKey"
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "x-cis-control-free": true,
+          "x-cis-max-utf8-bytes": 256
+        },
+        "supportedOperations": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9._-]{1,128}$",
+            "x-known-values": [
+              "inspect",
+              "configure",
+              "createConfigured",
+              "manual",
+              "cancel"
+            ]
+          },
+          "x-cis-distinct-operations": true
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 2048,
+          "x-cis-control-free": true,
+          "x-cis-max-utf8-bytes": 2048
+        },
+        "categoryId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-control-free": true,
+          "x-cis-max-utf8-bytes": 128
+        },
+        "configurationContract": {
+          "$ref": "#/$defs/ConfigurationContractReference"
+        },
+        "inputContract": {
+          "$ref": "#/$defs/MessageContract"
+        },
+        "inputShape": {
+          "$ref": "#/$defs/ConfigurationShape"
+        },
+        "eventContract": {
+          "$ref": "#/$defs/MessageContract"
+        },
+        "eventShape": {
+          "$ref": "#/$defs/ConfigurationShape"
+        },
+        "resultSummaryContract": {
+          "$ref": "#/$defs/MessageContract"
+        },
+        "resultSummaryShape": {
+          "$ref": "#/$defs/ConfigurationShape"
+        },
+        "form": {
+          "$ref": "#/$defs/FormDescription"
+        },
+        "executionSupport": {
+          "$ref": "#/$defs/JobExecutionSupport"
+        }
+      },
+      "required": [
+        "key",
+        "displayName",
+        "supportedOperations"
+      ],
+      "additionalProperties": true,
+      "x-cis-max-body-bytes": 65536,
+      "x-cis-contract-shape-pairs": [
+        [
+          "inputContract",
+          "inputShape"
+        ],
+        [
+          "eventContract",
+          "eventShape"
+        ],
+        [
+          "resultSummaryContract",
+          "resultSummaryShape"
+        ]
+      ],
+      "x-cis-form-requires-configuration-contract": true,
+      "x-cis-kind-specific-descriptor-rules": true,
+      "x-cis-presence-is-not-trusted-schema-authority": true,
+      "x-cis-configure-and-create-configured-require-configuration-contract": true,
+      "x-cis-job-manual-requires-input-contract-and-shape": true
+    },
+    "CommandCapabilityKey": {
+      "type": "object",
+      "properties": {
+        "ownerApplication": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255,
+          "x-cis-control-free": true
+        },
+        "kind": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$",
+          "enum": [
+            "job",
+            "triggerProvider",
+            "ruleEngine"
+          ]
+        },
+        "executionScope": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "x-cis-control-free": true,
+          "x-cis-max-utf8-bytes": 256
+        },
+        "definitionId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-control-free": true,
+          "x-cis-max-utf8-bytes": 128
+        },
+        "definitionVersion": {
+          "$ref": "#/$defs/PositiveInt64"
+        }
+      },
+      "required": [
+        "ownerApplication",
+        "kind",
+        "executionScope",
+        "definitionId",
+        "definitionVersion"
+      ],
+      "additionalProperties": false
+    },
+    "CommandConfigurationMember": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "x-cis-control-free": true
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "shape": {
+          "$ref": "#/$defs/CommandConfigurationShape"
+        }
+      },
+      "required": [
+        "name",
+        "required",
+        "shape"
+      ],
+      "additionalProperties": false
+    },
+    "CommandConfigurationShape": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "object",
+            "array",
+            "dictionary",
+            "string",
+            "number",
+            "integer",
+            "boolean"
+          ]
+        },
+        "nullable": {
+          "type": "boolean"
+        },
+        "members": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 256,
+          "items": {
+            "$ref": "#/$defs/CommandConfigurationMember"
+          }
+        },
+        "element": {
+          "$ref": "#/$defs/CommandConfigurationShape"
+        },
+        "allowedValues": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 256,
+          "items": {
+            "type": "string",
+            "maxLength": 1024,
+            "x-cis-control-free": true,
+            "x-cis-max-utf8-bytes": 1024
+          }
+        }
+      },
+      "required": [
+        "kind",
+        "nullable"
+      ],
+      "additionalProperties": false,
+      "x-cis-max-depth": 16,
+      "x-cis-max-shape-nodes": 1024,
+      "x-cis-unique-member-names-and-allowed-values": true,
+      "oneOf": [
+        {
+          "required": [
+            "members"
+          ],
+          "properties": {
+            "kind": {
+              "const": "object"
+            }
+          },
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "element"
+                ]
+              },
+              {
+                "required": [
+                  "allowedValues"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "required": [
+            "element"
+          ],
+          "properties": {
+            "kind": {
+              "enum": [
+                "array",
+                "dictionary"
+              ]
+            }
+          },
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "members"
+                ]
+              },
+              {
+                "required": [
+                  "allowedValues"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "properties": {
+            "kind": {
+              "const": "string"
+            }
+          },
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "members"
+                ]
+              },
+              {
+                "required": [
+                  "element"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "properties": {
+            "kind": {
+              "enum": [
+                "number",
+                "integer",
+                "boolean"
+              ]
+            }
+          },
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "members"
+                ]
+              },
+              {
+                "required": [
+                  "element"
+                ]
+              },
+              {
+                "required": [
+                  "allowedValues"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "CommandConfigurationContractReference": {
+      "type": "object",
+      "properties": {
+        "configurationId": {
+          "$ref": "#/$defs/AdministrativeOperationKey"
+        },
+        "schemaVersion": {
+          "$ref": "#/$defs/PositiveInt64"
+        },
+        "shape": {
+          "$ref": "#/$defs/CommandConfigurationShape"
+        }
+      },
+      "required": [
+        "configurationId",
+        "schemaVersion",
+        "shape"
+      ],
+      "additionalProperties": false
+    },
+    "CommandFormFieldHint": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "x-cis-control-free": true,
+          "x-cis-max-utf8-bytes": 1024,
+          "pattern": "^/(?:[^~]|~[01])*$"
+        },
+        "editor": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$",
+          "enum": [
+            "text",
+            "number",
+            "boolean",
+            "enum",
+            "duration",
+            "group",
+            "calendar"
+          ]
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "x-cis-control-free": true,
+          "x-cis-max-utf8-bytes": 256
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 2048,
+          "x-cis-control-free": true,
+          "x-cis-max-utf8-bytes": 2048
+        },
+        "groupId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$"
+        },
+        "order": {
+          "type": "integer",
+          "minimum": -10000,
+          "maximum": 10000,
+          "x-cis-default": 0
+        },
+        "unit": {
+          "type": "string",
+          "enum": [
+            "milliseconds",
+            "seconds",
+            "minutes",
+            "hours",
+            "days",
+            "bytes",
+            "count",
+            "percent"
+          ]
+        },
+        "readOnly": {
+          "type": "boolean",
+          "x-cis-default": false
+        },
+        "lookupId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$"
+        }
+      },
+      "required": [
+        "path",
+        "editor",
+        "label"
+      ],
+      "additionalProperties": false,
+      "x-cis-declared-object-field-path": true,
+      "x-cis-known-editor-shape-compatibility": true,
+      "x-cis-duration-requires-time-unit": true
+    },
+    "CommandFormGroup": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "x-cis-control-free": true,
+          "x-cis-max-utf8-bytes": 256
+        },
+        "order": {
+          "type": "integer",
+          "minimum": -10000,
+          "maximum": 10000,
+          "x-cis-default": 0
+        }
+      },
+      "required": [
+        "id",
+        "label"
+      ],
+      "additionalProperties": false
+    },
+    "CommandNamedLookupReference": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$"
+        },
+        "ownerApplication": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255,
+          "x-cis-control-free": true
+        },
+        "executionScope": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "x-cis-control-free": true,
+          "x-cis-max-utf8-bytes": 256
+        },
+        "lookupName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$"
+        },
+        "contract": {
+          "$ref": "#/$defs/CommandMessageContract"
+        }
+      },
+      "required": [
+        "id",
+        "ownerApplication",
+        "executionScope",
+        "lookupName",
+        "contract"
+      ],
+      "additionalProperties": false
+    },
+    "CommandFormDescription": {
+      "type": "object",
+      "properties": {
+        "fields": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 128,
+          "items": {
+            "$ref": "#/$defs/CommandFormFieldHint"
+          }
+        },
+        "groups": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 32,
+          "items": {
+            "$ref": "#/$defs/CommandFormGroup"
+          }
+        },
+        "lookups": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 16,
+          "items": {
+            "$ref": "#/$defs/CommandNamedLookupReference"
+          }
+        }
+      },
+      "required": [
+        "fields"
+      ],
+      "additionalProperties": false,
+      "x-cis-distinct-field-paths-group-ids-lookup-ids": true,
+      "x-cis-field-group-and-lookup-references-must-exist": true
+    },
+    "CommandCapabilityDefinition": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/CommandCapabilityKey"
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "x-cis-control-free": true,
+          "x-cis-max-utf8-bytes": 256
+        },
+        "supportedOperations": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9._-]{1,128}$",
+            "enum": [
+              "inspect",
+              "configure",
+              "createConfigured",
+              "manual",
+              "cancel"
+            ]
+          },
+          "x-cis-distinct-operations": true
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 2048,
+          "x-cis-control-free": true,
+          "x-cis-max-utf8-bytes": 2048
+        },
+        "categoryId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-control-free": true,
+          "x-cis-max-utf8-bytes": 128
+        },
+        "configurationContract": {
+          "$ref": "#/$defs/CommandConfigurationContractReference"
+        },
+        "inputContract": {
+          "$ref": "#/$defs/CommandMessageContract"
+        },
+        "inputShape": {
+          "$ref": "#/$defs/CommandConfigurationShape"
+        },
+        "eventContract": {
+          "$ref": "#/$defs/CommandMessageContract"
+        },
+        "eventShape": {
+          "$ref": "#/$defs/CommandConfigurationShape"
+        },
+        "resultSummaryContract": {
+          "$ref": "#/$defs/CommandMessageContract"
+        },
+        "resultSummaryShape": {
+          "$ref": "#/$defs/CommandConfigurationShape"
+        },
+        "form": {
+          "$ref": "#/$defs/CommandFormDescription"
+        },
+        "executionSupport": {
+          "$ref": "#/$defs/CommandJobExecutionSupport"
+        }
+      },
+      "required": [
+        "key",
+        "displayName",
+        "supportedOperations"
+      ],
+      "additionalProperties": false,
+      "x-cis-max-body-bytes": 65536,
+      "x-cis-contract-shape-pairs": [
+        [
+          "inputContract",
+          "inputShape"
+        ],
+        [
+          "eventContract",
+          "eventShape"
+        ],
+        [
+          "resultSummaryContract",
+          "resultSummaryShape"
+        ]
+      ],
+      "x-cis-form-requires-configuration-contract": true,
+      "x-cis-kind-specific-descriptor-rules": true,
+      "x-cis-presence-is-not-trusted-schema-authority": true,
+      "x-cis-configure-and-create-configured-require-configuration-contract": true,
+      "x-cis-job-manual-requires-input-contract-and-shape": true
+    },
+    "CapabilityParticipation": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/CapabilityKey"
+        },
+        "registrationId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "inventorySequence": {
+          "$ref": "#/$defs/PositiveInt64"
+        },
+        "observedAtUtc": {
+          "$ref": "#/$defs/UtcInstant"
+        },
+        "receivedAtUtc": {
+          "$ref": "#/$defs/UtcInstant"
+        },
+        "availability": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$",
+          "x-known-values": [
+            "available",
+            "unavailable",
+            "unknown"
+          ]
+        },
+        "draining": {
+          "type": "boolean",
+          "x-cis-default": false
+        },
+        "build": {
+          "$ref": "#/$defs/WorkerBuildReference"
+        }
+      },
+      "required": [
+        "key",
+        "registrationId",
+        "inventorySequence",
+        "observedAtUtc",
+        "receivedAtUtc",
+        "availability"
+      ],
+      "additionalProperties": true,
+      "x-cis-no-execution-authority": true
+    },
+    "CapabilityDefinitionPage": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 500,
+          "items": {
+            "$ref": "#/$defs/CapabilityDefinition"
+          }
+        },
+        "nextCursor": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048,
+          "pattern": "^[\\u0021-\\u007e]+$"
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "additionalProperties": true,
+      "x-cis-complete-body-max-bytes": 1048576,
+      "x-cis-default-page-size": 100,
+      "x-cis-authorize-before-paging": true
+    },
+    "CapabilityParticipationPage": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 500,
+          "items": {
+            "$ref": "#/$defs/CapabilityParticipation"
+          }
+        },
+        "nextCursor": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048,
+          "pattern": "^[\\u0021-\\u007e]+$"
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "additionalProperties": true,
+      "x-cis-complete-body-max-bytes": 1048576,
+      "x-cis-default-page-size": 100,
+      "x-cis-authorize-before-paging": true
+    },
+    "SchedulerSha256": {
+      "type": "string",
+      "minLength": 64,
+      "maxLength": 64,
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "SchedulerCursor": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048,
+      "pattern": "^[\\u0021-\\u007e]+$"
+    },
+    "SchedulerLocalTime": {
+      "type": "string",
+      "minLength": 16,
+      "maxLength": 16,
+      "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\\.[0-9]{7}$"
+    },
+    "SchedulerTriggerReference": {
+      "type": "object",
+      "properties": {
+        "applicationId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "triggerId": {
+          "$ref": "#/$defs/Uuid"
+        }
+      },
+      "required": [
+        "applicationId",
+        "triggerId"
+      ],
+      "additionalProperties": true
+    },
+    "SchedulerSettingsSelection": {
+      "type": "object",
+      "properties": {
+        "applicationId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "configurationId": {
+          "$ref": "#/$defs/AdministrativeOperationKey"
+        },
+        "schemaVersion": {
+          "$ref": "#/$defs/PositiveInt64"
+        },
+        "releaseId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "assignmentGeneration": {
+          "$ref": "#/$defs/PositiveInt64"
+        }
+      },
+      "required": [
+        "applicationId",
+        "configurationId",
+        "schemaVersion",
+        "releaseId",
+        "assignmentGeneration"
+      ],
+      "additionalProperties": true,
+      "x-cis-resolved-owner-binding-required": true
+    },
+    "SchedulerInputMapping": {
+      "type": "object",
+      "properties": {
+        "targetPath": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 1024,
+          "pattern": "^/(?:[^~]|~[01])*$"
+        },
+        "kind": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$",
+          "x-known-values": [
+            "field",
+            "constant",
+            "transform"
+          ]
+        },
+        "sourcePath": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 1024,
+          "pattern": "^/(?:[^~]|~[01])*$"
+        },
+        "constantJson": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 65536,
+          "x-cis-max-utf8-bytes": 65536,
+          "x-cis-no-bom-or-duplicate-decoded-names": true,
+          "x-cis-json-value-text": true,
+          "x-cis-max-depth": 16
+        },
+        "transformation": {
+          "$ref": "#/$defs/MessageContract"
+        },
+        "parametersJson": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 65536,
+          "x-cis-max-utf8-bytes": 65536,
+          "x-cis-no-bom-or-duplicate-decoded-names": true,
+          "x-cis-json-object-text": true,
+          "x-cis-max-depth": 16
+        }
+      },
+      "required": [
+        "targetPath",
+        "kind"
+      ],
+      "additionalProperties": true,
+      "x-cis-installed-deterministic-transformation": true,
+      "x-cis-known-mapping-variants": true
+    },
+    "SchedulerResourceMapping": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$",
+          "x-known-values": [
+            "constant",
+            "field",
+            "resolver"
+          ]
+        },
+        "constant": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 512
+        },
+        "eventPath": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 1024,
+          "pattern": "^/(?:[^~]|~[01])*$"
+        },
+        "resolver": {
+          "$ref": "#/$defs/MessageContract"
+        },
+        "parametersJson": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 65536,
+          "x-cis-max-utf8-bytes": 65536,
+          "x-cis-no-bom-or-duplicate-decoded-names": true,
+          "x-cis-json-object-text": true,
+          "x-cis-max-depth": 16
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "additionalProperties": true,
+      "x-cis-one-validated-resource": true,
+      "x-cis-known-resource-variants": true
+    },
+    "SchedulerRetryPolicy": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "maximumAttempts": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16
+        },
+        "initialDelayMs": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 5,
+          "pattern": "^[1-9][0-9]*$",
+          "x-cis-int64-maximum": "60000"
+        },
+        "maximumDelayMs": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 5,
+          "pattern": "^[1-9][0-9]*$",
+          "x-cis-int64-maximum": "60000"
+        }
+      },
+      "required": [
+        "enabled",
+        "maximumAttempts",
+        "initialDelayMs",
+        "maximumDelayMs"
+      ],
+      "additionalProperties": true,
+      "x-cis-initial-delay-minimum-ms": 5000,
+      "x-cis-initial-delay-not-greater-than-maximum": true,
+      "x-cis-disabled-business-retry-has-one-attempt": true
+    },
+    "SchedulerCalendar": {
+      "type": "object",
+      "properties": {
+        "form": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$",
+          "x-known-values": [
+            "fixedDelay",
+            "daily",
+            "weekly"
+          ]
+        },
+        "missedRunPolicy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$",
+          "x-known-values": [
+            "skip",
+            "runLatestOnce",
+            "catchUpBounded"
+          ]
+        },
+        "delayMs": {
+          "$ref": "#/$defs/SchedulerPositiveCalendarMilliseconds"
+        },
+        "localTime": {
+          "$ref": "#/$defs/SchedulerLocalTime"
+        },
+        "timeZoneId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 128
+        },
+        "weekdays": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 7,
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 6
+          },
+          "x-cis-distinct-weekdays": true
+        },
+        "maximumCatchUp": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        },
+        "catchUpWindowMs": {
+          "$ref": "#/$defs/SchedulerPositiveCalendarMilliseconds"
+        },
+        "initialDelayMs": {
+          "$ref": "#/$defs/SchedulerNonnegativeCalendarMilliseconds"
+        },
+        "runImmediately": {
+          "type": "boolean",
+          "x-cis-default": false
+        },
+        "failurePolicy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$",
+          "x-known-values": [
+            "pause",
+            "continue"
+          ]
+        }
+      },
+      "required": [
+        "form",
+        "missedRunPolicy"
+      ],
+      "additionalProperties": true,
+      "x-cis-dst-invalid-local-time": "skip",
+      "x-cis-dst-repeated-local-time": "onceAtEarlierInstant",
+      "x-cis-zone-availability-at-activation": true,
+      "x-cis-catch-up-bounds-required-only-for-catchUpBounded": true,
+      "x-cis-fixed-delay-missed-policy-does-not-skip-cycle": true,
+      "x-cis-zero-initial-delay-requires-run-immediately": true,
+      "x-cis-fixed-delay-controls": true
+    },
+    "SchedulerTriggerDraft": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 256
+        },
+        "provider": {
+          "$ref": "#/$defs/CapabilityKey",
+          "x-cis-required-kind": "triggerProvider"
+        },
+        "configuration": {
+          "$ref": "#/$defs/SchedulerSettingsSelection"
+        },
+        "enabled": {
+          "type": "boolean",
+          "x-cis-default": false
+        }
+      },
+      "required": [
+        "name",
+        "provider"
+      ],
+      "additionalProperties": true
+    },
+    "SchedulerTaskDraft": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 256
+        },
+        "trigger": {
+          "$ref": "#/$defs/SchedulerTriggerReference"
+        },
+        "job": {
+          "$ref": "#/$defs/CapabilityKey",
+          "x-cis-required-kind": "job"
+        },
+        "resource": {
+          "$ref": "#/$defs/SchedulerResourceMapping"
+        },
+        "inputMappings": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/SchedulerInputMapping"
+          }
+        },
+        "jobConfiguration": {
+          "$ref": "#/$defs/SchedulerSettingsSelection"
+        },
+        "triggerConfiguration": {
+          "$ref": "#/$defs/SchedulerSettingsSelection"
+        },
+        "executionProfileId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-default": "app-default"
+        },
+        "retry": {
+          "$ref": "#/$defs/SchedulerRetryPolicy"
+        },
+        "enabled": {
+          "type": "boolean",
+          "x-cis-default": false
+        },
+        "executionSettings": {
+          "$ref": "#/$defs/SchedulerExecutionSettings"
+        }
+      },
+      "required": [
+        "name",
+        "trigger",
+        "job",
+        "resource",
+        "inputMappings",
+        "jobConfiguration"
+      ],
+      "additionalProperties": true,
+      "x-cis-target-paths-distinct-and-required-input-complete": true,
+      "x-cis-profile-native-approved-binding": true,
+      "x-cis-definition-settings-and-input-remain-distinct": true
+    },
+    "SchedulerProgress": {
+      "type": "object",
+      "properties": {
+        "completed": {
+          "$ref": "#/$defs/NonnegativeInt64"
+        },
+        "total": {
+          "$ref": "#/$defs/NonnegativeInt64"
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 1024
+        }
+      },
+      "required": [],
+      "additionalProperties": true,
+      "x-cis-completed-not-greater-than-known-total": true
+    },
+    "CommandSchedulerTriggerReference": {
+      "type": "object",
+      "properties": {
+        "applicationId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "triggerId": {
+          "$ref": "#/$defs/Uuid"
+        }
+      },
+      "required": [
+        "applicationId",
+        "triggerId"
+      ],
+      "additionalProperties": false
+    },
+    "CommandSchedulerSettingsSelection": {
+      "type": "object",
+      "properties": {
+        "applicationId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "configurationId": {
+          "$ref": "#/$defs/AdministrativeOperationKey"
+        },
+        "schemaVersion": {
+          "$ref": "#/$defs/PositiveInt64"
+        },
+        "releaseId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "assignmentGeneration": {
+          "$ref": "#/$defs/PositiveInt64"
+        }
+      },
+      "required": [
+        "applicationId",
+        "configurationId",
+        "schemaVersion",
+        "releaseId",
+        "assignmentGeneration"
+      ],
+      "additionalProperties": false,
+      "x-cis-resolved-owner-binding-required": true
+    },
+    "CommandSchedulerInputMapping": {
+      "type": "object",
+      "properties": {
+        "targetPath": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 1024,
+          "pattern": "^/(?:[^~]|~[01])*$"
+        },
+        "kind": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$",
+          "enum": [
+            "field",
+            "constant",
+            "transform"
+          ]
+        },
+        "sourcePath": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 1024,
+          "pattern": "^/(?:[^~]|~[01])*$"
+        },
+        "constantJson": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 65536,
+          "x-cis-max-utf8-bytes": 65536,
+          "x-cis-no-bom-or-duplicate-decoded-names": true,
+          "x-cis-json-value-text": true,
+          "x-cis-max-depth": 16
+        },
+        "transformation": {
+          "$ref": "#/$defs/CommandMessageContract"
+        },
+        "parametersJson": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 65536,
+          "x-cis-max-utf8-bytes": 65536,
+          "x-cis-no-bom-or-duplicate-decoded-names": true,
+          "x-cis-json-object-text": true,
+          "x-cis-max-depth": 16
+        }
+      },
+      "required": [
+        "targetPath",
+        "kind"
+      ],
+      "additionalProperties": false,
+      "x-cis-installed-deterministic-transformation": true,
+      "oneOf": [
+        {
+          "properties": {
+            "kind": {
+              "const": "field"
+            }
+          },
+          "required": [
+            "sourcePath"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "constantJson"
+                ]
+              },
+              {
+                "required": [
+                  "transformation"
+                ]
+              },
+              {
+                "required": [
+                  "parametersJson"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "properties": {
+            "kind": {
+              "const": "constant"
+            }
+          },
+          "required": [
+            "constantJson"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "sourcePath"
+                ]
+              },
+              {
+                "required": [
+                  "transformation"
+                ]
+              },
+              {
+                "required": [
+                  "parametersJson"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "properties": {
+            "kind": {
+              "const": "transform"
+            }
+          },
+          "required": [
+            "sourcePath",
+            "transformation"
+          ],
+          "not": {
+            "required": [
+              "constantJson"
+            ]
+          }
+        }
+      ]
+    },
+    "CommandSchedulerResourceMapping": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$",
+          "enum": [
+            "constant",
+            "field",
+            "resolver"
+          ]
+        },
+        "constant": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 512
+        },
+        "eventPath": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 1024,
+          "pattern": "^/(?:[^~]|~[01])*$"
+        },
+        "resolver": {
+          "$ref": "#/$defs/CommandMessageContract"
+        },
+        "parametersJson": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 65536,
+          "x-cis-max-utf8-bytes": 65536,
+          "x-cis-no-bom-or-duplicate-decoded-names": true,
+          "x-cis-json-object-text": true,
+          "x-cis-max-depth": 16
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "additionalProperties": false,
+      "x-cis-one-validated-resource": true,
+      "oneOf": [
+        {
+          "properties": {
+            "kind": {
+              "const": "constant"
+            }
+          },
+          "required": [
+            "constant"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "eventPath"
+                ]
+              },
+              {
+                "required": [
+                  "resolver"
+                ]
+              },
+              {
+                "required": [
+                  "parametersJson"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "properties": {
+            "kind": {
+              "const": "field"
+            }
+          },
+          "required": [
+            "eventPath"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "constant"
+                ]
+              },
+              {
+                "required": [
+                  "resolver"
+                ]
+              },
+              {
+                "required": [
+                  "parametersJson"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "properties": {
+            "kind": {
+              "const": "resolver"
+            }
+          },
+          "required": [
+            "resolver"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "constant"
+                ]
+              },
+              {
+                "required": [
+                  "eventPath"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "CommandSchedulerRetryPolicy": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "maximumAttempts": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16
+        },
+        "initialDelayMs": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 5,
+          "pattern": "^[1-9][0-9]*$",
+          "x-cis-int64-maximum": "60000"
+        },
+        "maximumDelayMs": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 5,
+          "pattern": "^[1-9][0-9]*$",
+          "x-cis-int64-maximum": "60000"
+        }
+      },
+      "required": [
+        "enabled",
+        "maximumAttempts",
+        "initialDelayMs",
+        "maximumDelayMs"
+      ],
+      "additionalProperties": false,
+      "x-cis-initial-delay-minimum-ms": 5000,
+      "x-cis-initial-delay-not-greater-than-maximum": true,
+      "x-cis-disabled-business-retry-has-one-attempt": true
+    },
+    "CommandSchedulerCalendar": {
+      "type": "object",
+      "properties": {
+        "form": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$",
+          "enum": [
+            "fixedDelay",
+            "daily",
+            "weekly"
+          ]
+        },
+        "missedRunPolicy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$",
+          "enum": [
+            "skip",
+            "runLatestOnce",
+            "catchUpBounded"
+          ]
+        },
+        "delayMs": {
+          "$ref": "#/$defs/SchedulerPositiveCalendarMilliseconds"
+        },
+        "localTime": {
+          "$ref": "#/$defs/SchedulerLocalTime"
+        },
+        "timeZoneId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 128
+        },
+        "weekdays": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 7,
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 6
+          },
+          "x-cis-distinct-weekdays": true
+        },
+        "maximumCatchUp": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        },
+        "catchUpWindowMs": {
+          "$ref": "#/$defs/SchedulerPositiveCalendarMilliseconds"
+        },
+        "initialDelayMs": {
+          "$ref": "#/$defs/SchedulerNonnegativeCalendarMilliseconds"
+        },
+        "runImmediately": {
+          "type": "boolean",
+          "x-cis-default": false
+        },
+        "failurePolicy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$",
+          "enum": [
+            "pause",
+            "continue"
+          ]
+        }
+      },
+      "required": [
+        "form",
+        "missedRunPolicy"
+      ],
+      "additionalProperties": false,
+      "x-cis-dst-invalid-local-time": "skip",
+      "x-cis-dst-repeated-local-time": "onceAtEarlierInstant",
+      "x-cis-zone-availability-at-activation": true,
+      "x-cis-catch-up-bounds-required-only-for-catchUpBounded": true,
+      "x-cis-fixed-delay-missed-policy-does-not-skip-cycle": true,
+      "x-cis-zero-initial-delay-requires-run-immediately": true,
+      "x-cis-fixed-delay-controls": true,
+      "oneOf": [
+        {
+          "properties": {
+            "form": {
+              "const": "fixedDelay"
+            }
+          },
+          "required": [
+            "delayMs"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "localTime"
+                ]
+              },
+              {
+                "required": [
+                  "timeZoneId"
+                ]
+              },
+              {
+                "required": [
+                  "weekdays"
+                ]
+              },
+              {
+                "required": [
+                  "maximumCatchUp"
+                ]
+              },
+              {
+                "required": [
+                  "catchUpWindowMs"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "properties": {
+            "form": {
+              "const": "daily"
+            }
+          },
+          "required": [
+            "localTime",
+            "timeZoneId"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "delayMs"
+                ]
+              },
+              {
+                "required": [
+                  "weekdays"
+                ]
+              },
+              {
+                "required": [
+                  "initialDelayMs"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "properties": {
+            "form": {
+              "const": "weekly"
+            }
+          },
+          "required": [
+            "localTime",
+            "timeZoneId",
+            "weekdays"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "delayMs"
+                ]
+              },
+              {
+                "required": [
+                  "initialDelayMs"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "CommandSchedulerTriggerDraft": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 256
+        },
+        "provider": {
+          "$ref": "#/$defs/CommandCapabilityKey",
+          "x-cis-required-kind": "triggerProvider"
+        },
+        "configuration": {
+          "$ref": "#/$defs/CommandSchedulerSettingsSelection"
+        },
+        "enabled": {
+          "type": "boolean",
+          "x-cis-default": false
+        }
+      },
+      "required": [
+        "name",
+        "provider"
+      ],
+      "additionalProperties": false
+    },
+    "CommandSchedulerTaskDraft": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 256
+        },
+        "trigger": {
+          "$ref": "#/$defs/CommandSchedulerTriggerReference"
+        },
+        "job": {
+          "$ref": "#/$defs/CommandCapabilityKey",
+          "x-cis-required-kind": "job"
+        },
+        "resource": {
+          "$ref": "#/$defs/CommandSchedulerResourceMapping"
+        },
+        "inputMappings": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/CommandSchedulerInputMapping"
+          }
+        },
+        "jobConfiguration": {
+          "$ref": "#/$defs/CommandSchedulerSettingsSelection"
+        },
+        "triggerConfiguration": {
+          "$ref": "#/$defs/CommandSchedulerSettingsSelection"
+        },
+        "executionProfileId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-default": "app-default"
+        },
+        "retry": {
+          "$ref": "#/$defs/CommandSchedulerRetryPolicy"
+        },
+        "enabled": {
+          "type": "boolean",
+          "x-cis-default": false
+        },
+        "executionSettings": {
+          "$ref": "#/$defs/CommandSchedulerExecutionSettings"
+        }
+      },
+      "required": [
+        "name",
+        "trigger",
+        "job",
+        "resource",
+        "inputMappings",
+        "jobConfiguration"
+      ],
+      "additionalProperties": false,
+      "x-cis-target-paths-distinct-and-required-input-complete": true,
+      "x-cis-profile-native-approved-binding": true,
+      "x-cis-definition-settings-and-input-remain-distinct": true
+    },
+    "CommandSchedulerProgress": {
+      "type": "object",
+      "properties": {
+        "completed": {
+          "$ref": "#/$defs/NonnegativeInt64"
+        },
+        "total": {
+          "$ref": "#/$defs/NonnegativeInt64"
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 1024
+        }
+      },
+      "required": [],
+      "additionalProperties": false,
+      "x-cis-completed-not-greater-than-known-total": true
+    },
+    "SchedulerCapturedSettings": {
+      "type": "object",
+      "properties": {
+        "selection": {
+          "$ref": "#/$defs/SchedulerSettingsSelection"
+        },
+        "payloadJson": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 65536,
+          "x-cis-max-utf8-bytes": 65536,
+          "x-cis-no-bom-or-duplicate-decoded-names": true,
+          "x-cis-json-object-text": true,
+          "x-cis-max-depth": 16
+        },
+        "sha256": {
+          "type": "string",
+          "minLength": 64,
+          "maxLength": 64,
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "selection",
+        "payloadJson",
+        "sha256"
+      ],
+      "additionalProperties": true,
+      "x-cis-sha256-over-exact-decoded-payload-utf8": true,
+      "x-cis-protected-captured-content": true
+    },
+    "SchedulerExecutionIdentity": {
+      "type": "object",
+      "properties": {
+        "application": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true
+        },
+        "environment": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true
+        },
+        "issuer": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true
+        },
+        "subject": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true
+        },
+        "bindingId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true
+        },
+        "profileId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true
+        }
+      },
+      "required": [
+        "application",
+        "environment",
+        "issuer",
+        "subject",
+        "bindingId",
+        "profileId"
+      ],
+      "additionalProperties": true,
+      "x-cis-data-is-not-native-authentication": true
+    },
+    "SchedulerActor": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$"
+        },
+        "issuer": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true
+        },
+        "subject": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 256
+        },
+        "application": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true
+        },
+        "environment": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true
+        }
+      },
+      "required": [
+        "kind",
+        "issuer",
+        "subject"
+      ],
+      "additionalProperties": true,
+      "x-cis-actual-owner-attribution": true
+    },
+    "SchedulerTrigger": {
+      "type": "object",
+      "properties": {
+        "applicationId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "triggerId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "revision": {
+          "$ref": "#/$defs/PositiveInt64"
+        },
+        "eTag": {
+          "$ref": "#/$defs/StrongETag"
+        },
+        "definition": {
+          "$ref": "#/$defs/SchedulerTriggerDraft"
+        },
+        "state": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$",
+          "x-known-values": [
+            "disabled",
+            "enabled",
+            "retired",
+            "pending"
+          ]
+        },
+        "configuredBy": {
+          "$ref": "#/$defs/SchedulerActor"
+        },
+        "changedAtUtc": {
+          "$ref": "#/$defs/UtcInstant"
+        },
+        "calendar": {
+          "$ref": "#/$defs/SchedulerCalendar"
+        },
+        "waitingReason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 128
+        }
+      },
+      "required": [
+        "applicationId",
+        "triggerId",
+        "revision",
+        "eTag",
+        "definition",
+        "state",
+        "configuredBy",
+        "changedAtUtc"
+      ],
+      "additionalProperties": true
+    },
+    "SchedulerTask": {
+      "type": "object",
+      "properties": {
+        "applicationId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "taskId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "desiredRevision": {
+          "$ref": "#/$defs/PositiveInt64"
+        },
+        "activeRevision": {
+          "$ref": "#/$defs/PositiveInt64"
+        },
+        "eTag": {
+          "$ref": "#/$defs/StrongETag"
+        },
+        "definition": {
+          "$ref": "#/$defs/SchedulerTaskDraft"
+        },
+        "state": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$",
+          "x-known-values": [
+            "disabled",
+            "pending",
+            "active",
+            "retired"
+          ]
+        },
+        "configuredBy": {
+          "$ref": "#/$defs/SchedulerActor"
+        },
+        "changedAtUtc": {
+          "$ref": "#/$defs/UtcInstant"
+        },
+        "waitingReason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 128
+        }
+      },
+      "required": [
+        "applicationId",
+        "taskId",
+        "desiredRevision",
+        "eTag",
+        "definition",
+        "state",
+        "configuredBy",
+        "changedAtUtc"
+      ],
+      "additionalProperties": true,
+      "x-cis-desired-is-not-active": true
+    },
+    "SchedulerTriggerCommand": {
+      "type": "object",
+      "properties": {
+        "commandVersion": {
+          "type": "integer",
+          "enum": [
+            1
+          ]
+        },
+        "triggerId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "definition": {
+          "$ref": "#/$defs/CommandSchedulerTriggerDraft"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 1024
+        }
+      },
+      "required": [
+        "commandVersion",
+        "triggerId",
+        "definition",
+        "reason"
+      ],
+      "additionalProperties": false,
+      "x-cis-max-body-bytes": 1048576,
+      "x-cis-max-depth": 16
+    },
+    "SchedulerTaskCommand": {
+      "type": "object",
+      "properties": {
+        "commandVersion": {
+          "type": "integer",
+          "enum": [
+            1
+          ]
+        },
+        "taskId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "definition": {
+          "$ref": "#/$defs/CommandSchedulerTaskDraft"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 1024
+        },
+        "expectedTriggerETag": {
+          "$ref": "#/$defs/StrongETag"
+        },
+        "previewDigest": {
+          "type": "string",
+          "minLength": 64,
+          "maxLength": 64,
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "commandVersion",
+        "taskId",
+        "definition",
+        "reason"
+      ],
+      "additionalProperties": false,
+      "x-cis-max-body-bytes": 1048576,
+      "x-cis-max-depth": 16,
+      "x-cis-current-task-trigger-preconditions-required-at-commit": true
+    },
+    "SchedulerStateCommand": {
+      "type": "object",
+      "properties": {
+        "commandVersion": {
+          "type": "integer",
+          "enum": [
+            1
+          ]
+        },
+        "intent": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$",
+          "enum": [
+            "enable",
+            "disable",
+            "retire",
+            "activate",
+            "resume",
+            "cancel"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 1024
+        }
+      },
+      "required": [
+        "commandVersion",
+        "intent",
+        "reason"
+      ],
+      "additionalProperties": false,
+      "x-cis-max-body-bytes": 1048576,
+      "x-cis-max-depth": 16,
+      "x-cis-intent-must-match-fixed-resource-operation": true
+    },
+    "SchedulerTaskPreviewCommand": {
+      "type": "object",
+      "properties": {
+        "commandVersion": {
+          "type": "integer",
+          "enum": [
+            1
+          ]
+        },
+        "definition": {
+          "$ref": "#/$defs/CommandSchedulerTaskDraft"
+        },
+        "candidateJobPayloadJson": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 65536,
+          "x-cis-max-utf8-bytes": 65536,
+          "x-cis-no-bom-or-duplicate-decoded-names": true,
+          "x-cis-json-object-text": true,
+          "x-cis-max-depth": 16
+        },
+        "candidateTriggerPayloadJson": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 65536,
+          "x-cis-max-utf8-bytes": 65536,
+          "x-cis-no-bom-or-duplicate-decoded-names": true,
+          "x-cis-json-object-text": true,
+          "x-cis-max-depth": 16
+        },
+        "taskId": {
+          "$ref": "#/$defs/Uuid"
+        }
+      },
+      "required": [
+        "commandVersion",
+        "definition"
+      ],
+      "additionalProperties": false,
+      "x-cis-max-body-bytes": 1048576,
+      "x-cis-max-depth": 16,
+      "x-cis-no-publication-event-or-activation": true
+    },
+    "SchedulerCalendarPreviewCommand": {
+      "type": "object",
+      "properties": {
+        "commandVersion": {
+          "type": "integer",
+          "enum": [
+            1
+          ]
+        },
+        "calendar": {
+          "$ref": "#/$defs/CommandSchedulerCalendar"
+        },
+        "fromUtc": {
+          "$ref": "#/$defs/UtcInstant"
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "x-cis-default": 5
+        }
+      },
+      "required": [
+        "commandVersion",
+        "calendar",
+        "fromUtc"
+      ],
+      "additionalProperties": false,
+      "x-cis-max-body-bytes": 1048576,
+      "x-cis-max-depth": 16,
+      "x-cis-same-authoritative-evaluator-as-production": true
+    },
+    "SchedulerValidationIssue": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "maxLength": 1024,
+          "x-cis-control-free": true,
+          "x-cis-max-utf8-bytes": 1024
+        },
+        "code": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 128
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 1024
+        }
+      },
+      "required": [
+        "path",
+        "code",
+        "message"
+      ],
+      "additionalProperties": true
+    },
+    "SchedulerAffectedTask": {
+      "type": "object",
+      "properties": {
+        "applicationId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "taskId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 256
+        },
+        "revision": {
+          "$ref": "#/$defs/PositiveInt64"
+        }
+      },
+      "required": [
+        "applicationId",
+        "taskId",
+        "name",
+        "revision"
+      ],
+      "additionalProperties": true
+    },
+    "SchedulerTaskPreview": {
+      "type": "object",
+      "properties": {
+        "valid": {
+          "type": "boolean"
+        },
+        "issues": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 128,
+          "items": {
+            "$ref": "#/$defs/SchedulerValidationIssue"
+          }
+        },
+        "affectedTasks": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 4096,
+          "items": {
+            "$ref": "#/$defs/SchedulerAffectedTask"
+          }
+        },
+        "impactFullyDisclosed": {
+          "type": "boolean"
+        },
+        "nextOccurrencesUtc": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/UtcInstant"
+          }
+        },
+        "activationState": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$"
+        },
+        "draftDigest": {
+          "type": "string",
+          "minLength": 64,
+          "maxLength": 64,
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "taskETag": {
+          "$ref": "#/$defs/StrongETag"
+        },
+        "triggerETag": {
+          "$ref": "#/$defs/StrongETag"
+        },
+        "preconditions": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 16,
+          "items": {
+            "$ref": "#/$defs/SchedulerSettingsSelection"
+          }
+        },
+        "definition": {
+          "$ref": "#/$defs/SchedulerTaskDraft"
+        }
+      },
+      "required": [
+        "valid",
+        "issues",
+        "affectedTasks",
+        "impactFullyDisclosed",
+        "nextOccurrencesUtc",
+        "activationState"
+      ],
+      "additionalProperties": true,
+      "x-cis-hidden-impact-is-not-global-count": true,
+      "x-cis-complete-body-max-bytes": 1048576,
+      "x-cis-valid-preview-task-context-all-or-none": true,
+      "x-cis-task-preview-route-requires-full-context-and-existing-task-etag": true,
+      "x-cis-calendar-preview-route-forbids-task-context-and-bounds-count": true
+    },
+    "SchedulerEventCommand": {
+      "type": "object",
+      "properties": {
+        "commandVersion": {
+          "type": "integer",
+          "enum": [
+            1
+          ]
+        },
+        "eventId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "occurredAtUtc": {
+          "$ref": "#/$defs/UtcInstant"
+        },
+        "contract": {
+          "$ref": "#/$defs/CommandMessageContract"
+        },
+        "payloadJson": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 65536,
+          "x-cis-max-utf8-bytes": 65536,
+          "x-cis-no-bom-or-duplicate-decoded-names": true,
+          "x-cis-json-value-text": true,
+          "x-cis-max-depth": 16
+        },
+        "scheduledAtUtc": {
+          "$ref": "#/$defs/UtcInstant"
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true
+        },
+        "causationId": {
+          "$ref": "#/$defs/Uuid"
+        }
+      },
+      "required": [
+        "commandVersion",
+        "eventId",
+        "occurredAtUtc",
+        "contract",
+        "payloadJson"
+      ],
+      "additionalProperties": false,
+      "x-cis-max-body-bytes": 1048576,
+      "x-cis-max-depth": 16,
+      "x-cis-original-event-identity-before-new-task-selection": true,
+      "x-cis-producer-from-native-ingress": true
+    },
+    "SchedulerEventReceipt": {
+      "type": "object",
+      "properties": {
+        "applicationId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "triggerId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "eventId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "disposition": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$",
+          "x-known-values": [
+            "accepted",
+            "replayed"
+          ]
+        },
+        "acceptedAtUtc": {
+          "$ref": "#/$defs/UtcInstant"
+        },
+        "runIds": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/Uuid"
+          }
+        },
+        "runCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 64
+        }
+      },
+      "required": [
+        "applicationId",
+        "triggerId",
+        "eventId",
+        "disposition",
+        "acceptedAtUtc"
+      ],
+      "additionalProperties": true,
+      "x-cis-authorized-run-disclosure-only": true,
+      "x-cis-run-count-matches-complete-run-ids": true,
+      "oneOf": [
+        {
+          "required": [
+            "runIds",
+            "runCount"
+          ]
+        },
+        {
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "runIds"
+                ]
+              },
+              {
+                "required": [
+                  "runCount"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "SchedulerManualRunCommand": {
+      "type": "object",
+      "properties": {
+        "commandVersion": {
+          "type": "integer",
+          "enum": [
+            1
+          ]
+        },
+        "eventId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 1024
+        }
+      },
+      "required": [
+        "commandVersion",
+        "eventId",
+        "reason"
+      ],
+      "additionalProperties": false,
+      "x-cis-max-body-bytes": 1048576,
+      "x-cis-max-depth": 16,
+      "x-cis-exact-one-selected-task-not-shared-trigger-fire": true
+    },
+    "SchedulerRunCapsule": {
+      "type": "object",
+      "properties": {
+        "runId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "applicationId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "taskId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "taskRevision": {
+          "$ref": "#/$defs/PositiveInt64"
+        },
+        "trigger": {
+          "$ref": "#/$defs/SchedulerTriggerReference"
+        },
+        "eventId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "job": {
+          "$ref": "#/$defs/CapabilityKey"
+        },
+        "resourceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 512
+        },
+        "inputEnvelopeJson": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 81920,
+          "x-cis-max-utf8-bytes": 81920,
+          "x-cis-no-bom-or-duplicate-decoded-names": true,
+          "x-cis-json-object-text": true,
+          "x-cis-max-depth": 16,
+          "x-cis-existing-messaging-command-envelope": true,
+          "x-cis-input-payload-max-bytes": 65536,
+          "x-cis-envelope-operation-matches-original": true
+        },
+        "executionContract": {
+          "$ref": "#/$defs/MessageContract"
+        },
+        "originalOperation": {
+          "$ref": "#/$defs/MessageOperationReference"
+        },
+        "jobSettings": {
+          "$ref": "#/$defs/SchedulerCapturedSettings"
+        },
+        "executionIdentity": {
+          "$ref": "#/$defs/SchedulerExecutionIdentity"
+        },
+        "configuredBy": {
+          "$ref": "#/$defs/SchedulerActor"
+        },
+        "producer": {
+          "$ref": "#/$defs/SchedulerActor"
+        },
+        "triggerSettings": {
+          "$ref": "#/$defs/SchedulerCapturedSettings"
+        },
+        "requestedBy": {
+          "$ref": "#/$defs/SchedulerActor"
+        },
+        "scheduledAtUtc": {
+          "$ref": "#/$defs/UtcInstant"
+        },
+        "eventOccurredAtUtc": {
+          "$ref": "#/$defs/UtcInstant"
+        },
+        "eventReceivedAtUtc": {
+          "$ref": "#/$defs/UtcInstant"
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true
+        },
+        "causationId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "executionSettings": {
+          "$ref": "#/$defs/SchedulerExecutionSettings"
+        }
+      },
+      "required": [
+        "runId",
+        "applicationId",
+        "taskId",
+        "taskRevision",
+        "trigger",
+        "eventId",
+        "job",
+        "resourceId",
+        "inputEnvelopeJson",
+        "executionContract",
+        "originalOperation",
+        "jobSettings",
+        "executionIdentity",
+        "configuredBy",
+        "producer",
+        "executionSettings"
+      ],
+      "additionalProperties": true,
+      "x-cis-complete-body-max-bytes": 262144,
+      "x-cis-immutable-admission-capsule": true,
+      "x-cis-execution-settings-pinned-once-not-current-worker-defaults": true
+    },
+    "SchedulerRun": {
+      "type": "object",
+      "properties": {
+        "applicationId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "runId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "taskId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "taskRevision": {
+          "$ref": "#/$defs/PositiveInt64"
+        },
+        "trigger": {
+          "$ref": "#/$defs/SchedulerTriggerReference"
+        },
+        "eventId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "job": {
+          "$ref": "#/$defs/CapabilityKey"
+        },
+        "resourceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 512
+        },
+        "state": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$",
+          "x-known-values": [
+            "pending",
+            "admitted",
+            "running",
+            "retryPending",
+            "succeeded",
+            "failed",
+            "cancelled",
+            "outcomeUnknown"
+          ]
+        },
+        "createdAtUtc": {
+          "$ref": "#/$defs/UtcInstant"
+        },
+        "attemptCount": {
+          "$ref": "#/$defs/NonnegativeInt64"
+        },
+        "businessOutcome": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$"
+        },
+        "completedAtUtc": {
+          "$ref": "#/$defs/UtcInstant"
+        },
+        "waitingReason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 128
+        },
+        "cancellationRequested": {
+          "type": "boolean",
+          "x-cis-default": false
+        },
+        "scheduledAtUtc": {
+          "$ref": "#/$defs/UtcInstant"
+        },
+        "nextAttemptAtUtc": {
+          "$ref": "#/$defs/UtcInstant"
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true
+        },
+        "causationId": {
+          "$ref": "#/$defs/Uuid"
+        }
+      },
+      "required": [
+        "applicationId",
+        "runId",
+        "taskId",
+        "taskRevision",
+        "trigger",
+        "eventId",
+        "job",
+        "resourceId",
+        "state",
+        "createdAtUtc",
+        "attemptCount"
+      ],
+      "additionalProperties": true,
+      "x-cis-original-outcome-not-inferred-from-cleanup": true,
+      "x-cis-event-source-is-exact-trigger-reference": true
+    },
+    "SchedulerAttempt": {
+      "type": "object",
+      "properties": {
+        "runId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "attemptId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "number": {
+          "$ref": "#/$defs/PositiveInt64"
+        },
+        "role": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$",
+          "x-known-values": [
+            "execution",
+            "recovery"
+          ]
+        },
+        "state": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$",
+          "x-known-values": [
+            "admitted",
+            "running",
+            "settled",
+            "interrupted"
+          ]
+        },
+        "admittedAtUtc": {
+          "$ref": "#/$defs/UtcInstant"
+        },
+        "build": {
+          "$ref": "#/$defs/WorkerBuildReference"
+        },
+        "executor": {
+          "$ref": "#/$defs/SchedulerExecutionIdentity"
+        },
+        "registrationId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "effectivePolicy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true
+        },
+        "sequence": {
+          "$ref": "#/$defs/PositiveInt64"
+        },
+        "enteredAtUtc": {
+          "$ref": "#/$defs/UtcInstant"
+        },
+        "settledAtUtc": {
+          "$ref": "#/$defs/UtcInstant"
+        },
+        "businessCompletion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true
+        },
+        "callbackSettled": {
+          "type": "boolean"
+        },
+        "cleanupSucceeded": {
+          "type": "boolean"
+        },
+        "summaryJson": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 16384,
+          "x-cis-max-utf8-bytes": 16384,
+          "x-cis-no-bom-or-duplicate-decoded-names": true,
+          "x-cis-json-object-text": true,
+          "x-cis-max-depth": 16
+        },
+        "acquisitionId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "durationMs": {
+          "$ref": "#/$defs/NonnegativeInt64"
+        }
+      },
+      "required": [
+        "runId",
+        "attemptId",
+        "number",
+        "role",
+        "state",
+        "admittedAtUtc",
+        "build",
+        "executor",
+        "registrationId",
+        "effectivePolicy",
+        "sequence"
+      ],
+      "additionalProperties": true,
+      "x-cis-native-pre-entry-and-actual-settlement": true,
+      "x-cis-attempt-build-never-replaces-original-effect-attribution": true,
+      "x-cis-acquisition-id-is-existing-coordination-observation-not-authority": true,
+      "x-cis-duration-from-actual-monotonic-observation-never-utc-subtraction": true
+    },
+    "SchedulerAttemptReport": {
+      "type": "object",
+      "properties": {
+        "commandVersion": {
+          "type": "integer",
+          "enum": [
+            1
+          ]
+        },
+        "sequence": {
+          "$ref": "#/$defs/PositiveInt64"
+        },
+        "observedAtUtc": {
+          "$ref": "#/$defs/UtcInstant"
+        },
+        "phase": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$",
+          "enum": [
+            "entered",
+            "progress",
+            "settled",
+            "interrupted"
+          ]
+        },
+        "businessOutcome": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$"
+        },
+        "businessCompletion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true
+        },
+        "callbackSettled": {
+          "type": "boolean"
+        },
+        "cleanupSucceeded": {
+          "type": "boolean"
+        },
+        "progress": {
+          "$ref": "#/$defs/CommandSchedulerProgress"
+        },
+        "summaryJson": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 16384,
+          "x-cis-max-utf8-bytes": 16384,
+          "x-cis-no-bom-or-duplicate-decoded-names": true,
+          "x-cis-json-object-text": true,
+          "x-cis-max-depth": 16
+        },
+        "durationMs": {
+          "$ref": "#/$defs/NonnegativeInt64"
+        }
+      },
+      "required": [
+        "commandVersion",
+        "sequence",
+        "observedAtUtc",
+        "phase"
+      ],
+      "additionalProperties": false,
+      "x-cis-max-body-bytes": 1048576,
+      "x-cis-max-depth": 16,
+      "x-cis-attempt-identity-and-sequence-admission": true,
+      "x-cis-late-evidence-not-lease-authority": true,
+      "x-cis-progress-minimum-interval-ms": 5000,
+      "x-cis-duration-from-actual-monotonic-observation-never-utc-subtraction": true
+    },
+    "SchedulerAttemptCommand": {
+      "type": "object",
+      "properties": {
+        "commandVersion": {
+          "type": "integer",
+          "enum": [
+            1
+          ]
+        },
+        "attemptId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "registrationId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "role": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$",
+          "enum": [
+            "execution",
+            "recovery"
+          ]
+        },
+        "executionContract": {
+          "$ref": "#/$defs/CommandMessageContract"
+        },
+        "build": {
+          "$ref": "#/$defs/CommandWorkerBuildReference"
+        },
+        "ownershipGeneration": {
+          "$ref": "#/$defs/PositiveInt64"
+        },
+        "acquisitionId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "effectivePolicy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true
+        }
+      },
+      "required": [
+        "commandVersion",
+        "attemptId",
+        "registrationId",
+        "role",
+        "executionContract",
+        "build",
+        "ownershipGeneration"
+      ],
+      "additionalProperties": false,
+      "x-cis-max-body-bytes": 1048576,
+      "x-cis-max-depth": 16,
+      "x-cis-current-native-scope-ownership-build-required": true,
+      "x-cis-acquisition-id-is-existing-coordination-observation-not-authority": true
+    },
+    "SchedulerAttemptAdmission": {
+      "type": "object",
+      "properties": {
+        "disposition": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$",
+          "x-known-values": [
+            "admitted",
+            "replayed",
+            "deferred",
+            "rejected"
+          ]
+        },
+        "reasonCode": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 128
+        },
+        "attempt": {
+          "$ref": "#/$defs/SchedulerAttempt"
+        }
+      },
+      "required": [
+        "disposition"
+      ],
+      "additionalProperties": true,
+      "x-cis-admitted-exact-attempt-required-before-entry": true
+    },
+    "SchedulerRunDetail": {
+      "type": "object",
+      "properties": {
+        "run": {
+          "$ref": "#/$defs/SchedulerRun"
+        },
+        "attempts": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 500,
+          "items": {
+            "$ref": "#/$defs/SchedulerAttempt"
+          }
+        },
+        "capturedContentAccess": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$"
+        },
+        "capsule": {
+          "$ref": "#/$defs/SchedulerRunCapsule"
+        },
+        "nextAttemptCursor": {
+          "$ref": "#/$defs/SchedulerCursor"
+        }
+      },
+      "required": [
+        "run",
+        "attempts",
+        "capturedContentAccess"
+      ],
+      "additionalProperties": true,
+      "x-cis-protected-capsule-disclosure": true,
+      "x-cis-attempts-are-one-page-not-all-history": true
+    },
+    "SchedulerEvent": {
+      "type": "object",
+      "properties": {
+        "applicationId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "triggerId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "eventId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "occurredAtUtc": {
+          "$ref": "#/$defs/UtcInstant"
+        },
+        "receivedAtUtc": {
+          "$ref": "#/$defs/UtcInstant"
+        },
+        "contract": {
+          "$ref": "#/$defs/MessageContract"
+        },
+        "producer": {
+          "$ref": "#/$defs/SchedulerActor"
+        },
+        "payloadAccess": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$"
+        },
+        "payloadJson": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 65536,
+          "x-cis-max-utf8-bytes": 65536,
+          "x-cis-no-bom-or-duplicate-decoded-names": true,
+          "x-cis-json-value-text": true,
+          "x-cis-max-depth": 16
+        },
+        "sourceSettings": {
+          "$ref": "#/$defs/SchedulerCapturedSettings"
+        },
+        "scheduledAtUtc": {
+          "$ref": "#/$defs/UtcInstant"
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true
+        },
+        "causationId": {
+          "$ref": "#/$defs/Uuid"
+        }
+      },
+      "required": [
+        "applicationId",
+        "triggerId",
+        "eventId",
+        "occurredAtUtc",
+        "receivedAtUtc",
+        "contract",
+        "producer",
+        "payloadAccess"
+      ],
+      "additionalProperties": true,
+      "x-cis-immutable-original-event": true,
+      "x-cis-payload-disclosure-independent": true
+    },
+    "SchedulerHistoryQuery": {
+      "type": "object",
+      "properties": {
+        "taskId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "executionScope": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 256
+        },
+        "jobId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 128
+        },
+        "eventId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "resourceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 512
+        },
+        "fromUtc": {
+          "$ref": "#/$defs/UtcInstant"
+        },
+        "untilUtc": {
+          "$ref": "#/$defs/UtcInstant"
+        },
+        "state": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$",
+          "enum": [
+            "pending",
+            "admitted",
+            "running",
+            "retryPending",
+            "succeeded",
+            "failed",
+            "cancelled",
+            "outcomeUnknown"
+          ]
+        },
+        "applicationVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 512
+        },
+        "buildId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 512
+        },
+        "executionContract": {
+          "$ref": "#/$defs/CommandMessageContract"
+        },
+        "triggerApplicationId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "triggerId": {
+          "$ref": "#/$defs/Uuid"
+        }
+      },
+      "required": [],
+      "additionalProperties": false,
+      "x-cis-authorized-filtering-before-paging": true,
+      "x-cis-query-and-current-principal-bound-cursor": true,
+      "x-cis-from-not-after-until": true,
+      "oneOf": [
+        {
+          "required": [
+            "taskId"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "executionScope"
+                ]
+              },
+              {
+                "required": [
+                  "jobId"
+                ]
+              },
+              {
+                "required": [
+                  "eventId"
+                ]
+              },
+              {
+                "required": [
+                  "triggerApplicationId"
+                ]
+              },
+              {
+                "required": [
+                  "triggerId"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "required": [
+            "executionScope",
+            "jobId"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "taskId"
+                ]
+              },
+              {
+                "required": [
+                  "eventId"
+                ]
+              },
+              {
+                "required": [
+                  "triggerApplicationId"
+                ]
+              },
+              {
+                "required": [
+                  "triggerId"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "required": [
+            "eventId",
+            "triggerApplicationId",
+            "triggerId"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "taskId"
+                ]
+              },
+              {
+                "required": [
+                  "executionScope"
+                ]
+              },
+              {
+                "required": [
+                  "jobId"
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "x-cis-event-filter-requires-exact-source-application-and-trigger": true
+    },
+    "SchedulerTriggerPage": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 500,
+          "items": {
+            "$ref": "#/$defs/SchedulerTrigger"
+          }
+        },
+        "nextCursor": {
+          "$ref": "#/$defs/SchedulerCursor"
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "additionalProperties": true,
+      "x-cis-complete-body-max-bytes": 1048576,
+      "x-cis-default-page-size": 100
+    },
+    "SchedulerTaskPage": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 500,
+          "items": {
+            "$ref": "#/$defs/SchedulerTask"
+          }
+        },
+        "nextCursor": {
+          "$ref": "#/$defs/SchedulerCursor"
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "additionalProperties": true,
+      "x-cis-complete-body-max-bytes": 1048576,
+      "x-cis-default-page-size": 100
+    },
+    "SchedulerRunPage": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 500,
+          "items": {
+            "$ref": "#/$defs/SchedulerRun"
+          }
+        },
+        "nextCursor": {
+          "$ref": "#/$defs/SchedulerCursor"
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "additionalProperties": true,
+      "x-cis-complete-body-max-bytes": 1048576,
+      "x-cis-default-page-size": 100
+    },
+    "SchedulerAttemptPage": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 500,
+          "items": {
+            "$ref": "#/$defs/SchedulerAttempt"
+          }
+        },
+        "nextCursor": {
+          "$ref": "#/$defs/SchedulerCursor"
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "additionalProperties": true,
+      "x-cis-complete-body-max-bytes": 1048576,
+      "x-cis-default-page-size": 100
+    },
+    "SchedulerDecision": {
+      "type": "object",
+      "properties": {
+        "commandVersion": {
+          "type": "integer",
+          "enum": [
+            1
+          ]
+        },
+        "kind": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$",
+          "x-known-values": [
+            "triggerCreated",
+            "triggerUpdated",
+            "triggerStateChanged",
+            "taskCreated",
+            "taskUpdated",
+            "taskActivated",
+            "taskStateChanged",
+            "manualRunAdmitted",
+            "cancellationRequested"
+          ]
+        },
+        "decision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$",
+          "x-known-values": [
+            "applied",
+            "rejected"
+          ]
+        },
+        "code": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 128
+        },
+        "decidedAtUtc": {
+          "$ref": "#/$defs/UtcInstant"
+        },
+        "applicationId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "objectId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "revision": {
+          "$ref": "#/$defs/PositiveInt64"
+        },
+        "eTag": {
+          "$ref": "#/$defs/StrongETag"
+        },
+        "runId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "attemptId": {
+          "$ref": "#/$defs/Uuid"
+        }
+      },
+      "required": [
+        "commandVersion",
+        "kind",
+        "decision",
+        "code",
+        "decidedAtUtc",
+        "applicationId",
+        "objectId"
+      ],
+      "additionalProperties": true,
+      "x-cis-safe-decision-no-business-payload": true
+    },
+    "SchedulerOperationResult": {
+      "type": "object",
+      "properties": {
+        "operation": {
+          "$ref": "#/$defs/OperationReference"
+        },
+        "resultSource": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$",
+          "x-known-values": [
+            "prepared",
+            "replayed",
+            "found"
+          ]
+        },
+        "result": {
+          "$ref": "#/$defs/SchedulerDecision"
+        },
+        "originalCompletion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$",
+          "x-known-values": [
+            "committed",
+            "notCommitted",
+            "unknown"
+          ]
+        },
+        "attemptCompletion": {
+          "$ref": "#/$defs/TransactionFacts"
+        },
+        "rejection": {
+          "$ref": "#/$defs/OperationRejection"
+        }
+      },
+      "required": [
+        "operation",
+        "resultSource",
+        "originalCompletion"
+      ],
+      "additionalProperties": true,
+      "oneOf": [
+        {
+          "required": [
+            "result"
+          ],
+          "not": {
+            "required": [
+              "rejection"
+            ]
+          }
+        },
+        {
+          "required": [
+            "rejection"
+          ],
+          "not": {
+            "required": [
+              "result"
+            ]
+          }
+        }
+      ],
+      "x-cis-original-key-target-and-actor": true,
+      "x-cis-original-commit-separate-from-current-cleanup": true
+    },
+    "SchedulerProblem": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 256
+        },
+        "status": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 599
+        },
+        "code": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 128
+        },
+        "detail": {
+          "type": "string",
+          "maxLength": 1024,
+          "x-cis-control-free": true,
+          "x-cis-max-utf8-bytes": 1024
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true
+        },
+        "operation": {
+          "$ref": "#/$defs/OperationReference"
+        },
+        "result": {
+          "$ref": "#/$defs/SchedulerOperationResult"
+        }
+      },
+      "required": [
+        "type",
+        "title",
+        "status",
+        "code"
+      ],
+      "additionalProperties": true,
+      "x-cis-status-matches-actual-failed-exchange": true
+    },
+    "SchedulerPositiveCalendarMilliseconds": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 15,
+      "pattern": "^(?:[1-9][0-9]{0,9}(?:\\.[0-9]{0,3}[1-9])?|0\\.[0-9]{0,3}[1-9])$",
+      "x-cis-positive-decimal-milliseconds-maximum": "4233600000",
+      "x-cis-exact-timespan-ticks": true
+    },
+    "SchedulerNonnegativeCalendarMilliseconds": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 15,
+      "pattern": "^(?:0|[1-9][0-9]{0,9}(?:\\.[0-9]{0,3}[1-9])?|0\\.[0-9]{0,3}[1-9])$",
+      "x-cis-nonnegative-decimal-milliseconds-maximum": "4233600000",
+      "x-cis-exact-timespan-ticks": true
+    },
+    "SchedulerExecutionSettings": {
+      "type": "object",
+      "properties": {
+        "idleDelayTicks": {
+          "$ref": "#/$defs/PositiveInt64",
+          "x-cis-maximum-ticks": "42336000000000"
+        },
+        "timeoutTicks": {
+          "$ref": "#/$defs/PositiveInt64",
+          "x-cis-maximum-ticks": "42336000000000"
+        },
+        "maximumDrainTicks": {
+          "$ref": "#/$defs/PositiveInt64",
+          "x-cis-maximum-ticks": "864000000000"
+        },
+        "acquisitionRetryDelayTicks": {
+          "$ref": "#/$defs/PositiveInt64",
+          "x-cis-maximum-ticks": "42336000000000"
+        }
+      },
+      "required": [
+        "idleDelayTicks",
+        "maximumDrainTicks",
+        "acquisitionRetryDelayTicks"
+      ],
+      "additionalProperties": true,
+      "x-cis-exact-100ns-timespan-ticks": true,
+      "x-cis-scheduled-external-occurrences-exclusive-job-resource": true
+    },
+    "CommandSchedulerExecutionSettings": {
+      "type": "object",
+      "properties": {
+        "idleDelayTicks": {
+          "$ref": "#/$defs/PositiveInt64",
+          "x-cis-maximum-ticks": "42336000000000"
+        },
+        "timeoutTicks": {
+          "$ref": "#/$defs/PositiveInt64",
+          "x-cis-maximum-ticks": "42336000000000"
+        },
+        "maximumDrainTicks": {
+          "$ref": "#/$defs/PositiveInt64",
+          "x-cis-maximum-ticks": "864000000000"
+        },
+        "acquisitionRetryDelayTicks": {
+          "$ref": "#/$defs/PositiveInt64",
+          "x-cis-maximum-ticks": "42336000000000"
+        }
+      },
+      "required": [
+        "idleDelayTicks",
+        "maximumDrainTicks",
+        "acquisitionRetryDelayTicks"
+      ],
+      "additionalProperties": false,
+      "x-cis-exact-100ns-timespan-ticks": true,
+      "x-cis-scheduled-external-occurrences-exclusive-job-resource": true
+    },
+    "CapabilityQuery": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$"
+        },
+        "executionScope": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "x-cis-max-utf8-bytes": 256
+        },
+        "definitionId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-max-utf8-bytes": 128
+        },
+        "definitionVersion": {
+          "$ref": "#/$defs/PositiveInt64"
+        }
+      },
+      "required": [],
+      "additionalProperties": false,
+      "x-cis-exact-authorized-filter-before-paging": true
+    },
+    "AdministrativeAction": {
+      "type": "object",
+      "properties": {
+        "operationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-finite-installed-operation-id": true
+        },
+        "supported": {
+          "type": "boolean"
+        },
+        "allowed": {
+          "type": "boolean"
+        },
+        "reasonCode": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "x-cis-max-utf8-bytes": 128
+        }
+      },
+      "required": [
+        "operationId",
+        "supported",
+        "allowed"
+      ],
+      "additionalProperties": true,
+      "x-cis-advisory-only-recheck-at-write-and-recovery": true
+    },
+    "ConfigurationActions": {
+      "type": "object",
+      "properties": {
+        "resourceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "actions": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 32,
+          "items": {
+            "$ref": "#/$defs/AdministrativeAction"
+          }
+        }
+      },
+      "required": [
+        "resourceId",
+        "actions"
+      ],
+      "additionalProperties": true
+    },
+    "ConfigurationCohortChoice": {
+      "type": "object",
+      "properties": {
+        "cohortId": {
+          "$ref": "#/$defs/AdministrativeOperationKey"
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "x-cis-max-unicode-scalars": 256
+        }
+      },
+      "required": [
+        "cohortId",
+        "displayName"
+      ],
+      "additionalProperties": true
+    },
+    "ConfigurationCohortChoicePage": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 500,
+          "items": {
+            "$ref": "#/$defs/ConfigurationCohortChoice"
+          }
+        },
+        "nextCursor": {
+          "$ref": "#/$defs/SchedulerCursor"
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "additionalProperties": true,
+      "x-cis-no-total-or-hidden-membership": true
+    },
+    "SchedulerTriggerStateCommand": {
+      "type": "object",
+      "properties": {
+        "commandVersion": {
+          "type": "integer",
+          "enum": [
+            1
+          ]
+        },
+        "intent": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$",
+          "enum": [
+            "enable",
+            "disable",
+            "retire",
+            "resume"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 1024
+        }
+      },
+      "required": [
+        "commandVersion",
+        "intent",
+        "reason"
+      ],
+      "additionalProperties": false,
+      "x-cis-max-body-bytes": 1048576,
+      "x-cis-max-depth": 16,
+      "x-cis-intent-must-match-fixed-resource-operation": true,
+      "x-cis-route-specific-intent": true,
+      "x-cis-resume-requires-known-paused-fixed-delay-source": true
+    },
+    "SchedulerTaskStateCommand": {
+      "type": "object",
+      "properties": {
+        "commandVersion": {
+          "type": "integer",
+          "enum": [
+            1
+          ]
+        },
+        "intent": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$",
+          "enum": [
+            "enable",
+            "disable",
+            "retire",
+            "activate",
+            "resume"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 1024
+        }
+      },
+      "required": [
+        "commandVersion",
+        "intent",
+        "reason"
+      ],
+      "additionalProperties": false,
+      "x-cis-max-body-bytes": 1048576,
+      "x-cis-max-depth": 16,
+      "x-cis-intent-must-match-fixed-resource-operation": true,
+      "x-cis-route-specific-intent": true
+    },
+    "SchedulerRunCancellationCommand": {
+      "type": "object",
+      "properties": {
+        "commandVersion": {
+          "type": "integer",
+          "enum": [
+            1
+          ]
+        },
+        "intent": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._-]{1,128}$",
+          "enum": [
+            "cancel"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-cis-max-utf8-bytes": 1024
+        }
+      },
+      "required": [
+        "commandVersion",
+        "intent",
+        "reason"
+      ],
+      "additionalProperties": false,
+      "x-cis-max-body-bytes": 1048576,
+      "x-cis-max-depth": 16,
+      "x-cis-intent-must-match-fixed-resource-operation": true,
+      "x-cis-route-specific-intent": true
+    }
+  },
+  "description": "Additive scheduler profile. Commands are closed; responses tolerate compatible additions. x-cis and x-known-values annotations retain native semantic obligations, not additional JSON Schema assertions."
+}

@@ -80,12 +80,16 @@ credential. Neither deployment action runs as part of handling requests.
 
 ## Native security and listeners
 
-`Security.Mode` explicitly selects `local`, `certificate`, `entra` or a compiled
-`native` integration. LocalDevelopment is isolated and loopback-only. Production
+`Security.Mode` explicitly selects `local`, `certificate`, `entra`,
+`entra-management` or a compiled `native` integration. LocalDevelopment is isolated and loopback-only. Production
 certificate and Entra selections retain their actual provider prerequisites;
 there is no fallback to development credentials or trusting request headers.
-Human or verified delegation modes require an independently validating native
-handler and projector supplied in code. JSON cannot select a CLR type or create
+The configured `entra-management` reference admits independently validated
+delegated users alongside strict app-only workload traffic on the same listener.
+It pins the tenant/API/portal client and required delegated scope, then retains
+actual user/workload resource grants. See the [operator recipe](../../../../docs/modules/management/operator-security.md).
+Other human or verified delegation integrations require their explicit compiled
+native handler/projector; JSON cannot select an arbitrary CLR type or create
 that authority.
 
 Public bootstrap settings name server certificate/private-key files and explicit

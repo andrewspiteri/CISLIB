@@ -33,6 +33,15 @@ public sealed record ManagementPage<T>(IReadOnlyList<T> Items, string? NextCurso
 /// <param name="Cursor">A prior same-endpoint opaque cursor.</param>
 public sealed record ManagementPageRequest(int PageSize = 100, string? Cursor = null);
 
+/// <summary>Literal, case-sensitive application identity/display-name search and exact environment selection.</summary>
+/// <param name="Query">Optional one through 128 Unicode scalars; no normalization or wildcard interpretation.</param>
+/// <param name="Environment">Optional exact trusted environment, one through 255 Unicode scalars.</param>
+public sealed record ManagementApplicationQuery(string? Query = null, string? Environment = null);
+
+/// <summary>One environment disclosed through at least one currently authorized application.</summary>
+/// <param name="Environment">The exact trusted environment name.</param>
+public sealed record ManagementEnvironment(string Environment);
+
 /// <summary>One actually installed typed API feature.</summary>
 /// <param name="OperationId">The stable typed operation alias.</param>
 /// <param name="Version">Its positive portable contract version.</param>

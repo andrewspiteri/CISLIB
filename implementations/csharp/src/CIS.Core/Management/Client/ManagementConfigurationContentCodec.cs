@@ -22,11 +22,14 @@ public sealed class ManagementConfigurationContentCodec : IRestContentCodec
     /// <inheritdoc />
     public bool CanDecode(Type resultType, RestResponseFormat format)
         => format == RestResponseFormat.Json && (resultType == typeof(ManagementConfigurationSnapshotBody)
+            || resultType == typeof(ManagementConfigurationCreationContext) || resultType == typeof(ManagementPage<ManagementConfigurationSummary>)
+            || resultType == typeof(ManagementConfigurationCandidatePreview) || resultType == typeof(ManagementConfigurationEditorContext)
             || resultType == typeof(ManagementConfigurationCatalog) || resultType == typeof(ManagementConfigurationSource)
             || resultType == typeof(ManagementConfigurationPublication) || resultType == typeof(ManagementConfigurationRelease)
             || resultType == typeof(ManagementConfigurationAssignmentMap) || resultType == typeof(ManagementConfigurationValidationResult)
             || resultType == typeof(ManagementConfigurationPreview) || resultType == typeof(ManagementConfigurationOperationResult)
             || resultType == typeof(ManagementPage<ManagementConfigurationDefinition>)
+            || resultType == typeof(ManagementPage<ManagementConfigurationRelease>)
             || resultType == typeof(ManagementPage<ManagementConfigurationAdoptionEntry>) || resultType == typeof(ManagementReportReceipt));
 
     /// <inheritdoc />
@@ -39,6 +42,8 @@ public sealed class ManagementConfigurationContentCodec : IRestContentCodec
         }
         byte[] bytes = body.Value switch
         {
+            ManagementConfigurationCreationCommand command => ManagementConfigurationWire.EncodeRequest(command, limits),
+            ManagementConfigurationCandidatePreviewCommand command => ManagementConfigurationWire.EncodeRequest(command, limits),
             ManagementConfigurationCatalogCommand command => ManagementConfigurationWire.EncodeRequest(command, limits),
             ManagementConfigurationPublicationCommand command => ManagementConfigurationWire.EncodeRequest(command, limits),
             ManagementConfigurationReleaseCommand command => ManagementConfigurationWire.EncodeRequest(command, limits),
@@ -81,7 +86,11 @@ public sealed class ManagementConfigurationContentCodec : IRestContentCodec
         {
             return RestDecodedValue<T>.Present((T)(object)new ManagementConfigurationSnapshotBody(json));
         }
-        object? value = typeof(T) == typeof(ManagementConfigurationCatalog) ? ManagementConfigurationWire.DecodeResponse<ManagementConfigurationCatalog>(json, limits)
+        object? value = typeof(T) == typeof(ManagementConfigurationCreationContext) ? ManagementConfigurationWire.DecodeResponse<ManagementConfigurationCreationContext>(json, limits)
+            : typeof(T) == typeof(ManagementPage<ManagementConfigurationSummary>) ? ManagementConfigurationWire.DecodeResponse<ManagementPage<ManagementConfigurationSummary>>(json, limits)
+            : typeof(T) == typeof(ManagementConfigurationCandidatePreview) ? ManagementConfigurationWire.DecodeResponse<ManagementConfigurationCandidatePreview>(json, limits)
+            : typeof(T) == typeof(ManagementConfigurationEditorContext) ? ManagementConfigurationWire.DecodeResponse<ManagementConfigurationEditorContext>(json, limits)
+            : typeof(T) == typeof(ManagementConfigurationCatalog) ? ManagementConfigurationWire.DecodeResponse<ManagementConfigurationCatalog>(json, limits)
             : typeof(T) == typeof(ManagementConfigurationSource) ? ManagementConfigurationWire.DecodeResponse<ManagementConfigurationSource>(json, limits)
             : typeof(T) == typeof(ManagementConfigurationPublication) ? ManagementConfigurationWire.DecodeResponse<ManagementConfigurationPublication>(json, limits)
             : typeof(T) == typeof(ManagementConfigurationRelease) ? ManagementConfigurationWire.DecodeResponse<ManagementConfigurationRelease>(json, limits)
@@ -90,6 +99,7 @@ public sealed class ManagementConfigurationContentCodec : IRestContentCodec
             : typeof(T) == typeof(ManagementConfigurationPreview) ? ManagementConfigurationWire.DecodeResponse<ManagementConfigurationPreview>(json, limits)
             : typeof(T) == typeof(ManagementConfigurationOperationResult) ? ManagementConfigurationWire.DecodeResponse<ManagementConfigurationOperationResult>(json, limits)
             : typeof(T) == typeof(ManagementPage<ManagementConfigurationDefinition>) ? ManagementConfigurationWire.DecodeResponse<ManagementPage<ManagementConfigurationDefinition>>(json, limits)
+            : typeof(T) == typeof(ManagementPage<ManagementConfigurationRelease>) ? ManagementConfigurationWire.DecodeResponse<ManagementPage<ManagementConfigurationRelease>>(json, limits)
             : typeof(T) == typeof(ManagementPage<ManagementConfigurationAdoptionEntry>) ? ManagementConfigurationWire.DecodeResponse<ManagementPage<ManagementConfigurationAdoptionEntry>>(json, limits)
             : ManagementWire.DecodeResponse<ManagementReportReceipt>(json);
         cancellationToken.ThrowIfCancellationRequested();
