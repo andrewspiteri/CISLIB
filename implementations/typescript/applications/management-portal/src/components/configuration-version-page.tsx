@@ -197,7 +197,7 @@ export function ConfigurationVersionPage({ applicationId, configurationId, schem
         <Pager pages={pages} nextCursor={versions.nextCursor} busy={versionsState.busy || busy} changed={() => select(undefined)} label={`${versions.items.length} saved versions on this page`} /></>}
     </section><section className="configuration-version-content" aria-label="Selected version">
       {selectedEditing !== undefined ? <ConfigurationVersionEditor key={scope + (selectedEditing.version?.release.releaseId ?? "first")} applicationId={applicationId} configurationId={configurationId} schemaVersion={schemaVersion}
-        {...(selectedEditing.version === undefined ? {} : { baseVersion: selectedEditing.version })} firstVersion={selectedEditing.first === true} onBusy={setBusy} onCancel={() => { if (discardLocal("Discard unsaved JSON?")) { edit(undefined); } }}
+        {...(selectedEditing.version === undefined ? {} : { baseVersion: selectedEditing.version })} firstVersion={selectedEditing.first === true} refreshRevision={revision} onBusy={setBusy} onCancel={() => { if (discardLocal("Discard unsaved JSON?")) { edit(undefined); } }}
         onContentLost={() => { retireContentReply(contentState.reply); edit(undefined); refresh(value => value + 1); }}
         onSaved={(completion, keepEditing) => { showCompare(false); setCompleted(completion); if (!keepEditing) { edit(undefined); } select({ scope, id: completion.savedReleaseId }); refresh(value => value + 1); }} />
         : <section className="card configuration-selected-version"><ReadNotice state={contentState} />{content === undefined ? <><p>Select a saved version to inspect.</p>

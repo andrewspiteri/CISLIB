@@ -43,8 +43,19 @@ function ConfigurationRowActions({ applicationId, applicationName, item, context
   toggle(): void; close(): void; onOpen(definition: ConfigurationRow, event: MouseEvent<HTMLButtonElement>): void;
 }) {
   const trigger = useRef<HTMLButtonElement>(null);
+  return <div className="configuration-row-menu" onKeyDown={event => { if (event.key === "Escape" && opened) { event.preventDefault(); event.stopPropagation(); close(); trigger.current?.focus(); } }}>
+    <button type="button" ref={trigger} aria-label={`Actions for ${reportedLabel(item.configurationId, "Configuration")}`} aria-expanded={opened} onClick={toggle}>…</button>
+    {!opened ? null : <ConfigurationOpenRowActions applicationId={applicationId} applicationName={applicationName} item={item} context={context} close={close} onOpen={onOpen} />}
+  </div>;
+}
+
+/** Only the selected open menu owns a protected read, independently of list size. */
+function ConfigurationOpenRowActions({ applicationId, applicationName, item, context, close, onOpen }: {
+  applicationId: string; applicationName: string | undefined; item: ConfigurationRow; context: ListContext;
+  close(): void; onOpen(definition: ConfigurationRow, event: MouseEvent<HTMLButtonElement>): void;
+}) {
   const path = queryUrl(`/api/portal/applications/${applicationId}/configurations/${encodeURIComponent(item.configurationId)}/row-actions`, { schemaVersion: item.schemaVersion });
-  const read = usePortalRead<ConfigurationRowActionsSnapshot>(opened ? path : null);
+  const read = usePortalRead<ConfigurationRowActionsSnapshot>(path);
   const observed = ready(read);
   const data = observed !== undefined && observed.applicationId === applicationId && observed.configurationId === item.configurationId
     && observed.schemaVersion === item.schemaVersion && observed.bindingId === item.bindingId ? observed : undefined;
@@ -52,14 +63,11 @@ function ConfigurationRowActions({ applicationId, applicationName, item, context
   const edit = configurationRoute({ applicationId, applicationName, configurationId: item.configurationId, schemaVersion: item.schemaVersion, view: "edit", source: "application", context });
   const route = (view: "assignment" | "adoption") => configurationRoute({ applicationId, applicationName, configurationId: item.configurationId, schemaVersion: item.schemaVersion, view, context });
   const canPublish = current && configurationAction(data, "application", "publishConfigurationSource");
-  return <div className="configuration-row-menu" onKeyDown={event => { if (event.key === "Escape" && opened) { event.preventDefault(); event.stopPropagation(); close(); trigger.current?.focus(); } }}>
-    <button type="button" ref={trigger} aria-label={`Actions for ${reportedLabel(item.configurationId, "Configuration")}`} aria-expanded={opened} onClick={toggle}>…</button>
-    {!opened ? null : <div className="configuration-row-menu-items"><button className="item-link" onClick={event => { close(); onOpen(item, event); }}>View JSON</button>
+  return <div className="configuration-row-menu-items"><button className="item-link" onClick={event => { close(); onOpen(item, event); }}>View JSON</button>
       <ReadNotice state={read} />
       {canPublish ? <a href={edit}>{"origin" in item && (item.origin === "shared" || item.origin === "defaultsOnly") ? "Override" : "Edit"}</a> : <span className="muted">Edit unavailable</span>}
       {canPublish ? <a href={edit}>Publish…</a> : <span className="muted">Publish unavailable</span>}
       {current && configurationAction(data, "binding", "replaceConfigurationAssignments") ? <a href={route("assignment")}>Assign…</a> : <span className="muted">Assign unavailable</span>}
       <a href={route("adoption")}>View adoption</a>
-    </div>}
   </div>;
 }

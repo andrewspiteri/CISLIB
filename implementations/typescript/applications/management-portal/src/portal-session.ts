@@ -2,6 +2,7 @@ import { CommandReceiptStore } from "./command-receipts.ts";
 import type { CommandReceiptBlockReason } from "./command-receipts.ts";
 import { capturePortalContext, samePortalSession } from "./portal-context.ts";
 import type { PortalSessionContext } from "./portal-context.ts";
+import type { PortalSessionCheckResult } from "./portal-session-check.ts";
 
 export interface PortalStateHandle {
   setContext(context: PortalSessionContext | undefined): void;
@@ -16,6 +17,7 @@ export interface PortalSessionSnapshot {
   readonly epoch: number;
   readonly blocked: boolean;
   readonly blockReason?: "session" | "clock";
+  readonly verification?: "checking" | "unavailable";
 }
 
 /** One document's identity boundary across concurrent list, detail and editor owners. */
@@ -27,6 +29,7 @@ export class PortalSessionCoordinator {
   private readonly now: () => number;
   private transitions = 0;
   private receiptObservation: CommandReceiptBlockReason | undefined;
+  private sessionCheck: { readonly controller: AbortController; readonly promise: Promise<void> } | undefined;
 
   constructor(receipts = new CommandReceiptStore({ context: undefined }), now = () => Date.now()) {
     this.receipts = receipts;
@@ -88,10 +91,60 @@ export class PortalSessionCoordinator {
   }
 
   signOut(): void {
+    if (this.current.blocked && this.current.blockReason === "session") { return; }
+    this.sessionCheck?.controller.abort();
     for (const owner of this.owners) { owner.signOut(); }
     this.receipts.setContext(undefined);
     this.receipts.clearLocalReferences();
     this.publish(Object.freeze({ context: undefined, epoch: this.current.epoch + 1, blocked: true, blockReason: "session" }));
+  }
+
+  /** Revalidate one active document without discarding a still-valid local draft. */
+  revalidateSession(read: (context: PortalSessionContext, signal: AbortSignal) => Promise<PortalSessionCheckResult>): Promise<void> {
+    if (this.sessionCheck !== undefined) { return this.sessionCheck.promise; }
+    this.checkExpiry();
+    const context = this.current.context;
+    if (context === undefined || this.current.blocked) { return Promise.resolve(); }
+    const epoch = this.current.epoch;
+    const controller = new AbortController();
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const isCurrent = () => this.current.epoch === epoch && !this.current.blocked && samePortalSession(this.current.context, context);
+    const unavailable = () => {
+      if (isCurrent()) { this.publish(Object.freeze({ ...this.current, verification: "unavailable" })); }
+    };
+    const promise = Promise.resolve().then(async () => {
+      try {
+        const result = await read(context, controller.signal);
+        if (!isCurrent()) { return; }
+        if (controller.signal.aborted) { unavailable(); return; }
+        if (result.state !== "current") {
+          if (result.state === "unauthenticated" || result.state === "changed") { this.signOut(); }
+          else { unavailable(); }
+          return;
+        }
+        const fresh = capturePortalContext(result.context);
+        const now = this.now();
+        if (!Number.isSafeInteger(now) || now < 0) { this.clockUnavailable(); return; }
+        if (fresh === undefined || !samePortalSession(context, fresh) || fresh.expiresAtMs <= now) { this.signOut(); return; }
+        for (const owner of this.owners) { owner.setContext(fresh); }
+        this.publish(Object.freeze({ context: fresh, epoch, blocked: false }));
+      } catch { unavailable(); }
+      finally {
+        if (timer !== undefined) { clearTimeout(timer); }
+        if (this.sessionCheck?.controller === controller) { this.sessionCheck = undefined; }
+      }
+    });
+    this.sessionCheck = { controller, promise };
+    timer = setTimeout(() => { controller.abort(); unavailable(); }, 15000);
+    this.publish(Object.freeze({ ...this.current, verification: "checking" }));
+    return promise;
+  }
+
+  /** Abort visibility work, retaining callback custody until its actual settlement. */
+  cancelSessionCheck(): Promise<void> {
+    const pending = this.sessionCheck;
+    pending?.controller.abort();
+    return pending?.promise ?? Promise.resolve();
   }
   /** Explicit fresh-read recovery only; no original operation or cached protected value is restored. */
   resumeClock(): boolean {

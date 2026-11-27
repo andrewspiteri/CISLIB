@@ -21,15 +21,18 @@ assert.ok(directory, "The existing native fixture supplies a newly owned private
 const input = JSON.parse(await readFile(join(directory, "portal-fixture.json"), "utf8"));
 const configurationBoundary = input.configurationBoundary;
 const instanceStatusBoundaries = input.instanceStatusBoundaries;
+const configurationMenus = input.configurationMenus;
+const editorRefresh = input.editorRefresh;
 const expectedApplicationsA = configurationBoundary?.scenario === "Predeployment"
   ? [input.applicationA, configurationBoundary.applicationId] : [input.applicationA];
-const hasBoundaryJourney = configurationBoundary != null || instanceStatusBoundaries != null;
+const hasBoundaryJourney = configurationBoundary != null || instanceStatusBoundaries != null || configurationMenus != null || editorRefresh != null || input.sessionTabs === true;
 const manual = captureManualSession(input.manual);
 if (manual !== undefined) {
   assert.match(input.continuityOperator, /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u);
   assert.ok(input.continuityOperator !== input.operatorA && input.continuityOperator !== input.operatorB);
 }
-const fixtureSubjects = Object.freeze(manual === undefined ? [input.operatorA, input.operatorB, input.lookupOperator]
+const fixtureSubjects = Object.freeze(manual === undefined ? [input.operatorA, input.operatorB, input.lookupOperator,
+  ...(input.refreshOperator == null ? [] : [input.refreshOperator])]
   : [input.operatorA, input.operatorB, input.continuityOperator]);
 const portalDirectory = dirname(dirname(fileURLToPath(import.meta.url)));
 const evidenceDirectory = join(resolve(portalDirectory, "../../../.."), ".artifacts", "management-portal", "CIS-0029",
@@ -85,6 +88,9 @@ let releaseConflictProof;
 let configurationDeployProof;
 let configurationBoundaryProof;
 let instanceStatusBoundariesProof;
+let configurationMenusProof;
+let sessionTabsProof;
+let editorRefreshProof;
 recordPhase("preparation");
 if (manual !== undefined) { await publishManualStatus("starting"); }
 const ownerStore = createSessionStore(captureStoreConfig({ CIS_PORTAL_SESSION_DATABASE: input.sessionOwnerUrl,
@@ -228,8 +234,9 @@ try {
     const definitions = JSON.parse(definitionText);
     assert.equal(definitions.state, "ready");
     assert.deepEqual(responseContext(definitions), contextA);
-    const sharedBoundary = configurationBoundary?.scenario === "SharedReferenceDiff" || configurationBoundary?.scenario === "SessionStorage";
-    assert.equal(definitions.value.items.length, input.reviewCorrections === true || input.versionWorkflow === true || input.releaseConflict === true || sharedBoundary ? 2 : 1);
+    const sharedBoundary = configurationBoundary?.scenario === "SharedReferenceDiff" || configurationBoundary?.scenario === "SessionStorage" || editorRefresh != null || input.sessionTabs === true;
+    assert.equal(definitions.value.items.length, configurationMenus != null ? configurationMenus.rows.length
+      : input.reviewCorrections === true || input.versionWorkflow === true || input.releaseConflict === true || sharedBoundary ? 2 : 1);
     const typedDefinitions = definitions.value.items.filter(item => item.configurationId === "shared.settings");
     assert.equal(typedDefinitions.length, 1);
     assert.equal(typedDefinitions[0].hostApplicationName, "FirstHost");
@@ -300,6 +307,19 @@ try {
     const lookupProof = await verifyMetadata(a, b, idp, origin, contextA, contextB);
     async function verifyDesktop() {
       recordPhase("desktop-browser");
+      let sessionTabsContexts;
+      let refreshOperatorContext;
+      if (input.sessionTabs === true) {
+        const initial = await newContext(origin);
+        await login(initial, idp, origin, input.operatorA);
+        const renewed = await newContext(origin);
+        await login(renewed, idp, origin, input.operatorA);
+        sessionTabsContexts = { initial, renewed };
+      }
+      if (editorRefresh != null) {
+        refreshOperatorContext = await newContext(origin);
+        await login(refreshOperatorContext, idp, origin, input.refreshOperator);
+      }
       const { verifyBrowser } = await import("./native-browser-checks.mjs");
       const desktop = await verifyBrowser({ origin, applicationA: input.applicationA, applicationB: input.applicationB,
         registrationA: input.registrationA, operatorAContext: a, operatorBContext: b, lookupOperatorContext: lookupProof.lookup,
@@ -307,7 +327,8 @@ try {
         reviewCorrections: input.reviewCorrections === true, versionWorkflow: input.versionWorkflow === true,
         instanceStatus: input.instanceStatus === true, firstVersion: input.firstVersion === true,
         newSaveRecovery: input.newSaveRecovery === true, releaseConflict: input.releaseConflict === true,
-        configurationDeploy: input.configurationDeploy, configurationBoundary, instanceStatusBoundaries });
+        configurationDeploy: input.configurationDeploy, configurationBoundary, instanceStatusBoundaries,
+        configurationMenus, sessionTabsContexts, editorRefresh, refreshOperatorContext });
       metadataAppliedKeys.push(...desktop.metadataAppliedKeys);
       metadataConflictKeys.push(...desktop.metadataConflictKeys);
       configurationProof = desktop.configuration;
@@ -322,6 +343,9 @@ try {
       configurationDeployProof = desktop.configurationDeploy;
       configurationBoundaryProof = desktop.configurationBoundary;
       instanceStatusBoundariesProof = desktop.instanceStatusBoundaries;
+      configurationMenusProof = desktop.configurationMenus;
+      sessionTabsProof = desktop.sessionTabs;
+      editorRefreshProof = desktop.editorRefresh;
     }
     // Exercise this changed UI first while retaining every legacy API assertion
     // below. A later native crash still fails the test, but cannot erase saved
@@ -357,8 +381,8 @@ try {
     const databaseClock = await owner.query("SELECT extract(epoch FROM clock_timestamp())*1000 AS milliseconds");
     observations.expiryDatabaseMinusNodeMilliseconds = Math.round(Number(databaseClock.rows[0].milliseconds) - nodeNow);
     recordPhase("expired-session-update-row");
-    const expired = await owner.query('UPDATE sessions SET expires=$3 WHERE "userId" IN (SELECT "userId" FROM accounts WHERE provider=$1 AND "providerAccountId"=$2) RETURNING expires',
-      ["cis-management", input.operatorA, new Date(Date.now() - 60000)]);
+    const expired = await owner.query('UPDATE sessions SET expires=$3 WHERE "sessionToken"=$4 AND "userId" IN (SELECT "userId" FROM accounts WHERE provider=$1 AND "providerAccountId"=$2) RETURNING expires',
+      ["cis-management", input.operatorA, new Date(Date.now() - 60000), cookieA.value]);
     observations.expiryUpdatedRows = expired.rowCount;
     const expiredDeadline = expired.rows[0]?.expires instanceof Date ? expired.rows[0].expires.getTime() : NaN;
     observations.expiryReturnedDeadlineMilliseconds = Number.isFinite(expiredDeadline) ? expiredDeadline : null;
@@ -514,6 +538,9 @@ if (failures.length !== 0) {
     ...(configurationDeployProof === undefined ? {} : { configurationDeploy: configurationDeployProof }),
     ...(configurationBoundaryProof === undefined ? {} : { configurationBoundary: configurationBoundaryProof }),
     ...(instanceStatusBoundariesProof === undefined ? {} : { instanceStatusBoundaries: instanceStatusBoundariesProof }),
+    ...(configurationMenusProof === undefined ? {} : { configurationMenus: configurationMenusProof }),
+    ...(sessionTabsProof === undefined ? {} : { sessionTabs: sessionTabsProof }),
+    ...(editorRefreshProof === undefined ? {} : { editorRefresh: editorRefreshProof }),
     hostClosed, socketsDrained: true, browserChecked: manual === undefined && input.browser,
     ...(manual === undefined ? {} : { manualSession: true, manualStopReason, manualTokenExchanges, manualBrowserClosed }) };
   writeFileSync(join(evidenceDirectory, "report.json"), JSON.stringify(report, null, 2));
@@ -695,7 +722,7 @@ function writePhase() {
 function rememberFailure(error) { firstFailurePhase ??= phase; failures.push(error); writePhase(); }
 function fixtureFailure(error) {
   const knownKinds = ["Error", "TypeError", "SyntaxError", "AssertionError", "TimeoutError", "AbortError", "AggregateError"];
-  const frame = error instanceof Error ? /(native-host-consumer|native-host-cancel-consumer|native-config-save-consumer|native-config-deploy-consumer|native-instance-status-boundaries-checks|native-configuration-boundaries-checks|native-instance-status-checks|native-configuration-versions-checks|native-configuration-checks|native-r08-checks|native-rollout-checks|native-browser-checks|native-session-store-consumer)\.mjs:(\d{1,6}):(\d{1,6})/u.exec(error.stack ?? "") : null;
+  const frame = error instanceof Error ? /(native-host-consumer|native-host-cancel-consumer|native-config-save-consumer|native-config-deploy-consumer|native-configuration-menu-checks|native-session-tabs-checks|native-configuration-refresh-checks|native-instance-status-boundaries-checks|native-configuration-boundaries-checks|native-instance-status-checks|native-configuration-versions-checks|native-configuration-checks|native-r08-checks|native-rollout-checks|native-browser-checks|native-session-store-consumer)\.mjs:(\d{1,6}):(\d{1,6})/u.exec(error.stack ?? "") : null;
   return { kind: error instanceof Error && knownKinds.includes(error.name) ? error.name : "Other",
     sourceFile: frame === null ? null : frame[1] + ".mjs", sourceLine: frame === null ? null : Number(frame[2]), sourceColumn: frame === null ? null : Number(frame[3]) };
 }

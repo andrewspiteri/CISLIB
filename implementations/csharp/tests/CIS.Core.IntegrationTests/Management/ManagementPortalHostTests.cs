@@ -80,6 +80,7 @@ public sealed partial class ManagementPortalHostTests
     private const string OperatorA = "44444444-4444-4444-4444-444444444444";
     private const string OperatorB = "55555555-5555-5555-5555-555555555555";
     private const string LookupOperator = "66666666-6666-6666-6666-666666666666";
+    private const string RefreshOperator = "88888888-8888-4888-8888-888888888888";
     private const string ContinuityOperator = "77777777-7777-7777-7777-777777777777";
 
     [TestMethod]
@@ -97,8 +98,17 @@ public sealed partial class ManagementPortalHostTests
     internal static async Task RunFixtureAsync(bool browser, bool rollout = false, bool r08 = false, bool reviewCorrections = false, bool versionWorkflow = false,
         bool instanceStatus = false, bool firstVersion = false, bool hostShutdown = false, bool canceledHostRead = false,
         bool newSaveRecovery = false, bool releaseConflict = false, bool deployControls = false, bool metadataOnlyDeploy = false,
-        ConfigurationBoundaryScenario configurationBoundary = ConfigurationBoundaryScenario.None, bool instanceStatusBoundaries = false)
+        ConfigurationBoundaryScenario configurationBoundary = ConfigurationBoundaryScenario.None, bool instanceStatusBoundaries = false,
+        bool configurationMenus = false, bool sessionTabs = false, bool editorRefresh = false)
     {
+        bool reviewScenario = configurationMenus || sessionTabs || editorRefresh;
+        if (reviewScenario && (!browser || rollout || r08 || reviewCorrections || versionWorkflow || instanceStatus || firstVersion
+            || hostShutdown || canceledHostRead || newSaveRecovery || releaseConflict || deployControls || metadataOnlyDeploy
+            || configurationBoundary != ConfigurationBoundaryScenario.None || instanceStatusBoundaries
+            || new[] { configurationMenus, sessionTabs, editorRefresh }.Count(value => value) != 1))
+        {
+            throw new ArgumentException("Each review correction requires its own ordinary browser fixture.");
+        }
         bool boundaryScenario = configurationBoundary != ConfigurationBoundaryScenario.None;
         if ((boundaryScenario || instanceStatusBoundaries) && (!browser || rollout || r08 || reviewCorrections || versionWorkflow
             || instanceStatus || firstVersion || hostShutdown || canceledHostRead || newSaveRecovery || releaseConflict || deployControls
@@ -157,7 +167,7 @@ public sealed partial class ManagementPortalHostTests
             }
         }
         bool seedConfigurationRollout = rollout || instanceStatus || instanceStatusBoundaries || manualDirectory is not null;
-        bool seedSharedConfiguration = reviewCorrections || versionWorkflow || releaseConflict || manualDirectory is not null
+        bool seedSharedConfiguration = reviewCorrections || versionWorkflow || releaseConflict || manualDirectory is not null || sessionTabs || editorRefresh
             || configurationBoundary is ConfigurationBoundaryScenario.SharedReferenceDiff or ConfigurationBoundaryScenario.SessionStorage;
         var files = new PrivateContainerDirectory();
         RSA? signing = null;
@@ -178,13 +188,14 @@ public sealed partial class ManagementPortalHostTests
             TlsFixtureFiles.Write(files.Path);
             signing = RSA.Create(2048);
             fixture = await ManagementHostFixture.CreateAsync(replicas: 1,
-                configuration: PortalConfigurationDeployment(seedConfigurationRollout || deployControls, seedSharedConfiguration, manualDirectory is not null),
+                configuration: PortalConfigurationDeployment(seedConfigurationRollout || deployControls, seedSharedConfiguration, manualDirectory is not null, configurationMenus),
                 initialInstanceNameA: manualDirectory is null ? "seed-a" : "country-api-eu-01",
                 initialInstanceNameB: manualDirectory is null ? "seed-b" : "billing-worker-eu-01");
             HttpClient catalogActor = fixture.Client("operator-a");
             await ManagementConfigurationCatalogTests.Apply(catalogActor,
                 await ManagementConfigurationCatalogTests.Catalog(catalogActor), "portal-catalog");
             ManagementPage<ManagementConfigurationDefinition> configurationDefinitions = await ManagementConfigurationCatalogTests.Definitions(catalogActor);
+            ConfigurationMenuSeed? menuSeed = configurationMenus ? CaptureConfigurationMenuSeed(fixture, configurationDefinitions.Items) : null;
             ManagementConfigurationDefinition definition = configurationDefinitions.Items.Single(row => row.ApplicationId == fixture.ApplicationA && row.Kind == "application" && row.ConfigurationId == "shared.settings");
             ManagementConfigurationDefinition commonDefinition = configurationDefinitions.Items.Single(row => row.Kind == "common" && row.ConfigurationId == "shared.settings");
             ManagementConfigurationDefinition readonlyDefinition = configurationDefinitions.Items.Single(row => row.ApplicationId == fixture.ApplicationB && row.Kind == "application" && row.ConfigurationId == "shared.settings");
@@ -196,8 +207,8 @@ public sealed partial class ManagementPortalHostTests
             {
                 await SeedManualSharedConfigurationAsync(fixture, catalogActor, manualDefinition, manualCommon);
             }
-            ConfigurationBoundarySeed? boundarySeed = boundaryScenario
-                ? await SeedConfigurationBoundaryAsync(fixture, catalogActor, configurationBoundary, manualDefinition, manualCommon) : null;
+            ConfigurationBoundarySeed? boundarySeed = boundaryScenario || editorRefresh
+                ? await SeedConfigurationBoundaryAsync(fixture, catalogActor, editorRefresh ? ConfigurationBoundaryScenario.SharedReferenceDiff : configurationBoundary, manualDefinition, manualCommon) : null;
             ManagementConfigurationAssignmentMap? repairBaseline = reviewCorrections
                 ? await ReadConfigurationRepairsMapAsync(catalogActor, fixture.ApplicationA) : null;
             ManagementConfigurationAssignmentMap configurationBaseline = await ManagementConfigurationDistributionTests.Map(catalogActor, fixture.ApplicationA);
@@ -247,6 +258,11 @@ public sealed partial class ManagementPortalHostTests
                         clientApplicationId: PortalClient, actorKind: SecurityActorKind.User),
                     new(new(issuer, LookupOperator), "management-portal", EnvironmentOptions.EnvironmentName,
                         clientApplicationId: PortalClient, actorKind: SecurityActorKind.User),
+                    .. !editorRefresh ? Array.Empty<SecurityIdentityMapping>() : new[]
+                    {
+                        new SecurityIdentityMapping(new(issuer, RefreshOperator), "management-portal", EnvironmentOptions.EnvironmentName,
+                            clientApplicationId: PortalClient, actorKind: SecurityActorKind.User)
+                    },
                     .. manualDirectory is null ? Array.Empty<SecurityIdentityMapping>() : new[]
                     {
                         new SecurityIdentityMapping(new(issuer, ContinuityOperator), "management-portal", EnvironmentOptions.EnvironmentName,
@@ -256,6 +272,8 @@ public sealed partial class ManagementPortalHostTests
                 Grants =
                 [
                     ReadGrant(issuer, OperatorA, fixture.ApplicationA),
+                    .. !editorRefresh ? Array.Empty<CapabilityGrant>() : new[] { ReadGrant(issuer, RefreshOperator, fixture.ApplicationA) },
+                    .. menuSeed is null ? Array.Empty<CapabilityGrant>() : ConfigurationMenuGrants(issuer, menuSeed),
                     .. boundarySeed?.PredeploymentApplicationId is not string predeploymentApplication ? Array.Empty<CapabilityGrant>()
                         : [ReadGrant(issuer, OperatorA, predeploymentApplication), .. R08ApplicationGrants(issuer, predeploymentApplication)],
                     .. manualDirectory is null ? Array.Empty<CapabilityGrant>() : [ReadGrant(issuer, OperatorA, fixture.ApplicationB)],
@@ -280,6 +298,8 @@ public sealed partial class ManagementPortalHostTests
                         content: !rollout && !metadataOnlyDeploy || manualDirectory is not null, assignment: seedConfigurationRollout || deployControls || metadataOnlyDeploy),
                     .. manualDefinition is null || manualCommon is null ? Array.Empty<CapabilityGrant>()
                         : ConfigurationGrants(issuer, OperatorA, manualDefinition, manualCommon, write: true, content: true, assignment: true),
+                    .. !editorRefresh || manualDefinition is null || manualCommon is null ? Array.Empty<CapabilityGrant>()
+                        : ConfigurationGrants(issuer, RefreshOperator, manualDefinition, manualCommon, write: true, content: true, assignment: true),
                     .. r08 || versionWorkflow || newSaveRecovery || manualDirectory is not null ? R08ApplicationGrants(issuer, fixture.ApplicationA) : Array.Empty<CapabilityGrant>(),
                     .. billingDefinition is null || billingCommon is null ? Array.Empty<CapabilityGrant>()
                         : ConfigurationGrants(issuer, OperatorA, billingDefinition, billingCommon, write: true, content: true, assignment: true),
@@ -322,7 +342,7 @@ public sealed partial class ManagementPortalHostTests
             if (seedLookup)
             {
                 lookupOriginalKey = await SeedLookupOriginalAsync(fixture, signing, issuer);
-                if (!firstVersion && !configurationAutomation && !boundaryScenario)
+                if (!firstVersion && !configurationAutomation && !boundaryScenario && !reviewScenario)
                 {
                     configurationLookup = await SeedConfigurationLookupAsync(fixture, signing, issuer, definition);
                     if (seedConfigurationRollout)
@@ -366,6 +386,10 @@ public sealed partial class ManagementPortalHostTests
                 ? await SeedInstanceStatusBoundariesAsync(fixture, rolloutSeed!, adoptionObservations) : null;
             IReadOnlyList<InstanceStatusFingerprint>? statusBoundariesBaseline = instanceStatusBoundaries
                 ? await ReadInstanceStatusBoundaryFingerprintsAsync(fixture) : null;
+            IReadOnlyList<InstanceStatusFingerprint>? menuBaseline = configurationMenus
+                ? await ReadConfigurationMenuFingerprintsAsync(fixture) : null;
+            IReadOnlyList<InstanceStatusFingerprint>? tabsBaseline = sessionTabs
+                ? await ReadInstanceStatusFingerprintsAsync(fixture) : null;
             byte[] input = JsonSerializer.SerializeToUtf8Bytes(new
             {
                 issuerPort,
@@ -376,6 +400,7 @@ public sealed partial class ManagementPortalHostTests
                 operatorA = OperatorA,
                 operatorB = OperatorB,
                 lookupOperator = LookupOperator,
+                refreshOperator = editorRefresh ? RefreshOperator : null,
                 continuityOperator = manualDirectory is null ? null : ContinuityOperator,
                 lookupOriginalKey,
                 configurationId = definition.ConfigurationId,
@@ -403,12 +428,22 @@ public sealed partial class ManagementPortalHostTests
                 reviewCorrections,
                 versionWorkflow,
                 instanceStatus,
+                sessionTabs,
+                configurationMenus = menuSeed is null ? (JsonElement?)null
+                    : JsonSerializer.SerializeToElement(menuSeed, new JsonSerializerOptions(JsonSerializerDefaults.Web)),
+                editorRefresh = !editorRefresh ? null : new
+                {
+                    baselineReleaseId = boundarySeed!.BaselineReleaseId,
+                    candidateReleaseId = boundarySeed.CandidateReleaseId,
+                    firstCommonPublicationId = boundarySeed.FirstCommonPublicationId,
+                    applicationPublicationId = boundarySeed.ApplicationPublicationId
+                },
                 instanceStatusBoundaries = statusBoundariesSeed is null ? (JsonElement?)null
                     : JsonSerializer.SerializeToElement(statusBoundariesSeed, new JsonSerializerOptions(JsonSerializerDefaults.Web)),
-                configurationBoundary = boundarySeed is null ? null : new
+                configurationBoundary = !boundaryScenario ? null : new
                 {
                     scenario = configurationBoundary.ToString(),
-                    applicationId = boundarySeed.TargetApplicationId,
+                    applicationId = boundarySeed!.TargetApplicationId,
                     baselineReleaseId = boundarySeed.BaselineReleaseId,
                     candidateReleaseId = boundarySeed.CandidateReleaseId
                 },
@@ -473,7 +508,19 @@ public sealed partial class ManagementPortalHostTests
                     report.RootElement.GetProperty("metadataConflictKeys"), lookupOriginalKey!, issuer);
                 if (browser)
                 {
-                    if (boundaryScenario)
+                    if (configurationMenus)
+                    {
+                        await VerifyConfigurationMenusAsync(fixture, report.RootElement.GetProperty("configurationMenus"), menuBaseline!, menuSeed!);
+                    }
+                    else if (sessionTabs)
+                    {
+                        await VerifySessionTabsReadOnlyAsync(fixture, report.RootElement.GetProperty("sessionTabs"), tabsBaseline!);
+                    }
+                    else if (editorRefresh)
+                    {
+                        await VerifyConfigurationEditorRefreshAsync(fixture, report.RootElement.GetProperty("editorRefresh"), boundarySeed!, issuer);
+                    }
+                    else if (boundaryScenario)
                     {
                         await VerifyConfigurationBoundaryAsync(fixture, report.RootElement.GetProperty("configurationBoundary"),
                             boundarySeed!, configurationBoundary, issuer);
@@ -744,7 +791,7 @@ public sealed partial class ManagementPortalHostTests
             SigningCredentials = new(new RsaSecurityKey(signing) { KeyId = "rm09-portal-owned-key" }, SecurityAlgorithms.RsaSha256)
         });
 
-    private static ManagementConfigurationOptions PortalConfigurationDeployment(bool rollout, bool manual = false, bool reviewExamples = false)
+    private static ManagementConfigurationOptions PortalConfigurationDeployment(bool rollout, bool manual = false, bool reviewExamples = false, bool configurationMenus = false)
     {
         ManagementConfigurationManifest original = ManagementConfigurationCatalogTests.Deployment(greetingDefault: "PORTAL_PRIVATE_DEFAULT").Manifest;
         ManagementConfigurationSchema definition = original.Definitions.Single();
@@ -762,6 +809,10 @@ public sealed partial class ManagementPortalHostTests
         if (reviewExamples)
         {
             manifest = WithManualReviewExamples(manifest);
+        }
+        if (configurationMenus)
+        {
+            manifest = WithConfigurationMenuInventory(manifest);
         }
         return new ManagementConfigurationOptions(JsonSerializer.Serialize(manifest, ManagementConfigurationOptions.Json), 32L * 1024 * 1024);
     }

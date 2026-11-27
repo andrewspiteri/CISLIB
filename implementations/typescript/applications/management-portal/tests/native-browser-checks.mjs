@@ -8,13 +8,14 @@ import { chromium, expect } from "@playwright/test";
 import { capturePortalContext, portalContextHeader, portalContextKey } from "../src/portal-context.ts";
 
 export async function verifyBrowser({ origin, applicationA, applicationB, registrationA, operatorAContext, operatorBContext, lookupOperatorContext, rollout, adoptionObservations, r08 = false, reviewCorrections = false, versionWorkflow = false, instanceStatus = false, firstVersion = false,
-  newSaveRecovery = false, releaseConflict = false, configurationDeploy, configurationBoundary, instanceStatusBoundaries }) {
+  newSaveRecovery = false, releaseConflict = false, configurationDeploy, configurationBoundary, instanceStatusBoundaries,
+  configurationMenus, sessionTabsContexts, editorRefresh, refreshOperatorContext }) {
   const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../../../..");
   const evidence = join(root, ".artifacts/management-portal/CIS-0029/WORK-005", "browser-" + randomUUID());
   await mkdir(evidence, { recursive: true });
   // The version scenario also proves native window resizing; its existing
   // browser owner is headed rather than adding another browser or harness.
-  const browser = await chromium.launch({ channel: "msedge", headless: !versionWorkflow });
+  const browser = await chromium.launch({ channel: "msedge", headless: !versionWorkflow && sessionTabsContexts === undefined });
   const contexts = [];
   const cases = [];
   const errors = [];
@@ -33,6 +34,29 @@ export async function verifyBrowser({ origin, applicationA, applicationB, regist
   }
   async function screenshot(page, name) { await page.screenshot({ path: join(evidence, name + ".png"), fullPage: true }); }
   try {
+    if (configurationMenus != null || sessionTabsContexts !== undefined || editorRefresh != null) {
+      stage = configurationMenus != null ? "configuration-menus" : editorRefresh != null ? "configuration-editor-refresh" : "session-tabs";
+      const a = await context(sessionTabsContexts?.initial ?? operatorAContext);
+      const page = await a.newPage();
+      activePage = page;
+      const proofName = configurationMenus != null ? "configurationMenus" : editorRefresh != null ? "editorRefresh" : "sessionTabs";
+      let proof;
+      if (configurationMenus != null) {
+        const { verifyConfigurationMenusBrowser } = await import("./native-configuration-menu-checks.mjs");
+        proof = await verifyConfigurationMenusBrowser({ page, origin, applicationA, configurationMenus, screenshot, cases });
+      } else if (editorRefresh != null) {
+        const { verifyConfigurationEditorRefreshBrowser } = await import("./native-configuration-refresh-checks.mjs");
+        proof = await verifyConfigurationEditorRefreshBrowser({ page, origin, applicationA, refreshOperatorContext, editorRefresh, screenshot, cases });
+      } else {
+        const secondPage = await a.newPage();
+        const { verifySessionTabsBrowser } = await import("./native-session-tabs-checks.mjs");
+        proof = await verifySessionTabsBrowser({ page, secondPage, origin, applicationA, operatorBContext,
+          renewedOperatorAContext: sessionTabsContexts.renewed, screenshot, cases });
+      }
+      assert.deepEqual(errors, []);
+      await writeFile(join(evidence, "browser-evidence.json"), JSON.stringify({ passed: true, cases, [proofName]: true }, null, 2));
+      return { cases, metadataAppliedKeys, metadataConflictKeys, [proofName]: proof };
+    }
     if (configurationBoundary != null || instanceStatusBoundaries != null) {
       stage = configurationBoundary != null ? "configuration-boundary" : "instance-status-boundaries";
       const a = await context(operatorAContext);
@@ -473,7 +497,7 @@ export async function verifyBrowser({ origin, applicationA, applicationB, regist
       try { await screenshot(activePage, "failure-" + stage); failureScreenshotSaved = true; }
       catch { /* The original assertion and all native cleanup remain required. */ }
     }
-    const sourceLine = error instanceof Error ? /(native-browser-checks|native-config-save-consumer|native-config-deploy-consumer|native-instance-status-boundaries-checks|native-configuration-boundaries-checks|native-instance-status-checks|native-configuration-versions-checks|native-configuration-checks|native-r08-checks|native-rollout-checks)\.mjs:(\d+):(\d+)/u.exec(error.stack ?? "") : null;
+    const sourceLine = error instanceof Error ? /(native-browser-checks|native-config-save-consumer|native-config-deploy-consumer|native-configuration-menu-checks|native-session-tabs-checks|native-configuration-refresh-checks|native-instance-status-boundaries-checks|native-configuration-boundaries-checks|native-instance-status-checks|native-configuration-versions-checks|native-configuration-checks|native-r08-checks|native-rollout-checks)\.mjs:(\d+):(\d+)/u.exec(error.stack ?? "") : null;
     // Source coordinates and fixed stages identify the failed assertion without persisting DOM, URLs or credentials.
     await writeFile(join(evidence, "browser-failure.json"), JSON.stringify({ stage, completedCases: cases,
       sourceFile: sourceLine === null ? null : sourceLine[1] + ".mjs",

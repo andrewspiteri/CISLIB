@@ -182,7 +182,7 @@ public sealed partial class ManagementPortalHostTests
         Assert.IsFalse(await reader.ReadAsync());
     }
 
-    private static async Task VerifySaveOriginalsAsync(ManagementHostFixture fixture, string issuer, SaveOriginal[] originals)
+    private static async Task VerifySaveOriginalsAsync(ManagementHostFixture fixture, string issuer, SaveOriginal[] originals, string subject = OperatorA)
     {
         Assert.AreEqual(originals.Length, originals.Select(row => row.Key).Distinct(StringComparer.Ordinal).Count());
         Assert.IsTrue(originals.All(row => Guid.TryParseExact(row.Key, "D", out _)));
@@ -252,7 +252,7 @@ public sealed partial class ManagementPortalHostTests
             Assert.AreEqual(row.Family, record!.OperationReference!.OperationName);
             Assert.AreEqual(row.Kind is null ? AuditOutcome.Rejected : AuditOutcome.Succeeded, record.Outcome);
             Assert.AreEqual(issuer, record.Actor.Subject!.Issuer);
-            Assert.AreEqual(OperatorA, record.Actor.Subject.Identifier);
+            Assert.AreEqual(subject, record.Actor.Subject.Identifier);
             Assert.AreEqual(row.Resource, record.Target!.ResourceIdentifier);
             Assert.IsFalse(Encoding.UTF8.GetString(envelopeBytes).Contains("9007199254740993", StringComparison.Ordinal));
         }

@@ -94,7 +94,7 @@ export function usePortalRead<T>(url: string | null, revision = 0, target?: Prot
     })();
     return () => { alive = false; reader.cancelRequests(); };
   }, [url, revision, session.epoch, portal, reader, targetKey]);
-  return state.url === url && state.epoch === session.epoch && state.targetKey === targetKey ? state
+  return state.url === url && state.epoch === session.epoch && state.targetKey === targetKey && previousRevision.current === revision ? state
     : { url, epoch: session.epoch, targetKey, busy: url !== null };
 }
 
@@ -278,8 +278,12 @@ export function Panel({ open, close, title, eyebrow, subtitle, children, footer,
   open: boolean; close: () => void; title: string; eyebrow: string; subtitle: string; children: ReactNode; footer?: ReactNode;
   origin: HTMLElement | null; fallback: HTMLElement | null; wide?: boolean
 }) {
-  return <Dialog.Root open={open} onOpenChange={value => { if (!value) { close(); } }}>
-    <Dialog.Portal><Dialog.Overlay className="panel-shade" /><Dialog.Content className={wide ? "detail-panel detail-panel-wide" : "detail-panel"} onCloseAutoFocus={event => {
+  const { snapshot } = useProtectedPortal();
+  const masked = snapshot.verification !== undefined;
+  return <Dialog.Root modal={!masked} open={open} onOpenChange={value => { if (!value) { close(); } }}>
+    <Dialog.Portal><Dialog.Overlay className="panel-shade" data-session-masked={masked ? "true" : undefined} />
+      <Dialog.Content className={wide ? "detail-panel detail-panel-wide" : "detail-panel"}
+        data-session-masked={masked ? "true" : undefined} inert={masked} onCloseAutoFocus={event => {
       event.preventDefault(); (origin?.isConnected ? origin : fallback)?.focus();
     }}>
       <header className="panel-header"><span className="eyebrow">{eyebrow}</span><Dialog.Close asChild><button className="close-panel">Close details</button></Dialog.Close>

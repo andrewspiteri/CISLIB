@@ -43,6 +43,20 @@ transport wait while producer work remains owned. See the
 [correction and real HTTP regression](../../../../docs/changes/CIS-0030/next-response-close-correction.md).
 Review the correction when changing the framework version.
 
+The existing service CI job builds this production portal after the portable
+SDK checks. Its Ubuntu runner must supply Microsoft Edge at
+`/opt/microsoft/msedge/msedge`, Xvfb, `xvfb-run` and `xauth`; the job verifies
+those tools and records their versions rather than replacing the browser. It
+runs the ordinary native service selection under a 1920×1200 virtual display.
+The version workflow remains headed and changes the browser's real window
+bounds; it does not replace that regression with viewport emulation.
+
+CI invokes the selected npm 11.12.1 CLI directly with
+`run build --workspace @cislib/management-portal`. This avoids the nested bare
+`npm` in the convenient local `build:portal` command selecting the runner's
+bundled package manager. Missing tools, portal output or the pinned Next
+correction are failures, not skipped tests.
+
 The current Configuration workflow is documented in
 [Configuration versions](../../../../docs/modules/management/portal-configuration-versions.md).
 Its [automated testing guide and combination matrix](../../../../docs/changes/CIS-0030/configuration-testing.md)

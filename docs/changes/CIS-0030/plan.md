@@ -68,3 +68,7 @@ Derived under `cislib:CIS-0030:outcome:1bd0878814134335b822d2827a100e02` by Code
 | WORK-195 | [Apply the approved bounded Node runtime correction](agent-tasks/WORK-195.md) | Complete |  |
 | WORK-165 | [Deliver real whole-ScheduledTask editing, preview and operational commands](agent-tasks/WORK-165.md) | Draft | WORK-157, WORK-158, WORK-159, WORK-161, WORK-162, WORK-179, WORK-190, WORK-168, WORK-172, WORK-155, WORK-156 |
 | WORK-170 | [Complete maintained scheduler consumer composition and portable portal delivery](agent-tasks/WORK-170.md) | Draft | WORK-169, WORK-173, WORK-175, WORK-174, WORK-179, WORK-165, WORK-166, WORK-190, WORK-168, WORK-162 |
+| WORK-196 | [Bound Configuration row action reader lifetime](agent-tasks/WORK-196.md) | Complete |  |
+| WORK-197 | [Invalidate protected Configuration across tabs and session changes](agent-tasks/WORK-197.md) | Complete |  |
+| WORK-198 | [Refresh open Configuration editor context without losing drafts](agent-tasks/WORK-198.md) | Complete |  |
+| WORK-199 | [Prepare portal build and headed browser in existing service CI](agent-tasks/WORK-199.md) | ReadyForReview |  |

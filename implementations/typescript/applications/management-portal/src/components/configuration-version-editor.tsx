@@ -31,9 +31,9 @@ interface SaveAttempt { readonly intent: ConfigurationVersionSaveIntent; publica
 
 /** The one local JSON owner and the fixed two-original Save sequence, reused after a known native creation. */
 export function ConfigurationVersionEditor({ applicationId, configurationId, schemaVersion, baseVersion, initialDraft, autoSave = false, firstVersion = false,
-  initialNote = "", creation, onDraftAccepted, onContentLost, onBusy, onCancel, onSaved }: {
+  initialNote = "", creation, refreshRevision = 0, onDraftAccepted, onContentLost, onBusy, onCancel, onSaved }: {
   applicationId: string; configurationId: string; schemaVersion: string; baseVersion?: ConfigurationVersionSnapshot;
-  initialDraft?: ConfigurationInitialDraft; initialNote?: string; autoSave?: boolean; firstVersion?: boolean; creation?: ConfigurationCommandObservation;
+  initialDraft?: ConfigurationInitialDraft; initialNote?: string; autoSave?: boolean; firstVersion?: boolean; creation?: ConfigurationCommandObservation; refreshRevision?: number;
   onDraftAccepted?(): void; onContentLost?(): void; onBusy?(busy: boolean): void; onCancel(): void; onSaved(completion: ConfigurationSavedCompletion, keepEditing: boolean): void
 }) {
   const { owner: portal, snapshot: session } = useProtectedPortal();
@@ -41,6 +41,7 @@ export function ConfigurationVersionEditor({ applicationId, configurationId, sch
   const [previewOwner] = useState(() => new ProtectedStateOwner<ConfigurationCandidatePreview | ConfigurationPreview>({ context: session.context, receipts: portal.receipts }));
   const publication = useConfigurationOperation(), release = useConfigurationOperation();
   const [revision, refresh] = useState(0), [, redraw] = useState(0), [note, setNote] = useState(initialNote);
+  const readRevision = revision + refreshRevision;
   const [progress, setProgress] = useState<ConfigurationVersionSaveProgress>(), [message, setMessage] = useState<string>(), [busy, setBusy] = useState(false);
   const pending = useRef(false), alive = useRef(true), admitted = useRef(false), automatic = useRef(false);
   const appliedRead = useRef<{ reply: unknown; revision: number; url: string } | undefined>(undefined);
@@ -48,7 +49,7 @@ export function ConfigurationVersionEditor({ applicationId, configurationId, sch
   const sessionKey = session.context === undefined ? undefined : portalContextKey(session.context);
   const base = `/api/portal/applications/${applicationId}/configurations/${encodeURIComponent(configurationId)}`;
   const url = queryUrl(base + "/editor", { schemaVersion, source: "application" });
-  const read = usePortalRead<ConfigurationEditorSnapshot>(url, revision);
+  const read = usePortalRead<ConfigurationEditorSnapshot>(url, readRevision);
   const incoming = ready(read), snapshot = draftOwner.view.snapshot;
   const incomingContext = read.reply?.state === "ready" ? capturePortalContext(read.reply.context) : undefined;
   const admissible = read.reply === undefined || read.reply.state === "unavailable" || incoming !== undefined && incomingContext !== undefined
@@ -70,31 +71,31 @@ export function ConfigurationVersionEditor({ applicationId, configurationId, sch
     && ["ready", "stale", "loading"].includes(draftOwner.view.state) && allowed(data, "source", "publishConfigurationSource");
   const savable = editable && draftOwner.view.canWrite && !read.busy && !read.stale && loaded.kind === "ready" && originals.length === 0;
   const recoveryReady = !read.busy && read.reply !== undefined && appliedRead.current !== undefined
-    && appliedRead.current.reply === read.reply && appliedRead.current.revision === revision && appliedRead.current.url === url;
+    && appliedRead.current.reply === read.reply && appliedRead.current.revision === readRevision && appliedRead.current.url === url;
   useEffect(() => { const a = portal.register(draftOwner), b = portal.register(previewOwner); return () => { a(); b(); }; }, [portal, draftOwner, previewOwner]);
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   useEffect(() => {
     let active = true;
     if (read.busy || read.reply === undefined) { return; }
-    if (appliedRead.current?.reply === read.reply && appliedRead.current.revision === revision && appliedRead.current.url === url) { return; }
+    if (appliedRead.current?.reply === read.reply && appliedRead.current.revision === readRevision && appliedRead.current.url === url) { return; }
     if (read.reply.state !== "ready") {
       if (read.reply.state === "unavailable") { draftOwner.transientUnavailable(); }
       else { draftOwner.permissionLost(); attempt.current = undefined; setProgress(undefined); onContentLost?.(); }
-      appliedRead.current = { reply: read.reply, revision, url }; redraw(value => value + 1); return;
+      appliedRead.current = { reply: read.reply, revision: readRevision, url }; redraw(value => value + 1); return;
     }
-    if (read.stale) { draftOwner.transientUnavailable(); appliedRead.current = { reply: read.reply, revision, url }; redraw(value => value + 1); return; }
+    if (read.stale) { draftOwner.transientUnavailable(); appliedRead.current = { reply: read.reply, revision: readRevision, url }; redraw(value => value + 1); return; }
     const value = read.reply.value, context = capturePortalContext(read.reply.context);
     if (context === undefined || !matches(value, applicationId, configurationId, schemaVersion)) {
-      draftOwner.permissionLost(); attempt.current = undefined; setProgress(undefined); onContentLost?.(); appliedRead.current = { reply: read.reply, revision, url }; redraw(value => value + 1); return;
+      draftOwner.permissionLost(); attempt.current = undefined; setProgress(undefined); onContentLost?.(); appliedRead.current = { reply: read.reply, revision: readRevision, url }; redraw(value => value + 1); return;
     }
     if (draftOwner.view.snapshot !== undefined && !sameBinding(value, draftOwner.view.snapshot.value)) {
       draftOwner.discardDraft(); attempt.current = undefined; setProgress(undefined);
     }
-    if (value.context.defaults.state !== "available") { draftOwner.permissionLost(); attempt.current = undefined; setProgress(undefined); onContentLost?.(); appliedRead.current = { reply: read.reply, revision, url }; redraw(value => value + 1); return; }
+    if (value.context.defaults.state !== "available") { draftOwner.permissionLost(); attempt.current = undefined; setProgress(undefined); onContentLost?.(); appliedRead.current = { reply: read.reply, revision: readRevision, url }; redraw(value => value + 1); return; }
     draftOwner.setContext(context); draftOwner.selectTarget({ requestKey: url, applicationId, definitionId: configurationId, schemaVersion });
     void draftOwner.request(async () => ({ state: "ready", context, value })).then(() => {
       if (!active) { return; }
-      appliedRead.current = { reply: read.reply, revision, url };
+      appliedRead.current = { reply: read.reply, revision: readRevision, url };
       if (draftOwner.view.draft !== undefined) { redraw(value => value + 1); return; }
       let seed: string | undefined;
       if (initialDraft !== undefined) {
@@ -119,7 +120,7 @@ export function ConfigurationVersionEditor({ applicationId, configurationId, sch
       redraw(value => value + 1);
     });
     return () => { active = false; };
-  }, [read.reply, read.busy, read.stale, draftOwner, applicationId, configurationId, schemaVersion, url, revision, initialDraft, baseVersion, firstVersion, onDraftAccepted]);
+  }, [read.reply, read.busy, read.stale, draftOwner, applicationId, configurationId, schemaVersion, url, readRevision, initialDraft, baseVersion, firstVersion, onDraftAccepted]);
   useEffect(() => {
     if (autoSave && !automatic.current && admitted.current && savable && raw !== undefined && note.length > 0) {
       automatic.current = true; void save();
