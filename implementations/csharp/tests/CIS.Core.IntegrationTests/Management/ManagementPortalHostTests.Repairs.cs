@@ -39,6 +39,8 @@ public sealed partial class ManagementPortalHostTests
         string commonPublication = proof.GetProperty("commonPublicationId").GetString()!;
         string applicationPublication = proof.GetProperty("publicationId").GetString()!;
         string key = proof.GetProperty("publicationKey").GetString()!;
+        string savedRelease = proof.GetProperty("releaseId").GetString()!;
+        string releaseKey = proof.GetProperty("releaseKey").GetString()!;
         string expectedPayload = ManualSharedPayload.Replace("\"Enabled\":true", "\"Enabled\":false", StringComparison.Ordinal);
         Assert.AreEqual(ManagementConfigurationWire.ComputePayloadSha256(ManualSharedPayload), proof.GetProperty("sharedSha256").GetString());
         Assert.AreEqual(ManagementConfigurationWire.ComputePayloadSha256(expectedPayload), proof.GetProperty("publishedSha256").GetString());
@@ -84,7 +86,24 @@ public sealed partial class ManagementPortalHostTests
             Assert.AreEqual(0L, reader.GetInt64(5));
         }
         Assert.AreEqual(3L, await ManagementConfigurationCatalogTests.Count(fixture, fixture.Options.Persistence.Schema, "configuration_publication"));
-        Assert.AreEqual(2L, await ManagementConfigurationCatalogTests.Count(fixture, fixture.Options.Persistence.Schema, "configuration_release"));
+        Assert.AreEqual(3L, await ManagementConfigurationCatalogTests.Count(fixture, fixture.Options.Persistence.Schema, "configuration_release"));
+
+        await using (NpgsqlCommand command = fixture.Source.CreateCommand($"SELECT binding_id,common_publication_id,application_publication_id FROM \"{fixture.Options.Persistence.Schema}\".configuration_release WHERE release_id=@id"))
+        {
+            command.Parameters.AddWithValue("id", Guid.Parse(savedRelease));
+            await using NpgsqlDataReader reader = await command.ExecuteReaderAsync();
+            Assert.IsTrue(await reader.ReadAsync());
+            Assert.AreEqual(Guid.Parse(application.BindingId!), reader.GetGuid(0));
+            Assert.AreEqual(Guid.Parse(commonPublication), reader.GetGuid(1));
+            Assert.AreEqual(Guid.Parse(applicationPublication), reader.GetGuid(2));
+            Assert.IsFalse(await reader.ReadAsync());
+        }
+
+        await VerifySaveOriginalsAsync(fixture, issuer,
+        [
+            new(key, "management.configuration.source.publish", application.SourceId, "sourcePublished", applicationPublication),
+            new(releaseKey, "management.configuration.release.create", application.BindingId!, "releaseCreated", savedRelease)
+        ]);
 
         await using (NpgsqlCommand command = fixture.Source.CreateCommand($"SELECT scope,operation_name,finalized,result_payload FROM \"{fixture.Options.OperationsSchema}\".operation_journal WHERE idempotency_key=@key"))
         {
@@ -122,7 +141,7 @@ public sealed partial class ManagementPortalHostTests
                 Assert.AreEqual(application.SourceId, record.Target!.ResourceIdentifier);
             }
         }
-        Assert.AreEqual(6, configurationAudits, "Two lookup seeds, three Shared preparation effects, one Application publication; buffered editing adds nothing.");
+        Assert.AreEqual(7, configurationAudits, "Two lookup seeds, three Shared preparation effects, one Application publication and one saved release; buffered editing adds nothing.");
         Assert.AreEqual(1, publicationAudits);
     }
 }

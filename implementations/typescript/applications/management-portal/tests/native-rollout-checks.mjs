@@ -2,6 +2,8 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { expect } from "@playwright/test";
+import { configurationRoute } from "../src/portal-routes.ts";
+import { deployRetainedVersion } from "./native-config-deploy-consumer.mjs";
 import { capturePortalContext, portalContextHeader, portalContextKey } from "../src/portal-context.ts";
 
 export async function verifyRolloutApi({ a, b, lookup, lookupContext, origin, input, contextA, contextB, cases, reportPhase }) {
@@ -55,110 +57,149 @@ export async function verifyRolloutApi({ a, b, lookup, lookupContext, origin, in
 }
 
 export async function verifyRolloutBrowser({ page, pageB, origin, applicationA, applicationB, rollout, screenshot, cases }) {
-  const base = origin + `/api/portal/applications/${applicationA}/configurations/shared.settings`;
-  const mapPath = base + "/assignments?schemaVersion=1";
+  const mapPath = origin + `/api/portal/applications/${applicationA}/configurations/shared.settings/assignments?schemaVersion=1`;
   const mapBefore = await value(await page.request.get(mapPath));
+  const baseline = await value(await page.request.get(origin + `/api/portal/configuration/releases/${rollout.baselineReleaseId}`));
+  const candidate = await value(await page.request.get(origin + `/api/portal/configuration/releases/${rollout.candidateReleaseId}`));
   const appliedKeys = [];
-  await page.goto(origin + `/applications/${applicationA}?tab=configuration`);
-  await page.getByRole("button", { name: "shared.settings", exact: true }).click();
-  const details = page.getByRole("dialog");
-  await expect(details).toBeVisible();
-  await details.getByRole("link", { name: "Manage assignment", exact: true }).focus(); await page.keyboard.press("Enter");
-  await expect(page.getByRole("heading", { name: "Assignment map", exact: true })).toBeVisible();
-  await expect(page).toHaveURL(url => url.pathname.endsWith("/assignment") && url.searchParams.get("applicationId") === applicationA
-    && url.searchParams.get("configurationId") === "shared.settings" && url.searchParams.get("schemaVersion") === "1");
-  const pager = page.getByRole("navigation", { name: "retained releases pagination", exact: true });
+  await page.goto(origin + configurationRoute({ applicationId: applicationA, applicationName: "managed-a", configurationId: "shared.settings", schemaVersion: "1" }));
+  const versions = page.getByRole("region", { name: "Saved versions", exact: true });
+  const pager = versions.getByRole("navigation");
   await expect(pager.getByRole("button", { name: "Next", exact: true })).toBeEnabled();
   await pager.getByRole("button", { name: "Next", exact: true }).click();
   await expect(pager.getByRole("button", { name: "Previous", exact: true })).toBeEnabled();
   await pager.getByRole("button", { name: "Previous", exact: true }).click();
-  await page.getByLabel("Cohort for an override", { exact: true }).selectOption("canary");
-  await exactRelease(page, rollout.candidateReleaseId);
-  await page.getByRole("region", { name: "Selected exact release", exact: true }).getByRole("button", { name: "Use for selected cohort", exact: true }).click();
-  const intended = page.getByRole("table", { name: "Current and proposed entries", exact: true });
-  await expect(intended.getByRole("row").filter({ has: page.getByRole("rowheader", { name: "finance", exact: true }) })).toContainText("retained");
-  await expect(page.getByRole("button", { name: "Remove finance override", exact: true })).toBeDisabled();
-  await page.getByLabel("Assignment reason", { exact: true }).fill("Canary with unrelated Finance retained");
-  await review(page);
-  await expect(page.getByText("Effective source values are protected.", { exact: false })).toBeVisible();
-  const canary = await submit(page, mapPath);
-  appliedKeys.push(canary.key); assert.equal(canary.disposition, "applied");
-  const canaryMap = await value(await page.request.get(mapPath));
-  assert.equal(canaryMap.defaultReleaseId, rollout.baselineReleaseId);
-  assert.deepEqual(canaryMap.overrides, [{ cohortId: "canary", releaseId: rollout.candidateReleaseId }, { cohortId: "finance", releaseId: rollout.financeReleaseId }]);
-  assert.equal(BigInt(canaryMap.generation), BigInt(mapBefore.generation) + 1n);
-  await page.getByRole("button", { name: "Dismiss resolved assignment and refresh", exact: true }).click();
-  await expect(page.getByRole("button", { name: "Promote", exact: true })).toBeEnabled();
-  await page.getByRole("button", { name: "Promote", exact: true }).click();
-  await exactRelease(page, rollout.candidateReleaseId);
-  await page.getByRole("region", { name: "Selected exact release", exact: true }).getByRole("button", { name: "Use for application default", exact: true }).click();
-  await page.getByRole("button", { name: "Remove canary override", exact: true }).click();
-  await page.getByLabel("Assignment reason", { exact: true }).fill("Promote candidate; explicitly remove canary and retain Finance");
-  await review(page);
-  const affected = page.getByRole("table", { name: "Every affected map entry", exact: true });
-  await expect(affected).toContainText("Inherit application default");
-  await expect(affected.getByRole("row").filter({ has: page.getByRole("rowheader", { name: "finance", exact: true }) })).toContainText("retained");
-  await screenshot(page, "assignment-promotion-review-native");
-  const promoted = await dropCommittedAssignment(page, mapPath);
+  await selectRetainedVersion(page, baseline.releaseId);
+  await expect(page.locator(".configuration-json-readonly")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Edit as new version", exact: true })).toBeDisabled();
+  const unified = await deployRetainedVersion(page, origin, mapPath, baseline,
+    { note: "Deploy retained baseline to all instances and remove the Finance pin", expectedPins: 1 });
+  appliedKeys.push(unified.key);
+  const unifiedMap = await value(await page.request.get(mapPath));
+  assert.equal(unifiedMap.defaultReleaseId, baseline.releaseId); assert.deepEqual(unifiedMap.overrides, []);
+  assert.equal(BigInt(unifiedMap.generation), BigInt(mapBefore.generation) + 1n);
+  await selectRetainedVersion(page, candidate.releaseId);
+  const promoted = await deployRetainedVersion(page, origin, mapPath, candidate,
+    { note: "Deploy exact saved candidate without source ContentRead", loss: true });
   appliedKeys.push(promoted.key);
-  const original = page.getByRole("region", { name: "Assignment original", exact: true });
-  await original.getByRole("button", { name: "Recover original assignment", exact: true }).click();
-  await expect(original.getByRole("heading", { name: "Assignment committed", exact: true })).toBeVisible();
-  await expect(original.getByRole("button", { name: "Recover original assignment", exact: true })).toBeDisabled();
+  await page.reload();
+  const original = page.locator(".configuration-recovery");
+  await expect(original).toContainText("Deployment original result");
+  await original.locator(":scope > summary").click();
+  const recoveredResponse = page.waitForResponse(response => response.request().method() === "GET"
+    && new URL(response.url()).pathname.endsWith(`/assignment-operations/${promoted.key}`))
+    .then(response => value(response)).then(result => ({ result }), error => ({ error }));
+  let recovered;
+  try {
+    await original.getByRole("button", { name: "Recover original deployment", exact: true }).click();
+    const observed = await recoveredResponse;
+    if ("error" in observed) { throw observed.error; }
+    recovered = observed.result;
+  } finally { await recoveredResponse; }
+  assert.equal(recovered.key, promoted.key); assert.equal(recovered.disposition, "applied");
+  assert.ok(["found", "replayed"].includes(recovered.resultSource));
+  await expect(original.getByRole("status")).toContainText("Original change committed");
   const promotedMap = await value(await page.request.get(mapPath));
-  assert.equal(promotedMap.defaultReleaseId, rollout.candidateReleaseId); assert.deepEqual(promotedMap.overrides, [{ cohortId: "finance", releaseId: rollout.financeReleaseId }]);
-  assert.equal(BigInt(promotedMap.generation), BigInt(canaryMap.generation) + 1n);
+  assert.equal(promotedMap.defaultReleaseId, candidate.releaseId); assert.deepEqual(promotedMap.overrides, []);
+  assert.equal(BigInt(promotedMap.generation), BigInt(unifiedMap.generation) + 1n);
   await screenshot(page, "assignment-original-recovery-native");
-  await original.getByRole("button", { name: "Dismiss resolved assignment and refresh", exact: true }).click();
-  await expect(page.getByRole("button", { name: "Rollback", exact: true })).toBeEnabled();
-  await page.getByRole("button", { name: "Rollback", exact: true }).click();
-  await exactRelease(page, rollout.baselineReleaseId);
-  await page.getByRole("region", { name: "Selected exact release", exact: true }).getByRole("button", { name: "Use for application default", exact: true }).click();
-  await page.getByLabel("Assignment reason", { exact: true }).fill("Rollback to explicitly retained earlier release");
-  await review(page);
-  const current = await protectedReply(await page.request.get(mapPath));
-  const competingKey = randomUUID();
-  const competing = await value(await page.request.put(mapPath, { headers: { Origin: origin, "Content-Type": "application/json", [portalContextHeader]: portalContextKey(current.context),
-    "Idempotency-Key": competingKey, "If-Match": current.value.eTag }, data: { commandVersion: 1, intent: "replace", defaultReleaseId: current.value.defaultReleaseId,
-      overrides: current.value.overrides, reason: "Real concurrent map decision after review" } }));
-  assert.equal(competing.disposition, "applied"); appliedKeys.push(competingKey);
-  const conflict = await submit(page, mapPath); assert.equal(conflict.disposition, "conflict");
-  await expect(original.getByRole("heading", { name: "Original assignment precondition conflict", exact: true })).toBeVisible();
-  await original.getByRole("button", { name: "Dismiss resolved assignment and refresh", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Current assignment changed", exact: true })).toBeVisible();
-  let discarded = false;
-  page.once("dialog", async dialog => { assert.equal(dialog.type(), "confirm"); discarded = true; await dialog.accept(); });
-  await page.getByRole("button", { name: "Use current map and discard intended changes", exact: true }).click(); assert.equal(discarded, true);
-  await page.getByRole("button", { name: "Rollback", exact: true }).click();
-  await exactRelease(page, rollout.baselineReleaseId);
-  await page.getByRole("region", { name: "Selected exact release", exact: true }).getByRole("button", { name: "Use for application default", exact: true }).click();
-  await page.getByLabel("Assignment reason", { exact: true }).fill("Deliberate renewed rollback review after concurrent change");
-  await review(page);
-  const rollback = await submit(page, mapPath); assert.equal(rollback.disposition, "applied"); appliedKeys.push(rollback.key);
+
+  await selectRetainedVersion(page, baseline.releaseId);
+  const previewUrl = url => new URL(url).origin === origin && new URL(url).pathname === "/api/portal/configuration/preview";
+  let entered = false, failure, competingKey, settle;
+  const joined = new Promise(resolve => { settle = resolve; });
+  await page.route(previewUrl, async route => {
+    if (route.request().method() !== "POST") { await route.continue(); return; }
+    entered = true;
+    let response;
+    try {
+      response = await route.fetch({ timeout: 30000 });
+      const preview = await value(response); assert.deepEqual(preview.currentAssignment, promotedMap); assert.equal(preview.redacted, true);
+      const current = await protectedReply(await page.request.get(mapPath));
+      competingKey = randomUUID();
+      const competing = await value(await page.request.put(mapPath, { headers: { Origin: origin, "Content-Type": "application/json",
+        [portalContextHeader]: portalContextKey(current.context), "Idempotency-Key": competingKey, "If-Match": current.value.eTag },
+        data: { commandVersion: 1, intent: "replace", defaultReleaseId: current.value.defaultReleaseId,
+          overrides: current.value.overrides, reason: "Real concurrent map decision after preview" } }));
+      assert.equal(competing.disposition, "applied");
+      await route.fulfill({ response });
+    } catch (error) { failure = error; try { await route.abort("failed"); } catch { /* Retain the first fault and join the actual callback. */ } }
+    finally {
+      try { if (response !== undefined) { await response.dispose(); } }
+      catch (error) { failure = failure === undefined ? error : new AggregateError([failure, error], "Native preview and cleanup failed."); }
+      finally { settle(); }
+    }
+  });
+  let conflict;
+  try {
+    conflict = await deployRetainedVersion(page, origin, mapPath, baseline,
+      { note: "Stale reviewed rollback must conflict", expected: "conflict" });
+    await bounded(joined);
+    if (failure !== undefined) { throw failure; }
+  } finally { if (entered) { await joined; } await page.unroute(previewUrl); }
+  assert.ok(competingKey); appliedKeys.push(competingKey);
+  if (!(await original.locator(":scope > summary").evaluate(element => element.parentElement.open))) { await original.locator(":scope > summary").click(); }
+  await expect(original.getByRole("status")).toContainText("Current state changed");
+  await original.getByRole("button", { name: "Dismiss resolved reference", exact: true }).click();
+  await expect(original).toHaveCount(0);
+  await selectRetainedVersion(page, baseline.releaseId);
+  const rollback = await deployRetainedVersion(page, origin, mapPath, baseline, { note: "Deliberate renewed rollback after current map reconciliation" });
+  appliedKeys.push(rollback.key);
   const finalMap = await value(await page.request.get(mapPath));
-  assert.equal(finalMap.defaultReleaseId, rollout.baselineReleaseId); assert.deepEqual(finalMap.overrides, [{ cohortId: "finance", releaseId: rollout.financeReleaseId }]);
+  assert.equal(finalMap.defaultReleaseId, baseline.releaseId); assert.deepEqual(finalMap.overrides, []);
   assert.equal(BigInt(finalMap.generation), BigInt(mapBefore.generation) + 4n);
+  assert.equal(new Set([...appliedKeys, conflict.key]).size, 5);
   await screenshot(page, "assignment-retained-release-rollback-native");
-  await original.getByRole("button", { name: "Dismiss resolved assignment and refresh", exact: true }).click();
-  await page.getByLabel("Exact retained release ID", { exact: true }).fill(randomUUID());
-  await page.getByRole("button", { name: "Inspect exact release", exact: true }).click();
-  await expect(page.getByRole("region", { name: "Selected exact release", exact: true })).toHaveCount(0);
-  await expect(page.getByRole("main").getByRole("alert")).toContainText("Item unavailable");
-  await pageB.goto(origin + `/applications/${applicationB}/configurations/shared.settings/assignment?schemaVersion=1`);
-  await expect(pageB.getByRole("heading", { name: "Assignment map", exact: true })).toBeVisible();
-  await expect(pageB.getByRole("button", { name: "Review complete assignment", exact: true })).toBeDisabled();
-  await expect(pageB.getByRole("button", { name: "Confirm assignment", exact: true })).toHaveCount(0);
-  cases.push("native-rollout-keyboard-canary-retains-unrelated-pin", "native-rollout-explicit-promotion-removes-canary-retains-finance",
+  await pageB.goto(origin + configurationRoute({ applicationId: applicationB, applicationName: "managed-b", configurationId: "shared.settings", schemaVersion: "1" }));
+  await expect(pageB.getByRole("heading", { name: "shared.settings", exact: true })).toBeVisible();
+  await expect(pageB.getByRole("button", { name: "Deploy", exact: true }).and(pageB.locator(":enabled"))).toHaveCount(0);
+  await expect(pageB.getByRole("dialog")).toHaveCount(0);
+  await expect(pageB.locator(".configuration-json-readonly")).toHaveCount(0);
+  cases.push("native-rollout-bounded-saved-version-pagination", "native-rollout-metadata-only-deploy-removes-target-pin",
     "controlled-rollout-native-commit-delivery-loss-same-key-recovery", "native-rollout-real-concurrent-map-conflict-and-deliberate-reconciliation",
-    "native-rollout-retained-release-rollback-advances-generation", "native-rollout-bounded-browser-selection-and-unavailable-exact-release",
-    "native-rollout-read-only-user-has-no-confirm-action");
+    "native-rollout-retained-release-rollback-advances-generation", "native-rollout-read-only-user-has-no-confirm-action");
   return { appliedKeys, conflictKey: conflict.key };
+}
+
+async function selectRetainedVersion(page, releaseId) {
+  const target = new URL(page.url());
+  const applicationId = target.searchParams.get("applicationId");
+  assert.ok(applicationId);
+  const endpoint = `/api/portal/applications/${applicationId}/configurations/shared.settings/releases`;
+  const versions = page.getByRole("region", { name: "Saved versions", exact: true });
+  const pager = versions.getByRole("navigation");
+  const previous = pager.getByRole("button", { name: "Previous", exact: true });
+  if (await previous.isEnabled()) { await turnPage(previous); }
+  let retained = await value(await page.request.get(target.origin + endpoint + "?schemaVersion=1&pageSize=10"));
+  for (let index = 0; index < 3; index++) {
+    if (retained.items.some(item => item.releaseId === releaseId)) {
+      const row = versions.locator(`[data-version-id="${releaseId}"]`);
+      await expect(row).toBeVisible();
+      await row.getByRole("button").first().click();
+      await expect(page.getByRole("region", { name: "Selected version", exact: true }).getByRole("heading")).toBeVisible();
+      return;
+    }
+    assert.ok(retained.nextCursor, "The exact retained version must be present in the bounded native catalog.");
+    retained = await turnPage(pager.getByRole("button", { name: "Next", exact: true }));
+  }
+  assert.fail("The exact retained version must be present within the bounded fixture pages.");
+
+  async function turnPage(button) {
+    const read = page.waitForResponse(response => response.request().method() === "GET" && new URL(response.url()).pathname === endpoint)
+      .then(response => value(response)).then(result => ({ result }), error => ({ error }));
+    try {
+      await button.click();
+      const observed = await read;
+      if ("error" in observed) { throw observed.error; }
+      return observed.result;
+    } finally { await read; }
+  }
 }
 
 export async function verifyAdoptionBrowser({ page, lookupPage, origin, applicationA, adoptionObservations, screenshot, cases }) {
   const mapPath = origin + `/api/portal/applications/${applicationA}/configurations/shared.settings/assignments?schemaVersion=1`;
   const before = await value(await page.request.get(mapPath));
-  await page.getByRole("link", { name: "View Instance status", exact: true }).focus(); await page.keyboard.press("Enter");
+  await page.getByRole("button", { name: "Instance status", exact: true }).focus(); await page.keyboard.press("Enter");
   await expect(page.getByRole("heading", { name: "Instance status", exact: true })).toBeVisible();
   const historicalRow = page.getByRole("row").filter({ has: page.getByRole("button", { name: "adoption-historical", exact: true }) });
   await expect(historicalRow).not.toContainText("Up to date");
@@ -190,45 +231,6 @@ export async function verifyAdoptionBrowser({ page, lookupPage, origin, applicat
     "controlled-adoption-copy-preserves-exact-reported-registration", "native-adoption-observation-does-not-change-map");
 }
 
-async function exactRelease(page, id) {
-  await page.getByLabel("Exact retained release ID", { exact: true }).fill(id);
-  await page.getByRole("button", { name: "Inspect exact release", exact: true }).click();
-  await expect(page.getByRole("region", { name: "Selected exact release", exact: true })).toBeVisible();
-}
-async function review(page) {
-  await page.getByRole("button", { name: "Review complete assignment", exact: true }).focus(); await page.keyboard.press("Enter");
-  await expect(page.getByRole("heading", { name: "Review assignment map", exact: true })).toBeFocused();
-}
-async function submit(page, url) {
-  const response = page.waitForResponse(item => item.url() === url && item.request().method() === "PUT");
-  await page.getByRole("button", { name: "Confirm assignment", exact: true }).focus(); await page.keyboard.press("Enter");
-  return value(await response);
-}
-async function dropCommittedAssignment(page, url) {
-  let entered = false, result, failure, settle;
-  const joined = new Promise(resolve => { settle = resolve; });
-  await page.route(url, async route => {
-    if (route.request().method() !== "PUT") { await route.continue(); return; }
-    entered = true;
-    let response;
-    try {
-      const key = route.request().headers()["idempotency-key"];
-      const stored = await page.evaluate(() => sessionStorage.getItem("cis.management.command-receipts.v1"));
-      assert.ok(stored.includes(key), "The exact original assignment reference must exist before dispatch.");
-      response = await route.fetch({ timeout: 30000 }); result = await value(response);
-      assert.equal(result.disposition, "applied"); assert.equal(result.key, key);
-      await route.abort("failed");
-    } catch (error) { failure = error; try { await route.abort("failed"); } catch { /* Preserve first failure while retaining actual callback custody. */ } }
-    finally { if (response !== undefined) { await response.dispose(); } settle(); }
-  });
-  try {
-    await page.getByRole("button", { name: "Confirm assignment", exact: true }).focus(); await page.keyboard.press("Enter");
-    await bounded(joined);
-    if (failure !== undefined) { throw failure; }
-    await expect(page.getByRole("status").filter({ hasText: "Waiting for the current assignment" })).toHaveCount(0);
-  } finally { if (entered) { await joined; } await page.unroute(url); }
-  return result;
-}
 async function value(response) { return (await protectedReply(response)).value; }
 async function protectedReply(response) {
   assert.equal(response.status(), 200); const reply = await response.json(); assert.equal(reply.state, "ready");

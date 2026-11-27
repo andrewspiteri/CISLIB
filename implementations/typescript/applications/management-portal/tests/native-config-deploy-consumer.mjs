@@ -175,6 +175,8 @@ export async function verifyConfigurationDeployBrowser({ page, pageB, origin, ap
     ...(readonlyDeniedKey === undefined ? {} : { readonlyDeniedKey }), finalGeneration: final.generation, finalReleaseId: final.defaultReleaseId };
 }
 
+export { deploy as deployRetainedVersion };
+
 async function deploy(page, origin, mapUrl, version, { note, expected = "applied", loss = false, expectedPins = 0 }) {
   const row = page.getByRole("region", { name: "Saved versions", exact: true }).locator(`[data-version-id="${version.releaseId}"]`);
   await row.getByRole("button", { name: "Deploy", exact: true }).click();

@@ -107,10 +107,7 @@ public sealed partial class ManagementPortalHostTests
         {
             command.Parameters.AddWithValue("id", Guid.Parse(definition.BindingId!));
             await using NpgsqlDataReader reader = await command.ExecuteReaderAsync();
-            Assert.IsTrue(await reader.ReadAsync());
-            Assert.AreEqual("finance", reader.GetString(0));
-            Assert.AreEqual(Guid.Parse(seed.FinanceReleaseId), reader.GetGuid(1));
-            Assert.IsFalse(await reader.ReadAsync(), "The canary must be explicitly removed while the unrelated Finance pin remains exact.");
+            Assert.IsFalse(await reader.ReadAsync(), "Deploy applies one saved version to all instances and explicitly removes every old target pin.");
         }
         var audits = new List<AuditRecord>();
         var codec = new AuditRecordCodec();

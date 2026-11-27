@@ -504,8 +504,11 @@ public sealed partial class ManagementPortalHostTests
                 Assert.IsTrue(report.RootElement.GetProperty("tokensStayedServerSide").GetBoolean());
                 Assert.IsTrue(report.RootElement.GetProperty("cases").GetArrayLength() >= 12);
                 Assert.AreEqual(browser, report.RootElement.GetProperty("browserChecked").GetBoolean());
+                bool fullDesktopJourney = browser && !reviewScenario && !boundaryScenario && !instanceStatusBoundaries
+                    && !configurationAutomation && !firstVersion && !instanceStatus && !versionWorkflow;
                 await VerifyMetadataEffectsAsync(fixture, report.RootElement.GetProperty("metadataAppliedKeys"),
-                    report.RootElement.GetProperty("metadataConflictKeys"), lookupOriginalKey!, issuer);
+                    report.RootElement.GetProperty("metadataConflictKeys"), lookupOriginalKey!, issuer,
+                    expectedApplied: fullDesktopJourney ? 5 : 2, expectedRejected: fullDesktopJourney ? 2 : 1);
                 if (browser)
                 {
                     if (configurationMenus)
@@ -853,12 +856,13 @@ public sealed partial class ManagementPortalHostTests
         return new(publicationKey, releaseKey);
     }
 
-    private static async Task VerifyMetadataEffectsAsync(ManagementHostFixture fixture, JsonElement keys, JsonElement conflictKeys, string lookupOriginalKey, string issuer)
+    private static async Task VerifyMetadataEffectsAsync(ManagementHostFixture fixture, JsonElement keys, JsonElement conflictKeys,
+        string lookupOriginalKey, string issuer, int expectedApplied, int expectedRejected)
     {
         string[] applied = keys.EnumerateArray().Select(item => item.GetString()!).ToArray();
         string[] rejected = conflictKeys.EnumerateArray().Select(item => item.GetString()!).ToArray();
-        Assert.IsTrue(applied.Length is >= 2 and <= 4);
-        Assert.IsTrue(rejected.Length is >= 1 and <= 2);
+        Assert.AreEqual(expectedApplied, applied.Length, "The native prelude and selected desktop journey must report every exact metadata original.");
+        Assert.AreEqual(expectedRejected, rejected.Length, "The selected journey must retain its exact known metadata conflicts.");
         Assert.AreEqual(applied.Length, applied.Distinct(StringComparer.Ordinal).Count());
         Assert.AreEqual(rejected.Length, rejected.Distinct(StringComparer.Ordinal).Count());
         Assert.IsTrue(applied.Concat(rejected).All(key => Guid.TryParseExact(key, "D", out _)));

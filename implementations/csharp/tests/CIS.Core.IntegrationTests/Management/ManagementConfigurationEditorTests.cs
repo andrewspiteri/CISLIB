@@ -67,7 +67,11 @@ public sealed class ManagementConfigurationEditorTests
 
         using HttpResponseMessage info = await actor.GetAsync("service-info");
         ManagementServiceInfo service = ManagementWire.DecodeResponse<ManagementServiceInfo>(await info.Content.ReadAsByteArrayAsync())!;
-        Assert.AreEqual(42, service.Features.Count);
+        Assert.AreEqual(46, service.Features.Count);
+        foreach (string operation in new[] { "getConfigurationCreationContext", "createConfiguration", "getConfigurationCreationOperation", "getConfigurationSummaries" })
+        {
+            Assert.AreEqual(1, service.Features.Count(item => item.OperationId == operation));
+        }
         Assert.AreEqual(1, service.Features.Count(item => item.OperationId == "getConfigurationEditorContext"));
         Assert.AreEqual(1L, await Count(fixture, fixture.Options.OperationsSchema, "operation_journal"));
         Assert.AreEqual(1L, await Count(fixture, fixture.Options.MessagingSchema, "outbox"));

@@ -235,16 +235,28 @@ export async function verifyBrowser({ origin, applicationA, applicationB, regist
     await expect(configuration).toBeVisible();
     await screenshot(page, "configuration-native");
     await configuration.click();
+    await expect(page).toHaveURL(url => url.pathname.endsWith("/configuration/shared-settings") && url.searchParams.get("applicationId") === applicationA
+      && url.searchParams.get("configurationId") === "shared.settings" && url.searchParams.get("schemaVersion") === "1");
+    await expect(page.getByRole("region", { name: "Saved versions", exact: true })).toBeVisible();
     const selectedConfiguration = await protectedReply(page, origin + `/api/portal/applications/${applicationA}/configurations/shared.settings/details?schemaVersion=1`);
     assert.equal(selectedConfiguration.value.content.state, rollout === null || rollout === undefined ? "unassigned" : "redacted");
-    await expect(panel).toContainText(selectedConfiguration.value.content.message);
+    if (rollout === null || rollout === undefined) { await expect(page.locator(".configuration-deployment-bar")).toContainText("Not deployed"); }
+    const saved = await protectedReply(page, origin + `/api/portal/applications/${applicationA}/configurations/shared.settings/releases?schemaVersion=1&pageSize=10`);
+    assert.ok(saved.value.items.length > 0, "The seeded immutable history is inspectable without claiming it is deployed.");
+    const inspected = await protectedReply(page, origin + `/api/portal/applications/${applicationA}/configurations/shared.settings/versions/${saved.value.items[0].releaseId}?schemaVersion=1`);
+    if (inspected.value.content.state === "present") { await expect(page.locator(".configuration-json-readonly")).toBeVisible(); }
+    else { await expect(page.getByRole("region", { name: "Selected version", exact: true })).toContainText(inspected.value.content.message); }
     await expect(page.getByText("PORTAL_PRIVATE_DEFAULT", { exact: false })).toHaveCount(0);
     const definitions = await page.request.get(origin + `/api/portal/applications/${applicationA}/configuration`);
     const definitionText = await definitions.text();
     assert.equal(definitions.status(), 200);
     assert.ok(!definitionText.includes("PORTAL_PRIVATE_DEFAULT") && !definitionText.includes("defaultsJson"));
-    await screenshot(page, "configuration-panel-native");
-    await page.getByRole("button", { name: "Close details" }).click();
+    await screenshot(page, "configuration-version-native");
+    await page.getByRole("navigation", { name: "Configuration breadcrumb", exact: true }).getByRole("button", { name: "Configuration", exact: true }).focus();
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("tab", { name: "Configuration", exact: true })).toHaveAttribute("aria-selected", "true");
+    assert.equal(new URL(page.url()).searchParams.get("fromQuery"), "managed-a");
+    assert.equal(new URL(page.url()).searchParams.get("fromEnvironment"), "Development");
     await page.getByRole("tab", { name: "Capabilities", exact: true }).click();
     for (const name of ["Schedulable job types", "Registered RuleEngine instances", "Trigger providers"]) {
       await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();

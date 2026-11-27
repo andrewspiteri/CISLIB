@@ -1,9 +1,10 @@
-// A continuation of the existing native Management/Auth.js fixture, with its real Shared-only assignment.
+// Shared-copy, draft and exact Save recovery through the current version page.
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { expect } from "@playwright/test";
 import { applicationRoute } from "../src/portal-routes.ts";
-import { setConfigurationValue } from "../src/configuration-draft.ts";
+import { formatConfigurationJson, setConfigurationValue } from "../src/configuration-draft.ts";
+import { commitConfigurationStage, recoverConfigurationStage } from "./native-r08-checks.mjs";
 
 export async function verifyConfigurationRepairsBrowser({ page, origin, applicationA, screenshot, cases }) {
   const configurationId = "shared.features", schemaVersion = "1";
@@ -18,7 +19,6 @@ export async function verifyConfigurationRepairsBrowser({ page, origin, applicat
   assert.ok(summary); assert.equal(summary.origin, "shared"); assert.equal(summary.bindingId, baseline.bindingId);
   assert.match(summary.modifiedAtUtc, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{7}Z$/u);
   assert.equal(summary.modifiedAtUtc, shared.createdAtUtc);
-
   const mutations = [];
   const observe = request => {
     const url = new URL(request.url());
@@ -34,75 +34,78 @@ export async function verifyConfigurationRepairsBrowser({ page, origin, applicat
     const rowActions = page.waitForResponse(response => response.url() === base + "/row-actions?schemaVersion=1" && response.request().method() === "GET");
     await row.getByRole("button", { name: "Actions for shared.features", exact: true }).click();
     await value(await rowActions);
+    await row.getByRole("link", { name: "Override", exact: true }).click();
+    const versionRow = page.locator(`[data-version-id="${beforeMap.defaultReleaseId}"]`);
+    await versionRow.locator(".version-title").click();
+    await expect(page.locator(".configuration-selected-version .configuration-json-readonly")).toBeVisible();
     const editorUrl = base + "/editor?schemaVersion=1&source=application";
     const firstEditor = page.waitForResponse(response => response.url() === editorUrl && response.request().method() === "GET");
-    await row.getByRole("link", { name: "Override", exact: true }).click();
+    await page.getByRole("button", { name: "Edit as new version", exact: true }).click();
     const editing = await value(await firstEditor);
     assert.equal(editing.sharedOverrideSeed.state, "present");
     assert.equal(editing.sharedOverrideSeed.publication.publicationId, shared.publicationId);
     assert.equal(editing.sharedOverrideSeed.publication.payloadJson, shared.payloadJson);
-    const editor = page.locator("#configuration-raw-json");
-    await expect(editor).toBeEditable(); await expect(editor).toHaveValue(shared.payloadJson);
-    cases.push("native-shared-override-default-copies-exact-assigned-json-with-authorized-date");
+    const editor = page.locator("#configuration-version-json"), formattedSeed = formatConfigurationJson(shared.payloadJson);
+    assert.equal(formattedSeed.valid, true);
+    await expect(editor).toBeEditable(); await expect(editor).toHaveValue(formattedSeed.json);
+    cases.push("native-shared-override-copies-and-formats-exact-assigned-json-with-authorized-date");
 
     const publishedRaw = setConfigurationValue(shared.payloadJson, ["Enabled"], "false");
     assert.notEqual(publishedRaw, shared.payloadJson);
     await editor.fill(publishedRaw);
     const refreshed = page.waitForResponse(response => response.url() === editorUrl && response.request().method() === "GET");
-    await page.getByRole("button", { name: "Refresh current state", exact: true }).click(); await value(await refreshed);
+    await page.getByRole("button", { name: "Refresh", exact: true }).click(); await value(await refreshed);
     await expect(editor).toHaveValue(publishedRaw); await expect(editor).toBeEditable();
-    await page.getByLabel("Change reason", { exact: true }).fill("Publish an explicit Application override copied from Shared JSON");
-    await page.getByRole("button", { name: "Review Application JSON version", exact: true }).click();
-    await expect(page.getByRole("heading", { name: "Review Application JSON version", exact: true })).toBeFocused();
+    const note = "Save an explicit Application override copied from Shared JSON";
+    await page.getByLabel("Version note", { exact: true }).fill(note);
     const publicationUrl = origin + `/api/portal/configuration/sources/${editing.source.sourceId}/publications`;
-    const submitted = page.waitForRequest(request => request.url() === publicationUrl && request.method() === "POST");
-    const completed = page.waitForResponse(response => response.url() === publicationUrl && response.request().method() === "POST");
-    await page.getByRole("button", { name: "Publish Application JSON version", exact: true }).click();
-    const request = await submitted;
-    assert.equal(request.postDataJSON().payloadJson, publishedRaw);
-    const publication = await value(await completed);
-    assert.equal(publication.family, "management.configuration.source.publish"); assert.equal(publication.disposition, "applied");
-    assert.equal(publication.originalCompletion, "committed"); assert.equal(publication.key, request.headers()["idempotency-key"]);
+    const publication = await commitConfigurationStage(page, publicationUrl, "POST", "Save version", "management.configuration.source.publish", true,
+      body => assert.equal(body.payloadJson, publishedRaw));
     assert.equal(publication.decision.sourceId, editing.source.sourceId);
     assert.equal(publication.decision.sha256, sha(publishedRaw));
-    await expect(page.getByRole("heading", { name: "Publication committed — not assigned", exact: true })).toBeVisible();
-    await expect(editor).toBeEditable();
     const bufferedRaw = setConfigurationValue(publishedRaw, ["Features", "Export"], "true");
-    assert.notEqual(bufferedRaw, publishedRaw); await editor.fill(bufferedRaw); await expect(editor).toHaveValue(bufferedRaw);
-    await expect(page.getByRole("button", { name: "Review Application JSON version", exact: true })).toBeDisabled();
-    await expect(page.getByRole("button", { name: "Validate JSON", exact: true })).toBeDisabled();
-    await expect(page.getByRole("heading", { name: "Publication committed — not assigned", exact: true })).toBeVisible();
-    await expect(page.getByText("You can keep editing this local draft.", { exact: false })).toBeVisible();
+    assert.notEqual(bufferedRaw, publishedRaw);
+    await expect(editor).toBeEditable(); await editor.fill(bufferedRaw); await expect(editor).toHaveValue(bufferedRaw);
+    await expect(page.getByRole("button", { name: "Save version", exact: true })).toBeDisabled();
+    await recoverConfigurationStage(page, origin + `/api/portal/configuration/sources/${editing.source.sourceId}/publication-operations/${publication.key}`,
+      "Recover original Save result", publication.key);
+    await expect(editor).toHaveValue(bufferedRaw);
+    const release = await commitConfigurationStage(page, base + "/releases?schemaVersion=1", "POST", "Continue incomplete Save", "management.configuration.release.create", false,
+      body => {
+        assert.deepEqual(body.commonSource, { state: "present", publicationId: shared.publicationId });
+        assert.deepEqual(body.applicationSource, { state: "present", publicationId: publication.decision.publicationId });
+      });
+    await expect(editor).toBeEditable(); await expect(editor).toHaveValue(bufferedRaw);
+    await expect(page.getByRole("button", { name: "Save version", exact: true })).toBeDisabled();
+    await expect(page.getByText("Version saved. Current local edits and request cleanup remain separate facts below.", { exact: true })).toBeVisible();
     const originals = await page.evaluate(() => sessionStorage.getItem("cis.management.command-receipts.v1"));
-    assert.ok(originals?.includes(publication.key));
+    assert.ok(originals?.includes(publication.key) && originals.includes(release.key));
     for (const secret of ["payloadJson", "CountrySearch", "sourceETag", "reason", "defaultsJson"]) { assert.equal(originals.includes(secret), false); }
-    cases.push("native-known-original-retained-while-local-draft-remains-editable-and-new-publication-blocked");
+    cases.push("native-known-originals-retained-while-buffered-draft-remains-editable-and-new-save-blocked");
 
     const commonAfter = await get(page, base + "/details?schemaVersion=1&source=common");
     assert.equal(commonAfter.origin, "shared"); assert.equal(commonAfter.content.state, "present");
     assert.equal(commonAfter.content.publication.publicationId, shared.publicationId);
     assert.equal(commonAfter.content.publication.payloadJson, shared.payloadJson);
-    const afterMap = await get(page, base + "/assignments?schemaVersion=1");
-    assert.deepEqual(afterMap, beforeMap, "Publishing one Application JSON version must not change the assigned release, generation or cohorts.");
+    assert.deepEqual(await get(page, base + "/assignments?schemaVersion=1"), beforeMap, "Save must not deploy its new immutable pair or alter generation/cohorts.");
     const immutable = await get(page, base + `/publication/${publication.decision.publicationId}?schemaVersion=1&source=application`);
     assert.equal(immutable.payloadJson, publishedRaw); assert.equal(immutable.sha256, sha(publishedRaw));
-    assert.equal(mutations.filter(item => item.key !== undefined).length, 1);
-    assert.equal(mutations.filter(item => item.path.endsWith("/releases") || item.path.endsWith("/assignments")).length, 0);
-    await screenshot(page, "configuration-shared-copy-local-edit-known-original");
-    cases.push("native-application-publication-does-not-change-shared-json-or-assignment");
+    const saved = await get(page, base + `/versions/${release.decision.releaseId}?schemaVersion=1`);
+    assert.equal(saved.release.commonSource.publicationId, shared.publicationId);
+    assert.equal(saved.release.applicationSource.publicationId, publication.decision.publicationId);
+    assert.equal(saved.content.publication.payloadJson, publishedRaw);
+    assert.equal(mutations.filter(item => item.key !== undefined).length, 2);
+    assert.equal(mutations.filter(item => item.path.endsWith("/releases")).length, 1);
+    assert.equal(mutations.filter(item => item.path.endsWith("/assignments")).length, 0);
+    await screenshot(page, "configuration-shared-copy-buffered-draft-known-save-originals");
+    cases.push("native-application-save-pins-exact-shared-and-application-publications-without-changing-deployment");
     return { applicationId: applicationA, configurationId, schemaVersion, sourceId: editing.source.sourceId, bindingId: baseline.bindingId,
       commonPublicationId: shared.publicationId, defaultReleaseId: beforeMap.defaultReleaseId, generation: beforeMap.generation,
-      publicationId: publication.decision.publicationId, publicationKey: publication.key,
+      publicationId: publication.decision.publicationId, publicationKey: publication.key, releaseId: release.decision.releaseId, releaseKey: release.key,
       sharedSha256: sha(shared.payloadJson), publishedSha256: sha(publishedRaw), bufferedSha256: sha(bufferedRaw), modifiedAtUtc: summary.modifiedAtUtc };
   } finally { page.off("request", observe); }
 }
 
 function sha(raw) { return createHash("sha256").update(raw, "utf8").digest("hex"); }
-async function value(response) {
-  assert.equal(response.status(), 200); const reply = await response.json(); assert.equal(reply.state, "ready"); return reply.value;
-}
-async function get(page, url) {
-  const response = await page.request.get(url);
-  try { return await value(response); }
-  finally { await response.dispose(); }
-}
+async function value(response) { assert.equal(response.status(), 200); const reply = await response.json(); assert.equal(reply.state, "ready"); return reply.value; }
+async function get(page, url) { const response = await page.request.get(url); try { return await value(response); } finally { await response.dispose(); } }
