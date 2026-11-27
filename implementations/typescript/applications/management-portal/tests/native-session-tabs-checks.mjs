@@ -1,4 +1,4 @@
-// Real independent native sessions, two shared-cookie tabs, and the ordinary production provider.
+// Real independent native sessions, bounded shared-cookie tabs, and the ordinary production provider.
 import assert from "node:assert/strict";
 import { expect } from "@playwright/test";
 import { applicationRoute, configurationRoute } from "../src/portal-routes.ts";
@@ -8,15 +8,16 @@ const draft = '{"TabReview":"Private unsaved draft must retire with its actual s
 const note = "Memory-only cross-tab draft";
 
 export async function verifySessionTabsBrowser({ page, secondPage, origin, applicationA, operatorBContext,
-  renewedOperatorAContext, screenshot, cases }) {
+  renewedOperatorAContext, staleOperatorAContext, newerOperatorAContext, screenshot, cases }) {
   const configuration = origin + configurationRoute({ applicationId: applicationA, applicationName: "managed-a", configurationId, schemaVersion: "1" });
   const list = origin + applicationRoute({ applicationId: applicationA, applicationName: "managed-a", tab: "instances" });
   const sessionRead = origin + "/api/portal/applications";
   const mutations = [];
   const focusSessions = new Map();
   const activations = [];
-  const checks = { first: 0, second: 0 };
-  const tab = value => value === page ? "first" : "second";
+  const checks = { first: 0, second: 0, newer: 0 };
+  let newerPage;
+  const tab = value => value === page ? "first" : value === newerPage ? "newer" : "second";
   const observe = request => {
     const url = new URL(request.url());
     if (url.href === sessionRead && request.method() === "GET") { checks[tab(request.frame().page())]++; }
@@ -34,7 +35,7 @@ export async function verifySessionTabsBrowser({ page, secondPage, origin, appli
     await expect.poll(() => target.evaluate(() => document.hasFocus() && document.visibilityState === "visible"), { timeout: 5000 }).toBe(true);
     const state = await target.evaluate(() => ({ focused: document.hasFocus(), visibility: document.visibilityState,
       masked: document.querySelector(".protected-document")?.getAttribute("data-session-masked") === "true" }));
-    assert.ok(activations.length < 32, "The named two-document scenario has a finite activation bound.");
+    assert.ok(activations.length < 32, "The named three-document scenario has a finite activation bound.");
     activations.push({ tab: tab(target), ...state, checks: checks[tab(target)] });
   }
   try {
@@ -117,11 +118,54 @@ export async function verifySessionTabsBrowser({ page, secondPage, origin, appli
     await screenshot(page, "session-tabs-real-operator-switch-cleared-draft-native");
     assert.deepEqual(mutations, []);
     cases.push("native-missed-notification-real-cookie-operator-switch-is-detected-by-authoritative-focus-409-with-no-configuration-effects");
+
+    // Two retained old documents must not retire a third document's newer valid session.
+    await replaceCookies(page.context(), staleOperatorAContext);
+    await activate(page);
+    await page.goto(configuration);
+    await expect(page.locator(".configuration-json-readonly")).toBeVisible();
+    await activate(secondPage);
+    await secondPage.goto(list);
+    await expect(secondPage.getByRole("button", { name: "seed-a", exact: true })).toBeVisible();
+    await expect(secondPage.locator(".session-check-notice")).toHaveCount(0);
+    await replaceCookies(page.context(), newerOperatorAContext);
+    newerPage = await page.context().newPage();
+    newerPage.on("request", observe);
+    const newerFocus = await newerPage.context().newCDPSession(newerPage);
+    focusSessions.set(newerPage, newerFocus);
+    await newerFocus.send("Emulation.setFocusEmulationEnabled", { enabled: false });
+    await activate(newerPage);
+    await newerPage.goto(configuration);
+    await expect(newerPage.locator(".configuration-json-readonly")).toBeVisible();
+    await editDraft(newerPage);
+    const retiredResponse = page.waitForResponse(value => value.url() === sessionRead && value.request().method() === "GET")
+      .then(async value => ({ status: value.status(), body: await value.json() }));
+    const retired = await Promise.allSettled([retiredResponse, activate(page)]);
+    for (const outcome of retired) { if (outcome.status === "rejected") { throw outcome.reason; } }
+    assert.equal(retired[0].value.status, 409);
+    assert.equal(retired[0].value.body.state, "invalid");
+    assert.equal("value" in retired[0].value.body, false);
+    await expect(page.getByText("Sign in required", { exact: true }).first()).toBeVisible();
+    await expect(secondPage.getByText("Sign in required", { exact: true }).first()).toBeVisible();
+    const currentResponse = newerPage.waitForResponse(value => value.url() === sessionRead && value.request().method() === "GET")
+      .then(async value => ({ status: value.status(), body: await value.json() }));
+    const current = await Promise.allSettled([currentResponse, activate(newerPage)]);
+    for (const outcome of current) { if (outcome.status === "rejected") { throw outcome.reason; } }
+    assert.equal(current[0].value.status, 200);
+    assert.equal(current[0].value.body.state, "ready");
+    await expect(newerPage.locator("#configuration-version-json")).toBeVisible();
+    await expect(newerPage.locator("#configuration-version-json")).toHaveValue(draft);
+    await expect(newerPage.getByLabel("Version note", { exact: true })).toHaveValue(note);
+    await expect(newerPage.getByRole("button", { name: "Save version", exact: true })).toBeEnabled();
+    assert.deepEqual(mutations, []);
+    await screenshot(newerPage, "session-tabs-retired-peer-preserves-newer-draft-native");
+    cases.push("native-retired-session-focus-409-clears-only-old-peers-and-preserves-the-newer-valid-session-draft");
     proof = { mutations: mutations.length, sameSessionDraftPreserved: true, pendingProtectedSurfacesHidden: true,
-      unavailableStaysMaskedWithDraft: true, signoutClearedPeer: true, operatorSwitchClearedPeer: true, heldContextReadJoined: true };
+      unavailableStaysMaskedWithDraft: true, signoutClearedPeer: true, operatorSwitchClearedPeer: true, heldContextReadJoined: true,
+      newerSessionDraftRetained: true, retiredSessionPeersCleared: true };
   } catch (error) {
     const states = [];
-    for (const target of [page, secondPage]) {
+    for (const target of [page, secondPage, newerPage].filter(value => value !== undefined)) {
       try { states.push({ tab: tab(target), ...await target.evaluate(() => {
         const wrapper = document.querySelector(".protected-document"), panel = document.querySelector('[role="dialog"]');
         const inert = node => {
@@ -146,10 +190,14 @@ export async function verifySessionTabsBrowser({ page, secondPage, origin, appli
     original = error;
   } finally {
     page.off("request", observe); secondPage.off("request", observe);
+    newerPage?.off("request", observe);
     for (const session of [...focusSessions.values()].reverse()) {
       try { await session.send("Emulation.setFocusEmulationEnabled", { enabled: true }); }
       catch (error) { original = combine(original, error); }
       finally { try { await session.detach(); } catch (error) { original = combine(original, error); } }
+    }
+    if (newerPage !== undefined) {
+      try { await newerPage.close(); } catch (error) { original = combine(original, error); }
     }
   }
   if (original !== undefined) { throw original; }

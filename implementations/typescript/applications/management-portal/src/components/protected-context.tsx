@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { ReactNode } from "react";
 import { PortalSessionCoordinator } from "../portal-session.ts";
-import { portalSessionInvalidationChannel, portalSessionInvalidationMessage, publishPortalSessionInvalidation,
+import { createPortalSessionInvalidation, portalSessionInvalidationChannel, publishPortalSessionInvalidation,
   readPortalSessionCheck } from "../portal-session-check.ts";
 
 const ProtectedContext = createContext<PortalSessionCoordinator | undefined>(undefined);
@@ -11,7 +11,7 @@ const ProtectedContext = createContext<PortalSessionCoordinator | undefined>(und
 export function ProtectedPortalProvider({ children }: { children: ReactNode }) {
   const [owner] = useState(() => new PortalSessionCoordinator());
   const snapshot = useSyncExternalStore(owner.subscribe, owner.getSnapshot, owner.getSnapshot);
-  const broadcast = useRef<() => void>(() => {});
+  const broadcast = useRef<(value: string | undefined) => void>(() => {});
   useEffect(() => {
     if (snapshot.context === undefined) { return; }
     const remaining = Math.max(0, snapshot.context.expiresAtMs - Date.now());
@@ -21,14 +21,13 @@ export function ProtectedPortalProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let channel: BroadcastChannel | undefined;
     try { channel = new BroadcastChannel(portalSessionInvalidationChannel); } catch { /* Focus validation remains authoritative. */ }
-    const invalidate = () => owner.signOut();
-    const message = (event: MessageEvent<unknown>) => { if (event.data === portalSessionInvalidationMessage) { invalidate(); } };
+    const message = (event: MessageEvent<unknown>) => { owner.receiveSessionInvalidation(event.data); };
     const storage = (event: StorageEvent) => {
-      if (event.key === portalSessionInvalidationChannel && event.newValue === portalSessionInvalidationMessage) { invalidate(); }
+      if (event.key === portalSessionInvalidationChannel) { owner.receiveSessionInvalidation(event.newValue); }
     };
     channel?.addEventListener("message", message);
     window.addEventListener("storage", storage);
-    broadcast.current = () => publishPortalSessionInvalidation(channel, () => window.localStorage);
+    broadcast.current = value => publishPortalSessionInvalidation(value, channel, () => window.localStorage);
     const focus = () => {
       owner.checkExpiry();
       if (document.visibilityState !== "hidden") { void owner.revalidateSession(readPortalSessionCheck); }
@@ -47,7 +46,8 @@ export function ProtectedPortalProvider({ children }: { children: ReactNode }) {
       if (target.origin === window.location.origin && target.pathname === "/api/auth/signout") {
         const destination = target.href;
         event.preventDefault();
-        broadcast.current();
+        const current = owner.getSnapshot().context;
+        broadcast.current(current === undefined ? undefined : createPortalSessionInvalidation(current));
         owner.signOut();
         window.location.assign(destination);
         return;
@@ -74,8 +74,8 @@ export function ProtectedPortalProvider({ children }: { children: ReactNode }) {
     };
   }, [owner]);
   useEffect(() => {
-    if (snapshot.blocked && snapshot.blockReason === "session") { broadcast.current(); }
-  }, [snapshot.blocked, snapshot.blockReason]);
+    if (snapshot.blocked && snapshot.blockReason === "session") { broadcast.current(snapshot.invalidatedSession); }
+  }, [snapshot.blocked, snapshot.blockReason, snapshot.invalidatedSession]);
   const masked = snapshot.verification !== undefined;
   return <ProtectedContext.Provider value={owner}>
     <div className="protected-document" data-session-masked={masked ? "true" : undefined} inert={masked}>{children}</div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { ConfigurationActions, ConfigurationAdoptionEntry, ConfigurationAssignmentMap, ConfigurationPreview, ConfigurationRelease, Page } from "@cislib/management-client";
 import type { ConfigurationAssignmentReview } from "../configuration-assignment-model.ts";
 import { configurationVersionDeployCommand, reviewConfigurationVersionDeploy } from "../configuration-version-commands.ts";
@@ -40,6 +40,7 @@ export function ConfigurationVersionPage({ applicationId, configurationId, schem
   const alive = useRef(true), pending = useRef(false), dialog = useRef<HTMLDialogElement>(null), mapNow = useRef<ConfigurationAssignmentMap | undefined>(undefined);
   const base = `/api/portal/applications/${applicationId}/configurations/${encodeURIComponent(configurationId)}`;
   const sessionKey = session.context === undefined ? undefined : portalContextKey(session.context);
+  const sessionVerified = !session.blocked && session.verification === undefined && sessionKey !== undefined;
   const scope = JSON.stringify([applicationId, configurationId, schemaVersion, sessionKey]);
   const pages = usePages(scope + "/saved-versions", undefined);
   const versionsUrl = queryUrl(base + "/releases", { schemaVersion, pageSize: "10", cursor: pages.cursor });
@@ -72,7 +73,7 @@ export function ConfigurationVersionPage({ applicationId, configurationId, schem
   const action = ready(actionsState);
   const canDeploy = map !== undefined && !mapState.busy && !mapState.stale && !actionsState.busy && !actionsState.stale
     && action?.resourceId === map.bindingId && ["replaceConfigurationAssignments", "previewConfiguration"].every(name => action.actions.some(item => item.operationId === name && item.supported && item.allowed))
-    && !session.blocked && sessionKey !== undefined && !busy;
+    && sessionVerified && !busy;
   const selectedEditing = editing?.scope === scope ? editing : undefined;
   const completedSave = completed !== undefined && completed.sessionKey === sessionKey && completed.applicationId === applicationId && completed.configurationId === configurationId
     && completed.schemaVersion === schemaVersion ? completed : undefined;
@@ -88,10 +89,14 @@ export function ConfigurationVersionPage({ applicationId, configurationId, schem
   useEffect(() => portal.register(previewOwner), [portal, previewOwner]);
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   useEffect(() => { edit(undefined); retireContentReply(undefined); showCompare(false); setDeployment(undefined); setMessage(undefined); }, [scope]);
-  useEffect(() => {
-    if (deploy === undefined) { dialog.current?.close(); }
-    else if (!dialog.current?.open) { dialog.current?.showModal(); }
-  }, [deploy]);
+  useLayoutEffect(() => {
+    const current = dialog.current;
+    if (current === null) { return; }
+    // Suspend native modality before the session notice is painted. Closing the
+    // dialog keeps this same-session selection and note available for recovery.
+    if (deploy === undefined || !sessionVerified) { if (current.open) { current.close(); } }
+    else if (!current.open) { current.showModal(); }
+  }, [deploy, sessionVerified]);
   function discardLocal(prompt: string) {
     if (portal.navigationBlocked && !window.confirm(prompt)) { return false; }
     portal.discardLocalDrafts(); return true;
@@ -118,16 +123,24 @@ export function ConfigurationVersionPage({ applicationId, configurationId, schem
     showCompare(false); edit({ scope, version: value });
   }
   function openDeploy(version: ConfigurationRelease) {
+    const current = portal.getSnapshot();
     if (pending.current || !canDeploy || versionsState.busy || versionsState.stale || map === undefined || unresolvedDeployment
+      || current.blocked || current.verification !== undefined || current.context === undefined || portalContextKey(current.context) !== sessionKey
       || !configurationVersionMatches(version, applicationId, configurationId, schemaVersion, map.environment)) { return; }
     setMessage(undefined); setDeployment({ scope, version, note: "Deploy " + configurationVersionLabel(version) });
   }
   async function previewDeployment(version: ConfigurationRelease, note: string, capturedMap: ConfigurationAssignmentMap, capturedSession: string) {
-    const epoch = portal.getSnapshot().epoch;
+    const currentSession = portal.getSnapshot();
+    if (currentSession.blocked || currentSession.verification !== undefined || currentSession.context === undefined
+      || portalContextKey(currentSession.context) !== capturedSession) { return undefined; }
+    const epoch = currentSession.epoch;
     previewOwner.selectTarget({ requestKey: base + "#deploy-preview", applicationId, definitionId: configurationId, schemaVersion });
       const command = configurationVersionDeployCommand(capturedMap, version, note);
       await previewOwner.request(async ticket => {
         if (ticket.context === undefined) { return { state: "unauthenticated" }; }
+        const current = portal.getSnapshot();
+        if (current.blocked || current.verification !== undefined || current.context === undefined
+          || portalContextKey(current.context) !== capturedSession) { return { state: "unavailable" }; }
         const response = await fetch("/api/portal/configuration/preview?pageSize=20", { method: "POST", signal: ticket.signal,
           credentials: "same-origin", cache: "no-store", redirect: "error", headers: { "Content-Type": "application/json", [portalContextHeader]: portalContextKey(ticket.context) },
           body: JSON.stringify({ commandVersion: 1, applicationId, configurationId, schemaVersion, assignment: command }) });
@@ -140,19 +153,20 @@ export function ConfigurationVersionPage({ applicationId, configurationId, schem
       });
       const result = previewOwner.view.snapshot, current = portal.getSnapshot();
       return alive.current && result !== undefined && current.context !== undefined && portalContextKey(current.context) === capturedSession
-        && portalContextKey(result.context) === capturedSession && !current.blocked ? result.value : undefined;
+        && portalContextKey(result.context) === capturedSession && !current.blocked && current.verification === undefined ? result.value : undefined;
   }
   async function confirmDeploy() {
     portal.checkExpiry();
     const current = portal.getSnapshot();
     if (pending.current || !canDeploy || deploy === undefined || map === undefined || unresolvedDeployment || current.context === undefined
+      || current.blocked || current.verification !== undefined
       || portalContextKey(current.context) !== sessionKey) { return; }
     pending.current = true; setBusy(true); setMessage(undefined);
     let issued = false;
     try {
       const reviewed = await previewDeployment(deploy.version, deploy.note, map, portalContextKey(current.context));
       const latest = portal.getSnapshot(), latestMap = mapNow.current;
-      if (reviewed === undefined || !alive.current || latest.context === undefined || latest.blocked || portalContextKey(latest.context) !== sessionKey
+      if (reviewed === undefined || !alive.current || latest.context === undefined || latest.blocked || latest.verification !== undefined || portalContextKey(latest.context) !== sessionKey
         || latestMap === undefined || latestMap.eTag !== reviewed.baseline.eTag || latestMap.bindingId !== reviewed.baseline.bindingId || latestMap.environment !== reviewed.baseline.environment) {
         setMessage("Current deployment changed or could not be reviewed. Nothing was deployed."); return;
       }
@@ -225,7 +239,11 @@ export function ConfigurationVersionPage({ applicationId, configurationId, schem
       { label: "Shared publication", value: content?.release.commonSource.publicationId }, { label: "Application publication", value: content?.release.applicationSource.publicationId },
       { label: "Assignment precondition", value: map?.eTag }, { label: "Last Save publication original", value: completedSave?.publication.key },
       { label: "Last Save version original", value: completedSave?.release.key }]} />
-    <dialog ref={dialog} className="configuration-deploy-dialog" onCancel={event => { if (busy) { event.preventDefault(); } else { setDeployment(undefined); } }}>
+    <dialog ref={dialog} className="configuration-deploy-dialog" onCancel={event => {
+      const current = portal.getSnapshot();
+      if (busy || current.blocked || current.verification !== undefined) { event.preventDefault(); }
+      else { setDeployment(undefined); }
+    }}>
       {deploy === undefined ? null : <><h2>Deploy {configurationVersionLabel(deploy.version)}</h2><p>{reportedLabel(configurationId, "Configuration")}</p><p>{appName ?? "Application"} · {deploy.version.environment}</p>
         <h3>All instances of this application in {deploy.version.environment}</h3><dl className="facts"><div className="fact"><dt>Currently deployed</dt><dd>{deployed === undefined ? map?.defaultReleaseId === undefined ? "Not deployed" : "Saved version outside this page" : configurationVersionLabel(deployed)}</dd></div>
           <div className="fact"><dt>Selected saved version</dt><dd>{configurationVersionLabel(deploy.version)}</dd></div></dl>

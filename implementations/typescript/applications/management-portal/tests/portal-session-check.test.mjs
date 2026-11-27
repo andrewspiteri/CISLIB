@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { CommandReceiptStore } from "../src/command-receipts.ts";
 import { PortalSessionCoordinator } from "../src/portal-session.ts";
 import { ProtectedStateOwner } from "../src/protected-state.ts";
-import { portalSessionInvalidationChannel, portalSessionInvalidationMessage, publishPortalSessionInvalidation,
+import { createPortalSessionInvalidation, matchesPortalSessionInvalidation, portalSessionInvalidationChannel, portalSessionInvalidationMessage, publishPortalSessionInvalidation,
   readPortalSessionCheck } from "../src/portal-session-check.ts";
 import { portalContextHeader, portalContextKey } from "../src/portal-context.ts";
 
@@ -11,18 +11,18 @@ const applicationId = "11111111-1111-4111-8111-111111111111";
 function context(session = "2", operator = "1") {
   return { operatorId: operator.repeat(64), sessionAssociation: session.repeat(64), serviceAssociation: "a".repeat(64), expiresAtMs: 10000 };
 }
-async function fixture() {
+async function fixture(initial = context(), now = () => 1000) {
   let raw = null;
   const storage = { getItem: () => raw, setItem: (_, value) => { raw = value; }, removeItem: () => { raw = null; } };
-  const receipts = new CommandReceiptStore({ context: undefined, storage: () => storage, now: () => 1000,
+  const receipts = new CommandReceiptStore({ context: undefined, storage: () => storage, now,
     createKey: () => "22222222-2222-4222-8222-222222222222" });
-  const portal = new PortalSessionCoordinator(receipts, () => 1000);
-  const owner = new ProtectedStateOwner({ context: undefined, receipts, now: () => 1000 });
+  const portal = new PortalSessionCoordinator(receipts, now);
+  const owner = new ProtectedStateOwner({ context: undefined, receipts, now });
   portal.register(owner);
   owner.selectTarget({ requestKey: "/api/portal/applications" });
   await owner.request(async () => {
-    portal.observe(context(), 0, owner);
-    return { state: "ready", context: context(), value: "private native observation" };
+    portal.observe(initial, 0, owner);
+    return { state: "ready", context: initial, value: "private native observation" };
   });
   owner.startDraft("baseline JSON"); owner.editDraft("unsaved JSON");
   assert.equal(receipts.prepare({ family: "management.metadata.replace", target: { applicationId } }).kind, "prepared");
@@ -134,14 +134,85 @@ test("only an actual matching BFF response can unmask; unauthorized and changed 
   }
 });
 
-test("peer invalidation carries one fixed credential-free message and degrades to the independent available transport", () => {
+test("an older tab expiry or changed-session check cannot erase a newer valid session's draft and originals", async () => {
+  for (const cause of ["expiry", "changed"]) {
+    let now = 1000;
+    const oldContext = context(), newerContext = { ...context("3"), expiresAtMs: 20000 };
+    const old = await fixture(oldContext, () => now), peer = await fixture(oldContext, () => now), newer = await fixture(newerContext, () => now);
+    const original = newer.raw(), epoch = newer.portal.getSnapshot().epoch;
+    const stop = old.portal.subscribe(() => {
+      const value = old.portal.getSnapshot().invalidatedSession;
+      peer.portal.receiveSessionInvalidation(value);
+      newer.portal.receiveSessionInvalidation(value);
+    });
+    if (cause === "expiry") { now = 10000; old.portal.checkExpiry(); }
+    else { await old.portal.revalidateSession(async () => ({ state: "changed" })); }
+    stop();
+    assert.equal(old.portal.getSnapshot().invalidatedSession, createPortalSessionInvalidation(oldContext));
+    for (const invalid of [old, peer]) {
+      assert.equal(invalid.portal.getSnapshot().blocked, true);
+      assert.equal(invalid.owner.view.snapshot, undefined); assert.equal(invalid.owner.view.draft, undefined); assert.equal(invalid.raw(), null);
+    }
+    assert.deepEqual(newer.portal.getSnapshot().context, newerContext);
+    assert.equal(newer.portal.getSnapshot().epoch, epoch); assert.equal(newer.portal.getSnapshot().blocked, false);
+    assert.equal(newer.owner.view.draft.text, "unsaved JSON"); assert.equal(newer.owner.view.snapshot.value, "private native observation");
+    assert.equal(newer.raw(), original); assert.equal(newer.receipts.load().receipts.length, 1);
+  }
+});
+
+test("matching old-session signout clears peers immediately without abandoning held work or another session's originals", async () => {
+  const source = await fixture(), peer = await fixture(), newer = await fixture(context("3"));
+  const original = newer.raw(), held = Promise.withResolvers(), entered = Promise.withResolvers();
+  let signal, settled = false;
+  const pending = peer.portal.revalidateSession(async (_, value) => {
+    signal = value; entered.resolve(); await held.promise; return { state: "current", context: context() };
+  });
+  pending.then(() => { settled = true; });
+  await entered.promise;
+  const stop = source.portal.subscribe(() => {
+    const value = source.portal.getSnapshot().invalidatedSession;
+    peer.portal.receiveSessionInvalidation(value); newer.portal.receiveSessionInvalidation(value);
+  });
+  source.portal.signOut(); stop();
+  assert.equal(signal.aborted, true); assert.equal(settled, false);
+  assert.equal(peer.owner.view.snapshot, undefined); assert.equal(peer.owner.view.draft, undefined); assert.equal(peer.raw(), null);
+  const epoch = peer.portal.getSnapshot().epoch;
+  assert.equal(peer.portal.receiveSessionInvalidation(source.portal.getSnapshot().invalidatedSession), false);
+  assert.equal(peer.portal.getSnapshot().epoch, epoch);
+  assert.equal(newer.owner.view.draft.text, "unsaved JSON"); assert.equal(newer.raw(), original);
+  held.resolve(); await pending;
+  assert.equal(peer.portal.getSnapshot().blocked, true); assert.equal(peer.portal.getSnapshot().context, undefined);
+});
+
+test("legacy, malformed and different session/service invalidations cannot clear protected state or originals", async () => {
+  const f = await fixture(), original = f.raw(), actual = createPortalSessionInvalidation(context());
+  const values = [undefined, null, portalSessionInvalidationMessage, {}, [actual], actual + ".extra", actual + "\n", actual.toUpperCase(),
+    createPortalSessionInvalidation(context("3")), createPortalSessionInvalidation({ ...context(), serviceAssociation: "b".repeat(64) })];
+  assert.equal(matchesPortalSessionInvalidation(actual, undefined), false);
+  for (const value of values) {
+    assert.equal(f.portal.receiveSessionInvalidation(value), false);
+    assert.equal(f.owner.view.draft.text, "unsaved JSON"); assert.equal(f.raw(), original);
+  }
+  assert.equal(f.portal.receiveSessionInvalidation(actual), true);
+  assert.equal(f.owner.view.draft, undefined); assert.equal(f.raw(), null);
+});
+
+test("peer invalidation carries only closed nonsecret session/service associations with independent transport fallback", () => {
   const sent = [], stored = [];
+  const current = context(), value = createPortalSessionInvalidation(current);
+  assert.equal(value, `invalidate:${current.sessionAssociation}.${current.serviceAssociation}`);
+  assert.equal(value.includes(current.operatorId), false);
   const storage = { setItem: (key, value) => stored.push([key, value]), removeItem: key => stored.push([key]) };
-  publishPortalSessionInvalidation({ postMessage: message => sent.push(message) }, () => storage);
-  assert.deepEqual(sent, [portalSessionInvalidationMessage]);
-  assert.deepEqual(stored, [[portalSessionInvalidationChannel, portalSessionInvalidationMessage], [portalSessionInvalidationChannel]]);
+  publishPortalSessionInvalidation(value, { postMessage: message => sent.push(message) }, () => storage);
+  assert.deepEqual(sent, [value]);
+  assert.deepEqual(stored, [[portalSessionInvalidationChannel, value], [portalSessionInvalidationChannel]]);
   stored.length = 0;
-  publishPortalSessionInvalidation({ postMessage: () => { throw new Error("channel unavailable"); } }, () => storage);
-  assert.deepEqual(stored, [[portalSessionInvalidationChannel, portalSessionInvalidationMessage], [portalSessionInvalidationChannel]]);
-  assert.doesNotThrow(() => publishPortalSessionInvalidation(undefined, () => { throw new Error("storage unavailable"); }));
+  publishPortalSessionInvalidation(value, { postMessage: () => { throw new Error("channel unavailable"); } }, () => storage);
+  assert.deepEqual(stored, [[portalSessionInvalidationChannel, value], [portalSessionInvalidationChannel]]);
+  assert.doesNotThrow(() => publishPortalSessionInvalidation(value, undefined, () => { throw new Error("storage unavailable"); }));
+  sent.length = 0; stored.length = 0;
+  for (const invalid of [undefined, null, portalSessionInvalidationMessage, value + ".extra", value + "\n", value.toUpperCase()]) {
+    publishPortalSessionInvalidation(invalid, { postMessage: message => sent.push(message) }, () => storage);
+  }
+  assert.deepEqual(sent, []); assert.deepEqual(stored, []);
 });

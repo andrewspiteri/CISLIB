@@ -17,7 +17,8 @@ public sealed partial class ManagementPortalHostTests
         foreach (string name in new[]
         {
             "sameSessionDraftPreserved", "pendingProtectedSurfacesHidden", "unavailableStaysMaskedWithDraft",
-            "signoutClearedPeer", "operatorSwitchClearedPeer", "heldContextReadJoined"
+            "signoutClearedPeer", "operatorSwitchClearedPeer", "heldContextReadJoined",
+            "newerSessionDraftRetained", "retiredSessionPeersCleared"
         })
         {
             Assert.IsTrue(proof.GetProperty(name).GetBoolean(), "The actual shared-cookie browser boundary must prove " + name + ".");

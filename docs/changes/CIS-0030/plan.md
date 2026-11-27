@@ -72,3 +72,5 @@ Derived under `cislib:CIS-0030:outcome:1bd0878814134335b822d2827a100e02` by Code
 | WORK-197 | [Invalidate protected Configuration across tabs and session changes](agent-tasks/WORK-197.md) | Complete |  |
 | WORK-198 | [Refresh open Configuration editor context without losing drafts](agent-tasks/WORK-198.md) | Complete |  |
 | WORK-199 | [Prepare portal build and headed browser in existing service CI](agent-tasks/WORK-199.md) | ReadyForReview |  |
+| WORK-200 | [Scope peer invalidation to the retired session](agent-tasks/WORK-200.md) | Complete |  |
+| WORK-201 | [Suspend native Deploy modality during session verification](agent-tasks/WORK-201.md) | Complete |  |

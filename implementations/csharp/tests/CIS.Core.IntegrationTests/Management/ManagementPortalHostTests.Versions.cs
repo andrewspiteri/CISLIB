@@ -41,6 +41,20 @@ public sealed partial class ManagementPortalHostTests
         Assert.IsTrue(proof.GetProperty("comparedActualDeployed").GetBoolean());
         Assert.IsTrue(proof.GetProperty("newConfigurationNotDeployed").GetBoolean());
 
+        JsonElement deploySessionRetry = proof.GetProperty("deploySessionRetry");
+        Assert.AreEqual(secondRelease, deploySessionRetry.GetProperty("releaseId").GetString());
+        Assert.AreEqual(0, deploySessionRetry.GetProperty("mutations").GetInt32(),
+            "Pointer and keyboard session recovery must not preview or deploy Configuration.");
+        Assert.AreEqual(2, deploySessionRetry.GetProperty("heldChecksJoined").GetInt32());
+        foreach (string name in new[]
+        {
+            "pointerRetry", "keyboardRetry", "modalSuspendedWhileChecking", "modalSuspendedWhileUnavailable",
+            "sameSelectionAndNoteRestored", "cancelRestored", "nativeOwnersJoined"
+        })
+        {
+            Assert.IsTrue(deploySessionRetry.GetProperty(name).GetBoolean(), "The actual native modal boundary must prove " + name + ".");
+        }
+
         foreach ((string id, string source, string payload) in new[]
         {
             (commonPublication, common.SourceId, ManualSharedPayload),

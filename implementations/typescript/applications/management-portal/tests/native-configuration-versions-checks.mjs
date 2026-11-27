@@ -160,6 +160,8 @@ export async function verifyConfigurationVersionsBrowser({ page, pageB, origin, 
     cases.push("native-diff-compares-actual-deployed-version-and-preserves-large-number-tokens");
     await screenshot(page, "r09-saved-version-deployed-diff");
 
+    const { verifyDeploySessionRetryBrowser } = await import("./native-deploy-session-checks.mjs");
+    const deploySessionRetry = await verifyDeploySessionRetryBrowser({ page, origin, applicationA, version: second, screenshot, cases });
     await deploy(page, versions, second, "Deploy second saved version");
     let current = await get(page, origin + base + "/assignments?schemaVersion=1");
     assert.equal(current.defaultReleaseId, second.releaseId); assert.equal(current.generation, "2"); assert.deepEqual(current.overrides, []);
@@ -240,7 +242,7 @@ export async function verifyConfigurationVersionsBrowser({ page, pageB, origin, 
       newSourceId: detail.content.publication.sourceId, newBindingId: unassigned.bindingId,
       newPublicationId: created.applicationSource.publicationId, newReleaseId: created.releaseId,
       firstSha256: sha(firstRaw), secondSha256: sha(secondRaw), newSha256: sha(newRaw), finalGeneration: current.generation, windowGeometry,
-      saveLeftDeploymentUnchanged: true, comparedActualDeployed: true, newConfigurationNotDeployed: true, effects };
+      saveLeftDeploymentUnchanged: true, comparedActualDeployed: true, newConfigurationNotDeployed: true, deploySessionRetry, effects };
   } finally { page.off("request", observe); }
 }
 

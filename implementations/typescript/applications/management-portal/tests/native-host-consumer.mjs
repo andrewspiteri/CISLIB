@@ -314,7 +314,11 @@ try {
         await login(initial, idp, origin, input.operatorA);
         const renewed = await newContext(origin);
         await login(renewed, idp, origin, input.operatorA);
-        sessionTabsContexts = { initial, renewed };
+        const stale = await newContext(origin);
+        await login(stale, idp, origin, input.operatorA);
+        const newer = await newContext(origin);
+        await login(newer, idp, origin, input.operatorA);
+        sessionTabsContexts = { initial, renewed, stale, newer };
       }
       if (editorRefresh != null) {
         refreshOperatorContext = await newContext(origin);
@@ -722,7 +726,7 @@ function writePhase() {
 function rememberFailure(error) { firstFailurePhase ??= phase; failures.push(error); writePhase(); }
 function fixtureFailure(error) {
   const knownKinds = ["Error", "TypeError", "SyntaxError", "AssertionError", "TimeoutError", "AbortError", "AggregateError"];
-  const frame = error instanceof Error ? /(native-host-consumer|native-host-cancel-consumer|native-config-save-consumer|native-config-deploy-consumer|native-configuration-menu-checks|native-session-tabs-checks|native-configuration-refresh-checks|native-instance-status-boundaries-checks|native-configuration-boundaries-checks|native-instance-status-checks|native-configuration-versions-checks|native-configuration-checks|native-r08-checks|native-rollout-checks|native-browser-checks|native-session-store-consumer)\.mjs:(\d{1,6}):(\d{1,6})/u.exec(error.stack ?? "") : null;
+  const frame = error instanceof Error ? /(native-host-consumer|native-host-cancel-consumer|native-config-save-consumer|native-config-deploy-consumer|native-configuration-menu-checks|native-deploy-session-checks|native-session-tabs-checks|native-configuration-refresh-checks|native-instance-status-boundaries-checks|native-configuration-boundaries-checks|native-instance-status-checks|native-configuration-versions-checks|native-configuration-checks|native-r08-checks|native-rollout-checks|native-browser-checks|native-session-store-consumer)\.mjs:(\d{1,6}):(\d{1,6})/u.exec(error.stack ?? "") : null;
   return { kind: error instanceof Error && knownKinds.includes(error.name) ? error.name : "Other",
     sourceFile: frame === null ? null : frame[1] + ".mjs", sourceLine: frame === null ? null : Number(frame[2]), sourceColumn: frame === null ? null : Number(frame[3]) };
 }

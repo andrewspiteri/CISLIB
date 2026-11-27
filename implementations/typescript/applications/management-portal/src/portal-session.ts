@@ -2,6 +2,7 @@ import { CommandReceiptStore } from "./command-receipts.ts";
 import type { CommandReceiptBlockReason } from "./command-receipts.ts";
 import { capturePortalContext, samePortalSession } from "./portal-context.ts";
 import type { PortalSessionContext } from "./portal-context.ts";
+import { createPortalSessionInvalidation, matchesPortalSessionInvalidation } from "./portal-session-check.ts";
 import type { PortalSessionCheckResult } from "./portal-session-check.ts";
 
 export interface PortalStateHandle {
@@ -18,6 +19,7 @@ export interface PortalSessionSnapshot {
   readonly blocked: boolean;
   readonly blockReason?: "session" | "clock";
   readonly verification?: "checking" | "unavailable";
+  readonly invalidatedSession?: string;
 }
 
 /** One document's identity boundary across concurrent list, detail and editor owners. */
@@ -92,11 +94,20 @@ export class PortalSessionCoordinator {
 
   signOut(): void {
     if (this.current.blocked && this.current.blockReason === "session") { return; }
+    const invalidatedSession = this.current.context === undefined ? undefined : createPortalSessionInvalidation(this.current.context);
     this.sessionCheck?.controller.abort();
     for (const owner of this.owners) { owner.signOut(); }
     this.receipts.setContext(undefined);
     this.receipts.clearLocalReferences();
-    this.publish(Object.freeze({ context: undefined, epoch: this.current.epoch + 1, blocked: true, blockReason: "session" }));
+    this.publish(Object.freeze({ context: undefined, epoch: this.current.epoch + 1, blocked: true, blockReason: "session",
+      ...(invalidatedSession === undefined ? {} : { invalidatedSession }) }));
+  }
+
+  /** An obsolete document cannot invalidate a different, newer session. */
+  receiveSessionInvalidation(value: unknown): boolean {
+    if (!matchesPortalSessionInvalidation(value, this.current.context)) { return false; }
+    this.signOut();
+    return true;
   }
 
   /** Revalidate one active document without discarding a still-valid local draft. */

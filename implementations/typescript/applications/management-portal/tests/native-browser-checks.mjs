@@ -51,7 +51,8 @@ export async function verifyBrowser({ origin, applicationA, applicationB, regist
         const secondPage = await a.newPage();
         const { verifySessionTabsBrowser } = await import("./native-session-tabs-checks.mjs");
         proof = await verifySessionTabsBrowser({ page, secondPage, origin, applicationA, operatorBContext,
-          renewedOperatorAContext: sessionTabsContexts.renewed, screenshot, cases });
+          renewedOperatorAContext: sessionTabsContexts.renewed, staleOperatorAContext: sessionTabsContexts.stale,
+          newerOperatorAContext: sessionTabsContexts.newer, screenshot, cases });
       }
       assert.deepEqual(errors, []);
       await writeFile(join(evidence, "browser-evidence.json"), JSON.stringify({ passed: true, cases, [proofName]: true }, null, 2));
@@ -497,7 +498,7 @@ export async function verifyBrowser({ origin, applicationA, applicationB, regist
       try { await screenshot(activePage, "failure-" + stage); failureScreenshotSaved = true; }
       catch { /* The original assertion and all native cleanup remain required. */ }
     }
-    const sourceLine = error instanceof Error ? /(native-browser-checks|native-config-save-consumer|native-config-deploy-consumer|native-configuration-menu-checks|native-session-tabs-checks|native-configuration-refresh-checks|native-instance-status-boundaries-checks|native-configuration-boundaries-checks|native-instance-status-checks|native-configuration-versions-checks|native-configuration-checks|native-r08-checks|native-rollout-checks)\.mjs:(\d+):(\d+)/u.exec(error.stack ?? "") : null;
+    const sourceLine = error instanceof Error ? /(native-browser-checks|native-config-save-consumer|native-config-deploy-consumer|native-configuration-menu-checks|native-deploy-session-checks|native-session-tabs-checks|native-configuration-refresh-checks|native-instance-status-boundaries-checks|native-configuration-boundaries-checks|native-instance-status-checks|native-configuration-versions-checks|native-configuration-checks|native-r08-checks|native-rollout-checks)\.mjs:(\d+):(\d+)/u.exec(error.stack ?? "") : null;
     // Source coordinates and fixed stages identify the failed assertion without persisting DOM, URLs or credentials.
     await writeFile(join(evidence, "browser-failure.json"), JSON.stringify({ stage, completedCases: cases,
       sourceFile: sourceLine === null ? null : sourceLine[1] + ".mjs",

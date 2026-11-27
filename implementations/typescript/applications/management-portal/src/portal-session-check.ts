@@ -4,13 +4,27 @@ import type { PortalSessionContext } from "./portal-context.ts";
 export const portalSessionInvalidationChannel = "cis.management.portal.session.v1";
 export const portalSessionInvalidationMessage = "invalidate";
 
-/** A notification only invalidates: it carries no identity, value, receipt or reusable credential. */
-export function publishPortalSessionInvalidation(channel: Pick<BroadcastChannel, "postMessage"> | undefined,
+/** Only the affected nonsecret session/service associations cross documents. */
+export function createPortalSessionInvalidation(context: PortalSessionContext): string {
+  return `${portalSessionInvalidationMessage}:${context.sessionAssociation}.${context.serviceAssociation}`;
+}
+
+function isPortalSessionInvalidation(value: unknown): value is string {
+  return typeof value === "string" && value.length === 140 && /^invalidate:[a-f0-9]{64}\.[a-f0-9]{64}$/u.test(value);
+}
+
+export function matchesPortalSessionInvalidation(value: unknown, context: PortalSessionContext | undefined): boolean {
+  return context !== undefined && isPortalSessionInvalidation(value) && value === createPortalSessionInvalidation(context);
+}
+
+/** Notifications carry no user identity, protected value, receipt or reusable credential. */
+export function publishPortalSessionInvalidation(value: unknown, channel: Pick<BroadcastChannel, "postMessage"> | undefined,
   storage: () => Pick<Storage, "setItem" | "removeItem">): void {
-  try { channel?.postMessage(portalSessionInvalidationMessage); } catch { /* The storage notification remains available. */ }
+  if (!isPortalSessionInvalidation(value)) { return; }
+  try { channel?.postMessage(value); } catch { /* The storage notification remains available. */ }
   try {
     const target = storage();
-    target.setItem(portalSessionInvalidationChannel, portalSessionInvalidationMessage);
+    target.setItem(portalSessionInvalidationChannel, value);
     target.removeItem(portalSessionInvalidationChannel);
   } catch { /* The active document still revalidates its actual server session. */ }
 }
