@@ -15,11 +15,14 @@ export default async function RuleEnginesRoute({ params, searchParams }: {
   const rulesetId = parameter(input, "rulesetId") ?? segments[0], action = segments[1];
   const historyView = action === "executions";
   const version = historyView ? undefined : parameter(input, "version");
-  if (applicationId === undefined || !validRouteParameters(input, ["rulesetId", "version"])
+  const schemaRevision = parameter(input, "schemaRevision");
+  if (applicationId === undefined || !validRouteParameters(input, ["rulesetId", "version", "schemaRevision"])
     || segments.length > 3 || rulesetId !== undefined && !isRuleSelector(rulesetId)
     || segments.length === 0 && (rulesetId !== undefined || version !== undefined)
     || version !== undefined && !isUuid(version)
-    || action !== undefined && !["versions", "deploy", "deployment", "reconcile", "counters", "executions"].includes(action)
+    || action !== undefined && !["new-version", "versions", "deploy", "deployment", "reconcile", "counters", "executions"].includes(action)
+    || (action === "new-version") !== (schemaRevision !== undefined)
+    || schemaRevision !== undefined && (!isRuleSelector(schemaRevision) || version !== undefined)
     || action === "deploy" && (version !== undefined || !isUuid(segments[2]))
     || action !== "deploy" && !historyView && segments.length > 2
     || historyView && segments.length === 3 && !isUuid(segments[2])) { notFound(); }
@@ -36,6 +39,7 @@ export default async function RuleEnginesRoute({ params, searchParams }: {
         ...(cursor === undefined ? {} : { cursor }), ...(focusExecution === undefined ? {} : { focusExecution }) };
     } catch { notFound(); }
   }
-  return <RuleEnginePage key={JSON.stringify([applicationId, rulesetId, view, selectedVersion, executionId, history])} applicationId={applicationId}
-    rulesetId={rulesetId} view={view} initialVersion={selectedVersion} executionId={executionId} history={history} context={listContext(input)} />;
+  return <RuleEnginePage key={JSON.stringify([applicationId, rulesetId, view, selectedVersion, schemaRevision, executionId, history])}
+    applicationId={applicationId} rulesetId={rulesetId} view={view} initialVersion={selectedVersion}
+    newSchemaRevision={schemaRevision} executionId={executionId} history={history} context={listContext(input)} />;
 }

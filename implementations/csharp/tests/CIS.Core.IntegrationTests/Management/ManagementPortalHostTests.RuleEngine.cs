@@ -3,6 +3,7 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using CIS.Management;
+using CIS.Management.Service;
 using CIS.Management.Service.Configuration;
 using CIS.Management.Service.Security;
 using CIS.Management.Wire;
@@ -17,6 +18,9 @@ public sealed partial class ManagementPortalHostTests
     private const string PortalRuleConfiguration = "rm11.portal";
     private const string PortalRuleset = "country-eligibility";
     private const string PortalRuleSchema = "schema-1";
+    private const string PortalUpdatedRuleSchema = "schema-2";
+    private const string PortalAddedRuleColumn = "resident";
+    private const string PortalAddedRuleColumnName = "Resident";
     private const string PortalRulesetName = "Country eligibility";
     private const string PortalExactDecimal = "9007199254740993.000000000001";
     private const string PortalExactMetadata = """{"balance":9007199254740993,"rate":1.2300e5}""";
@@ -25,6 +29,12 @@ public sealed partial class ManagementPortalHostTests
     public async Task ActualRuleGridKeepsImmutableHistoryAndDeploysOnlyAnExplicitAuthorizedVersion()
     {
         await RunFixtureAsync(browser: true, ruleEngineWorkflow: true);
+    }
+
+    [TestMethod]
+    public async Task ActualRuleGridCanSaveFirstVersionOfUpdatedSchema()
+    {
+        await RunFixtureAsync(browser: true, ruleEngineWorkflow: true, ruleEngineSchemaUpdate: true);
     }
 
     private sealed record RulePortalSeed(string FirstVersion, string SecondVersion, string ReadOnlyVersion, string FirstDefinition,
@@ -57,6 +67,31 @@ public sealed partial class ManagementPortalHostTests
         ];
         return Encoding.UTF8.GetString(RuleDefinitionCodec.Encode(new(PortalRuleset, PortalRuleSchema, "draft",
             mode, columns, rows, PortalRulesetName)));
+    }
+
+    private static ManagementServiceOptions PortalRuleSchemaUpdateOptions(ManagementServiceOptions original)
+    {
+        ManagementConfigurationOptions currentOptions = original.Configuration!;
+        ManagementConfigurationManifest current = currentOptions.Manifest;
+        RuleDefinition previous = RuleDefinitionCodec.Decode(Encoding.UTF8.GetBytes(PortalRuleDefinition([])));
+        var updated = new RuleDefinition(PortalRuleset, PortalUpdatedRuleSchema, "draft", previous.Mode,
+            [.. previous.Columns, new(PortalAddedRuleColumn, PortalAddedRuleColumnName, RuleValueKind.Boolean, [RulePresetKind.Boolean])],
+            [], PortalRulesetName);
+        string schemaJson = Encoding.UTF8.GetString(RuleDefinitionCodec.Encode(updated));
+        ManagementConfigurationManifest manifest = current with
+        {
+            RuleEngine = current.RuleEngine!.Select(registration => registration.Application == "managed-a"
+                ? registration with
+                {
+                    SchemaJson = schemaJson
+                }
+                : registration).ToArray()
+        };
+        var configuration = new ManagementConfigurationOptions(JsonSerializer.Serialize(manifest, ManagementConfigurationOptions.Json),
+            currentOptions.QuotaBytes, currentOptions.RetainedUnreferencedReleases, currentOptions.PinnedReleaseIds);
+        return new(original.ConnectionString, original.CopyCursorSigningKey(), original.Persistence, original.BasePath,
+            original.MaximumConcurrentRequests, original.OperationsSchema, original.MessagingSchema, original.Delivery,
+            original.Backend, configuration);
     }
 
     private static RuleRow[] PortalRuleRows(string country) =>
@@ -285,6 +320,30 @@ public sealed partial class ManagementPortalHostTests
             """);
         original.Parameters.AddWithValue("key", proof.GetProperty("originalKey").GetString()!);
         Assert.AreEqual(1L, (long)(await original.ExecuteScalarAsync())!);
+    }
+
+    private static async Task VerifyPortalRuleSchemaUpdateAsync(ManagementHostFixture fixture, HttpClient actor, RulePortalSeed seed,
+        JsonElement proof)
+    {
+        string saved = proof.GetProperty("savedVersion").GetString()!;
+        Assert.AreEqual(seed.SecondVersion, proof.GetProperty("previousVersion").GetString());
+        Assert.AreEqual(PortalUpdatedRuleSchema, proof.GetProperty("schemaRevision").GetString());
+        Assert.AreNotEqual(seed.SecondVersion, saved);
+        Dictionary<string, byte[]> definitions = await PortalRuleVersions(fixture, fixture.ApplicationA);
+        Assert.HasCount(4, definitions);
+        Assert.AreEqual(seed.FirstDefinition, Encoding.UTF8.GetString(definitions[seed.FirstVersion]));
+        Assert.AreEqual(seed.SecondDefinition, Encoding.UTF8.GetString(definitions[seed.SecondVersion]));
+        RuleDefinition authored = RuleDefinitionCodec.Decode(definitions[saved]);
+        Assert.AreEqual(PortalUpdatedRuleSchema, authored.SchemaRevision);
+        Assert.AreEqual(PortalAddedRuleColumn, authored.Columns[^1].Id);
+        RuleRow added = authored.Rows.Single();
+        RuleCondition resident = added.Conditions[^1];
+        Assert.AreEqual(PortalAddedRuleColumn, resident.ColumnId);
+        Assert.AreEqual(RuleOperator.Equals, resident.Operator);
+        Assert.AreEqual(true, resident.Preset?.BooleanValue);
+        JsonElement deployment = await ReadRuleFixtureJson(actor, PortalRulePath(fixture.ApplicationA, "deployment"));
+        Guid deployed = deployment.GetProperty("desired").GetProperty("version").GetGuid();
+        Assert.AreEqual(Guid.Parse(seed.FirstVersion), deployed, "Saving the first version for the new schema must leave deployment unchanged.");
     }
 
     private static async Task<Dictionary<string, byte[]>> PortalRuleVersions(ManagementHostFixture fixture, string application)

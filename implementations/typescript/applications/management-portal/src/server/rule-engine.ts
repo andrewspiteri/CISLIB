@@ -135,7 +135,7 @@ export function handleRuleEngine(request: Request, path: readonly string[]): Pro
 async function readCapabilities(scope: PortalCallScope, applicationId: string): Promise<Response> {
   const first = await scope.runtime.management.listApplicationApiCapabilities(applicationId, { pageSize: 64 }, scope.context);
   if (first.kind !== "http" || first.status !== 200 || !first.cleanupSucceeded || first.value === undefined) { return read(scope, first); }
-  const relevant = new Set(["listRuleEngineRulesets", "saveRuleEngineVersion", "getRuleEngineVersionOperation", "getRuleEngineDeployment",
+  const relevant = new Set(["listRuleEngineRulesets", "getRuleEngineSchema", "saveRuleEngineVersion", "getRuleEngineVersionOperation", "getRuleEngineDeployment",
     "getRuleEngineDeploymentInstances", "requestRuleEngineDeployment", "getRuleEngineDeploymentOperation",
     "listRuleEngineCounters", "resetRuleEngineCounters", "getRuleEngineCounterResetOperation", "listRuleEngineCounterResetOutcomes",
     "listRuleEngineExecutions", "getRuleEngineExecution"]);

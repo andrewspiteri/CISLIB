@@ -4,7 +4,7 @@ import { readableSlug } from "./portal-routes.ts";
 import type { PortalListContext } from "./portal-routes.ts";
 import { isRuleSelector } from "./rule-engine-draft.ts";
 
-export type RulePortalView = "grid" | "versions" | "deploy" | "deployment" | "reconcile" | "counters" | "executions" | "execution";
+export type RulePortalView = "grid" | "new-version" | "versions" | "deploy" | "deployment" | "reconcile" | "counters" | "executions" | "execution";
 export interface RuleHistoryReturn { readonly filters: RuleExecutionQuery; readonly cursor?: string; readonly focusExecution?: string; }
 export const ruleExecutionFilterKeys = ["executionId", "version", "instanceId", "status", "startedFromUtc", "startedThroughUtc"] as const;
 
@@ -25,10 +25,13 @@ export function readRuleExecutionFilters(read: (key: typeof ruleExecutionFilterK
 export function ruleEngineRoute(input: {
   readonly applicationId: string; readonly applicationName?: string | undefined; readonly rulesetId?: string | undefined;
   readonly rulesetName?: string | undefined; readonly view?: RulePortalView | undefined; readonly version?: string | undefined;
+  readonly schemaRevision?: string | undefined;
   readonly executionId?: string | undefined; readonly history?: RuleHistoryReturn | undefined; readonly context?: PortalListContext | undefined;
 }) {
   if (!isUuid(input.applicationId) || input.rulesetId !== undefined && !isRuleSelector(input.rulesetId)
     || input.version !== undefined && !isUuid(input.version) || input.view === "deploy" && input.version === undefined
+    || (input.view === "new-version") !== (input.schemaRevision !== undefined)
+    || input.schemaRevision !== undefined && (!isRuleSelector(input.schemaRevision) || input.version !== undefined || input.rulesetId === undefined)
     || input.view === "execution" && !isUuid(input.executionId)
     || input.history?.cursor !== undefined && !isCursor(input.history.cursor)
     || input.history?.focusExecution !== undefined && !isUuid(input.history.focusExecution)) {
@@ -46,6 +49,7 @@ export function ruleEngineRoute(input: {
     if (input.view === "execution") { path += "/" + input.executionId; }
   }
   if (input.version !== undefined && input.view !== "deploy") { query.set("version", input.version); }
+  if (input.schemaRevision !== undefined) { query.set("schemaRevision", input.schemaRevision); }
   if (input.history !== undefined) {
     const filters = readRuleExecutionFilters(key => input.history?.filters[key]);
     for (const [key, value] of Object.entries(filters)) { query.set(key, value); }

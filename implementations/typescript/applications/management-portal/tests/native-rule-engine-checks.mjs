@@ -14,6 +14,80 @@ export async function verifyRuleEngineWorkflow(options) {
   }
 }
 
+export async function verifyRuleEngineSchemaUpdate({ page, origin, applicationA, schemaUpdate, screenshot, cases }) {
+  const { rulesetId, previousVersion, previousSchemaRevision, currentSchemaRevision, addedColumnName, addedColumnId } = schemaUpdate;
+  const native = origin + "/api/portal/applications/" + applicationA + "/rule-engine";
+  const url = (route, selectors = {}) => native + "/" + route + "?" + new URLSearchParams({ rulesetId, ...selectors });
+  const previous = (await read(page, url("version", { version: previousVersion }))).value;
+  const assignment = (await read(page, url("deployment"))).value;
+  const schema = (await read(page, url("schema", { schemaRevision: currentSchemaRevision }))).value;
+  const capabilities = (await read(page, native + "/capabilities")).value;
+  assert.ok(capabilities.some(item => item.operationId === "getRuleEngineSchema" && item.allowed));
+  const columns = JSON.parse(schema.schemaJson).columns;
+  assert.equal(previous.schemaRevision, previousSchemaRevision);
+  assert.equal(schema.schemaRevision, currentSchemaRevision);
+  assert.ok(columns.some(column => column.id === addedColumnId && column.displayName === addedColumnName));
+
+  await page.goto(origin + ruleEngineRoute({ applicationId: applicationA, rulesetId }));
+  await expect(page.getByText("This saved version uses an earlier schema. Its definition remains read-only.")).toBeVisible();
+  const start = page.getByRole("link", { name: "Start version with current schema", exact: true });
+  await expect(start).toBeVisible();
+  await expect(page.getByRole("button", { name: "Add rule", exact: true })).toHaveCount(0);
+  await page.getByRole("link", { name: "Versions", exact: true }).click();
+  await expect(page.getByText("Read only", { exact: false })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Edit as new version", exact: true })).toHaveCount(0);
+  await start.click();
+  await expect(page).toHaveURL(next => next.pathname.endsWith("/new-version") && next.searchParams.get("schemaRevision") === currentSchemaRevision
+    && !next.searchParams.has("version"));
+
+  const grid = page.getByRole("region", { name: "Rules grid" });
+  const condition = page.getByRole("region", { name: "Condition inspector" });
+  const save = page.getByRole("button", { name: "Save version", exact: true });
+  await expect(grid.getByRole("columnheader", { name: addedColumnName, exact: true })).toBeVisible();
+  await expect(grid.getByText("No rules", { exact: true })).toBeVisible();
+  await grid.getByRole("button", { name: "Add rule", exact: true }).click();
+  for (const column of columns.filter(column => column.id !== addedColumnId)) {
+    await selectCell(page, 10, column.displayName);
+    await condition.getByLabel("Condition", { exact: true }).selectOption("any");
+  }
+  const note = "Current schema version created from the portal";
+  await page.getByLabel("Version note", { exact: true }).fill(note);
+  await save.click();
+  const addedCell = grid.getByRole("button", { name: new RegExp("^Rule 10 " + addedColumnName + ":") });
+  await expect(addedCell).toHaveAttribute("aria-invalid", "true");
+  await expect(condition.getByLabel("Condition", { exact: true })).toHaveValue("");
+  await condition.getByLabel("Condition", { exact: true }).selectOption("boolean");
+  await condition.getByLabel("Operator", { exact: true }).selectOption("equals");
+  await condition.getByLabel("Boolean value", { exact: true }).selectOption("true");
+  await screenshot(page, "rm11-new-schema-draft");
+
+  const saveUrl = url("versions");
+  const submitted = page.waitForResponse(response => response.url() === saveUrl && response.request().method() === "POST");
+  await save.click();
+  const response = await submitted;
+  assert.equal(response.status(), 200);
+  const command = response.request().postDataJSON();
+  assert.equal(command.schemaRevision, currentSchemaRevision);
+  assert.equal(Object.hasOwn(command, "baseVersion"), false);
+  const decided = await response.json();
+  assert.equal(decided.state, "ready");
+  assert.equal(decided.value.disposition, "committed");
+  const savedVersion = decided.value.version;
+  assert.notEqual(savedVersion, previousVersion);
+  await expect(page).toHaveURL(next => next.pathname.endsWith("/versions") && next.searchParams.get("version") === savedVersion);
+  await expect(page.getByRole("heading", { name: note, exact: true })).toBeVisible();
+  const saved = (await read(page, url("version", { version: savedVersion }))).value;
+  const definition = JSON.parse(saved.definitionJson);
+  assert.equal(definition.schemaRevision, currentSchemaRevision);
+  assert.equal(definition.rows.length, 1);
+  assert.deepEqual(definition.rows[0].conditions.find(cell => cell.columnId === addedColumnId),
+    { columnId: addedColumnId, presetKind: "boolean", operator: "equals", preset: { kind: "boolean", value: true } });
+  assert.deepEqual((await read(page, url("version", { version: previousVersion }))).value, previous);
+  assert.deepEqual((await read(page, url("deployment"))).value, assignment);
+  cases.push("rm11-native-schema-update-start-current-draft-save-explicit-cells-and-retain-history");
+  return { savedVersion, previousVersion, schemaRevision: currentSchemaRevision };
+}
+
 async function runWorkflow({ page, pageB, origin, applicationA, applicationB, workflow, screenshot, cases }, markStage) {
   const { rulesetId, displayName, firstVersion, secondVersion, readOnlyVersion } = workflow;
   const native = origin + "/api/portal/applications/" + applicationA + "/rule-engine";

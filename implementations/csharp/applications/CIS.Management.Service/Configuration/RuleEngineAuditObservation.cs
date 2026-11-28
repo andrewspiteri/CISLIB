@@ -135,7 +135,8 @@ internal sealed class RuleEngineAuditObservationCodec : IMessageCodec<RuleEngine
             else
             {
                 finishedAt = Timestamp(details, "finishedAtUtc");
-                Require(finishedAt >= startedAt && record.OccurredAtUtc == finishedAt
+                // Producer UTC can move backwards during an invocation. Phase and causation establish the event order.
+                Require(record.OccurredAtUtc == finishedAt
                     && record.CausationAuditId is { } causation && causation != Guid.Empty);
                 status = EnumValue<RuleExecutionStatus>(details, "status");
                 Require(record.Outcome == (status switch

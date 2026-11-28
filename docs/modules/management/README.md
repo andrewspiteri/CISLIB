@@ -140,3 +140,16 @@ PostgreSQL/RabbitMQ and HTTPS suites supply their separate provider, atomicity,
 authorization and recovery evidence. See the active change's verification record
 for actual executed results; local tests do not establish deployment or release
 qualification.
+
+## Rule Engine counter capacity
+
+Management projects Rule Engine counters after it accepts terminal execution
+audit records. Each replica attempts one batch every five seconds. The batch
+size is the smaller of 16 and the configured persistence cleanup batch size.
+All rulesets in the same Management store share the pending-execution queue.
+
+At the maximum batch size, the nominal ceiling is 3.2 terminal executions per
+second per replica before database latency and contention. Sustained input
+above the effective processing rate increases the backlog. Counter reads report
+stale values while the scoped backlog remains. Counter projection runs
+independently of rule evaluation and durable audit acceptance.

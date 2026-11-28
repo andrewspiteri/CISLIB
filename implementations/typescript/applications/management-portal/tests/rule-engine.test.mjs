@@ -52,6 +52,17 @@ test("browser routes keep opaque selectors separate from cosmetic path segments"
   assert.match(url.pathname, /\/country-demo\/rule-engines\/active-rules\/deploy\//);
 });
 
+test("starting a new ruleset version pins an exact schema independently of a saved version", () => {
+  const schemaRevision = "fixture 2 / next+👋";
+  const url = new URL(ruleEngineRoute({ applicationId: app, rulesetId, view: "new-version", schemaRevision }), "https://portal.example");
+  assert.match(url.pathname, /\/new-version$/);
+  assert.equal(url.searchParams.get("schemaRevision"), schemaRevision);
+  assert.equal(url.searchParams.has("version"), false);
+  assert.throws(() => ruleEngineRoute({ applicationId: app, rulesetId, view: "new-version" }));
+  assert.throws(() => ruleEngineRoute({ applicationId: app, rulesetId, view: "new-version", schemaRevision, version }));
+  assert.throws(() => ruleEngineRoute({ applicationId: app, rulesetId, view: "versions", schemaRevision, version }));
+});
+
 test("operation projection preserves original commitment and refuses cross-target echoes", () => {
   const family = "management.rule-engine.version.save";
   const target = { applicationId: app, rulesetId };

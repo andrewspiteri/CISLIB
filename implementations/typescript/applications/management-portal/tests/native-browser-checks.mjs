@@ -9,9 +9,11 @@ import { capturePortalContext, portalContextHeader, portalContextKey } from "../
 
 export async function verifyBrowser({ origin, applicationA, applicationB, registrationA, operatorAContext, operatorBContext, lookupOperatorContext, rollout, adoptionObservations, r08 = false, reviewCorrections = false, versionWorkflow = false, instanceStatus = false, firstVersion = false,
   newSaveRecovery = false, releaseConflict = false, configurationDeploy, configurationBoundary, instanceStatusBoundaries,
-  configurationMenus, sessionTabsContexts, editorRefresh, refreshOperatorContext, ruleEngineWorkflow, ruleEngineInspection }) {
+  configurationMenus, sessionTabsContexts, editorRefresh, refreshOperatorContext,
+  ruleEngineWorkflow, ruleEngineInspection, ruleEngineSchemaUpdate }) {
   const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../../../..");
-  const evidence = join(root, ruleEngineInspection != null ? ".artifacts/management-portal/CIS-0031/WORK-012"
+  const evidence = join(root, ruleEngineSchemaUpdate != null ? ".artifacts/management-portal/CIS-0031/schema-update"
+    : ruleEngineInspection != null ? ".artifacts/management-portal/CIS-0031/WORK-012"
     : ruleEngineWorkflow == null ? ".artifacts/management-portal/CIS-0029/WORK-005"
       : ".artifacts/management-portal/CIS-0031/WORK-011", "browser-" + randomUUID());
   await mkdir(evidence, { recursive: true });
@@ -36,6 +38,17 @@ export async function verifyBrowser({ origin, applicationA, applicationB, regist
   }
   async function screenshot(page, name) { await page.screenshot({ path: join(evidence, name + ".png"), fullPage: true }); }
   try {
+    if (ruleEngineSchemaUpdate != null) {
+      stage = "rule-engine-schema-update";
+      const a = await context(operatorAContext);
+      const page = await a.newPage();
+      activePage = page;
+      const { verifyRuleEngineSchemaUpdate } = await import("./native-rule-engine-checks.mjs");
+      const proof = await verifyRuleEngineSchemaUpdate({ page, origin, applicationA, schemaUpdate: ruleEngineSchemaUpdate, screenshot, cases });
+      assert.deepEqual(errors, []);
+      await writeFile(join(evidence, "browser-evidence.json"), JSON.stringify({ passed: true, cases, ruleEngineSchemaUpdate: proof }, null, 2));
+      return { cases, metadataAppliedKeys, metadataConflictKeys, ruleEngineSchemaUpdate: proof };
+    }
     if (ruleEngineWorkflow != null) {
       stage = "rule-engine-workflow";
       const a = await context(operatorAContext), b = await context(operatorBContext);

@@ -25,10 +25,11 @@ const configurationMenus = input.configurationMenus;
 const editorRefresh = input.editorRefresh;
 const ruleEngineWorkflow = input.ruleEngineWorkflow;
 const ruleEngineInspection = input.ruleEngineInspection;
+const ruleEngineSchemaUpdate = input.ruleEngineSchemaUpdate;
 const expectedApplicationsA = configurationBoundary?.scenario === "Predeployment"
   ? [input.applicationA, configurationBoundary.applicationId] : [input.applicationA];
 const hasBoundaryJourney = configurationBoundary != null || instanceStatusBoundaries != null || configurationMenus != null || editorRefresh != null
-  || input.sessionTabs === true || ruleEngineWorkflow != null;
+  || input.sessionTabs === true || ruleEngineWorkflow != null || ruleEngineSchemaUpdate != null;
 const manual = captureManualSession(input.manual);
 if (manual !== undefined) {
   assert.match(input.continuityOperator, /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u);
@@ -39,8 +40,9 @@ const fixtureSubjects = Object.freeze(manual === undefined ? [input.operatorA, i
   : [input.operatorA, input.operatorB, input.continuityOperator]);
 const portalDirectory = dirname(dirname(fileURLToPath(import.meta.url)));
 const evidenceDirectory = join(resolve(portalDirectory, "../../../.."), ".artifacts", "management-portal",
-  ruleEngineInspection == null ? "CIS-0029" : "CIS-0031",
-  ruleEngineInspection != null ? "WORK-012" : manual === undefined ? "WORK-004" : "WORK-006", "native-host-" + randomUUID());
+  ruleEngineInspection == null && ruleEngineSchemaUpdate == null ? "CIS-0029" : "CIS-0031",
+  ruleEngineSchemaUpdate != null ? "schema-update" : ruleEngineInspection != null ? "WORK-012"
+    : manual === undefined ? "WORK-004" : "WORK-006", "native-host-" + randomUUID());
 mkdirSync(evidenceDirectory, { recursive: true });
 const signing = createPrivateKey(await readFile(join(directory, "oidc.key")));
 const jwk = { ...createPublicKey(signing).export({ format: "jwk" }), kid: "rm09-portal-owned-key", alg: "RS256", use: "sig" };
@@ -97,6 +99,7 @@ let sessionTabsProof;
 let editorRefreshProof;
 let ruleEngineWorkflowProof;
 let ruleEngineInspectionProof;
+let ruleEngineSchemaUpdateProof;
 recordPhase("preparation");
 if (manual !== undefined) { await publishManualStatus("starting"); }
 const ownerStore = createSessionStore(captureStoreConfig({ CIS_PORTAL_SESSION_DATABASE: input.sessionOwnerUrl,
@@ -342,8 +345,9 @@ try {
         instanceStatus: input.instanceStatus === true, firstVersion: input.firstVersion === true,
         newSaveRecovery: input.newSaveRecovery === true, releaseConflict: input.releaseConflict === true,
         configurationDeploy: input.configurationDeploy, configurationBoundary, instanceStatusBoundaries,
-        configurationMenus, sessionTabsContexts, editorRefresh, refreshOperatorContext, ruleEngineWorkflow, ruleEngineInspection });
-      if (ruleEngineWorkflow != null) { cases.push(...desktop.cases); }
+        configurationMenus, sessionTabsContexts, editorRefresh, refreshOperatorContext,
+        ruleEngineWorkflow, ruleEngineInspection, ruleEngineSchemaUpdate });
+      if (ruleEngineWorkflow != null || ruleEngineSchemaUpdate != null) { cases.push(...desktop.cases); }
       metadataAppliedKeys.push(...desktop.metadataAppliedKeys);
       metadataConflictKeys.push(...desktop.metadataConflictKeys);
       configurationProof = desktop.configuration;
@@ -363,6 +367,7 @@ try {
       editorRefreshProof = desktop.editorRefresh;
       ruleEngineWorkflowProof = desktop.ruleEngineWorkflow;
       ruleEngineInspectionProof = desktop.ruleEngineInspection;
+      ruleEngineSchemaUpdateProof = desktop.ruleEngineSchemaUpdate;
     }
     // Exercise this changed UI first while retaining every legacy API assertion
     // below. A later native crash still fails the test, but cannot erase saved
@@ -560,6 +565,7 @@ if (failures.length !== 0) {
     ...(editorRefreshProof === undefined ? {} : { editorRefresh: editorRefreshProof }),
     ...(ruleEngineWorkflowProof === undefined ? {} : { ruleEngineWorkflow: ruleEngineWorkflowProof }),
     ...(ruleEngineInspectionProof === undefined ? {} : { ruleEngineInspection: ruleEngineInspectionProof }),
+    ...(ruleEngineSchemaUpdateProof === undefined ? {} : { ruleEngineSchemaUpdate: ruleEngineSchemaUpdateProof }),
     hostClosed, socketsDrained: true, browserChecked: manual === undefined && input.browser,
     ...(manual === undefined ? {} : { manualSession: true, manualStopReason, manualTokenExchanges, manualBrowserClosed }) };
   writeFileSync(join(evidenceDirectory, "report.json"), JSON.stringify(report, null, 2));

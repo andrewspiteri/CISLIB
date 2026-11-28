@@ -222,15 +222,15 @@ public sealed class RuleEngineAuditIntegrationTests
             Assert.AreEqual(0, details.GetProperty("selectedRowIndices").EnumerateArray().Single().GetInt32());
         });
 
-    private static async Task WithNativeAudit(Func<PostgresMessageFixture, IAuditCapture, IAuditWriter, AuditLimits, Task> test,
-        long? capacity = null)
+    internal static async Task WithNativeAudit(Func<PostgresMessageFixture, IAuditCapture, IAuditWriter, AuditLimits, Task> test,
+        long? capacity = null, TimeProvider? clock = null)
     {
         await using PostgresMessageFixture database = await PostgresMessageFixture.CreateAsync(capacity: capacity);
         LocalApplicationIdentity local = LocalApplicationIdentity.Capture();
         var limits = new AuditLimits();
         MessagingSnapshot snapshot = AuditNativeTestSupport.Snapshot(limits);
         await using var resources = new MessagingResourceBudget(snapshot.Settings);
-        await using var engine = new AuditCaptureEngine(local, limits, TimeProvider.System, resources);
+        await using var engine = new AuditCaptureEngine(local, limits, clock ?? TimeProvider.System, resources);
         var outbox = new MessageOutbox(snapshot, database.Store, resources, local);
         await using var writer = new AuditWriter(new(AuditNativeTestSupport.Route, limits), local, outbox,
             new MessageSubmissionClient(outbox, database.Factory));
@@ -352,9 +352,9 @@ public sealed class RuleEngineAuditIntegrationTests
 
     private static string Text(JsonElement value, string property) => value.GetProperty(property).GetString()!;
 
-    private sealed record AuditAttempt(AuditRecord Record, AuditSubmissionResult Submission);
+    internal sealed record AuditAttempt(AuditRecord Record, AuditSubmissionResult Submission);
 
-    private sealed class AuditProbe(IAuditWriter actual, Func<CapturedAuditRecord, CancellationToken, Task>? beforeSubmit = null,
+    internal sealed class AuditProbe(IAuditWriter actual, Func<CapturedAuditRecord, CancellationToken, Task>? beforeSubmit = null,
         Action<CapturedAuditRecord, AuditSubmissionResult>? afterSubmit = null) : IAuditWriter
     {
         internal List<AuditAttempt> Attempts { get; } = [];

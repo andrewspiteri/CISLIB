@@ -201,6 +201,88 @@ public sealed partial class ManagementRuleEngineVersionTests
         AssertExecution(completed[1], facts, "Completed", true, true, returnedMatchCount: 1);
     }
 
+    [TestMethod]
+    public async Task RegressedProducerUtcPreservesDurableCompletionAndProjectsHit()
+    {
+        await using ManagementHostFixture fixture = await ManagementHostFixture.CreateAsync(replicas: 1, start: false,
+            configuration: RuleDeployment(), ruleAuditManagedApplication: "managed-a");
+        await fixture.StartReplicaAsync(selectSecurity: selected => WithRuleGrants(selected, fixture.ApplicationA,
+            secondEditor: false, deployment: true, executionHistory: true, counters: true));
+
+        string application = fixture.ApplicationA;
+        HttpClient actor = fixture.Client("operator-a");
+        HttpClient workload = fixture.Client("workload-a");
+        await Apply(actor, await Catalog(actor), "clock-regression-catalog");
+        string registration = await Register(workload);
+        string version = await SaveCountry(actor, application, "clock-regression-save", "MLT");
+        await DeployAccepted(actor, application, "clock-regression-deploy", (await Assignment(actor, application)).ETag, version);
+        string definition = ReadText(await Get(actor, RuleRoute(application, "version") + "&version=" + version), "definitionJson");
+        PreparedRuleDefinition prepared = RuleDefinitionValidator.Prepare(RuleDefinitionCodec.Decode(Encoding.UTF8.GetBytes(definition)));
+        ManagementConfigurationDesiredContext desired = await ReadWorkloadDesired(workload, registration);
+        var target = new ConfigurationSnapshotTarget(desired.AuthorityId, desired.ApplicationId, desired.Environment,
+            desired.RegistrationId, desired.HostApplicationName, desired.CohortId);
+        DateTimeOffset startedAt = DateTimeOffset.UtcNow;
+        DateTimeOffset finishedAt = startedAt.AddMinutes(-2);
+        var clock = new ManualTimeProvider(startedAt);
+        const string correlation = "clock-regression";
+
+        await RuleEngineAuditIntegrationTests.WithNativeAudit(async (source, capture, writer, limits) =>
+        {
+            var probe = new RuleEngineAuditIntegrationTests.AuditProbe(writer, afterSubmit: (record, result) =>
+            {
+                Assert.AreEqual(AuditSubmissionOutcome.OutboxCommitted, result.Outcome);
+                Assert.IsNotNull(result.Receipt);
+                if (record.Record.EventType == RuleEngineAuditEvents.ExecutionStarted)
+                {
+                    clock.Advance(TimeSpan.FromMilliseconds(5));
+                    clock.SetUtcNow(finishedAt);
+                }
+            });
+            var evaluator = new RuleEvaluator((_, _) => Task.FromResult(new RuleEngineSelection(prepared, target)),
+                capture, probe, limits, clock);
+            var inputs = new RuleInputSnapshot([new("country", RuleValue.FromString("MLT"))]);
+            RuleEvaluationResult execution = await evaluator.EvaluateAsync(new(RulesetId, inputs, version, correlation));
+            Assert.AreEqual(RuleExecutionStatus.Completed, execution.Status);
+            Assert.HasCount(1, execution.Matches);
+            Assert.AreEqual(TimeSpan.FromMilliseconds(5), clock.GetElapsedTime(0));
+            Assert.HasCount(2, probe.Attempts);
+            Assert.AreEqual(2L, await source.CountAsync("outbox"));
+            RuleEngineAuditIntegrationTests.AuditAttempt start = probe.Attempts[0];
+            RuleEngineAuditIntegrationTests.AuditAttempt completion = probe.Attempts[1];
+            Assert.AreEqual(RuleEngineAuditEvents.ExecutionStarted, start.Record.EventType);
+            Assert.AreEqual(RuleEngineAuditEvents.ExecutionCompleted, completion.Record.EventType);
+            Assert.AreEqual(start.Record.AuditId, completion.Record.CausationAuditId);
+            Assert.AreEqual(startedAt, start.Record.OccurredAtUtc);
+            Assert.AreEqual(finishedAt, completion.Record.OccurredAtUtc);
+
+            foreach (RuleEngineAuditIntegrationTests.AuditAttempt attempt in probe.Attempts)
+            {
+                MessageStageReceipt receipt = attempt.Submission.Receipt!;
+                byte[] wire = await AuditNativeTestSupport.ReadStoredWireAsync(source, receipt.RecordId);
+                Assert.IsTrue(MessageWire.TryDecode(wire, out EncodedMessage? message, out _));
+                Assert.IsNotNull(message);
+                Assert.AreEqual(receipt.MessageId, message.Envelope.MessageId);
+                CollectionAssert.AreEqual(attempt.Record.OriginalBytes.ToArray(), message.Envelope.CopyPayload());
+                await fixture.PublishRuleAuditAsync(message);
+                await AwaitExecutionReceipt(fixture, receipt.MessageId, trusted: true);
+            }
+
+            JsonElement detail = await Get(actor, ExecutionDetailsRoute(application, execution.ExecutionId));
+            var facts = new RuleExecutionAuditFacts(execution.ExecutionId, target, LocalApplicationIdentity.Capture(), RulesetId,
+                SchemaRevision, version, correlation, startedAt);
+            JsonElement summary = detail.GetProperty("execution");
+            AssertExecution(summary, facts, "Completed", true, true, returnedMatchCount: 1);
+            Assert.AreEqual(finishedAt, summary.GetProperty("finishedAtUtc").GetDateTimeOffset());
+            Assert.AreEqual(Encoding.UTF8.GetString(start.Record.OriginalBytes.Span), ReadText(detail, "startAuditJson"));
+            Assert.AreEqual(Encoding.UTF8.GetString(completion.Record.OriginalBytes.Span), ReadText(detail, "completionAuditJson"));
+            await RabbitMqMessageFixture.UntilAsync(async () =>
+            {
+                JsonElement counters = await Get(actor, RuleRoute(application, "counters"));
+                return CounterEquals(CounterRows(counters), "stable", "1");
+            }, TimeSpan.FromSeconds(20));
+        }, clock: clock);
+    }
+
     private static string ExecutionDetailsRoute(string application, Guid executionId)
         => RuleRoute(application, $"executions/{executionId:D}");
 

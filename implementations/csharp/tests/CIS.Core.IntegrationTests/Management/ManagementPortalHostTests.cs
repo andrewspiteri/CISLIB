@@ -100,7 +100,7 @@ public sealed partial class ManagementPortalHostTests
         bool newSaveRecovery = false, bool releaseConflict = false, bool deployControls = false, bool metadataOnlyDeploy = false,
         ConfigurationBoundaryScenario configurationBoundary = ConfigurationBoundaryScenario.None, bool instanceStatusBoundaries = false,
         bool configurationMenus = false, bool sessionTabs = false, bool editorRefresh = false, bool ruleEngineWorkflow = false,
-        bool ruleEngineInspection = false)
+        bool ruleEngineInspection = false, bool ruleEngineSchemaUpdate = false)
     {
         bool reviewScenario = configurationMenus || sessionTabs || editorRefresh;
         if (reviewScenario && (!browser || rollout || r08 || reviewCorrections || versionWorkflow || instanceStatus || firstVersion
@@ -160,6 +160,10 @@ public sealed partial class ManagementPortalHostTests
         if (ruleEngineInspection && !ruleEngineWorkflow)
         {
             throw new ArgumentException("Rule Engine inspection continues the native editing and deployment workflow.");
+        }
+        if (ruleEngineSchemaUpdate && (!ruleEngineWorkflow || ruleEngineInspection))
+        {
+            throw new ArgumentException("The Rule Engine schema update requires its own browser journey.");
         }
 
         string? manualDirectory = System.Environment.GetEnvironmentVariable("CIS_PORTAL_MANUAL_CONTROL_DIRECTORY");
@@ -239,6 +243,15 @@ public sealed partial class ManagementPortalHostTests
             string secondRegistration = manualDirectory is null ? await SeedInventoryAsync(fixture) : await SeedManualInventoryAsync(fixture);
             string[] adoptionObservations = seedConfigurationRollout ? await SeedPortalAdoptionObservationsAsync(fixture, catalogActor, configurationBaseline) : [];
             await fixture.StopReplicasAsync();
+            var updatedRuleOptions = ruleEngineSchemaUpdate ? PortalRuleSchemaUpdateOptions(fixture.Options) : null;
+            if (updatedRuleOptions is not null)
+            {
+                await fixture.StartReplicaAsync(source => WithPortalRuleSeeder(source, fixture, inspection: false), serviceOptions: updatedRuleOptions);
+                HttpClient updatedCatalogActor = fixture.Client("operator-a", fixture.Origins.Count - 1);
+                await ManagementConfigurationCatalogTests.Apply(updatedCatalogActor,
+                    await ManagementConfigurationCatalogTests.Catalog(updatedCatalogActor), "portal-rule-current-schema");
+                await fixture.StopReplicasAsync();
+            }
             int issuerPort = UnusedPort();
             string authority = "https://localhost:" + issuerPort.ToString(CultureInfo.InvariantCulture);
             string issuer = authority + "/" + Tenant + "/v2.0";
@@ -357,7 +370,7 @@ public sealed partial class ManagementPortalHostTests
                         "management.application", definition.ApplicationId!) } : Array.Empty<CapabilityGrant>()
                 ]
             };
-            await fixture.StartReplicaAsync(selectSecurity);
+            await fixture.StartReplicaAsync(selectSecurity, serviceOptions: updatedRuleOptions);
             string? lookupOriginalKey = null;
             ConfigurationLookupProof? configurationLookup = null;
             ConfigurationRolloutSeed? rolloutSeed = null;
@@ -379,7 +392,7 @@ public sealed partial class ManagementPortalHostTests
                 }
                 await fixture.StopReplicasAsync();
                 seedLookup = false;
-                await fixture.StartReplicaAsync(selectSecurity);
+                await fixture.StartReplicaAsync(selectSecurity, serviceOptions: updatedRuleOptions);
             }
             IReadOnlyList<InstanceStatusFingerprint>? instanceStatusBaseline = instanceStatus
                 ? await ReadInstanceStatusFingerprintsAsync(fixture) : null;
@@ -464,6 +477,15 @@ public sealed partial class ManagementPortalHostTests
                 },
                 ruleEngineInspection = inspectionSeed is null ? (JsonElement?)null
                     : JsonSerializer.SerializeToElement(inspectionSeed, new JsonSerializerOptions(JsonSerializerDefaults.Web)),
+                ruleEngineSchemaUpdate = !ruleEngineSchemaUpdate ? null : new
+                {
+                    rulesetId = PortalRuleset,
+                    previousVersion = ruleSeed!.SecondVersion,
+                    previousSchemaRevision = PortalRuleSchema,
+                    currentSchemaRevision = PortalUpdatedRuleSchema,
+                    addedColumnName = PortalAddedRuleColumnName,
+                    addedColumnId = PortalAddedRuleColumn
+                },
                 configurationMenus = menuSeed is null ? (JsonElement?)null
                     : JsonSerializer.SerializeToElement(menuSeed, new JsonSerializerOptions(JsonSerializerDefaults.Web)),
                 editorRefresh = !editorRefresh ? null : new
@@ -546,7 +568,13 @@ public sealed partial class ManagementPortalHostTests
                     expectedApplied: fullDesktopJourney ? 5 : 2, expectedRejected: fullDesktopJourney ? 2 : 1);
                 if (browser)
                 {
-                    if (ruleEngineWorkflow)
+                    if (ruleEngineSchemaUpdate)
+                    {
+                        HttpClient schemaActor = fixture.Client(subject: null, replica: fixture.Origins.Count - 1,
+                            explicitToken: LookupToken(signing, issuer, OperatorA));
+                        await VerifyPortalRuleSchemaUpdateAsync(fixture, schemaActor, ruleSeed!, report.RootElement.GetProperty("ruleEngineSchemaUpdate"));
+                    }
+                    else if (ruleEngineWorkflow)
                     {
                         await VerifyPortalRuleWorkflowAsync(fixture, ruleSeed!, report.RootElement.GetProperty("ruleEngineWorkflow"));
                         if (inspectionSeed is not null)

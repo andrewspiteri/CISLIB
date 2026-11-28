@@ -24,8 +24,11 @@ import { RuleExecutionHistory, RuleExecutionInspection } from "./rule-engine-his
 import { useProtectedPortal } from "./protected-context";
 
 type ViewProps = { readonly applicationId: string; readonly context: PortalListContext; readonly rulesetId: string | undefined;
-  readonly view: RulePortalView; readonly initialVersion: string | undefined; readonly executionId: string | undefined; readonly history: RuleHistoryReturn; };
+  readonly view: RulePortalView; readonly initialVersion: string | undefined; readonly newSchemaRevision: string | undefined;
+  readonly executionId: string | undefined; readonly history: RuleHistoryReturn; };
 type RuleGrant = { readonly operationId: string; readonly allowed: boolean };
+type RuleEditingBasis = { readonly version: string; readonly schemaRevision?: never }
+  | { readonly version?: never; readonly schemaRevision: string };
 const saveOperation = "management.rule-engine.version.save" as const;
 const deployOperation = "management.rule-engine.deployment.request" as const;
 
@@ -49,6 +52,7 @@ export function RuleEnginePage(props: ViewProps) {
     {application === undefined ? null : props.rulesetId === undefined
       ? <RuleSets application={application} context={props.context} revision={revision} refresh={() => refresh(value => value + 1)} />
       : <RuleWorkspace application={application} rulesetId={props.rulesetId} view={props.view} initialVersion={props.initialVersion}
+        newSchemaRevision={props.newSchemaRevision}
         executionId={props.executionId} history={props.history} context={props.context} appFresh={fresh(appRead)}
         revision={revision} refresh={() => refresh(value => value + 1)} />}
   </Shell>;
@@ -100,9 +104,9 @@ function RuleSetEntry({ item, name, context, base, revision }: {
     <td><Badge>{deploymentRead.stale ? "Stale" : desired === undefined ? "Unavailable" : desired.desired === undefined ? "No request" : "Requested"}</Badge></td></tr>;
 }
 
-function RuleWorkspace({ application, rulesetId, view, initialVersion, executionId, history, context, appFresh, revision, refresh }: {
+function RuleWorkspace({ application, rulesetId, view, initialVersion, newSchemaRevision, executionId, history, context, appFresh, revision, refresh }: {
   readonly application: PortalApplication; readonly rulesetId: string; readonly view: RulePortalView; readonly initialVersion: string | undefined;
-  readonly executionId: string | undefined; readonly history: RuleHistoryReturn;
+  readonly newSchemaRevision: string | undefined; readonly executionId: string | undefined; readonly history: RuleHistoryReturn;
   readonly context: PortalListContext; readonly appFresh: boolean; readonly revision: number; readonly refresh: () => void;
 }) {
   const router = useRouter();
@@ -123,14 +127,18 @@ function RuleWorkspace({ application, rulesetId, view, initialVersion, execution
     cursor: view === "versions" ? versionPages.cursor : undefined }), revision);
   const versions = scopedPage(ready(versionsRead), applicationId, rulesetId, environment);
   const [picked, select] = useState<string>();
-  const [basis, setBasis] = useState<{ readonly version: string | undefined }>();
-  const editing = view === "grid" || view === "reconcile";
+  const [basis, setBasis] = useState<RuleEditingBasis>();
+  const editing = view === "grid" || view === "new-version" || view === "reconcile";
+  const activeBasis: RuleEditingBasis | undefined = newSchemaRevision === undefined ? basis : { schemaRevision: newSchemaRevision };
   useEffect(() => {
-    if (editing && basis === undefined && versions !== undefined && fresh(versionsRead)) {
-      setBasis({ version: initialVersion ?? versions.items[0]?.version });
+    if (editing && newSchemaRevision === undefined && basis === undefined && versions !== undefined && fresh(versionsRead)) {
+      const saved = initialVersion ?? versions.items[0]?.version;
+      if (saved !== undefined) { setBasis({ version: saved }); }
+      else if (rule !== undefined && fresh(ruleRead)) { setBasis({ schemaRevision: rule.schemaRevision }); }
     }
-  }, [editing, basis, versions, initialVersion, versionsRead]);
-  const versionId = editing && basis !== undefined ? basis.version : picked ?? initialVersion ?? versions?.items[0]?.version;
+  }, [editing, newSchemaRevision, basis, versions, initialVersion, versionsRead, rule, ruleRead]);
+  const versionId = editing && activeBasis !== undefined ? activeBasis.version : picked ?? initialVersion ?? versions?.items[0]?.version;
+  const draftSchemaRevision = editing ? activeBasis?.schemaRevision : undefined;
   const versionRead = usePortalRead<RuleVersion>(versionId === undefined || !["grid", "versions", "deploy", "reconcile"].includes(view) ? null
     : queryUrl(base + "/version", { rulesetId, version: versionId }), revision);
   const selectedVersion = scoped(ready(versionRead), applicationId, rulesetId, environment);
@@ -148,15 +156,19 @@ function RuleWorkspace({ application, rulesetId, view, initialVersion, execution
   const status = ready(statusRead);
   const instances = status?.items.every(item => item.rulesetId === rulesetId && item.configuration.applicationId === applicationId
     && item.configuration.environment === environment) ? status : undefined;
-  const activeSchemaRead = usePortalRead<RuleSchema>(editing && rule !== undefined && versionId === undefined && basis !== undefined
-    ? queryUrl(base + "/schema", { rulesetId, schemaRevision: rule.schemaRevision }) : null, revision);
+  const activeSchemaRead = usePortalRead<RuleSchema>(draftSchemaRevision !== undefined && rule?.schemaRevision === draftSchemaRevision
+    ? queryUrl(base + "/schema", { rulesetId, schemaRevision: draftSchemaRevision }) : null, revision);
   const schema = scoped(ready(activeSchemaRead), applicationId, rulesetId, environment);
-  const initial = useMemo(() => version !== undefined ? parseVersion(version.definitionJson, rulesetId, version.schemaRevision, version.version)
-    : schema === undefined || rule?.schemaRevision !== schema.schemaRevision ? undefined : parseVersion(schema.schemaJson, rulesetId, schema.schemaRevision),
-    [version, schema, rule?.schemaRevision, rulesetId]);
-  const held = useRuleDraft({ applicationId, rulesetId, environment, initial, versionId, rule, ruleRead, dataRead: versionId === undefined ? activeSchemaRead : versionRead,
-    allowed: granted("saveRuleEngineVersion") && granted("getRuleEngineVersionOperation"), grantsRead,
-    active: editing && basis !== undefined });
+  const initial = useMemo(() => {
+    if (version !== undefined) { return parseVersion(version.definitionJson, rulesetId, version.schemaRevision, version.version); }
+    if (schema === undefined || schema.schemaRevision !== draftSchemaRevision || rule?.schemaRevision !== draftSchemaRevision) { return undefined; }
+    const empty = parseVersion(schema.schemaJson, rulesetId, schema.schemaRevision);
+    return empty?.rows.length === 0 ? empty : undefined;
+  }, [version, schema, draftSchemaRevision, rule?.schemaRevision, rulesetId]);
+  const saveAllowed = granted("saveRuleEngineVersion") && granted("getRuleEngineVersionOperation");
+  const held = useRuleDraft({ applicationId, rulesetId, environment, initial, versionId, draftSchemaRevision, rule, ruleRead,
+    dataRead: versionId === undefined ? activeSchemaRead : versionRead, allowed: saveAllowed, grantsRead,
+    active: editing && activeBasis !== undefined });
   const draft = held.draft ?? initial;
   const [note, setNote] = useState(""), [issue, setIssue] = useState<DraftIssue>(), [message, setMessage] = useState<string>();
   const [conflict, setConflict] = useState(view === "reconcile");
@@ -170,6 +182,12 @@ function RuleWorkspace({ application, rulesetId, view, initialVersion, execution
   const deployOutstanding = operation.receipts.some(receipt => receipt.family === deployOperation);
   const displayVersions = version === undefined ? versions?.items ?? [] : [version, ...(versions?.items ?? []).filter(item => item.version !== version.version)];
   const heading = rule?.displayName || "Rule engine";
+  const selectedSchemaRevision = version?.schemaRevision ?? draftSchemaRevision;
+  const earlierSchema = rule !== undefined && selectedSchemaRevision !== undefined && selectedSchemaRevision !== rule.schemaRevision;
+  const newVersionPath = earlierSchema && appFresh && fresh(ruleRead) && fresh(versionsRead) && fresh(grantsRead) && saveAllowed
+    && granted("getRuleEngineSchema") && !session.blocked && session.context !== undefined && session.verification === undefined
+    ? ruleEngineRoute({ applicationId, applicationName: name, rulesetId, rulesetName: rule.displayName,
+      view: "new-version", schemaRevision: rule.schemaRevision, context }) : undefined;
   const path = (next: RulePortalView, selection?: string) => ruleEngineRoute({ applicationId, applicationName: name, rulesetId, rulesetName: rule?.displayName,
     view: next, version: selection, context });
   const historyPath = (selection: RuleHistoryReturn, id?: string) => ruleEngineRoute({ applicationId, applicationName: name, rulesetId,
@@ -221,7 +239,7 @@ function RuleWorkspace({ application, rulesetId, view, initialVersion, execution
       {deployment?.desired === undefined ? null : <div className="rm11-requested"><span>Requested deployment</span>
         <strong>{ruleVersionLabel(deployment.desired.version, displayVersions)}</strong></div>}</div>
     <nav className="tabs rm11-tabs" aria-label="Rule engine views">
-      <Link href={path("grid")} aria-current={view === "grid" || view === "reconcile" ? "page" : undefined}>Grid</Link>
+      <Link href={path("grid")} aria-current={editing ? "page" : undefined}>Grid</Link>
       <Link href={path("versions")} aria-current={view === "versions" || view === "deploy" ? "page" : undefined}>Versions</Link>
       <Link href={path("deployment")} aria-current={view === "deployment" ? "page" : undefined}>Deployment</Link>
       {granted("listRuleEngineCounters") ? <Link href={path("counters")} aria-current={view === "counters" ? "page" : undefined}>Counters</Link>
@@ -243,17 +261,24 @@ function RuleWorkspace({ application, rulesetId, view, initialVersion, execution
       <RuleAdoption deployment={deployment} state={statusRead} page={instances} pages={instancePages} versions={displayVersions} refresh={refresh} /></> : null}
     {view === "versions" || view === "deploy" ? <RuleVersions base={base} application={application} rulesetId={rulesetId} versions={versions}
       versionsRead={versionsRead} versionRead={versionRead} selected={version} definition={initial} deployment={deployment}
-      deploymentFresh={fresh(deploymentRead)} instances={fresh(statusRead) ? instances : undefined} pages={versionPages} choose={select} path={path}
-      enableEdit={fresh(grantsRead) && granted("saveRuleEngineVersion") && granted("getRuleEngineVersionOperation") && !session.blocked
+      deploymentFresh={fresh(deploymentRead)} instances={fresh(statusRead) ? instances : undefined}
+      pages={versionPages} choose={select} path={path} newVersionPath={newVersionPath}
+      enableEdit={fresh(grantsRead) && saveAllowed && !session.blocked
         && version?.schemaRevision === rule?.schemaRevision} enableDeploy={canDeploy && !deployOutstanding} revision={revision} /> : null}
     {view === "deploy" && version !== undefined && deployment !== undefined ? <RuleDeployDialog
       active={!session.blocked && session.verification === undefined} selected={version} versions={displayVersions}
       applicationName={name} environment={environment} rulesetName={heading} deployment={deployment}
       canSubmit={canDeploy && fresh(versionRead) && !deployOutstanding && !operation.busy} onCancel={() => router.push(path("versions", version.version))}
       onDeploy={(reason, intent) => { void deploy(reason, intent); }} /> : null}
-    {(view === "grid" || view === "reconcile") ? <>
+    {editing ? <>
       <ReadNotice state={versionsRead} /><ReadNotice state={versionId === undefined ? activeSchemaRead : versionRead} />
-      {initial === undefined && versionRead.reply?.state === "ready" ? <Empty title="Definition unavailable">The definition could not be read for this ruleset.</Empty> : null}
+      {earlierSchema ? <div className="notice">
+        <p role="status">{version === undefined ? "This draft’s schema differs from the current registered schema."
+          : "This saved version uses an earlier schema. Its definition remains read-only."}</p>
+        {newVersionPath === undefined ? null : <Link className="button" href={newVersionPath}>Start version with current schema</Link>}
+      </div> : null}
+      {initial === undefined && (versionRead.reply?.state === "ready" || activeSchemaRead.reply?.state === "ready")
+        ? <Empty title="Definition unavailable">The definition could not be read for this ruleset.</Empty> : null}
       {draft === undefined ? null : <>
         {conflict ? <section className="card rm11-panel"><h2>Resolve save conflict</h2><p>Your draft is kept. Compare the current saved version before reusing its edit revision.</p>
           <ReadNotice state={compareCurrent} />
@@ -263,7 +288,6 @@ function RuleWorkspace({ application, rulesetId, view, initialVersion, execution
           <button type="button" disabled={!canEdit || !fresh(compareCurrent) || !fresh(ruleRead) || rule?.schemaRevision !== draft.schemaRevision}
             onClick={reviewLatest}>Keep draft and use latest revision</button>
         </section> : null}
-        {version !== undefined && version.schemaRevision !== rule?.schemaRevision ? <p className="notice" role="status">This saved version uses an earlier schema. Its definition remains read-only.</p> : null}
         <RuleGrid draft={draft} editable={canEdit && !operation.busy} change={next => { held.change(next); setIssue(undefined); }} issue={issue}
           hits={gridCounters?.items} hitsStale={gridCountersRead.stale === true || gridCounters?.availability === "stale"}
           actions={held.editable ? <button className="primary" type="button" disabled={!canEdit || !held.dirty || conflict || saveOutstanding || operation.busy}
@@ -278,7 +302,8 @@ function RuleWorkspace({ application, rulesetId, view, initialVersion, execution
 }
 
 function useRuleDraft(input: { readonly applicationId: string; readonly rulesetId: string; readonly environment: string;
-  readonly initial: RuleDraft | undefined; readonly versionId: string | undefined; readonly rule: RuleSetSummary | undefined;
+  readonly initial: RuleDraft | undefined; readonly versionId: string | undefined; readonly draftSchemaRevision: string | undefined;
+  readonly rule: RuleSetSummary | undefined;
   readonly ruleRead: ReadState<unknown>; readonly dataRead: ReadState<unknown>; readonly grantsRead: ReadState<unknown>;
   readonly allowed: boolean; readonly active: boolean }) {
   const { owner: portal, snapshot: session } = useProtectedPortal();
@@ -286,7 +311,7 @@ function useRuleDraft(input: { readonly applicationId: string; readonly rulesetI
   const [, redraw] = useState(0);
   const [editRevision, setEditRevision] = useState<{ key: string; eTag: string }>();
   const raw = input.initial === undefined ? undefined : JSON.stringify(input.initial);
-  const key = JSON.stringify([input.applicationId, input.rulesetId, input.environment, input.versionId ?? null]);
+  const key = JSON.stringify([input.applicationId, input.rulesetId, input.environment, input.versionId ?? null, input.draftSchemaRevision ?? null]);
   const denied = unsafe(input.ruleRead) || unsafe(input.dataRead) || unsafe(input.grantsRead)
     || fresh(input.grantsRead) && !input.allowed;
   const compatible = input.initial !== undefined && input.rule !== undefined && input.initial.schemaRevision === input.rule.schemaRevision;
@@ -323,12 +348,13 @@ function useRuleDraft(input: { readonly applicationId: string; readonly rulesetI
 }
 
 function RuleVersions({ base, application, rulesetId, versions, versionsRead, versionRead, selected, definition, deployment,
-  deploymentFresh, instances, pages, choose, path, enableEdit, enableDeploy, revision }: {
+  deploymentFresh, instances, pages, choose, path, newVersionPath, enableEdit, enableDeploy, revision }: {
   readonly base: string; readonly application: PortalApplication; readonly rulesetId: string;
   readonly versions: Page<RuleVersionSummary> | undefined; readonly versionsRead: ReadState<Page<RuleVersionSummary>>;
   readonly versionRead: ReadState<RuleVersion>; readonly selected: RuleVersion | undefined; readonly definition: RuleDraft | undefined;
   readonly deployment: RuleDeployment | undefined; readonly deploymentFresh: boolean; readonly instances: Page<RuleDeploymentInstance> | undefined;
   readonly pages: ReturnType<typeof usePages>; readonly choose: (version: string | undefined) => void;
+  readonly newVersionPath: string | undefined;
   readonly path: (view: RulePortalView, version?: string) => string; readonly enableEdit: boolean; readonly enableDeploy: boolean; readonly revision: number;
 }) {
   const [compare, setCompare] = useState(false);
@@ -363,6 +389,7 @@ function RuleVersions({ base, application, rulesetId, versions, versionsRead, ve
           <div className="section-heading"><div><h2>{ruleVersionLabel(selected.version, [selected])}</h2>
             <p>Saved <Timestamp value={selected.savedAtUtc} /> · Read only</p></div>
             <div className="rm11-actions">{enableEdit && fresh(versionRead) ? <Link className="button" href={path("grid", selected.version)}>Edit as new version</Link> : null}
+              {newVersionPath === undefined || !fresh(versionRead) ? null : <Link className="button" href={newVersionPath}>Start version with current schema</Link>}
               {enableDeploy && fresh(versionRead) ? <Link className="button primary" href={path("deploy", selected.version)}>Deploy</Link> : null}</div>
           </div>
           <Facts><Fact label="Execution mode">{modeLabels[definition.mode]}</Fact><Fact label="Schema">{definition.displayName ?? definition.schemaRevision}</Fact></Facts>
