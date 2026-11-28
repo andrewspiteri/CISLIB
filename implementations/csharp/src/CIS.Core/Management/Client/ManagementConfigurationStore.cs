@@ -1,5 +1,6 @@
 using System.Text.Json;
 using CIS.Configuration;
+using CIS.Management.Wire;
 using CIS.RestClient;
 
 namespace CIS.Management;
@@ -62,6 +63,43 @@ public sealed class ManagementConfigurationStore : IConfigurationStore, IConfigu
             client = hostedClient;
             hostedClientAdopted = true;
         }
+    }
+
+    internal async Task<ManagementRuleWorkloadVersion?> ReadRuleVersionAsync(ConfigurationSnapshotTarget target,
+        ConfigurationEnrollment enrollment, string rulesetId, string version, CancellationToken token)
+    {
+        ArgumentNullException.ThrowIfNull(target);
+        ArgumentNullException.ThrowIfNull(enrollment);
+        token.ThrowIfCancellationRequested();
+        if (!ManagementWire.IsUuid(version))
+        {
+            return null;
+        }
+
+        IManagementRuleWorkloadClient? selected;
+        lock (gate)
+        {
+            selected = hostedClientAdopted ? client as IManagementRuleWorkloadClient : null;
+        }
+        if (selected is null)
+        {
+            throw new ManagementRuleWorkloadVersionReadException(invalidResponse: false);
+        }
+        var expected = new ManagementConfigurationSnapshotTarget(target.AuthorityId, target.ApplicationId, target.Environment,
+            target.RegistrationId, enrollment.ConfigurationId, enrollment.SchemaVersion, target.HostApplicationName, target.CohortId);
+        ManagementConfigurationCallResult<ManagementRuleWorkloadVersion> response = await selected.GetRegistrationRuleVersionAsync(
+            expected, rulesetId, version, token).ConfigureAwait(false);
+        token.ThrowIfCancellationRequested();
+        RestResult<ManagementRuleWorkloadVersion> exchange = response.Exchange;
+        if (exchange.Success && exchange.Context.HasValue && exchange.Value is { } exact)
+        {
+            return exact;
+        }
+        if (exchange.Context.HttpStatusCode == 404 && response.Problem?.Code == "management.configuration.not_found")
+        {
+            return null;
+        }
+        throw new ManagementRuleWorkloadVersionReadException(exchange.Success || exchange.Context.FailureKind == RestFailureKind.InvalidResponse);
     }
 
     /// <inheritdoc />
@@ -179,4 +217,10 @@ public sealed class ManagementConfigurationStore : IConfigurationStore, IConfigu
                 ? new("present", PublicationId: reference.PublicationId, Sha256: reference.Sha256, PayloadJson: exact,
                     SourceId: reference.SourceId, ConfigurationId: target.ConfigurationId, SchemaVersion: target.SchemaVersion,
                     Environment: target.Environment, Kind: kind, ApplicationId: kind == "application" ? target.ApplicationId : null) : null;
+}
+
+internal sealed class ManagementRuleWorkloadVersionReadException(bool invalidResponse) : InvalidOperationException(
+    invalidResponse ? "The retained Rule Engine version response was invalid." : "The retained Rule Engine version could not be read.")
+{
+    internal bool InvalidResponse { get; } = invalidResponse;
 }

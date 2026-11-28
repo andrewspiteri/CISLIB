@@ -29,9 +29,11 @@ export function decodeManagement<T>(schema: ManagementSchema, input: Uint8Array 
 function validateIntegerTokens(schema: ManagementSchema, tokens: ReadonlySet<string>): void {
   const paths: Partial<Record<ManagementSchema, RegExp>> = {
     RegistrationRequest: /^\/protocolMajor$/u, MetadataCommand: /^\/commandVersion$/u,
-    ServiceInfo: /^\/(?:protocolMajors\/[0-9]+|features\/[0-9]+\/version|maximumInventoryRequestBytes)$/u,
+    ServiceInfo: /^\/(?:protocolMajors\/[0-9]+|features\/[0-9]+\/version|maximumInventoryRequestBytes|apiDiscoveryVersion)$/u,
     ControlConfirmation: /^\/validForMs$/u,
-    Capabilities: /^\/implementedApis\/[0-9]+\/version$/u,
+    Capabilities: /^(?:\/implementedApis\/[0-9]+\/version|\/apiDiscoveryVersion)$/u,
+    ServiceFeaturePage: /^\/items\/[0-9]+\/version$/u,
+    ApplicationApiCapabilityPage: /^\/items\/[0-9]+\/feature\/version$/u,
     Instance: /^\/protocolMajor$/u, InstancePage: /^\/items\/[0-9]+\/protocolMajor$/u,
     MetadataResult: /^\/result\/commandVersion$/u,
     Problem: /^(?:\/status|\/result\/result\/commandVersion)$/u

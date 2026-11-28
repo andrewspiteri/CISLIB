@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using CIS.Management.Wire;
+using CIS.RuleEngine;
 
 namespace CIS.Management.Service.Configuration;
 
@@ -37,7 +38,14 @@ public sealed record ManagementConfigurationCohort(string Issuer, string Subject
 /// <summary>Finite deployment data; HTTP callers can select its digest but cannot supply this manifest.</summary>
 public sealed record ManagementConfigurationManifest(int ManifestVersion,
     IReadOnlyList<ManagementConfigurationSchema> Definitions, IReadOnlyList<ManagementConfigurationBinding> Bindings,
-    IReadOnlyList<ManagementConfigurationCommonSource> CommonSources, IReadOnlyList<ManagementConfigurationCohort> Cohorts);
+    IReadOnlyList<ManagementConfigurationCommonSource> CommonSources, IReadOnlyList<ManagementConfigurationCohort> Cohorts)
+{
+    /// <summary>Gets the optional trusted Rule Engine schemas and their existing Configuration bindings.</summary>
+    public IReadOnlyList<ManagementRuleEngineRegistration>? RuleEngine { get; init; }
+}
+
+/// <summary>One trusted application binding and encoded, zero-row Rule Engine schema.</summary>
+public sealed record ManagementRuleEngineRegistration(string Application, string Environment, string ConfigurationId, string SchemaJson);
 
 /// <summary>Captured trusted bootstrap input and explicitly selected logical storage policy.</summary>
 public sealed class ManagementConfigurationOptions
@@ -154,7 +162,10 @@ public sealed class ManagementConfigurationOptions
             throw new ArgumentException("Supply bounded unique exact release pins.", nameof(pinnedReleaseIds));
         }
         Manifest = new(1, Array.AsReadOnly(schemas.Values.ToArray()), Array.AsReadOnly(parsed.Bindings.ToArray()),
-            Array.AsReadOnly(parsed.CommonSources.ToArray()), Array.AsReadOnly(parsed.Cohorts.ToArray()));
+            Array.AsReadOnly(parsed.CommonSources.ToArray()), Array.AsReadOnly(parsed.Cohorts.ToArray()))
+        {
+            RuleEngine = CaptureRuleEngine(parsed)
+        };
         using (IncrementalHash digest = IncrementalHash.CreateHash(HashAlgorithmName.SHA256))
         {
             Span<byte> length = stackalloc byte[4];
@@ -172,6 +183,45 @@ public sealed class ManagementConfigurationOptions
         QuotaBytes = quotaBytes;
         RetainedUnreferencedReleases = retainedUnreferencedReleases;
         PinnedReleaseIds = Array.AsReadOnly(pins);
+    }
+
+    private static IReadOnlyList<ManagementRuleEngineRegistration>? CaptureRuleEngine(ManagementConfigurationManifest manifest)
+    {
+        if (manifest.RuleEngine is not { } registrations)
+        {
+            return null;
+        }
+        if (registrations.Count > 256)
+        {
+            throw new ArgumentException("The trusted manifest has too many Rule Engine registrations.");
+        }
+
+        var rulesets = new HashSet<(string, string, string)>();
+        var bindings = new HashSet<(string, string, string)>();
+        var result = new List<ManagementRuleEngineRegistration>(registrations.Count);
+        foreach (ManagementRuleEngineRegistration registration in registrations)
+        {
+            if (registration is null || registration.SchemaJson is null || registration.SchemaJson.Length > 131072
+                || manifest.Bindings.Count(binding => binding.Application == registration.Application
+                    && binding.Environment == registration.Environment && binding.ConfigurationId == registration.ConfigurationId) != 1
+                || manifest.CommonSources.Any(source => source.Environment == registration.Environment
+                    && source.ConfigurationId == registration.ConfigurationId)
+                || !bindings.Add((registration.Application, registration.Environment, registration.ConfigurationId)))
+            {
+                throw new ArgumentException("A Rule Engine registration requires one exclusive declared application Configuration binding.");
+            }
+
+            RuleDefinition definition = RuleDefinitionCodec.Decode(Utf8.GetBytes(registration.SchemaJson));
+            if (definition.Rows.Count != 0
+                || definition.DisplayName is { } name && !ManagementWire.IsScalarText(name, 512)
+                || !rulesets.Add((registration.Application, registration.Environment, definition.RulesetId)))
+            {
+                throw new ArgumentException("Trusted Rule Engine schemas must be unique, have a valid display name when supplied, and contain no saved rules.");
+            }
+            result.Add(registration with { SchemaJson = Utf8.GetString(RuleDefinitionCodec.Encode(definition)) });
+        }
+
+        return Array.AsReadOnly(result.ToArray());
     }
 
     public string ManifestDigest

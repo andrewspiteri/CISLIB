@@ -132,6 +132,64 @@ Tests supply controlled local HTTP responses and timing through existing
 configuration/DI boundaries. The application has no self-test/failure flags,
 barriers, reports, hardcoded live data or alternative HTTP implementation.
 
+## Explicit Rule Engine example
+
+The ordinary service runs with its existing in-memory country catalog. To exercise
+the Rule Engine, use the same `CountryApplication.CreateService` facade and add
+`CountryResidenceRules.Configure` in its configure callback. Supply the two
+native Management REST aliases, the bounded same-session RM08 bootstrap and
+matching application/environment. Select the host-owned RM06 Messaging database
+store and transport before opting in to the rules.
+
+```csharp
+await using CISApplication app = CountryApplication.CreateService(args, builder =>
+{
+    // Register the host-owned Messaging store and transport on builder.Services.
+    CountryResidenceRules.Configure(builder, centralOptions, TimeSpan.FromSeconds(5));
+});
+```
+
+In trusted Management composition, declare `country.residence.rules` schema
+`"1"` for configuration host `CIS.CountryData` and the application/environment
+that the signed workload bootstrap resolves. Use the RM08 object definition
+`{"definitionChunks":[]}` with a required array of non-null strings, bind it to
+that host and application, and declare the rowless immutable Rule Engine schema
+using `RuleDefinitionCodec.Encode(CountryResidenceRules.CreateSchema())`. The
+ruleset is `country.residence` revision `"1"`. Configure the receiver's explicit
+`rule-engine-audit` route and trusted publishing principal for the same managed
+application. The workload's native registration establishes its own instance
+and configuration grant.
+
+Create a `ManagementSaveRuleVersionCommand` with `FromDefinition` and
+`CountryResidenceRules.CreateDraft(RuleExecutionMode.FirstMatch)`. Use
+`SaveVersionAsync` with the current edit ETag and an operation key. Then pass the
+returned version to `RequestDeploymentAsync` with intent `"deploy"`, the current
+assignment ETag and its own operation key. Once the first deployment is
+committed, start the workload with `await app.StartAsync(cancellationToken)` and
+wait for its actual adoption report. Use the same steps to deploy
+`RuleExecutionMode.AllMatching` as a separate immutable version.
+
+```csharp
+await using AsyncServiceScope scope = app.Services.CreateAsyncScope();
+IRuleEvaluator evaluator = scope.ServiceProvider.GetRequiredService<IRuleEvaluator>();
+RuleEvaluationResult result = await evaluator.EvaluateAsync(
+    CountryResidenceRules.CreateRequest("MLT", false), cancellationToken);
+```
+
+`ResidenceCountry` is a three-character string and `Pensioner` is a native
+Boolean. For `MLT` and `false`, FirstMatch observes the matching Test row (10)
+and selects Local (20) with weight `20`. AllMatching observes the matching Test
+row, selects Fallback (30) then Local (20) with weights `80` and `20`, and skips
+the Disabled row. Pass `exactVersion` to the request to select a specific
+eligible deployed version. Each call captures its own input and selected
+version.
+
+Retain `result.ExecutionId`. After the Audit receiver merges start/completion,
+an authorized operator can pass that ID, the managed application ID and
+`CountryResidenceRules.RulesetId` to `GetExecutionAsync` on the Management
+Rule Engine client. The protected detail contains the original committed
+Audit evidence and exact immutable definition used by that execution.
+
 ## Explicit Audit observation
 
 The default application does not select Audit delivery or register the optional

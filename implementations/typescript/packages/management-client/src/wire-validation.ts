@@ -5,7 +5,7 @@ type ObjectValue = Record<string, unknown>;
 export type ManagementSchema = "RegistrationRequest" | "Observation" | "InventorySnapshot" | "MetadataCommand"
   | "Application" | "MetadataResult" | "Problem" | "RegistrationReceipt" | "ReportReceipt" | "CloseReceipt"
   | "ServiceInfo" | "ControlConfirmation" | "Capabilities" | "Instance" | "InventoryItem" | "ApplicationPage" | "InstancePage" | "InventoryPage"
-  | "EnvironmentEntry" | "EnvironmentPage";
+  | "EnvironmentEntry" | "EnvironmentPage" | "ServiceFeaturePage" | "ApplicationApiCapabilityPage";
 
 const encoder = new TextEncoder();
 const lifecycle = new Set(["starting", "ready", "stopping", "stopped", "unknown"]);
@@ -105,17 +105,29 @@ export function validateManagement(schema: ManagementSchema, value: unknown, req
       id(object.registrationId); time(object.closedAtUtc); return;
     }
     case "ServiceInfo": {
-      const object = shape(value, false, ["serviceVersion", "protocolMajors", "features"], ["maximumInventoryRequestBytes"]);
+      const object = shape(value, false, ["serviceVersion", "protocolMajors", "features"], ["maximumInventoryRequestBytes", "apiDiscoveryVersion"]);
       scalar(object.serviceVersion, 512);
       const majors = array(object.protocolMajors, 16, 1); unique(majors.map(positiveInt)); features(object.features);
-      optional(object, "maximumInventoryRequestBytes", item => requireValue(positiveInt(item) <= 16 * 1024 * 1024)); return;
+      optional(object, "maximumInventoryRequestBytes", item => requireValue(positiveInt(item) <= 16 * 1024 * 1024));
+      optional(object, "apiDiscoveryVersion", positiveInt); return;
     }
     case "Capabilities": {
-      const object = shape(value, false, ["applicationId", "implementedApis", "callerHints"]);
-      id(object.applicationId); features(object.implementedApis);
+      const object = shape(value, false, ["applicationId", "implementedApis", "callerHints"], ["apiDiscoveryVersion"]);
+      id(object.applicationId); features(object.implementedApis); optional(object, "apiDiscoveryVersion", positiveInt);
       unique(array(object.callerHints, 64).map(item => {
         const hint = shape(item, false, ["operationId", "allowed"]); boolean(hint.allowed); return alias(hint.operationId, 128);
       })); return;
+    }
+    case "ServiceFeaturePage": {
+      const object = shape(value, false, ["profile", "items"], ["nextCursor"]);
+      requireValue(object.profile === "complete-v1"); features(object.items); optional(object, "nextCursor", item => requireValue(isCursor(item))); return;
+    }
+    case "ApplicationApiCapabilityPage": {
+      const object = shape(value, false, ["applicationId", "profile", "items"], ["nextCursor"]);
+      id(object.applicationId); requireValue(object.profile === "complete-v1");
+      const rows = array(object.items, 64).map(item => shape(item, false, ["feature", "allowed"]));
+      rows.forEach(item => boolean(item.allowed)); features(rows.map(item => item.feature));
+      optional(object, "nextCursor", item => requireValue(isCursor(item))); return;
     }
     case "Instance": instance(value); return;
     case "InventoryItem": inventoryItem(value, limits); return;

@@ -100,6 +100,11 @@ public sealed partial class PostgreSqlManagementStore
                     return ConfigurationEffect.Reject("management.configuration.not_found");
                 }
             }
+            if (await IsRuleEngineConfigurationAsync(connection, transaction, input.Application.ApplicationId,
+                input.Application.Environment, input.Command.ConfigurationId, sqlToken))
+            {
+                return ConfigurationEffect.Reject("management.configuration.rule_engine_managed");
+            }
             string host = input.Application.Application;
             if (host == "CommonConfiguration")
             {

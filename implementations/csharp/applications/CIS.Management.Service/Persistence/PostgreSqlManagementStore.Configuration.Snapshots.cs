@@ -66,6 +66,12 @@ public sealed partial class PostgreSqlManagementStore
                 LEFT JOIN {Table("configuration_definition")} ad ON ad.definition_id=aps.definition_id
                 WHERE se.registration_id=@registration AND se.application_id=@application
                     AND d.configuration_id=@configuration AND d.schema_version=@schema AND a.generation IS NOT NULL
+                    AND (NOT EXISTS(SELECT 1 FROM {Table("rule_engine_ruleset")} owned
+                            WHERE owned.application_id=se.application_id AND owned.configuration_id=d.configuration_id)
+                         OR EXISTS(SELECT 1 FROM {Table("rule_engine_ruleset")} owned
+                            JOIN {Table("rule_engine_deployment_release")} link ON link.ruleset_key=owned.ruleset_key
+                            WHERE owned.application_id=se.application_id AND owned.configuration_id=d.configuration_id
+                              AND owned.configuration_binding_id=b.binding_id AND owned.enabled AND link.release_id=r.release_id))
                 """, ("registration", registration), ("application", native.ApplicationId), ("configuration", configurationId), ("schema", schema));
             await using DbDataReader reader = await command.ExecuteReaderAsync(sqlToken);
             if (!await reader.ReadAsync(sqlToken))

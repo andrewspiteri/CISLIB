@@ -12,6 +12,7 @@ import type { ConfigurationRow } from "./configuration-list";
 import { InstanceGroups } from "./instance-list";
 import { instancePresence } from "../instance-groups.ts";
 import { applicationRoute, configurationRoute, jobDetailsRoute, readableSlug } from "../portal-routes.ts";
+import { ruleEngineRoute } from "../rule-engine-routes.ts";
 import type { PortalApplication, PortalCapabilities, PortalCapability, PortalInstance, PortalInventory, PortalJob, PortalJobObservation, PortalPage } from "../portal-model";
 import { applicationSelection, configurationSelection as captureConfigurationSelection, parameter, validRouteParameters } from "../page-input.ts";
 import type { PageInput } from "../page-input.ts";
@@ -127,7 +128,8 @@ export function ApplicationDetail({ applicationId, initialTab = "instances", ini
           <ReadNotice state={listState} restart={() => { select(undefined); pages.reset(); }} />
           {value !== undefined ? tab === "configuration" && "items" in value
             ? <ConfigurationRows applicationId={applicationId} applicationName={applicationName} items={value.items as readonly ConfigurationRow[]} context={context} onOpen={openConfiguration} />
-            : <DetailList tab={tab} value={value} open={open} /> : null}
+            : <DetailList tab={tab} value={value} open={open}
+              rulesets={tab === "capabilities" ? { applicationId, href: ruleEngineRoute({ applicationId, applicationName, context }) } : undefined} /> : null}
           {value !== undefined && "items" in value ? <Pager pages={pages} nextCursor={value.nextCursor} busy={listState.busy} changed={() => select(undefined)} label={tab === "jobs" ? "Registration inventories" : `${value.items.length} items on this page`} /> : null}
         </Tabs.Content>
       </Tabs.Root>
@@ -142,15 +144,16 @@ export function ApplicationDetail({ applicationId, initialTab = "instances", ini
   </Shell>;
 }
 
-function DetailList({ tab, value, open }: { tab: ApplicationTab; value: PortalPage<PortalInstance | ConfigurationRow | PortalInventory> | PortalCapabilities; open: (key: string, event: MouseEvent<HTMLButtonElement>) => void }) {
+function DetailList({ tab, value, open, rulesets }: { tab: ApplicationTab; value: PortalPage<PortalInstance | ConfigurationRow | PortalInventory> | PortalCapabilities;
+  open: (key: string, event: MouseEvent<HTMLButtonElement>) => void; rulesets: { applicationId: string; href: string } | undefined }) {
   if (tab === "capabilities" && "serviceApis" in value) {
-    return <><div className="feature-groups">{[
-      ["Schedulable job types", "Trusted job definitions and their supported versions are unavailable. Reported jobs can still be inspected under Scheduled jobs."],
-      ["Registered RuleEngine instances", "Trusted registered engine definitions and versioned participation are unavailable in this view."],
-      ["Trigger providers", "Trusted trigger-provider definitions and supported configuration operations are unavailable in this view."]
-    ].map(([title, description]) => <section className="card feature-group" key={title}>
-      <div className="feature-heading"><h3>{title}</h3><Badge tone="warning">Unavailable</Badge></div><p>{description}</p>
-    </section>)}</div><details className="service-api-details"><summary>Service API details</summary>
+    return <><div className="feature-groups">
+      <section className="card feature-group"><div className="feature-heading"><h3>Schedulable job types</h3><Badge tone="warning">Unavailable</Badge></div>
+        <p>Trusted job definitions and their supported versions are unavailable. Reported jobs can still be inspected under Scheduled jobs.</p></section>
+      {rulesets === undefined ? null : <RuleEngineCapability {...rulesets} />}
+      <section className="card feature-group"><div className="feature-heading"><h3>Trigger providers</h3><Badge tone="warning">Unavailable</Badge></div>
+        <p>Trusted trigger-provider definitions and supported configuration operations are unavailable in this view.</p></section>
+    </div><details className="service-api-details"><summary>Service API details</summary>
       <p>{value.catalog.message} The descriptors below describe Management HTTP APIs; permission hints are advisory and grant no authority.</p>
       <div className="table-frame"><table><thead><tr><th>Operation</th><th>API version</th><th>Method / path</th><th>Caller hint</th></tr></thead><tbody>
         {value.serviceApis.map(item => <tr key={capabilityKey(item)}><td><Item onClick={event => open(capabilityKey(item), event)}>{item.operationId}</Item></td><td>{item.version}</td><td><code>{item.method} {item.path}</code></td><td><Badge>{hint(item.callerHint)}</Badge></td></tr>)}
@@ -170,6 +173,17 @@ function DetailList({ tab, value, open }: { tab: ApplicationTab; value: PortalPa
         <td>{item.observation === undefined ? "Not reported" : <>{reportedLabel(item.observation.resourceId, "Reported resource")}<span className="row-subtitle">{item.observation.mode}</span></>}</td><td><Badge>{item.observation?.state ?? "Not reported"}</Badge></td><td>{item.observation?.lastOutcome ?? "Not reported"}</td>
       </tr>)}</tbody></table>{report.inventory.jobs.length === 0 ? <Empty title="No jobs in this report">The selected registration reported an empty job inventory.</Empty> : null}</div>
     </section>)}</>;
+}
+
+function RuleEngineCapability({ applicationId, href }: { readonly applicationId: string; readonly href: string }) {
+  const read = usePortalRead<readonly { operationId: string; allowed: boolean }[]>("/api/portal/applications/" + applicationId + "/rule-engine/capabilities");
+  const listing = ready(read)?.find(item => item.operationId === "listRuleEngineRulesets");
+  const visible = listing?.allowed === true && !read.stale && !read.busy;
+  return <section className="card feature-group"><div className="feature-heading"><h3>Registered RuleEngine instances</h3>
+    <Badge tone={visible ? "good" : "warning"}>{visible ? "Available" : read.busy ? "Checking" : "Unavailable"}</Badge></div>
+    {visible ? <><p>Open registered rulesets for this application and environment.</p><Link className="button" href={href}>Rule engines</Link></>
+      : <p>Trusted registered engine definitions and versioned participation are unavailable in this view.</p>}
+  </section>;
 }
 function Item({ onClick, children }: { onClick: (event: MouseEvent<HTMLButtonElement>) => void; children: ReactNode }) { return <button className="item-link" onClick={onClick}>{children}</button>; }
 function hint(value: PortalCapability["callerHint"]) { return ({ allowed: "Allowed hint", denied: "Denied hint", notEvaluated: "Not evaluated" })[value]; }

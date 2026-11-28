@@ -6,7 +6,7 @@ using CIS.RestClient;
 namespace CIS.Management;
 
 /// <summary>A typed client borrowing the selected REST/authentication owner; it starts no registration or background work.</summary>
-public sealed class ManagementClient : IManagementClient
+public sealed partial class ManagementClient : IManagementClient, IManagementApiDiscoveryClient
 {
     private readonly IRestClient rest;
     private readonly ManagementClientSnapshot settings;
@@ -132,7 +132,7 @@ public sealed class ManagementClient : IManagementClient
     {
         long entered = clock.GetTimestamp();
         cancellationToken.ThrowIfCancellationRequested();
-        bool requiresId = operation is not ("service-info" or "applications");
+        bool requiresId = operation is not ("service-info" or "applications" or "service-features");
         if (requiresId && id is null || id is not null && !ManagementWire.IsUuid(id))
         {
             throw new ArgumentException("Supply a canonical application or registration UUID.", nameof(id));
@@ -174,7 +174,8 @@ public sealed class ManagementClient : IManagementClient
         {
             path += "/" + Uri.EscapeDataString(command!.Key);
         }
-        var mapper = new ProblemMapper(settings.WireLimits, operation == "control" ? id : null, controlAttemptId);
+        var mapper = new ProblemMapper(settings.WireLimits, operation == "control" ? id : null, controlAttemptId,
+            operation == "api-capabilities" ? id : null);
         var request = new RestRequestOptions
         {
             OperationName = operation,
@@ -260,7 +261,8 @@ public sealed class ManagementClient : IManagementClient
 
     private sealed record CommandHeaders(string Key, string? IfMatch);
 
-    private sealed class ProblemMapper(ManagementWireLimits limits, string? registrationId, string? attemptId) : IRestResponseMapper
+    private sealed class ProblemMapper(ManagementWireLimits limits, string? registrationId, string? attemptId,
+        string? discoveryApplicationId) : IRestResponseMapper
     {
         internal ManagementProblem? Problem
         {
@@ -276,6 +278,13 @@ public sealed class ManagementClient : IManagementClient
             Problem = null;
             Body = null;
             cancellationToken.ThrowIfCancellationRequested();
+            if (response.HttpStatusCode is >= 200 and <= 299 && discoveryApplicationId is not null
+                && response.Decoded.Value is ManagementApplicationApiCapabilityPage page
+                && page.ApplicationId != discoveryApplicationId)
+            {
+                return ValueTask.FromResult(RestResponseDecision.RejectBusiness(
+                    "The API discovery page does not echo this application.", "management.discovery.invalid_application"));
+            }
             if (response.HttpStatusCode is >= 200 and <= 299 && registrationId is not null
                 && response.Decoded.Value is ManagementControlConfirmation control
                 && (control.RegistrationId != registrationId || control.AttemptId != attemptId))

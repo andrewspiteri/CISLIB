@@ -1,0 +1,99 @@
+{
+  "outcome": "Applications evaluate an immutable deployed ruleset locally and operators manage versions, deployments, counters and audited outcomes in the existing management portal.",
+  "scope": [
+    {
+      "id": "RM11-CONTRACTS",
+      "description": "Coordinate and record the shared RM11 portable ruleset, runtime, trace, Management, audit, deployment and counter contracts and conformance vectors.",
+      "paths": [
+        "contracts",
+        "conformance",
+        "docs/modules"
+      ]
+    },
+    {
+      "id": "RM11-RUNTIME",
+      "description": "Deliver the opt-in .NET evaluator, shared validator, host adoption and exact-version selection using the existing scope and startup contracts.",
+      "paths": [
+        "implementations/csharp/src/CIS.Core",
+        "implementations/csharp/src/CIS.CommonTesting",
+        "implementations/csharp/tests/CIS.Core.UnitTests",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests"
+      ]
+    },
+    {
+      "id": "RM11-MANAGEMENT",
+      "description": "Deliver trusted ruleset registration, immutable save and read, same-scope deployment and rollback authority, retention, and typed Management client seams on the existing service.",
+      "paths": [
+        "implementations/csharp/applications/CIS.Management.Service",
+        "implementations/csharp/src/CIS.Core/Management",
+        "implementations/typescript/packages/management-client"
+      ]
+    },
+    {
+      "id": "RM11-AUDIT",
+      "description": "Use the existing durable RM06 paths for start and completion and qualify scoped native execution history together with the Management scope.",
+      "paths": [
+        "implementations/csharp/src/CIS.Core",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests"
+      ]
+    },
+    {
+      "id": "RM11-COUNTERS",
+      "description": "Deliver the scoped idempotent hit projection and audited per-counter reset order, freshness and bulk outcomes using the existing Management provider and clients.",
+      "paths": [
+        "implementations/csharp/applications/CIS.Management.Service",
+        "implementations/csharp/src/CIS.Core/Management",
+        "implementations/typescript/packages/management-client",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests"
+      ]
+    },
+    {
+      "id": "RM11-BACKOFFICE",
+      "description": "Plan and review the desktop Management portal design, then deliver its typed ruleset grid, deployment and adoption, counter and protected execution history workflows under the applicable design approval.",
+      "paths": [
+        "docs/changes/CIS-0031",
+        "implementations/typescript/applications/management-portal",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests"
+      ]
+    },
+    {
+      "id": "RM11-EXAMPLE",
+      "description": "Deliver one opt-in CountryData rule-engine example and the composed provider and consumer evidence within the maintained example and existing tests.",
+      "paths": [
+        "implementations/csharp/examples/CountryData",
+        "implementations/csharp/examples/CountryData.UnitTests",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests"
+      ]
+    }
+  ],
+  "constraints": [
+    "The current instruction authorizes recording the outcome and importing the thirteen reviewed planning definitions. Keep WORK-001 through WORK-013 Draft, with assignees unset, until a separate user instruction authorizes progression.",
+    "A separate explicit user instruction is required before allocating resources, reserving or starting work, building or running product tests, or making implementation changes. Codex is delegated task organization only under this authorization.",
+    "Use the supplied RM11 v1.0, SHA-256 ad4c1dac634279969e90f5a3ef24ccf2460f7ff93aac632375a9ec887604212c, and the CIS-0031 bounded plan covering AC01 through AC30. Preserve existing CISLIB runtime, provider and portal ownership and qualify dependent work through the existing review gates.",
+    "The 58-hour and 59-attempt shared ceilings include a 2-hour and 2-attempt restoration reserve. Record finite ceilings as planning metadata; no resources are allocated. The 6 GiB ceiling includes a 64 MiB restoration reserve and uses the existing physical CIS local storage bound, with no separate storage pool or scratch permission."
+  ],
+  "seconds": 208800,
+  "attempts": 59,
+  "restorationSeconds": 7200,
+  "storage": {
+    "maximumBytes": 6442450944,
+    "roots": [
+      {
+        "repositoryPath": "C:\\miscwork\\portfolio\\cislib",
+        "path": ".cis/local",
+        "scratch": false
+      }
+    ],
+    "cleanupControllers": [],
+    "allowNativeScratch": false,
+    "restorationBytes": 67108864
+  },
+  "controllers": [
+    "Codex"
+  ],
+  "organizeTasks": true,
+  "distributeResources": false,
+  "visualUi": true,
+  "manualTestCatalogue": false,
+  "decisionReference": "USER-CIS-0031-RM11-OUTCOME-20261127"
+}

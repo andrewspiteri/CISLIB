@@ -53,6 +53,19 @@ internal sealed class ManagementDatabaseFixture : IAsyncDisposable
     }
     internal string Table(string name) => $"\"{Options.Schema}\".\"{name}\"";
 
+    internal static string DropRuleEngineTables(Func<string, string> table)
+    {
+        string[] names =
+        [
+            "rule_engine_counter_reset", "rule_engine_counter_execution", "rule_engine_counter",
+            "rule_engine_counter_scope", "rule_engine_execution_event", "rule_engine_execution_rejection",
+            "rule_engine_execution", "rule_engine_release_history", "rule_engine_deployment_release",
+            "rule_engine_deployed_version", "rule_engine_version", "rule_engine_identity",
+            "rule_engine_schema", "rule_engine_ruleset"
+        ];
+        return "DROP TABLE " + string.Join(", ", names.Select(table)) + ";";
+    }
+
     internal static async Task<ManagementDatabaseFixture> CreateAsync(
         Func<string, ManagementPersistenceOptions>? configure = null)
     {

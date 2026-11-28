@@ -1132,7 +1132,7 @@
           "items": {
             "$ref": "#/$defs/Feature"
           },
-          "maxItems": 128,
+          "maxItems": 64,
           "minItems": 0
         },
         "maximumInventoryRequestBytes": {
@@ -1141,6 +1141,13 @@
           "maximum": 16777216,
           "x-cis-canonical-integer-token": true,
           "description": "Effective complete-inventory request bytes accepted by this server and selected provider; absent on older v1 servers."
+        },
+        "apiDiscoveryVersion": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "x-cis-canonical-integer-token": true,
+          "description": "Optional complete API discovery advertisement. Only version 1 is currently recognized; future values are inert."
         }
       },
       "required": [
@@ -1148,7 +1155,8 @@
         "serviceVersion",
         "features"
       ],
-      "additionalProperties": true
+      "additionalProperties": true,
+      "x-cis-api-profile": "legacy-v1"
     },
     "OperationHint": {
       "type": "object",
@@ -1185,7 +1193,7 @@
           "items": {
             "$ref": "#/$defs/Feature"
           },
-          "maxItems": 128,
+          "maxItems": 64,
           "minItems": 0
         },
         "callerHints": {
@@ -1193,8 +1201,15 @@
           "items": {
             "$ref": "#/$defs/OperationHint"
           },
-          "maxItems": 128,
+          "maxItems": 64,
           "minItems": 0
+        },
+        "apiDiscoveryVersion": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "x-cis-canonical-integer-token": true,
+          "description": "Optional complete API discovery advertisement. Only version 1 is currently recognized; future values are inert."
         }
       },
       "required": [
@@ -1202,7 +1217,8 @@
         "implementedApis",
         "callerHints"
       ],
-      "additionalProperties": true
+      "additionalProperties": true,
+      "x-cis-api-profile": "legacy-v1"
     },
     "MetadataCommand": {
       "type": "object",
@@ -5113,6 +5129,104 @@
       ],
       "additionalProperties": true,
       "x-cis-order": "Unique authorized environments in UTF-8 byte ordinal order; no hidden environment or application position in continuation."
+    },
+    "ApiCapability": {
+      "type": "object",
+      "properties": {
+        "feature": {
+          "$ref": "#/$defs/Feature"
+        },
+        "allowed": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "feature",
+        "allowed"
+      ],
+      "additionalProperties": true,
+      "description": "Current advisory authorization hint; every native operation reauthorizes the actual resource."
+    },
+    "ServiceFeaturePage": {
+      "type": "object",
+      "properties": {
+        "profile": {
+          "type": "string",
+          "const": "complete-v1",
+          "minLength": 1,
+          "maxLength": 64,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-known-values": [
+            "complete-v1"
+          ]
+        },
+        "items": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/Feature"
+          }
+        },
+        "nextCursor": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        }
+      },
+      "required": [
+        "profile",
+        "items"
+      ],
+      "additionalProperties": true,
+      "x-cis-page-default": 32,
+      "x-cis-distinct-operation-ids": true,
+      "x-cis-client-expected-profile": "complete-v1"
+    },
+    "ApplicationApiCapabilityPage": {
+      "type": "object",
+      "properties": {
+        "applicationId": {
+          "type": "string",
+          "minLength": 36,
+          "maxLength": 36,
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "x-cis-nonempty-uuid": true
+        },
+        "profile": {
+          "type": "string",
+          "const": "complete-v1",
+          "minLength": 1,
+          "maxLength": 64,
+          "x-cis-control-free": true,
+          "x-cis-non-whitespace": true,
+          "x-known-values": [
+            "complete-v1"
+          ]
+        },
+        "items": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/ApiCapability"
+          }
+        },
+        "nextCursor": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        }
+      },
+      "required": [
+        "applicationId",
+        "profile",
+        "items"
+      ],
+      "additionalProperties": true,
+      "x-cis-page-default": 32,
+      "x-cis-distinct-operation-ids": true,
+      "x-cis-client-exact-application-echo": true,
+      "x-cis-client-expected-profile": "complete-v1"
     }
   },
   "description": "Canonical DTO schemas. Requests are closed; response readers tolerate optional additions and preserve unknown raw values. x-cis annotations document runtime lexical/semantic/byte requirements not all expressible in JSON Schema or the existing evaluator.",

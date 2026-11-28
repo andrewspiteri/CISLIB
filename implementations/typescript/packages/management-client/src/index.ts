@@ -1,5 +1,5 @@
 export { ManagementClient, captureBaseUrl } from "./client.js";
-export type { ManagementClientOptions } from "./client.js";
+export type { ManagementClientOptions, ManagementApiDiscoveryClientPort } from "./client.js";
 export * from "./models.js";
 export * from "./wire.js";
 export { ManagementConfigurationClient } from "./configuration-client.js";
@@ -16,3 +16,4 @@ export type { ManagementApplicationCatalogClientOptions, ManagementApplicationCa
 export { ManagementConfigurationAdministrationClient } from "./configuration-administration-client.js";
 export type { ManagementConfigurationAdministrationClientOptions, ManagementConfigurationAdministrationClientPort, ManagementConfigurationRolloutClientPort,
   ManagementConfigurationCreationClientPort } from "./configuration-administration-client.js";
+export * from "./rule-engine-client.js";

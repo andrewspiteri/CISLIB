@@ -142,6 +142,7 @@ The following CIS-managed evidence records source review separately from the pro
 <!-- cis:brd-evidence
 | ID | Type | Repository | Path | Hash | Assessment | Rationale |
 | --- | --- | --- | --- | --- | --- | --- |
+| BRD-SRC-24748fd34504 | authoring-reference | cislib | planning/rule-engine/sources/CISLIB_RM11_Rule_Engine_Specification.md | sha256:ad4c1dac634279969e90f5a3ef24ccf2460f7ff93aac632375a9ec887604212c | Reference | Retain the supplied RM11 v1.0 as evidence for draft CIS-0031 contract reconciliation and implementation planning. |
 | BRD-SRC-77aaeee8b0d1 | business-requirements | cislib | planning/logging/priority-spool/brd-v1.2.md | sha256:1cb6b678d7ea252075ca6cb90a0125df33557c31fb956cf9357475ce5fa36477 | Adopted | Retain its Logging frontend requirements; historical October implementation status, task sequencing and execution authorization are superseded by current decisions. |
 -->
 <!-- cis:sources:end -->

@@ -194,7 +194,8 @@ public sealed class ManagementConfigurationCatalogTests
         string[] tables = ["configuration_adoption", "configuration_session", "configuration_cohort", "configuration_override",
             "configuration_assignment", "configuration_release", "configuration_publication", "configuration_source", "configuration_binding",
             "configuration_definition", "configuration_catalog"];
-        await fixture.SqlAsync(string.Join(";", tables.Select(table => "DROP TABLE " + fixture.Table(table))) + $"""
+        await fixture.SqlAsync(ManagementDatabaseFixture.DropRuleEngineTables(fixture.Table)
+            + string.Join(";", tables.Select(table => "DROP TABLE " + fixture.Table(table))) + $"""
             ; ALTER TABLE {fixture.Table("management_schema_version")} DROP CONSTRAINT management_schema_version_version_check;
             UPDATE {fixture.Table("management_schema_version")} SET version=2;
             ALTER TABLE {fixture.Table("management_schema_version")} ADD CONSTRAINT management_schema_version_version_check CHECK(version=2)

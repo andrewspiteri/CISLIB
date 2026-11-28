@@ -1,0 +1,717 @@
+{
+  "authorizationId": "cislib:CIS-0031:outcome:e825fd00dd9f42388e09d9835f4bf34a",
+  "actor": "Codex",
+  "workItems": [
+    {
+      "id": "WORK-001",
+      "category": "coordination",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-001.md",
+      "title": "RM11 shared portable and Management contracts",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [],
+      "acceptanceCriteria": "Record the versioned ruleset, ordered schema, invocation, result and trace, audit, capability, deployment and Management contracts. Resolve exact decimal representation, native Boolean, absent/null, unknown input capture, metadata, Unicode, IDs and whole-envelope limits. Record trusted provenance and the shared eligibility, retention and counter acceptance decisions.",
+      "validation": "Validate portable C# and TypeScript wire examples, exact decimal bounds and rejected rounding, Unicode and presence; verify a representative maximum trace fits real RM08, RM06, Messaging and HTTP limits. Supports RM11-AC12 and every consumer.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:seed:2a9834613b154a0ba195c3968ffdf3fd",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "RM11-CONTRACTS"
+      ],
+      "authorizationScopeBasis": "sha256:bd45c9862f2399b75de4b046901964830f144896ff28577f615c03050c13c902",
+      "workPaths": [
+        "contracts",
+        "conformance",
+        "docs/modules"
+      ],
+      "assignee": null,
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "Record the versioned ruleset, ordered schema, invocation, result and trace, audit, capability, deployment and Management contracts. Resolve exact decimal representation, native Boolean, absent/null, unknown input capture, metadata, Unicode, IDs and whole-envelope limits. Record trusted provenance and the shared eligibility, retention and counter acceptance decisions."
+          ],
+          "description": "Validate portable C# and TypeScript wire examples, exact decimal bounds and rejected rounding, Unicode and presence; verify a representative maximum trace fits real RM08, RM06, Messaging and HTTP limits. Supports RM11-AC12 and every consumer.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Validate portable C# and TypeScript wire examples, exact decimal bounds and rejected rounding, Unicode and presence; verify a representative maximum trace fits real RM08, RM06, Messaging and HTTP limits. Supports RM11-AC12 and every consumer."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-002",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-002.md",
+      "title": "RM11 definition validation and local evaluator",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "acceptanceCriteria": "Expose a mockable evaluator and shared validator. Enforce exact operators, explicit conditions, declared order and reached-cell validation. Preserve Enabled/Test/Disabled, FirstMatch/AllMatching, failure versus Test diagnostics, deterministic order and immutable inputs/results. Cover RM11-AC02\u2013AC11 and AC13\u2013AC15.",
+      "validation": "Use native MSTest and portable fixtures for all operators, malformed definitions, exact precision, Unicode scalar and escape bounds, missing/null and markers, lazy validation, trace outcomes, both modes, ties, and detached inputs.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:fef8794d77894bfc94fd03a438d0c75c",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "RM11-RUNTIME"
+      ],
+      "authorizationScopeBasis": "sha256:5d80b24766ca80940e937b4e2db81392fc2440ae2c29ff8d0148ea78b9e727fb",
+      "workPaths": [
+        "implementations/csharp/src/CIS.Core",
+        "implementations/csharp/src/CIS.CommonTesting",
+        "implementations/csharp/tests/CIS.Core.UnitTests"
+      ],
+      "assignee": null,
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "Expose a mockable evaluator and shared validator. Enforce exact operators, explicit conditions, declared order and reached-cell validation. Preserve Enabled/Test/Disabled, FirstMatch/AllMatching, failure versus Test diagnostics, deterministic order and immutable inputs/results. Cover RM11-AC02\u2013AC11 and AC13\u2013AC15."
+          ],
+          "description": "Use native MSTest and portable fixtures for all operators, malformed definitions, exact precision, Unicode scalar and escape bounds, missing/null and markers, lazy validation, trace outcomes, both modes, ties, and detached inputs.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Use native MSTest and portable fixtures for all operators, malformed definitions, exact precision, Unicode scalar and escape bounds, missing/null and markers, lazy validation, trace outcomes, both modes, ties, and detached inputs."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-006",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-006.md",
+      "title": "RM11 durable start and completion audit",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-002",
+        "WORK-005"
+      ],
+      "acceptanceCriteria": "Durably accept typed start before evaluation and completion before result release. Preserve host provenance, correlation, versions, timestamps, exact supplied values and observed trace. Preserve terminal selection and bounded finalization after cancellation. Cover RM11-AC25 and AC26.",
+      "validation": "Prove early refusal, failure after earlier matches, selection/cancellation races, finalization failure or unknown, and a committed outbox while the reporting destination is unavailable using existing RM06 fixtures.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:720483f705d94af9a4d4eaf714deb3f7",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "RM11-AUDIT"
+      ],
+      "authorizationScopeBasis": "sha256:ad578cc9ea45d4ed4a545f841ecd8b5dbc092acbd364862f8ab38138cf7aec6c",
+      "workPaths": [
+        "implementations/csharp/src/CIS.Core",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests"
+      ],
+      "assignee": null,
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "Durably accept typed start before evaluation and completion before result release. Preserve host provenance, correlation, versions, timestamps, exact supplied values and observed trace. Preserve terminal selection and bounded finalization after cancellation. Cover RM11-AC25 and AC26."
+          ],
+          "description": "Prove early refusal, failure after earlier matches, selection/cancellation races, finalization failure or unknown, and a committed outbox while the reporting destination is unavailable using existing RM06 fixtures.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Prove early refusal, failure after earlier matches, selection/cancellation races, finalization failure or unknown, and a committed outbox while the reporting destination is unavailable using existing RM06 fixtures."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-007",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-007.md",
+      "title": "RM11 authorized execution history",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-003",
+        "WORK-004",
+        "WORK-006"
+      ],
+      "acceptanceCriteria": "Ingest durable start/completion idempotently on the existing provider. Supply permission-filtered bounded query and detail with exact immutable definition evidence and truthful incomplete or interrupted status. Cover RM11-AC24, AC27 and AC28.",
+      "validation": "Exercise authenticated delivery, exact duplicates and conflicts, out-of-order observations, broker/store outage and recovery, retained definitions, actual interruption, scoped grants and cursor isolation using native fixtures.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:fef0b17bb34d439f9fb112e6588bc7ca",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "RM11-AUDIT",
+        "RM11-MANAGEMENT"
+      ],
+      "authorizationScopeBasis": "sha256:d346500c123ac8bdd335d942f353d06b0ebfe809abcec763836478c8469d807f",
+      "workPaths": [
+        "implementations/csharp/applications/CIS.Management.Service",
+        "implementations/csharp/src/CIS.Core/Management",
+        "implementations/typescript/packages/management-client",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests"
+      ],
+      "assignee": null,
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "Ingest durable start/completion idempotently on the existing provider. Supply permission-filtered bounded query and detail with exact immutable definition evidence and truthful incomplete or interrupted status. Cover RM11-AC24, AC27 and AC28."
+          ],
+          "description": "Exercise authenticated delivery, exact duplicates and conflicts, out-of-order observations, broker/store outage and recovery, retained definitions, actual interruption, scoped grants and cursor isolation using native fixtures.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Exercise authenticated delivery, exact duplicates and conflicts, out-of-order observations, broker/store outage and recovery, retained definitions, actual interruption, scoped grants and cursor isolation using native fixtures."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-008",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-008.md",
+      "title": "RM11 hit counters and audited resets",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-003",
+        "WORK-007"
+      ],
+      "acceptanceCriteria": "Project observed hits idempotently across instances and versions. Order reset and increment by first durable acceptance per counter and expose per-counter outcomes, reset time and freshness. Cover RM11-AC21\u2013AC23.",
+      "validation": "Race the real store across instances and verify pre-reset replay, post-reset first acceptance for an earlier invocation, recovery, actual counter outage independent of audit success, partial bulk outcomes and one hit per execution/rule.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:eea761c9c39540e598b9841f9374895e",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "RM11-COUNTERS"
+      ],
+      "authorizationScopeBasis": "sha256:6a1cca706d90408461836e9abfb4efd4d0e676d9f3bac97a47e25c39bb04e855",
+      "workPaths": [
+        "implementations/csharp/applications/CIS.Management.Service",
+        "implementations/csharp/src/CIS.Core/Management",
+        "implementations/typescript/packages/management-client",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests"
+      ],
+      "assignee": null,
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "Project observed hits idempotently across instances and versions. Order reset and increment by first durable acceptance per counter and expose per-counter outcomes, reset time and freshness. Cover RM11-AC21\u2013AC23."
+          ],
+          "description": "Race the real store across instances and verify pre-reset replay, post-reset first acceptance for an earlier invocation, recovery, actual counter outage independent of audit success, partial bulk outcomes and one hit per execution/rule.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Race the real store across instances and verify pre-reset replay, post-reset first acceptance for an earlier invocation, recovery, actual counter outage independent of audit success, partial bulk outcomes and one hit per execution/rule."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-009",
+      "category": "wireframe",
+      "complexity": "low",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-009.md",
+      "title": "RM11 backoffice wireframes",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-001"
+      ],
+      "acceptanceCriteria": "Define the backoffice grid and edit flows, version/deployment and rollout, independent counter operations and execution history. Map scope, authorization, inputs and observable states to exact API boundaries and source operator journeys.",
+      "validation": "Validate the CIS wireframe projection, keyboard/edit and focus paths, precision and presence inputs, save conflict with retained draft, and stale, rejected and interrupted states. Supports RM11-AC01, AC12, AC18, AC22\u2013AC24 and AC29.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:9719d96e982e40e89e2d74eef81f5ce8",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "RM11-BACKOFFICE"
+      ],
+      "authorizationScopeBasis": "sha256:9336d0ca9c71d1acd7aa3f1700b74b265172cbbcb954da93c7336cebfdf99589",
+      "workPaths": [
+        "docs/changes/CIS-0031"
+      ],
+      "assignee": null,
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "Define the backoffice grid and edit flows, version/deployment and rollout, independent counter operations and execution history. Map scope, authorization, inputs and observable states to exact API boundaries and source operator journeys."
+          ],
+          "description": "Validate the CIS wireframe projection, keyboard/edit and focus paths, precision and presence inputs, save conflict with retained draft, and stale, rejected and interrupted states. Supports RM11-AC01, AC12, AC18, AC22\u2013AC24 and AC29.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Validate the CIS wireframe projection, keyboard/edit and focus paths, precision and presence inputs, save conflict with retained draft, and stale, rejected and interrupted states. Supports RM11-AC01, AC12, AC18, AC22\u2013AC24 and AC29."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-010",
+      "category": "design",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-010.md",
+      "title": "RM11 rendered backoffice design and review",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-009"
+      ],
+      "acceptanceCriteria": "Render the new surfaces using the existing portal shell, controls and synthetic data. Retain a review package for the exact wireframe digest and rendered backoffice designs.",
+      "validation": "Validate the rendered manifest and compare operator journeys to the wireframes. Record actual exact CIS design approval before dependent frontend work. Supports RM11-AC29.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:97d9d8c82fad41f386576e27f221d76a",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "RM11-BACKOFFICE"
+      ],
+      "authorizationScopeBasis": "sha256:9336d0ca9c71d1acd7aa3f1700b74b265172cbbcb954da93c7336cebfdf99589",
+      "workPaths": [
+        "docs/changes/CIS-0031"
+      ],
+      "assignee": null,
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "Render the new surfaces using the existing portal shell, controls and synthetic data. Retain a review package for the exact wireframe digest and rendered backoffice designs."
+          ],
+          "description": "Validate the rendered manifest and compare operator journeys to the wireframes. Record actual exact CIS design approval before dependent frontend work. Supports RM11-AC29.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Validate the rendered manifest and compare operator journeys to the wireframes. Record actual exact CIS design approval before dependent frontend work. Supports RM11-AC29."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-012",
+      "category": "frontend",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-012.md",
+      "title": "RM11 portal counter and execution inspection workflows",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-007",
+        "WORK-008",
+        "WORK-010"
+      ],
+      "acceptanceCriteria": "Connect counter reset/freshness and execution lookup/detail to the existing portal. Show authorized typed inputs with absent/null, evaluated row/cell outcomes, metadata order, and incomplete, failed or empty success distinctions. Own combined RM11-AC29 browser evidence with the editing/deployment leaf.",
+      "validation": "Run actual browser journeys for individual, selected and all resets, their scoped outcomes, reset time, grant/session boundaries, execution ID and ruleset/version/instance/time/outcome filters, and detailed traces.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:0e965275445b43659a8c342fd9b9244c",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "RM11-BACKOFFICE"
+      ],
+      "authorizationScopeBasis": "sha256:9336d0ca9c71d1acd7aa3f1700b74b265172cbbcb954da93c7336cebfdf99589",
+      "workPaths": [
+        "implementations/typescript/applications/management-portal",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests"
+      ],
+      "assignee": null,
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "Connect counter reset/freshness and execution lookup/detail to the existing portal. Show authorized typed inputs with absent/null, evaluated row/cell outcomes, metadata order, and incomplete, failed or empty success distinctions. Own combined RM11-AC29 browser evidence with the editing/deployment leaf."
+          ],
+          "description": "Run actual browser journeys for individual, selected and all resets, their scoped outcomes, reset time, grant/session boundaries, execution ID and ruleset/version/instance/time/outcome filters, and detailed traces.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Run actual browser journeys for individual, selected and all resets, their scoped outcomes, reset time, grant/session boundaries, execution ID and ruleset/version/instance/time/outcome filters, and detailed traces."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-013",
+      "category": "integration",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-013.md",
+      "title": "RM11 opt-in CountryData consumer example",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-005",
+        "WORK-006",
+        "WORK-007",
+        "WORK-008",
+        "WORK-011",
+        "WORK-012"
+      ],
+      "acceptanceCriteria": "Provide one opt-in CountryData recipe with ResidenceCountry and Pensioner, both modes, explicit deployment and a real execution ID that resolves to audit. Preserve the normal database-free default. Collect cross-surface proof for RM11-AC15, AC20 and AC29.",
+      "validation": "Run existing composed host/provider fixtures through both modes, two distinct application instances, captured version/inputs and audited execution lookup. Record the exact selected cases, runner, counts and links.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:24892dc3dc664c36a3b67e979cc88d0b",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "RM11-EXAMPLE"
+      ],
+      "authorizationScopeBasis": "sha256:6fa4b973e735b63bc2f131bee9cf5ae88776eb82b7fb9d1c9d7b52e54949d7eb",
+      "workPaths": [
+        "implementations/csharp/examples/CountryData",
+        "implementations/csharp/examples/CountryData.UnitTests",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests"
+      ],
+      "assignee": null,
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "Provide one opt-in CountryData recipe with ResidenceCountry and Pensioner, both modes, explicit deployment and a real execution ID that resolves to audit. Preserve the normal database-free default. Collect cross-surface proof for RM11-AC15, AC20 and AC29."
+          ],
+          "description": "Run existing composed host/provider fixtures through both modes, two distinct application instances, captured version/inputs and audited execution lookup. Record the exact selected cases, runner, counts and links.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Run existing composed host/provider fixtures through both modes, two distinct application instances, captured version/inputs and audited execution lookup. Record the exact selected cases, runner, counts and links."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-003",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-003.md",
+      "title": "RM11 trusted registration and immutable version saves",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-001",
+        "WORK-002"
+      ],
+      "acceptanceCriteria": "Provision the trusted ruleset and schema, submit validated complete immutable versions under current edit revision, and recover by the original operation key. Preserve deployment and saved history during registration refresh. Protect the same rules from generic Configuration routes. Cover RM11-AC01, AC16 and AC30.",
+      "validation": "Use the existing provider and client fixtures for scoped grants, two-editor contention, actual restart/re-registration, copied/deleted identities, unchanged/resaved definitions, and generic write/bypass boundaries.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:3cf3451f356a41ffae31d89d3fdae4e9",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "RM11-MANAGEMENT",
+        "RM11-RUNTIME"
+      ],
+      "authorizationScopeBasis": "sha256:ad6740c0c7214a820b19730f4651b54167965ae683c01d9a5ed884b9adff4c0e",
+      "workPaths": [
+        "implementations/csharp/applications/CIS.Management.Service",
+        "implementations/csharp/src/CIS.Core/Management",
+        "implementations/typescript/packages/management-client",
+        "implementations/csharp/src/CIS.Core/RuleEngine",
+        "implementations/csharp/tests/CIS.Core.UnitTests/Management",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Management"
+      ],
+      "assignee": null,
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "Provision the trusted ruleset and schema, submit validated complete immutable versions under current edit revision, and recover by the original operation key. Preserve deployment and saved history during registration refresh. Protect the same rules from generic Configuration routes. Cover RM11-AC01, AC16 and AC30."
+          ],
+          "description": "Use the existing provider and client fixtures for scoped grants, two-editor contention, actual restart/re-registration, copied/deleted identities, unchanged/resaved definitions, and generic write/bypass boundaries.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Use the existing provider and client fixtures for scoped grants, two-editor contention, actual restart/re-registration, copied/deleted identities, unchanged/resaved definitions, and generic write/bypass boundaries."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-004",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-004.md",
+      "title": "RM11 deployment authority and retained-version eligibility",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-003"
+      ],
+      "acceptanceCriteria": "Deploy and roll back already saved immutable definitions through existing guarded RM08 assignment. Record same-application/environment deployment eligibility in the original transaction and protect live and retained audit references. Cover RM11-AC17 and AC19.",
+      "validation": "Use native provider fixtures for save without deploy, saved-only and wrong-scope exact rejection, successful rollback, original-key replay, conflicting rollout, and cleanup around retained references.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:fa6f317dbf12465891e7998cccf9c8df",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "RM11-MANAGEMENT",
+        "RM11-RUNTIME"
+      ],
+      "authorizationScopeBasis": "sha256:ad6740c0c7214a820b19730f4651b54167965ae683c01d9a5ed884b9adff4c0e",
+      "workPaths": [
+        "implementations/csharp/applications/CIS.Management.Service",
+        "implementations/csharp/src/CIS.Core/Management",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Management",
+        "implementations/csharp/tests/CIS.Core.UnitTests/Management"
+      ],
+      "assignee": null,
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "Deploy and roll back already saved immutable definitions through existing guarded RM08 assignment. Record same-application/environment deployment eligibility in the original transaction and protect live and retained audit references. Cover RM11-AC17 and AC19."
+          ],
+          "description": "Use native provider fixtures for save without deploy, saved-only and wrong-scope exact rejection, successful rollback, original-key replay, conflicting rollout, and cleanup around retained references.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Use native provider fixtures for save without deploy, saved-only and wrong-scope exact rejection, successful rollback, original-key replay, conflicting rollout, and cleanup around retained references."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-005",
+      "category": "implementation",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-005.md",
+      "title": "RM11 application adoption and exact-version evaluation",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-002",
+        "WORK-004"
+      ],
+      "acceptanceCriteria": "Validate and atomically adopt an executable version through the existing host path. Capture one immutable version per invocation, report requested/applied/rejected status, and enforce same-scope exact history, current host admission and retained failure behavior. Cover RM11-AC18 and AC20.",
+      "validation": "Use native host/provider cases for concurrent adoption, in-flight version capture, distinct instances, accepted older exact version with newer active, incompatible/unavailable/foreign exact reference, and bootstrap/recovery/outage.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:0ae6fb8a191f4db78d6fd49e79a37399",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "RM11-RUNTIME",
+        "RM11-MANAGEMENT"
+      ],
+      "authorizationScopeBasis": "sha256:ad6740c0c7214a820b19730f4651b54167965ae683c01d9a5ed884b9adff4c0e",
+      "workPaths": [
+        "implementations/csharp/src/CIS.Core",
+        "implementations/csharp/applications/CIS.Management.Service",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests"
+      ],
+      "assignee": null,
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "Validate and atomically adopt an executable version through the existing host path. Capture one immutable version per invocation, report requested/applied/rejected status, and enforce same-scope exact history, current host admission and retained failure behavior. Cover RM11-AC18 and AC20."
+          ],
+          "description": "Use native host/provider cases for concurrent adoption, in-flight version capture, distinct instances, accepted older exact version with newer active, incompatible/unavailable/foreign exact reference, and bootstrap/recovery/outage.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Use native host/provider cases for concurrent adoption, in-flight version capture, distinct instances, accepted older exact version with newer active, incompatible/unavailable/foreign exact reference, and bootstrap/recovery/outage."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    },
+    {
+      "id": "WORK-011",
+      "category": "frontend",
+      "complexity": "medium",
+      "parentId": null,
+      "taskPath": "agent-tasks/WORK-011.md",
+      "title": "RM11 portal grid and version deployment workflows",
+      "requirementIds": [],
+      "impactIds": [],
+      "dependsOn": [
+        "WORK-003",
+        "WORK-004",
+        "WORK-005",
+        "WORK-010"
+      ],
+      "acceptanceCriteria": "Connect the reviewed grid to real Management APIs for typed row and rule editing, previous versions, Save, Deploy and rollback, and instance adoption visibility. Preserve validation/conflict drafts and exact decimals throughout. Own RM11-AC12 and supply AC29 editing/deployment evidence.",
+      "validation": "Run portal browser journeys against the native service for typed cells, markers, add/copy/remove/reorder, row fields and mode, older-version editing, conflict retention, saved-only state, deployment and rejected/pending instances.",
+      "status": "Complete",
+      "taskTypeKey": "core.legacy",
+      "taskTypeVersion": "1.0",
+      "approvalGate": "none",
+      "targets": [],
+      "decisionIds": [],
+      "negativeCriteria": [],
+      "requiredOutputs": [],
+      "frontendType": null,
+      "storyId": null,
+      "instanceKey": "outcome:b601028d6f24407bbb3aa52be2ef1fe2",
+      "workOwnerTaskId": null,
+      "authorizationScopeIds": [
+        "RM11-BACKOFFICE",
+        "RM11-MANAGEMENT"
+      ],
+      "authorizationScopeBasis": "sha256:551bffc90c8308124d9b881a1d93be9c4e1c130ab0dfed247753fc9b344bce99",
+      "workPaths": [
+        "implementations/typescript/applications/management-portal",
+        "implementations/typescript/packages/management-client",
+        "implementations/csharp/applications/CIS.Management.Service",
+        "implementations/csharp/src/CIS.Core/Management",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests"
+      ],
+      "assignee": null,
+      "verificationObligations": [
+        {
+          "id": "task-contract",
+          "criteria": [
+            "Connect the reviewed grid to real Management APIs for typed row and rule editing, previous versions, Save, Deploy and rollback, and instance adoption visibility. Preserve validation/conflict drafts and exact decimals throughout. Own RM11-AC12 and supply AC29 editing/deployment evidence."
+          ],
+          "description": "Run portal browser journeys against the native service for typed cells, markers, add/copy/remove/reorder, row fields and mode, older-version editing, conflict retention, saved-only state, deployment and rejected/pending instances.",
+          "evidenceRoute": "review",
+          "evidenceExpectations": [
+            "Run portal browser journeys against the native service for typed cells, markers, add/copy/remove/reorder, row fields and mode, older-version editing, conflict retention, saved-only state, deployment and rejected/pending instances."
+          ],
+          "sharedGateIds": [],
+          "basisReferences": []
+        }
+      ],
+      "contractErrors": []
+    }
+  ],
+  "source": null
+}

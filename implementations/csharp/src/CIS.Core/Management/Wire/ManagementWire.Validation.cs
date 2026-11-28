@@ -41,7 +41,8 @@ public static partial class ManagementWire
         }
         else if (type == typeof(ManagementServiceInfo))
         {
-            Shape(value, false, ["serviceVersion", "protocolMajors", "features"], "maximumInventoryRequestBytes");
+            Shape(value, false, ["serviceVersion", "protocolMajors", "features"], "maximumInventoryRequestBytes", "apiDiscoveryVersion");
+            OptionalApiDiscoveryVersion(value);
             Scalar(value, "serviceVersion", 512);
             JsonElement majors = Items(value, "protocolMajors", 16, 1);
             var unique = new HashSet<int>();
@@ -59,7 +60,8 @@ public static partial class ManagementWire
         }
         else if (type == typeof(ManagementCapabilities))
         {
-            Shape(value, false, ["applicationId", "implementedApis", "callerHints"]);
+            Shape(value, false, ["applicationId", "implementedApis", "callerHints"], "apiDiscoveryVersion");
+            OptionalApiDiscoveryVersion(value);
             Id(value, "applicationId");
             Features(Items(value, "implementedApis", 64));
             var aliases = new HashSet<string>(StringComparer.Ordinal);
@@ -69,6 +71,28 @@ public static partial class ManagementWire
                 Require(aliases.Add(Alias(hint, "operationId", 128)));
                 Boolean(hint, "allowed");
             }
+        }
+        else if (type == typeof(ManagementServiceFeaturePage))
+        {
+            Shape(value, false, ["profile", "items"], "nextCursor");
+            Require(String(value, "profile") == "complete-v1");
+            Features(Items(value, "items", 64));
+            DiscoveryCursor(value);
+        }
+        else if (type == typeof(ManagementApplicationApiCapabilityPage))
+        {
+            Shape(value, false, ["applicationId", "profile", "items"], "nextCursor");
+            Id(value, "applicationId");
+            Require(String(value, "profile") == "complete-v1");
+            var aliases = new HashSet<string>(StringComparer.Ordinal);
+            foreach (JsonElement item in Items(value, "items", 64).EnumerateArray())
+            {
+                Shape(item, false, ["feature", "allowed"]);
+                JsonElement feature = item.GetProperty("feature");
+                Feature(feature, aliases);
+                Boolean(item, "allowed");
+            }
+            DiscoveryCursor(value);
         }
         else if (type == typeof(ManagementRegistrationReceipt))
         {
@@ -447,20 +471,41 @@ public static partial class ManagementWire
         var aliases = new HashSet<string>(StringComparer.Ordinal);
         foreach (JsonElement feature in features.EnumerateArray())
         {
-            Shape(feature, false, ["operationId", "version", "method", "path", "requiredCapabilities"]);
-            Require(aliases.Add(Alias(feature, "operationId", 128)));
-            PositiveInt(feature, "version");
-            string method = String(feature, "method");
-            Require(method.Length is >= 1 and <= 64 && method.All(character => char.IsAsciiLetter(character)));
-            string path = String(feature, "path");
-            Require(IsUtf8Text(path, 512) && path.StartsWith('/') && !path.StartsWith("//", StringComparison.Ordinal)
-                && !path.Contains('?') && !path.Contains('#') && !path.Contains('\\'));
-            var capabilities = new HashSet<string>(StringComparer.Ordinal);
-            foreach (JsonElement capability in Items(feature, "requiredCapabilities", 8).EnumerateArray())
-            {
-                string name = String(capability);
-                Require(IsAlias(name, 128) && capabilities.Add(name));
-            }
+            Feature(feature, aliases);
+        }
+    }
+
+    private static void Feature(JsonElement feature, HashSet<string> aliases)
+    {
+        Shape(feature, false, ["operationId", "version", "method", "path", "requiredCapabilities"]);
+        Require(aliases.Add(Alias(feature, "operationId", 128)));
+        PositiveInt(feature, "version");
+        string method = String(feature, "method");
+        Require(method.Length is >= 1 and <= 64 && method.All(character => char.IsAsciiLetter(character)));
+        string path = String(feature, "path");
+        Require(IsUtf8Text(path, 512) && path.StartsWith('/') && !path.StartsWith("//", StringComparison.Ordinal)
+            && !path.Contains('?') && !path.Contains('#') && !path.Contains('\\'));
+        var capabilities = new HashSet<string>(StringComparer.Ordinal);
+        foreach (JsonElement capability in Items(feature, "requiredCapabilities", 8).EnumerateArray())
+        {
+            string name = String(capability);
+            Require(IsAlias(name, 128) && capabilities.Add(name));
+        }
+    }
+
+    private static void OptionalApiDiscoveryVersion(JsonElement value)
+    {
+        if (value.TryGetProperty("apiDiscoveryVersion", out _))
+        {
+            PositiveInt(value, "apiDiscoveryVersion");
+        }
+    }
+
+    private static void DiscoveryCursor(JsonElement value)
+    {
+        if (value.TryGetProperty("nextCursor", out JsonElement cursor))
+        {
+            Require(cursor.ValueKind == JsonValueKind.String && IsOpaqueCursor(cursor.GetString()!));
         }
     }
 

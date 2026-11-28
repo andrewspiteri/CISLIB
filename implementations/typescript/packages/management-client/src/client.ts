@@ -3,7 +3,7 @@ import type { ClientCallContext, ClientTransport, CredentialProvider, RequestObs
 import type {
   Application, ApplicationQuery, EnvironmentEntry, Capabilities, CloseReceipt, ControlConfirmation, Instance, InventoryItem, InventorySnapshot, ManagementCallResult,
   MetadataCommand, MetadataResult, Observation, Page, PageRequest, Problem, RegistrationReceipt, RegistrationRequest,
-  ReportReceipt, ServiceInfo
+  ReportReceipt, ServiceInfo, ServiceFeaturePage, ApplicationApiCapabilityPage
 } from "./models.js";
 import { bodyLimit, captureWireLimits, decodeManagement, encodeManagement, isCursor, isOperationKey, isStrongETag, isUuid, ManagementWireError } from "./wire.js";
 import { isScalarText } from "./wire-validation.js";
@@ -19,8 +19,14 @@ export interface ManagementClientOptions {
   readonly observe?: (event: RequestObservation) => void;
 }
 
+/** Explicit optional complete-discovery port; existing client substitutes gain no mandatory members. */
+export interface ManagementApiDiscoveryClientPort {
+  listServiceFeatures(page?: PageRequest, context?: ClientCallContext): Promise<ManagementCallResult<ServiceFeaturePage>>;
+  listApplicationApiCapabilities(applicationId: string, page?: PageRequest, context?: ClientCallContext): Promise<ManagementCallResult<ApplicationApiCapabilityPage>>;
+}
+
 /** One reusable typed client. It stores no per-user credential, registration loop or caller context. */
-export class ManagementClient {
+export class ManagementClient implements ManagementApiDiscoveryClientPort {
   readonly baseUrl: string;
   readonly wireLimits: ManagementWireLimits;
   private readonly transport: ClientTransport;
@@ -89,6 +95,13 @@ export class ManagementClient {
   getCapabilities(applicationId: string, context?: ClientCallContext): Promise<ManagementCallResult<Capabilities>> {
     return this.call("GET", "capabilities", () => "applications/" + uuid(applicationId) + "/capabilities", "Capabilities", context);
   }
+  listServiceFeatures(page?: PageRequest, context?: ClientCallContext): Promise<ManagementCallResult<ServiceFeaturePage>> {
+    return this.call("GET", "service-features", () => "service-features" + apiDiscoveryPageQuery(page), "ServiceFeaturePage", context);
+  }
+  listApplicationApiCapabilities(applicationId: string, page?: PageRequest, context?: ClientCallContext): Promise<ManagementCallResult<ApplicationApiCapabilityPage>> {
+    return this.call("GET", "api-capabilities", () => "applications/" + uuid(applicationId) + "/api-capabilities" + apiDiscoveryPageQuery(page),
+      "ApplicationApiCapabilityPage", context, undefined, undefined, undefined, undefined, undefined, applicationId);
+  }
   replaceMetadata(applicationId: string, operationKey: string, ifMatch: string, command: MetadataCommand,
     context?: ClientCallContext): Promise<ManagementCallResult<MetadataResult>> {
     return this.call("PUT", "metadata-replace", () => {
@@ -105,7 +118,7 @@ export class ManagementClient {
   private async call<T>(method: "GET" | "PUT" | "DELETE", operation: string, path: () => string, responseSchema: ManagementSchema,
     context?: ClientCallContext, requestSchema?: ManagementSchema, requestBody?: unknown,
     commandHeaders?: Readonly<Record<string, string>>, operationKey?: string,
-    control?: { readonly registrationId: string; readonly attemptId: string }): Promise<ManagementCallResult<T>> {
+    control?: { readonly registrationId: string; readonly attemptId: string }, applicationId?: string): Promise<ManagementCallResult<T>> {
     const result = await executeRequest<T, Problem>({
       operation,
       transport: this.transport,
@@ -138,6 +151,11 @@ export class ManagementClient {
             if (control !== undefined && ((value as ControlConfirmation).registrationId !== control.registrationId
               || (value as ControlConfirmation).attemptId !== control.attemptId)) {
               throw new ClientProtocolFailure("response.control_echo_mismatch");
+            }
+            if ((responseSchema === "ServiceFeaturePage" || responseSchema === "ApplicationApiCapabilityPage")
+              && ((value as ServiceFeaturePage).profile !== "complete-v1"
+                || responseSchema === "ApplicationApiCapabilityPage" && (value as ApplicationApiCapabilityPage).applicationId !== applicationId)) {
+              throw new ClientProtocolFailure("response.api_discovery_echo_mismatch");
             }
             if (responseSchema === "MetadataResult" && operationKey !== undefined && (value as MetadataResult).operation.key !== operationKey) {
               throw new ClientProtocolFailure("response.operation_key_mismatch");
@@ -201,6 +219,16 @@ function pageQuery(page: PageRequest = {}): string {
   const size = page.pageSize ?? 100;
   if (!Number.isSafeInteger(size) || size < 1 || size > 500 || page.cursor !== undefined && !isCursor(page.cursor)) {
     throw new TypeError("Supply a finite page size and an opaque same-endpoint cursor.");
+  }
+  const query = new URLSearchParams({ pageSize: String(size) });
+  if (page.cursor !== undefined) { query.set("cursor", page.cursor); }
+  return "?" + query.toString();
+}
+
+function apiDiscoveryPageQuery(page: PageRequest = {}): string {
+  const size = page.pageSize ?? 32;
+  if (!Number.isSafeInteger(size) || size < 1 || size > 64 || page.cursor !== undefined && !isCursor(page.cursor)) {
+    throw new TypeError("Supply a complete-discovery page size from 1 through 64 and its opaque same-endpoint cursor.");
   }
   const query = new URLSearchParams({ pageSize: String(size) });
   if (page.cursor !== undefined) { query.set("cursor", page.cursor); }

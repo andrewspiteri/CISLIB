@@ -10,7 +10,8 @@ namespace CIS.Management.Hosting;
 public static class ManagementClientServiceCollectionExtensions
 {
     private static readonly string[] Operations = ["service-info", "registration", "observation", "inventory-report",
-        "registration-close", "applications", "application", "instances", "inventory", "capabilities", "metadata-replace", "metadata-operation", "control"];
+        "registration-close", "applications", "application", "instances", "inventory", "capabilities", "metadata-replace", "metadata-operation", "control",
+        "service-features", "api-capabilities"];
 
     /// <summary>Prepares one dedicated profile before ordinary or security-bound native REST registration.</summary>
     /// <remarks>Credentials, selected security binding, native transport, trace policy and LogCalls remain application choices.
@@ -78,6 +79,10 @@ public static class ManagementClientServiceCollectionExtensions
             root.GetRequiredKeyedService<IRestClient>(snapshot.RestClientName), snapshot,
             root.GetServices<RestRetryPolicy>(), root.GetService<TimeProvider>()));
         services.TryAddSingleton<IManagementClient>(root => root.GetRequiredKeyedService<IManagementClient>(snapshot.RestClientName));
+        services.AddKeyedSingleton<IManagementApiDiscoveryClient>(snapshot.RestClientName,
+            (root, _) => (IManagementApiDiscoveryClient)root.GetRequiredKeyedService<IManagementClient>(snapshot.RestClientName));
+        services.TryAddSingleton<IManagementApiDiscoveryClient>(root =>
+            root.GetRequiredKeyedService<IManagementApiDiscoveryClient>(snapshot.RestClientName));
         return services;
     }
 }

@@ -287,6 +287,7 @@ public sealed class ManagementBackendTests
         ManagementMetadataResult original = await Decode<ManagementMetadataResult>(applied);
         await fixture.StopReplicasAsync();
         await Sql(fixture, $"""
+            {ManagementDatabaseFixture.DropRuleEngineTables(name => Table(fixture, name))}
             DROP TABLE {Table(fixture, "configuration_adoption")};
             DROP TABLE {Table(fixture, "configuration_session")};
             DROP TABLE {Table(fixture, "configuration_cohort")};

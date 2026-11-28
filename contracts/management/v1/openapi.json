@@ -19680,6 +19680,554 @@
         ],
         "x-cis-current-authorization": true
       }
+    },
+    "/service-features": {
+      "get": {
+        "operationId": "listServiceFeatures",
+        "summary": "listServiceFeatures",
+        "security": [
+          {
+            "workloadCertificate": []
+          },
+          {
+            "workloadBearer": []
+          },
+          {
+            "nativeCredential": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 64,
+              "default": 32
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Completed HTTP exchange; durable and business facts remain separate in metadata results.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/ServiceFeaturePage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Expected 400 Problem Details; code distinguishes the documented cause.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/Problem"
+                },
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/Problem400"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Expected 401 Problem Details; code distinguishes the documented cause.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/Problem"
+                },
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/Problem401"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Expected 403 Problem Details; code distinguishes the documented cause.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/Problem"
+                },
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/Problem403"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Expected 404 Problem Details; code distinguishes the documented cause.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/Problem"
+                },
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/Problem404"
+                  }
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Expected 408 Problem Details; code distinguishes the documented cause.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/Problem"
+                },
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/Problem408"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Expected 409 Problem Details; code distinguishes the documented cause.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/Problem"
+                },
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/Problem409"
+                  }
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "Expected 412 Problem Details; code distinguishes the documented cause.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/Problem"
+                },
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/Problem412"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Expected 413 Problem Details; code distinguishes the documented cause.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/Problem"
+                },
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/Problem413"
+                  }
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Expected 415 Problem Details; code distinguishes the documented cause.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/Problem"
+                },
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/Problem415"
+                  }
+                }
+              }
+            }
+          },
+          "428": {
+            "description": "Expected 428 Problem Details; code distinguishes the documented cause.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/Problem"
+                },
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/Problem428"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Expected 429 Problem Details; code distinguishes the documented cause.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/Problem"
+                },
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/Problem429"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Expected 500 Problem Details; code distinguishes the documented cause.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/Problem"
+                },
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/Problem500"
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Expected 503 Problem Details; code distinguishes the documented cause.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/Problem"
+                },
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/Problem503"
+                  }
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Expected 504 Problem Details; code distinguishes the documented cause.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/Problem"
+                },
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/Problem504"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-cis-required-capabilities": [],
+        "x-cis-current-authorization": true,
+        "description": "Optional version-1 complete API discovery. The complete-v1 profile pages every initialized handler in ordinal operationId order; legacy-v1 responses remain bounded and unchanged. Current hints confer no authority. Cursor binds endpoint, current actor, policy, authority, profile and complete inventory.",
+        "x-cis-rest-operation-alias": "service-features",
+        "x-cis-api-discovery-profile": "complete-v1"
+      }
+    },
+    "/applications/{applicationId}/api-capabilities": {
+      "get": {
+        "operationId": "listApplicationApiCapabilities",
+        "summary": "listApplicationApiCapabilities",
+        "security": [
+          {
+            "workloadCertificate": []
+          },
+          {
+            "workloadBearer": []
+          },
+          {
+            "nativeCredential": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "applicationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 36,
+              "maxLength": 36,
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "x-cis-nonempty-uuid": true
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 64,
+              "default": 32
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Completed HTTP exchange; durable and business facts remain separate in metadata results.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/ApplicationApiCapabilityPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Expected 400 Problem Details; code distinguishes the documented cause.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/Problem"
+                },
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/Problem400"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Expected 401 Problem Details; code distinguishes the documented cause.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/Problem"
+                },
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/Problem401"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Expected 403 Problem Details; code distinguishes the documented cause.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/Problem"
+                },
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/Problem403"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Expected 404 Problem Details; code distinguishes the documented cause.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/Problem"
+                },
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/Problem404"
+                  }
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Expected 408 Problem Details; code distinguishes the documented cause.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/Problem"
+                },
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/Problem408"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Expected 409 Problem Details; code distinguishes the documented cause.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/Problem"
+                },
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/Problem409"
+                  }
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "Expected 412 Problem Details; code distinguishes the documented cause.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/Problem"
+                },
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/Problem412"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Expected 413 Problem Details; code distinguishes the documented cause.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/Problem"
+                },
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/Problem413"
+                  }
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Expected 415 Problem Details; code distinguishes the documented cause.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/Problem"
+                },
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/Problem415"
+                  }
+                }
+              }
+            }
+          },
+          "428": {
+            "description": "Expected 428 Problem Details; code distinguishes the documented cause.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/Problem"
+                },
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/Problem428"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Expected 429 Problem Details; code distinguishes the documented cause.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/Problem"
+                },
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/Problem429"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Expected 500 Problem Details; code distinguishes the documented cause.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/Problem"
+                },
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/Problem500"
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Expected 503 Problem Details; code distinguishes the documented cause.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/Problem"
+                },
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/Problem503"
+                  }
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Expected 504 Problem Details; code distinguishes the documented cause.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "./contract.schema.json#/$defs/Problem"
+                },
+                "examples": {
+                  "current": {
+                    "$ref": "#/components/examples/Problem504"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-cis-required-capabilities": [
+          "management.applications.read"
+        ],
+        "x-cis-current-authorization": true,
+        "description": "Optional version-1 complete API discovery. The complete-v1 profile pages every initialized handler in ordinal operationId order; legacy-v1 responses remain bounded and unchanged. Current hints confer no authority. Cursor binds endpoint, current actor, policy, authority, profile and complete inventory.",
+        "x-cis-rest-operation-alias": "api-capabilities",
+        "x-cis-api-discovery-profile": "complete-v1"
+      }
     }
   },
   "components": {
@@ -19823,6 +20371,15 @@
       },
       "EnvironmentPage": {
         "$ref": "./contract.schema.json#/$defs/EnvironmentPage"
+      },
+      "ApiCapability": {
+        "$ref": "./contract.schema.json#/$defs/ApiCapability"
+      },
+      "ServiceFeaturePage": {
+        "$ref": "./contract.schema.json#/$defs/ServiceFeaturePage"
+      },
+      "ApplicationApiCapabilityPage": {
+        "$ref": "./contract.schema.json#/$defs/ApplicationApiCapabilityPage"
       }
     },
     "examples": {

@@ -1,0 +1,231 @@
+{
+  "tasks": [
+    {
+      "title": "RM11 definition validation and local evaluator",
+      "scopeIds": [
+        "RM11-RUNTIME"
+      ],
+      "category": "implementation",
+      "complexity": "medium",
+      "paths": [
+        "implementations/csharp/src/CIS.Core",
+        "implementations/csharp/src/CIS.CommonTesting",
+        "implementations/csharp/tests/CIS.Core.UnitTests"
+      ],
+      "acceptanceCriteria": "Expose a mockable evaluator and shared validator. Enforce exact operators, explicit conditions, declared order and reached-cell validation. Preserve Enabled/Test/Disabled, FirstMatch/AllMatching, failure versus Test diagnostics, deterministic order and immutable inputs/results. Cover RM11-AC02–AC11 and AC13–AC15.",
+      "validation": "Use native MSTest and portable fixtures for all operators, malformed definitions, exact precision, Unicode scalar and escape bounds, missing/null and markers, lazy validation, trace outcomes, both modes, ties, and detached inputs.",
+      "dependsOn": [
+        "WORK-001"
+      ]
+    },
+    {
+      "title": "RM11 trusted registration and immutable version saves",
+      "scopeIds": [
+        "RM11-MANAGEMENT"
+      ],
+      "category": "implementation",
+      "complexity": "medium",
+      "paths": [
+        "implementations/csharp/applications/CIS.Management.Service",
+        "implementations/csharp/src/CIS.Core/Management",
+        "implementations/typescript/packages/management-client"
+      ],
+      "acceptanceCriteria": "Provision the trusted ruleset and schema, submit validated complete immutable versions under current edit revision, and recover by the original operation key. Preserve deployment and saved history during registration refresh. Protect the same rules from generic Configuration routes. Cover RM11-AC01, AC16 and AC30.",
+      "validation": "Use the existing provider and client fixtures for scoped grants, two-editor contention, actual restart/re-registration, copied/deleted identities, unchanged/resaved definitions, and generic write/bypass boundaries.",
+      "dependsOn": [
+        "WORK-001",
+        "WORK-002"
+      ]
+    },
+    {
+      "title": "RM11 deployment authority and retained-version eligibility",
+      "scopeIds": [
+        "RM11-MANAGEMENT"
+      ],
+      "category": "implementation",
+      "complexity": "medium",
+      "paths": [
+        "implementations/csharp/applications/CIS.Management.Service",
+        "implementations/csharp/src/CIS.Core/Management"
+      ],
+      "acceptanceCriteria": "Deploy and roll back already saved immutable definitions through existing guarded RM08 assignment. Record same-application/environment deployment eligibility in the original transaction and protect live and retained audit references. Cover RM11-AC17 and AC19.",
+      "validation": "Use native provider fixtures for save without deploy, saved-only and wrong-scope exact rejection, successful rollback, original-key replay, conflicting rollout, and cleanup around retained references.",
+      "dependsOn": [
+        "WORK-003"
+      ]
+    },
+    {
+      "title": "RM11 application adoption and exact-version evaluation",
+      "scopeIds": [
+        "RM11-RUNTIME",
+        "RM11-MANAGEMENT"
+      ],
+      "category": "implementation",
+      "complexity": "medium",
+      "paths": [
+        "implementations/csharp/src/CIS.Core",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests"
+      ],
+      "acceptanceCriteria": "Validate and atomically adopt an executable version through the existing host path. Capture one immutable version per invocation, report requested/applied/rejected status, and enforce same-scope exact history, current host admission and retained failure behavior. Cover RM11-AC18 and AC20.",
+      "validation": "Use native host/provider cases for concurrent adoption, in-flight version capture, distinct instances, accepted older exact version with newer active, incompatible/unavailable/foreign exact reference, and bootstrap/recovery/outage.",
+      "dependsOn": [
+        "WORK-002",
+        "WORK-004"
+      ]
+    },
+    {
+      "title": "RM11 durable start and completion audit",
+      "scopeIds": [
+        "RM11-AUDIT"
+      ],
+      "category": "implementation",
+      "complexity": "medium",
+      "paths": [
+        "implementations/csharp/src/CIS.Core",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests"
+      ],
+      "acceptanceCriteria": "Durably accept typed start before evaluation and completion before result release. Preserve host provenance, correlation, versions, timestamps, exact supplied values and observed trace. Preserve terminal selection and bounded finalization after cancellation. Cover RM11-AC25 and AC26.",
+      "validation": "Prove early refusal, failure after earlier matches, selection/cancellation races, finalization failure or unknown, and a committed outbox while the reporting destination is unavailable using existing RM06 fixtures.",
+      "dependsOn": [
+        "WORK-002",
+        "WORK-005"
+      ]
+    },
+    {
+      "title": "RM11 authorized execution history",
+      "scopeIds": [
+        "RM11-AUDIT",
+        "RM11-MANAGEMENT"
+      ],
+      "category": "implementation",
+      "complexity": "medium",
+      "paths": [
+        "implementations/csharp/applications/CIS.Management.Service",
+        "implementations/csharp/src/CIS.Core/Management",
+        "implementations/typescript/packages/management-client",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests"
+      ],
+      "acceptanceCriteria": "Ingest durable start/completion idempotently on the existing provider. Supply permission-filtered bounded query and detail with exact immutable definition evidence and truthful incomplete or interrupted status. Cover RM11-AC24, AC27 and AC28.",
+      "validation": "Exercise authenticated delivery, exact duplicates and conflicts, out-of-order observations, broker/store outage and recovery, retained definitions, actual interruption, scoped grants and cursor isolation using native fixtures.",
+      "dependsOn": [
+        "WORK-003",
+        "WORK-004",
+        "WORK-006"
+      ]
+    },
+    {
+      "title": "RM11 hit counters and audited resets",
+      "scopeIds": [
+        "RM11-COUNTERS"
+      ],
+      "category": "implementation",
+      "complexity": "medium",
+      "paths": [
+        "implementations/csharp/applications/CIS.Management.Service",
+        "implementations/csharp/src/CIS.Core/Management",
+        "implementations/typescript/packages/management-client",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests"
+      ],
+      "acceptanceCriteria": "Project observed hits idempotently across instances and versions. Order reset and increment by first durable acceptance per counter and expose per-counter outcomes, reset time and freshness. Cover RM11-AC21–AC23.",
+      "validation": "Race the real store across instances and verify pre-reset replay, post-reset first acceptance for an earlier invocation, recovery, actual counter outage independent of audit success, partial bulk outcomes and one hit per execution/rule.",
+      "dependsOn": [
+        "WORK-003",
+        "WORK-007"
+      ]
+    },
+    {
+      "title": "RM11 backoffice wireframes",
+      "scopeIds": [
+        "RM11-BACKOFFICE"
+      ],
+      "category": "wireframe",
+      "complexity": "low",
+      "paths": [
+        "docs/changes/CIS-0031"
+      ],
+      "acceptanceCriteria": "Define the backoffice grid and edit flows, version/deployment and rollout, independent counter operations and execution history. Map scope, authorization, inputs and observable states to exact API boundaries and source operator journeys.",
+      "validation": "Validate the CIS wireframe projection, keyboard/edit and focus paths, precision and presence inputs, save conflict with retained draft, and stale, rejected and interrupted states. Supports RM11-AC01, AC12, AC18, AC22–AC24 and AC29.",
+      "dependsOn": [
+        "WORK-001"
+      ]
+    },
+    {
+      "title": "RM11 rendered backoffice design and review",
+      "scopeIds": [
+        "RM11-BACKOFFICE"
+      ],
+      "category": "design",
+      "complexity": "medium",
+      "paths": [
+        "docs/changes/CIS-0031"
+      ],
+      "acceptanceCriteria": "Render the new surfaces using the existing portal shell, controls and synthetic data. Retain a review package for the exact wireframe digest and rendered backoffice designs.",
+      "validation": "Validate the rendered manifest and compare operator journeys to the wireframes. Record actual exact CIS design approval before dependent frontend work. Supports RM11-AC29.",
+      "dependsOn": [
+        "WORK-009"
+      ]
+    },
+    {
+      "title": "RM11 portal grid and version deployment workflows",
+      "scopeIds": [
+        "RM11-BACKOFFICE"
+      ],
+      "category": "frontend",
+      "complexity": "medium",
+      "paths": [
+        "implementations/typescript/applications/management-portal",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests"
+      ],
+      "acceptanceCriteria": "Connect the reviewed grid to real Management APIs for typed row and rule editing, previous versions, Save, Deploy and rollback, and instance adoption visibility. Preserve validation/conflict drafts and exact decimals throughout. Own RM11-AC12 and supply AC29 editing/deployment evidence.",
+      "validation": "Run portal browser journeys against the native service for typed cells, markers, add/copy/remove/reorder, row fields and mode, older-version editing, conflict retention, saved-only state, deployment and rejected/pending instances.",
+      "dependsOn": [
+        "WORK-003",
+        "WORK-004",
+        "WORK-005",
+        "WORK-010"
+      ]
+    },
+    {
+      "title": "RM11 portal counter and execution inspection workflows",
+      "scopeIds": [
+        "RM11-BACKOFFICE"
+      ],
+      "category": "frontend",
+      "complexity": "medium",
+      "paths": [
+        "implementations/typescript/applications/management-portal",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests"
+      ],
+      "acceptanceCriteria": "Connect counter reset/freshness and execution lookup/detail to the existing portal. Show authorized typed inputs with absent/null, evaluated row/cell outcomes, metadata order, and incomplete, failed or empty success distinctions. Own combined RM11-AC29 browser evidence with the editing/deployment leaf.",
+      "validation": "Run actual browser journeys for individual, selected and all resets, their scoped outcomes, reset time, grant/session boundaries, execution ID and ruleset/version/instance/time/outcome filters, and detailed traces.",
+      "dependsOn": [
+        "WORK-007",
+        "WORK-008",
+        "WORK-010"
+      ]
+    },
+    {
+      "title": "RM11 opt-in CountryData consumer example",
+      "scopeIds": [
+        "RM11-EXAMPLE"
+      ],
+      "category": "integration",
+      "complexity": "medium",
+      "paths": [
+        "implementations/csharp/examples/CountryData",
+        "implementations/csharp/examples/CountryData.UnitTests",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests"
+      ],
+      "acceptanceCriteria": "Provide one opt-in CountryData recipe with ResidenceCountry and Pensioner, both modes, explicit deployment and a real execution ID that resolves to audit. Preserve the normal database-free default. Collect cross-surface proof for RM11-AC15, AC20 and AC29.",
+      "validation": "Run existing composed host/provider fixtures through both modes, two distinct application instances, captured version/inputs and audited execution lookup. Record the exact selected cases, runner, counts and links.",
+      "dependsOn": [
+        "WORK-005",
+        "WORK-006",
+        "WORK-007",
+        "WORK-008",
+        "WORK-011",
+        "WORK-012"
+      ]
+    }
+  ]
+}

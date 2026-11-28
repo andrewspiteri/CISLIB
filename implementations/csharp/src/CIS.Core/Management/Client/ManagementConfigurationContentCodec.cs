@@ -22,6 +22,7 @@ public sealed class ManagementConfigurationContentCodec : IRestContentCodec
     /// <inheritdoc />
     public bool CanDecode(Type resultType, RestResponseFormat format)
         => format == RestResponseFormat.Json && (resultType == typeof(ManagementConfigurationSnapshotBody)
+            || resultType == typeof(ManagementRuleWorkloadVersion)
             || resultType == typeof(ManagementConfigurationCreationContext) || resultType == typeof(ManagementPage<ManagementConfigurationSummary>)
             || resultType == typeof(ManagementConfigurationCandidatePreview) || resultType == typeof(ManagementConfigurationEditorContext)
             || resultType == typeof(ManagementConfigurationCatalog) || resultType == typeof(ManagementConfigurationSource)
@@ -86,7 +87,8 @@ public sealed class ManagementConfigurationContentCodec : IRestContentCodec
         {
             return RestDecodedValue<T>.Present((T)(object)new ManagementConfigurationSnapshotBody(json));
         }
-        object? value = typeof(T) == typeof(ManagementConfigurationCreationContext) ? ManagementConfigurationWire.DecodeResponse<ManagementConfigurationCreationContext>(json, limits)
+        object? value = typeof(T) == typeof(ManagementRuleWorkloadVersion) ? ManagementRuleEngineWire.DecodeResponse<ManagementRuleWorkloadVersion>(json)
+            : typeof(T) == typeof(ManagementConfigurationCreationContext) ? ManagementConfigurationWire.DecodeResponse<ManagementConfigurationCreationContext>(json, limits)
             : typeof(T) == typeof(ManagementPage<ManagementConfigurationSummary>) ? ManagementConfigurationWire.DecodeResponse<ManagementPage<ManagementConfigurationSummary>>(json, limits)
             : typeof(T) == typeof(ManagementConfigurationCandidatePreview) ? ManagementConfigurationWire.DecodeResponse<ManagementConfigurationCandidatePreview>(json, limits)
             : typeof(T) == typeof(ManagementConfigurationEditorContext) ? ManagementConfigurationWire.DecodeResponse<ManagementConfigurationEditorContext>(json, limits)

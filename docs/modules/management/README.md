@@ -90,6 +90,8 @@ compatible response additions.
   awaited native integrity, scoped conditional reads and actual transport results.
 - [Optional Scheduler/catalog clients](scheduler-client.md): passive typed ports,
   strict bounded wire framing, exact preview context and original-key recovery.
+- [Complete API discovery](api-discovery.md): compatible legacy operation arrays,
+  complete installed pages and advisory application API eligibility.
 - [Operator actions](operator-actions.md): exact source/binding eligibility,
   write and original-result recovery grants, and independent value disclosure.
 - [Trusted cohort choices](configuration-cohorts.md): bounded authorized rollout

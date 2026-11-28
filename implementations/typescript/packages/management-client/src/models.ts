@@ -20,10 +20,19 @@ export interface Feature {
 export interface ServiceInfo {
   readonly serviceVersion: string; readonly protocolMajors: readonly number[]; readonly features: readonly Feature[];
   readonly maximumInventoryRequestBytes?: number;
+  /** Version 1 explicitly offers the complete-v1 paged API-discovery companion. */
+  readonly apiDiscoveryVersion?: number;
 }
 export interface Capabilities {
   readonly applicationId: string; readonly implementedApis: readonly Feature[];
   readonly callerHints: readonly { readonly operationId: string; readonly allowed: boolean }[];
+  readonly apiDiscoveryVersion?: number;
+}
+/** One complete-profile API descriptor and advisory hint; this never grants execution authority. */
+export interface ApiCapability { readonly feature: Feature; readonly allowed: boolean; }
+export interface ServiceFeaturePage { readonly profile: string; readonly items: readonly Feature[]; readonly nextCursor?: string; }
+export interface ApplicationApiCapabilityPage {
+  readonly applicationId: string; readonly profile: string; readonly items: readonly ApiCapability[]; readonly nextCursor?: string;
 }
 export interface RegistrationRequest { readonly protocolMajor: 1; readonly reportedInstanceId: string; readonly processStartedAtUtc: string; readonly applicationVersion: string; }
 export interface RegistrationReceipt { readonly registrationId: string; readonly applicationId: string; readonly registeredAtUtc: string; }

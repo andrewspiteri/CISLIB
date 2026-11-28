@@ -9,6 +9,28 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CIS.Tests.MessagingCrashFixture;
 
+internal sealed record RuleEngineAuditCrashInput(int ContractVersion, string MessagingSchema, Guid ExecutionId,
+    string AuthorityId, string ApplicationId, string RegistrationId, string RulesetId, string SchemaRevision, string Version,
+    string ProducerApplication, string ProducerEnvironment, DateTimeOffset StartedAtUtc);
+
+internal sealed record RuleEngineAuditCrashMarker(Guid RecordId, Guid MessageId, string InstanceId);
+
+internal sealed record RuleEngineCountryDataInput(int ContractVersion, string ManagementBaseUrl, string MessagingSchema,
+    string ExpectedVersion, bool RequestExactVersion, string ResidenceCountry, bool Pensioner, string CountrySourceUrl,
+    bool HoldAfterCommittedStart = false, string? ExpectedReleaseId = null, string? ExpectedCohortId = null);
+
+internal sealed record RuleEngineCountryDataBroker(string Host, int Port, string ServerName, string VirtualHost,
+    string Namespace, string SubjectIssuer, string User, string Password);
+
+internal sealed record RuleEngineCountryDataStarted(Guid ExecutionId, string Version);
+
+internal sealed record RuleEngineCountryDataResult(int ProcessId, string InstanceId, string RegistrationId, Guid ExecutionId,
+    string RulesetId, string? Version, string Status, RuleEngineCountryDataMatch[] Matches, RuleEngineCountryDataTrace[] Trace, string? ErrorCode);
+
+internal sealed record RuleEngineCountryDataMatch(string RuleId, int Ordinal, string Weight, string? Metadata);
+
+internal sealed record RuleEngineCountryDataTrace(int RowIndex, string State, string Outcome);
+
 // Public-only source shared by the one B05 process boundary and its package consumer.
 public sealed class CrashDescriptor
 {

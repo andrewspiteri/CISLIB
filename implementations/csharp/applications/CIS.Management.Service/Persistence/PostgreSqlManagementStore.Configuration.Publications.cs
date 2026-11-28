@@ -49,6 +49,10 @@ public sealed partial class PostgreSqlManagementStore
             {
                 return ConfigurationEffect.Reject("management.configuration.scope_changed");
             }
+            if (await IsRuleEngineConfigurationAsync(connection, transaction, source.ApplicationId, source.Environment, source.ConfigurationId, token))
+            {
+                return ConfigurationEffect.Reject("management.configuration.rule_engine_managed");
+            }
             if (input.IfMatch != ConfigurationETag("source", revision))
             {
                 return ConfigurationEffect.Reject("management.configuration.precondition_failed");

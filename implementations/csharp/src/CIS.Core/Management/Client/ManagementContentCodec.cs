@@ -16,6 +16,7 @@ public sealed class ManagementContentCodec : IRestContentCodec
     /// <inheritdoc />
     public bool CanDecode(Type resultType, RestResponseFormat format)
         => format == RestResponseFormat.Json && (resultType == typeof(ManagementServiceInfo)
+            || resultType == typeof(ManagementServiceFeaturePage) || resultType == typeof(ManagementApplicationApiCapabilityPage)
             || resultType == typeof(ManagementRegistrationReceipt) || resultType == typeof(ManagementReportReceipt)
             || resultType == typeof(ManagementControlConfirmation)
             || resultType == typeof(ManagementCloseReceipt) || resultType == typeof(ManagementApplication)
@@ -72,6 +73,8 @@ public sealed class ManagementContentCodec : IRestContentCodec
         cancellationToken.ThrowIfCancellationRequested();
         ReadOnlyMemory<byte> json = bytes.GetBuffer().AsMemory(0, checked((int)bytes.Length));
         object? value = typeof(T) == typeof(ManagementServiceInfo) ? ManagementWire.DecodeResponse<ManagementServiceInfo>(json, limits)
+            : typeof(T) == typeof(ManagementServiceFeaturePage) ? ManagementWire.DecodeResponse<ManagementServiceFeaturePage>(json, limits)
+            : typeof(T) == typeof(ManagementApplicationApiCapabilityPage) ? ManagementWire.DecodeResponse<ManagementApplicationApiCapabilityPage>(json, limits)
             : typeof(T) == typeof(ManagementRegistrationReceipt) ? ManagementWire.DecodeResponse<ManagementRegistrationReceipt>(json, limits)
             : typeof(T) == typeof(ManagementControlConfirmation) ? ManagementWire.DecodeResponse<ManagementControlConfirmation>(json, limits)
             : typeof(T) == typeof(ManagementReportReceipt) ? ManagementWire.DecodeResponse<ManagementReportReceipt>(json, limits)

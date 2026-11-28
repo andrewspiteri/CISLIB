@@ -17,6 +17,14 @@ public static partial class ManagementServiceApplication
             builder.Services.AddCisOperation(ManagementConfigurationOperations.Release());
             builder.Services.AddCisOperation(ManagementConfigurationOperations.Assignment());
             builder.Services.AddCisOperation(ManagementConfigurationOperations.Creation());
+            if (options.Configuration.Manifest.RuleEngine is { Count: > 0 })
+            {
+                builder.Services.AddScoped<RuleEngineOperationTarget>();
+                builder.Services.AddScoped<ManagementRuleEngineService>();
+                builder.Services.AddCisOperation(ManagementRuleEngineOperations.Definition());
+                builder.Services.AddCisOperation(ManagementRuleEngineOperations.DeploymentDefinition());
+                builder.Services.AddCisOperation(ManagementRuleEngineOperations.CounterResetDefinition());
+            }
         }
     }
 }

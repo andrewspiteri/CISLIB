@@ -364,7 +364,35 @@ public sealed class ManagementClientTests
         await using ServiceProvider root = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
         IManagementClient firstKey = root.GetRequiredKeyedService<IManagementClient>("management");
         Assert.AreSame(firstKey, root.GetRequiredService<IManagementClient>());
+        Assert.AreSame<object>(firstKey, root.GetRequiredService<IManagementApiDiscoveryClient>());
+        Assert.AreSame<object>(firstKey, root.GetRequiredKeyedService<IManagementApiDiscoveryClient>("management"));
         Assert.AreNotSame(firstKey, root.GetRequiredKeyedService<IManagementClient>("other"));
+    }
+
+    [TestMethod]
+    public async Task CompleteApiDiscoveryUsesItsOwnDefaultAndRejectsOversizedPagesAndCrossApplicationResponses()
+    {
+        int calls = 0;
+        var options = Options();
+        await using var rest = new HttpRestClient(Native(options, new Handler((request, _) =>
+        {
+            calls++;
+            Assert.AreEqual("32", request.Query.Snapshot().Single(pair => pair.Key == "pageSize").Value);
+            byte[] body = request.Call.OperationName switch
+            {
+                "service-features" => ManagementWire.EncodeResponse(new ManagementServiceFeaturePage("complete-v1", [])),
+                "api-capabilities" => ManagementWire.EncodeResponse(new ManagementApplicationApiCapabilityPage(Registration, "complete-v1", [])),
+                _ => throw new AssertFailedException("Unexpected discovery operation.")
+            };
+            return ValueTask.FromResult<IRestResponse>(new Response(200, new MemoryStream(body)));
+        })));
+        var client = new ManagementClient(rest, options);
+        Assert.IsTrue((await client.ListServiceFeaturesAsync()).Exchange.Success);
+        Assert.IsFalse((await client.ListApplicationApiCapabilitiesAsync(Id)).Exchange.Success,
+            "A page for another application cannot be admitted as this caller's response.");
+        await Assert.ThrowsExactlyAsync<ArgumentException>(() => client.ListServiceFeaturesAsync(new(65)));
+        await Assert.ThrowsExactlyAsync<ArgumentException>(() => client.ListApplicationApiCapabilitiesAsync(Id, new(100)));
+        Assert.AreEqual(2, calls, "Invalid discovery requests must not reach native dispatch.");
     }
 
     private static ManagementClientOptions Options() => new("management") { BaseUrl = "https://service.invalid/tenant/control" };

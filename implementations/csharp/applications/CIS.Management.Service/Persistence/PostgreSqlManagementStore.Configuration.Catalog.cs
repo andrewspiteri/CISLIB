@@ -193,7 +193,25 @@ public sealed partial class PostgreSqlManagementStore
                 Bytes: 64L + Encoding.UTF8.GetByteCount(item.Issuer) + Encoding.UTF8.GetByteCount(item.Subject) + Encoding.UTF8.GetByteCount(item.CohortId))).ToArray();
             byte[] pins = JsonSerializer.SerializeToUtf8Bytes(selected.PinnedReleaseIds, ManagementConfigurationOptions.Json);
             long metadata = 160 + pins.LongLength;
-            delta = checked(delta + cohorts.Sum(item => item.Bytes) - previousCohorts + metadata - previousMetadata);
+            var nativeRuleBindings = new Dictionary<(Guid, string), (Guid Binding, Guid Definition)>();
+            foreach (ManagementRuleEngineRegistration registration in selected.Manifest.RuleEngine ?? [])
+            {
+                Guid application = applications[(registration.Application, registration.Environment)];
+                ManagementConfigurationBinding selectedBinding = selected.Manifest.Bindings.Single(binding =>
+                    binding.Application == registration.Application && binding.Environment == registration.Environment
+                    && binding.ConfigurationId == registration.ConfigurationId);
+                Guid definition = definitions[(selectedBinding.ConfigurationId, selectedBinding.SchemaVersion)];
+                nativeRuleBindings.Add((application, registration.ConfigurationId),
+                    (bindings.Single(binding => binding.Application == application && binding.Definition == definition).Id, definition));
+            }
+            RuleEngineCatalogUpdate ruleEngine = await PrepareRuleEngineCatalogAsync(connection, transaction,
+                selected.Manifest, applications, nativeRuleBindings, token);
+            if (ruleEngine.Refusal is { } refusal)
+            {
+                return ConfigurationEffect.Reject(refusal);
+            }
+            delta = checked(delta + cohorts.Sum(item => item.Bytes) - previousCohorts + metadata - previousMetadata
+                + ruleEngine.AdditionalBytes);
             if (delta > selected.QuotaBytes - used)
             {
                 return ConfigurationEffect.Reject("management.configuration.capacity_exceeded");
@@ -263,6 +281,7 @@ public sealed partial class PostgreSqlManagementStore
                     """, ("application", cohort.Application), ("issuer", cohort.Value.Issuer), ("subject", cohort.Value.Subject),
                     ("cohort", cohort.Value.CohortId), ("bytes", cohort.Bytes));
             }
+            await ApplyRuleEngineCatalogAsync(connection, transaction, ruleEngine.Entries, token);
             string timestamp;
             await using (DbCommand update = ManagementSql.Command(connection, transaction, $"""
                 UPDATE {Table("configuration_catalog")} SET revision=revision+1,manifest_digest=@digest,quota_bytes=@quota,

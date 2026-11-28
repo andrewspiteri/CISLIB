@@ -1,0 +1,18 @@
+{
+  "tasks": [
+    {
+      "title": "RM11 application adoption and exact-version evaluation",
+      "scopeIds": ["RM11-RUNTIME", "RM11-MANAGEMENT"],
+      "category": "implementation",
+      "complexity": "medium",
+      "paths": [
+        "implementations/csharp/src/CIS.Core",
+        "implementations/csharp/applications/CIS.Management.Service",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests"
+      ],
+      "acceptanceCriteria": "Validate and atomically adopt an executable version through the existing host path. Capture one immutable version per invocation, report requested/applied/rejected status, and enforce same-scope exact history, current host admission and retained failure behavior. Cover RM11-AC18 and AC20.",
+      "validation": "Use native host/provider cases for concurrent adoption, in-flight version capture, distinct instances, accepted older exact version with newer active, incompatible/unavailable/foreign exact reference, and bootstrap/recovery/outage.",
+      "dependsOn": ["WORK-002", "WORK-004"]
+    }
+  ]
+}

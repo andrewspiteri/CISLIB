@@ -91,7 +91,10 @@ internal static class ManagementConfigurationHttp
         return refusal is null;
     }
 
-    internal static async Task<T?> Read<T>(HttpContext context) where T : class
+    internal static Task<T?> Read<T>(HttpContext context) where T : class
+        => Read(context, static body => ManagementConfigurationWire.DecodeRequest<T>(body));
+
+    internal static async Task<T?> Read<T>(HttpContext context, Func<ReadOnlyMemory<byte>, T?> decode) where T : class
     {
         const int maximum = 1024 * 1024;
         if (context.Request.ContentType is not { } contentType || contentType.Length > 128
@@ -112,7 +115,7 @@ internal static class ManagementConfigurationHttp
                 int read = await context.Request.Body.ReadAsync(buffer.AsMemory(count, maximum + 1 - count), context.RequestAborted);
                 if (read == 0)
                 {
-                    return ManagementConfigurationWire.DecodeRequest<T>(buffer.AsMemory(0, count));
+                    return decode(buffer.AsMemory(0, count));
                 }
                 count += read;
             }

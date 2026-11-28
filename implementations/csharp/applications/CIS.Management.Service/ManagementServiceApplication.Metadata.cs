@@ -31,10 +31,23 @@ public static partial class ManagementServiceApplication
                 }
             }
         }
-        RabbitMqSettings broker = options.Delivery!.Broker;
-        policy.Profiles.Add(new(broker.SecurityProfile, SecurityProfileKind.Native, SecurityProfileRoles.Inbound,
-            ManagementDeliveryOptions.BrokerScheme,
-            [new(new(broker.SubjectIssuer, broker.UserName), EnvironmentOptions.ApplicationName, EnvironmentOptions.EnvironmentName)]));
+        if (options.Configuration?.Manifest.RuleEngine is { Count: > 0 })
+        {
+            foreach (string capability in new[]
+            {
+                ManagementRuleEngineOperations.Read, ManagementRuleEngineOperations.Save, ManagementRuleEngineOperations.ReadOperation,
+                ManagementRuleEngineOperations.ReadDeployment, ManagementRuleEngineOperations.Deploy,
+                ManagementRuleEngineOperations.ReadExecutions, ManagementRuleEngineOperations.ReadExecutionDetail,
+                ManagementRuleEngineOperations.ReadCounters, ManagementRuleEngineOperations.ResetCounters
+            })
+            {
+                if (!policy.Capabilities.Contains(capability))
+                {
+                    policy.Capabilities.Add(capability);
+                }
+            }
+        }
+        ManagementRuleEngineAuditIngress.ConfigureSecurity(policy, options.Delivery!);
     }
 
     static partial void ConfigureMetadata(CISApplicationBuilder builder, ManagementServiceOptions options)
@@ -49,6 +62,11 @@ public static partial class ManagementServiceApplication
             MaximumRetainedEnvelopeBytes = delivery.MaximumRetainedEnvelopeBytes
         }));
         builder.Services.AddCisMessageStore(new("management", "management"));
+        if (delivery.RuleEngineAuditSources.Count > 0)
+        {
+            builder.Services.AddCisMessageRoute(ManagementRuleEngineAuditIngress.Route());
+            builder.Services.AddCisMessageSubscription(ManagementRuleEngineAuditIngress.Subscription(delivery));
+        }
         builder.UseAudit(delivery.CreateAuditOptions());
         builder.UseMessaging(delivery.CreateMessagingOptions());
         builder.Services.AddSingleton<IOperationJournal>(root => new PostgreSqlManagementJournal(

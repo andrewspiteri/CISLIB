@@ -9,9 +9,11 @@ import { capturePortalContext, portalContextHeader, portalContextKey } from "../
 
 export async function verifyBrowser({ origin, applicationA, applicationB, registrationA, operatorAContext, operatorBContext, lookupOperatorContext, rollout, adoptionObservations, r08 = false, reviewCorrections = false, versionWorkflow = false, instanceStatus = false, firstVersion = false,
   newSaveRecovery = false, releaseConflict = false, configurationDeploy, configurationBoundary, instanceStatusBoundaries,
-  configurationMenus, sessionTabsContexts, editorRefresh, refreshOperatorContext }) {
+  configurationMenus, sessionTabsContexts, editorRefresh, refreshOperatorContext, ruleEngineWorkflow, ruleEngineInspection }) {
   const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../../../..");
-  const evidence = join(root, ".artifacts/management-portal/CIS-0029/WORK-005", "browser-" + randomUUID());
+  const evidence = join(root, ruleEngineInspection != null ? ".artifacts/management-portal/CIS-0031/WORK-012"
+    : ruleEngineWorkflow == null ? ".artifacts/management-portal/CIS-0029/WORK-005"
+      : ".artifacts/management-portal/CIS-0031/WORK-011", "browser-" + randomUUID());
   await mkdir(evidence, { recursive: true });
   // The version scenario also proves native window resizing; its existing
   // browser owner is headed rather than adding another browser or harness.
@@ -34,6 +36,26 @@ export async function verifyBrowser({ origin, applicationA, applicationB, regist
   }
   async function screenshot(page, name) { await page.screenshot({ path: join(evidence, name + ".png"), fullPage: true }); }
   try {
+    if (ruleEngineWorkflow != null) {
+      stage = "rule-engine-workflow";
+      const a = await context(operatorAContext), b = await context(operatorBContext);
+      const page = await a.newPage(), pageB = await b.newPage();
+      activePage = page;
+      const { verifyRuleEngineWorkflow } = await import("./native-rule-engine-checks.mjs");
+      const proof = await verifyRuleEngineWorkflow({ page, pageB, origin, applicationA, applicationB, workflow: ruleEngineWorkflow, screenshot, cases });
+      let inspectionProof;
+      if (ruleEngineInspection != null) {
+        stage = "rule-engine-inspection";
+        const { verifyRuleEngineInspection } = await import("./native-rule-engine-inspection-checks.mjs");
+        inspectionProof = await verifyRuleEngineInspection({ page, pageB, origin, applicationA, applicationB,
+          workflow: ruleEngineWorkflow, inspection: ruleEngineInspection, screenshot, cases });
+      }
+      assert.deepEqual(errors, []);
+      await writeFile(join(evidence, "browser-evidence.json"), JSON.stringify({ passed: true, cases,
+        ruleEngineWorkflow: true, ...(inspectionProof === undefined ? {} : { ruleEngineInspection: true }) }, null, 2));
+      return { cases, metadataAppliedKeys, metadataConflictKeys, ruleEngineWorkflow: proof,
+        ...(inspectionProof === undefined ? {} : { ruleEngineInspection: inspectionProof }) };
+    }
     if (configurationMenus != null || sessionTabsContexts !== undefined || editorRefresh != null) {
       stage = configurationMenus != null ? "configuration-menus" : editorRefresh != null ? "configuration-editor-refresh" : "session-tabs";
       const a = await context(sessionTabsContexts?.initial ?? operatorAContext);
@@ -510,9 +532,9 @@ export async function verifyBrowser({ origin, applicationA, applicationB, regist
       try { await screenshot(activePage, "failure-" + stage); failureScreenshotSaved = true; }
       catch { /* The original assertion and all native cleanup remain required. */ }
     }
-    const sourceLine = error instanceof Error ? /(native-browser-checks|native-config-save-consumer|native-config-deploy-consumer|native-configuration-menu-checks|native-deploy-session-checks|native-session-tabs-checks|native-configuration-refresh-checks|native-instance-status-boundaries-checks|native-configuration-boundaries-checks|native-instance-status-checks|native-configuration-versions-checks|native-configuration-checks|native-r08-checks|native-rollout-checks)\.mjs:(\d+):(\d+)/u.exec(error.stack ?? "") : null;
+    const sourceLine = error instanceof Error ? /(native-rule-engine-inspection-checks|native-rule-engine-checks|native-browser-checks|native-config-save-consumer|native-config-deploy-consumer|native-configuration-menu-checks|native-deploy-session-checks|native-session-tabs-checks|native-configuration-refresh-checks|native-instance-status-boundaries-checks|native-configuration-boundaries-checks|native-instance-status-checks|native-configuration-versions-checks|native-configuration-checks|native-r08-checks|native-rollout-checks)\.mjs:(\d+):(\d+)/u.exec(error.stack ?? "") : null;
     // Source coordinates and fixed stages identify the failed assertion without persisting DOM, URLs or credentials.
-    await writeFile(join(evidence, "browser-failure.json"), JSON.stringify({ stage, completedCases: cases,
+    await writeFile(join(evidence, "browser-failure.json"), JSON.stringify({ stage, ruleEngineStage: error?.ruleEngineStage, completedCases: cases,
       sourceFile: sourceLine === null ? null : sourceLine[1] + ".mjs",
       sourceLine: sourceLine === null ? null : Number(sourceLine[2]), sourceColumn: sourceLine === null ? null : Number(sourceLine[3]),
       errorKind: error instanceof Error && ["Error", "TimeoutError", "AssertionError"].includes(error.name) ? error.name : "Other", failureScreenshotSaved }, null, 2));

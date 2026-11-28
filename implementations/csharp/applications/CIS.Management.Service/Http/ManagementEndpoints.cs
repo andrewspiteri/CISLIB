@@ -86,10 +86,13 @@ internal static partial class ManagementEndpoints
 
         RouteGroupBuilder group = web.MapGroup(prefix.Value!);
         group.MapGet("/service-info", async (HttpContext context, IManagementBackend backend, IManagementConfigurationBackend configuration) => ManagementHttp.Json(new ManagementServiceInfo(
-            EnvironmentOptions.ServiceVersion, [1], Array.AsReadOnly(Features.Concat(DiscoveryFeatures(backend)).Concat(await ConfigurationFeatures(configuration, context.RequestAborted)).ToArray()))
+            EnvironmentOptions.ServiceVersion, [1], await LegacyApiFeatures(backend, configuration, context.RequestAborted))
         {
-            MaximumInventoryRequestBytes = backend.MaximumInventoryRequestBytes
+            MaximumInventoryRequestBytes = backend.MaximumInventoryRequestBytes,
+            ApiDiscoveryVersion = 1
         }, limits: backend.WireLimits));
+        group.MapGet("/service-features", ServiceFeatures);
+        group.MapGet("/applications/{applicationId}/api-capabilities", ApplicationApiCapabilities);
         group.MapPut("/registrations/{registrationId}", Register);
         group.MapGet("/registrations/{registrationId}/control", Control);
         group.MapPut("/registrations/{registrationId}/observation", Observation);
@@ -103,6 +106,7 @@ internal static partial class ManagementEndpoints
         group.MapGet("/applications/{applicationId}/capabilities", Capabilities);
         MapMetadata(group);
         MapConfiguration(group, options);
+        MapRuleEngine(group, options);
     }
 
     private static async Task<IResult> Control(HttpContext context, string registrationId, IManagementBackend store)
@@ -381,8 +385,11 @@ internal static partial class ManagementEndpoints
         IReadOnlyList<ManagementFeature> configuration = await ConfigurationFeatures(
             context.RequestServices.GetRequiredService<IManagementConfigurationBackend>(), context.RequestAborted);
         // Source-scoped hints require a discovered actual source; application grants cannot synthesize them.
-        return ManagementHttp.Json(new ManagementCapabilities(applicationId, Array.AsReadOnly(implemented.Concat(configuration).ToArray()),
-            hints.AsReadOnly()), limits: store.WireLimits);
+        IReadOnlyList<ManagementFeature> legacy = ValidateLegacyApiFeatures(implemented.Concat(configuration));
+        return ManagementHttp.Json(new ManagementCapabilities(applicationId, legacy, hints.AsReadOnly())
+        {
+            ApiDiscoveryVersion = 1
+        }, limits: store.WireLimits);
     }
 
     static partial void MapMetadata(RouteGroupBuilder group);

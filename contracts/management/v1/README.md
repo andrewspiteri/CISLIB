@@ -102,6 +102,40 @@ Older v1 service-info remains readable with the field absent; absence does not
 invent a provider limit. New authoritative providers advertise their actual bound.
 These additions preserve existing v1 paths and compatible response evolution.
 
+## Optional complete API discovery
+
+`ServiceInfo` and `Capabilities` optionally advertise numeric
+`apiDiscoveryVersion: 1`. Absent or future positive versions remain readable;
+only version 1 selects this companion. The legacy `legacy-v1` profile keeps its
+closed installed-operation inventory and at most 64 `features`, `implementedApis`
+or `callerHints`. It never silently truncates the complete inventory or raises
+the old decoder's ceiling when another module is installed.
+
+`GET /service-features` returns `ServiceFeaturePage` and
+`GET /applications/{applicationId}/api-capabilities` returns
+`ApplicationApiCapabilityPage`. Both require the response profile `complete-v1`,
+accept `pageSize` 1–64 (default 32) and an optional opaque `cursor`, and return
+`items` with an optional `nextCursor`. The application page echoes its exact
+application ID and each item contains `{feature,allowed}`. Hints are advisory;
+native operations still authorize the actual resource. The complete inventory
+contains only initialized handlers, including these discovery routes themselves,
+in ordinal `operationId` order. It is independent of logical application job,
+trigger-provider and rule-engine capability definitions.
+
+Continuations bind the exact endpoint, profile, page size, current caller and
+authorization policy, application where applicable, authority/recovery epoch and
+complete initialized inventory. Changed scope or inventory invalidates the
+continuation. Filtering and current authorization precede visible pages. Clients
+do not treat a missing legacy array entry as proof of unsupported functionality.
+
+C# exposes the optional `IManagementApiDiscoveryClient`; TypeScript exposes
+`ManagementApiDiscoveryClientPort` on the existing `ManagementClient`. Existing
+required client interfaces and positional C# DTO constructors are unchanged.
+Callers inspect the advertisement before selecting the companion. Each explicit
+page method calls its fixed route directly, validates the returned profile and
+application echo, and uses the existing deadline, cancellation, read policy and
+joined cleanup. It performs no hidden service-info request or authority cache.
+
 `PUT /registrations/{registrationId}` binds immutable process facts to the
 validated issuer/subject and exact mapped application/environment. Matching
 registration content returns its original receipt; changed content or foreign

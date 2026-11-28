@@ -20,6 +20,10 @@ public sealed partial class PostgreSqlManagementStore
             {
                 return ConfigurationEffect.Reject("management.configuration.binding_unavailable");
             }
+            if (await IsRuleEngineConfigurationAsync(connection, transaction, binding.ApplicationId, binding.Environment, binding.ConfigurationId, token))
+            {
+                return ConfigurationEffect.Reject("management.configuration.rule_engine_managed");
+            }
             ManagementConfigurationAssignmentMap map = await ReadConfigurationMapAsync(connection, transaction, binding, token, write: true);
             if (map.ETag != input.IfMatch)
             {

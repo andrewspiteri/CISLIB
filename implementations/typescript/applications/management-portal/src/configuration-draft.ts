@@ -9,7 +9,7 @@ export interface ConfigurationField {
   readonly blocked: boolean;
   readonly rawValue?: string;
 }
-interface Token { readonly start: number; end: number; readonly kind: string; readonly properties: Property[]; }
+interface Token { readonly start: number; end: number; readonly kind: string; readonly properties: Property[]; items?: Token[]; }
 interface Property { readonly name: string; readonly start: number; readonly value: Token; }
 
 /** Only the existing Configuration lexical validator decides whether the exact bounded JSON is admissible. */
@@ -159,8 +159,17 @@ function ancestorBlocked(root: Token, path: readonly string[]): boolean {
   return current !== undefined && current.kind !== "object";
 }
 
+/** Reads exact object-member tokens from one top-level array in already validated JSON. */
+export function jsonArrayMemberValues(raw: string, arrayPath: string | readonly string[], memberName: string): readonly (string | undefined)[] {
+  const items = find(tokens(raw, true), typeof arrayPath === "string" ? [arrayPath] : arrayPath)?.items ?? [];
+  return items.map(item => {
+    const member = find(item, [memberName]);
+    return member === undefined ? undefined : raw.slice(member.start, member.end);
+  });
+}
+
 // Span discovery over already validated JSON only. It does not interpret schema, merge layers or coerce numbers.
-function tokens(raw: string): Token {
+function tokens(raw: string, retainArrayItems = false): Token {
   let index = 0;
   const skip = () => { while (index < raw.length && /[\u0020\u0009\u000a\u000d]/u.test(raw[index]!)) { index++; } };
   function stringEnd() {
@@ -193,7 +202,14 @@ function tokens(raw: string): Token {
       index++;
     } else if (first === "[") {
       index++; skip();
-      while (raw[index] !== "]") { value(); skip(); if (raw[index] !== ",") { break; } index++; skip(); }
+      if (retainArrayItems) { token.items = []; }
+      while (raw[index] !== "]") {
+        const child = value();
+        token.items?.push(child);
+        skip();
+        if (raw[index] !== ",") { break; }
+        index++; skip();
+      }
       index++;
     } else if (first === '"') { stringEnd(); }
     else { while (index < raw.length && !/[\u0020\u0009\u000a\u000d,}\]]/u.test(raw[index]!)) { index++; } }

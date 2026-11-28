@@ -99,7 +99,8 @@ public sealed partial class ManagementPortalHostTests
         bool instanceStatus = false, bool firstVersion = false, bool hostShutdown = false, bool canceledHostRead = false,
         bool newSaveRecovery = false, bool releaseConflict = false, bool deployControls = false, bool metadataOnlyDeploy = false,
         ConfigurationBoundaryScenario configurationBoundary = ConfigurationBoundaryScenario.None, bool instanceStatusBoundaries = false,
-        bool configurationMenus = false, bool sessionTabs = false, bool editorRefresh = false)
+        bool configurationMenus = false, bool sessionTabs = false, bool editorRefresh = false, bool ruleEngineWorkflow = false,
+        bool ruleEngineInspection = false)
     {
         bool reviewScenario = configurationMenus || sessionTabs || editorRefresh;
         if (reviewScenario && (!browser || rollout || r08 || reviewCorrections || versionWorkflow || instanceStatus || firstVersion
@@ -151,6 +152,15 @@ public sealed partial class ManagementPortalHostTests
         {
             throw new ArgumentException("Each Configuration automation journey requires its own browser fixture.");
         }
+        if (ruleEngineWorkflow && (!browser || rollout || r08 || reviewCorrections || versionWorkflow || instanceStatus || firstVersion
+            || hostShutdown || canceledHostRead || configurationAutomation || boundaryScenario || instanceStatusBoundaries || reviewScenario))
+        {
+            throw new ArgumentException("The Rule Engine workflow requires its own native browser fixture.");
+        }
+        if (ruleEngineInspection && !ruleEngineWorkflow)
+        {
+            throw new ArgumentException("Rule Engine inspection continues the native editing and deployment workflow.");
+        }
 
         string? manualDirectory = System.Environment.GetEnvironmentVariable("CIS_PORTAL_MANUAL_CONTROL_DIRECTORY");
         int leaseSeconds = 0;
@@ -187,13 +197,21 @@ public sealed partial class ManagementPortalHostTests
         {
             TlsFixtureFiles.Write(files.Path);
             signing = RSA.Create(2048);
-            fixture = await ManagementHostFixture.CreateAsync(replicas: 1,
-                configuration: PortalConfigurationDeployment(seedConfigurationRollout || deployControls, seedSharedConfiguration, manualDirectory is not null, configurationMenus),
+            fixture = await ManagementHostFixture.CreateAsync(replicas: 1, start: !ruleEngineWorkflow,
+                configuration: PortalConfigurationDeployment(seedConfigurationRollout || deployControls, seedSharedConfiguration, manualDirectory is not null,
+                    configurationMenus, ruleEngineWorkflow),
                 initialInstanceNameA: manualDirectory is null ? "seed-a" : "country-api-eu-01",
-                initialInstanceNameB: manualDirectory is null ? "seed-b" : "billing-worker-eu-01");
+                initialInstanceNameB: manualDirectory is null ? "seed-b" : "billing-worker-eu-01",
+                ruleAuditManagedApplication: ruleEngineInspection ? "managed-a" : null);
+            if (ruleEngineWorkflow)
+            {
+                await fixture.StartReplicaAsync(source => WithPortalRuleSeeder(source, fixture, ruleEngineInspection));
+            }
             HttpClient catalogActor = fixture.Client("operator-a");
             await ManagementConfigurationCatalogTests.Apply(catalogActor,
                 await ManagementConfigurationCatalogTests.Catalog(catalogActor), "portal-catalog");
+            RulePortalSeed? ruleSeed = ruleEngineWorkflow ? await SeedPortalRulesAsync(fixture, catalogActor, ruleEngineInspection) : null;
+            RuleInspectionSeed? inspectionSeed = ruleEngineInspection ? await SeedPortalRuleInspectionAsync(fixture, catalogActor, ruleSeed!) : null;
             ManagementPage<ManagementConfigurationDefinition> configurationDefinitions = await ManagementConfigurationCatalogTests.Definitions(catalogActor);
             ConfigurationMenuSeed? menuSeed = configurationMenus ? CaptureConfigurationMenuSeed(fixture, configurationDefinitions.Items) : null;
             ManagementConfigurationDefinition definition = configurationDefinitions.Items.Single(row => row.ApplicationId == fixture.ApplicationA && row.Kind == "application" && row.ConfigurationId == "shared.settings");
@@ -272,6 +290,10 @@ public sealed partial class ManagementPortalHostTests
                 Grants =
                 [
                     ReadGrant(issuer, OperatorA, fixture.ApplicationA),
+                    .. ruleSeed is null ? Array.Empty<CapabilityGrant>() : PortalRuleGrants(issuer, OperatorA, fixture.ApplicationA, write: true),
+                    .. ruleSeed is null ? Array.Empty<CapabilityGrant>() : PortalRuleGrants(issuer, OperatorB, fixture.ApplicationB, write: false),
+                    .. inspectionSeed is null ? Array.Empty<CapabilityGrant>() : PortalRuleInspectionGrants(issuer, OperatorA, fixture.ApplicationA, write: true),
+                    .. inspectionSeed is null ? Array.Empty<CapabilityGrant>() : PortalRuleInspectionGrants(issuer, OperatorB, fixture.ApplicationB, write: false),
                     .. !editorRefresh ? Array.Empty<CapabilityGrant>() : new[] { ReadGrant(issuer, RefreshOperator, fixture.ApplicationA) },
                     .. menuSeed is null ? Array.Empty<CapabilityGrant>() : ConfigurationMenuGrants(issuer, menuSeed),
                     .. boundarySeed?.PredeploymentApplicationId is not string predeploymentApplication ? Array.Empty<CapabilityGrant>()
@@ -342,7 +364,7 @@ public sealed partial class ManagementPortalHostTests
             if (seedLookup)
             {
                 lookupOriginalKey = await SeedLookupOriginalAsync(fixture, signing, issuer);
-                if (!firstVersion && !configurationAutomation && !boundaryScenario && !reviewScenario)
+                if (!firstVersion && !configurationAutomation && !boundaryScenario && !reviewScenario && !ruleEngineWorkflow)
                 {
                     configurationLookup = await SeedConfigurationLookupAsync(fixture, signing, issuer, definition);
                     if (seedConfigurationRollout)
@@ -429,6 +451,19 @@ public sealed partial class ManagementPortalHostTests
                 versionWorkflow,
                 instanceStatus,
                 sessionTabs,
+                ruleEngineWorkflow = ruleSeed is null ? null : new
+                {
+                    rulesetId = PortalRuleset,
+                    displayName = PortalRulesetName,
+                    firstVersion = ruleSeed.FirstVersion,
+                    secondVersion = ruleSeed.SecondVersion,
+                    readOnlyVersion = ruleSeed.ReadOnlyVersion,
+                    rejectedInstance = ruleSeed.RejectedInstance,
+                    laggingInstance = ruleSeed.LaggingInstance,
+                    exactDecimal = PortalExactDecimal
+                },
+                ruleEngineInspection = inspectionSeed is null ? (JsonElement?)null
+                    : JsonSerializer.SerializeToElement(inspectionSeed, new JsonSerializerOptions(JsonSerializerDefaults.Web)),
                 configurationMenus = menuSeed is null ? (JsonElement?)null
                     : JsonSerializer.SerializeToElement(menuSeed, new JsonSerializerOptions(JsonSerializerDefaults.Web)),
                 editorRefresh = !editorRefresh ? null : new
@@ -505,13 +540,24 @@ public sealed partial class ManagementPortalHostTests
                 Assert.IsTrue(report.RootElement.GetProperty("cases").GetArrayLength() >= 12);
                 Assert.AreEqual(browser, report.RootElement.GetProperty("browserChecked").GetBoolean());
                 bool fullDesktopJourney = browser && !reviewScenario && !boundaryScenario && !instanceStatusBoundaries
-                    && !configurationAutomation && !firstVersion && !instanceStatus && !versionWorkflow;
+                    && !configurationAutomation && !firstVersion && !instanceStatus && !versionWorkflow && !ruleEngineWorkflow;
                 await VerifyMetadataEffectsAsync(fixture, report.RootElement.GetProperty("metadataAppliedKeys"),
                     report.RootElement.GetProperty("metadataConflictKeys"), lookupOriginalKey!, issuer,
                     expectedApplied: fullDesktopJourney ? 5 : 2, expectedRejected: fullDesktopJourney ? 2 : 1);
                 if (browser)
                 {
-                    if (configurationMenus)
+                    if (ruleEngineWorkflow)
+                    {
+                        await VerifyPortalRuleWorkflowAsync(fixture, ruleSeed!, report.RootElement.GetProperty("ruleEngineWorkflow"));
+                        if (inspectionSeed is not null)
+                        {
+                            HttpClient inspectionActor = fixture.Client(subject: null, replica: fixture.Origins.Count - 1,
+                                explicitToken: LookupToken(signing, issuer, OperatorA));
+                            await VerifyPortalRuleInspectionAsync(fixture, inspectionActor, inspectionSeed,
+                                report.RootElement.GetProperty("ruleEngineInspection"));
+                        }
+                    }
+                    else if (configurationMenus)
                     {
                         await VerifyConfigurationMenusAsync(fixture, report.RootElement.GetProperty("configurationMenus"), menuBaseline!, menuSeed!);
                     }
@@ -774,7 +820,7 @@ public sealed partial class ManagementPortalHostTests
         return key;
     }
 
-    private static string LookupToken(RSA signing, string issuer)
+    private static string LookupToken(RSA signing, string issuer, string subject = LookupOperator)
         => new JsonWebTokenHandler().CreateToken(new SecurityTokenDescriptor
         {
             Issuer = issuer,
@@ -782,9 +828,9 @@ public sealed partial class ManagementPortalHostTests
             Claims = new Dictionary<string, object>
             {
                 ["tid"] = Tenant,
-                ["oid"] = LookupOperator,
+                ["oid"] = subject,
                 ["azp"] = PortalClient,
-                ["sub"] = "pairwise-" + LookupOperator,
+                ["sub"] = "pairwise-" + subject,
                 ["ver"] = "2.0",
                 ["scp"] = "management.operator"
             },
@@ -794,7 +840,8 @@ public sealed partial class ManagementPortalHostTests
             SigningCredentials = new(new RsaSecurityKey(signing) { KeyId = "rm09-portal-owned-key" }, SecurityAlgorithms.RsaSha256)
         });
 
-    private static ManagementConfigurationOptions PortalConfigurationDeployment(bool rollout, bool manual = false, bool reviewExamples = false, bool configurationMenus = false)
+    private static ManagementConfigurationOptions PortalConfigurationDeployment(bool rollout, bool manual = false, bool reviewExamples = false,
+        bool configurationMenus = false, bool ruleEngineWorkflow = false)
     {
         ManagementConfigurationManifest original = ManagementConfigurationCatalogTests.Deployment(greetingDefault: "PORTAL_PRIVATE_DEFAULT").Manifest;
         ManagementConfigurationSchema definition = original.Definitions.Single();
@@ -816,6 +863,10 @@ public sealed partial class ManagementPortalHostTests
         if (configurationMenus)
         {
             manifest = WithConfigurationMenuInventory(manifest);
+        }
+        if (ruleEngineWorkflow)
+        {
+            manifest = WithPortalRules(manifest);
         }
         return new ManagementConfigurationOptions(JsonSerializer.Serialize(manifest, ManagementConfigurationOptions.Json), 32L * 1024 * 1024);
     }

@@ -4,6 +4,14 @@ public static partial class ManagementWire
 {
     private static object Freeze(object value) => value switch
     {
+        ManagementServiceFeaturePage page => page with
+        {
+            Items = Array.AsReadOnly(page.Items.Select(FreezeFeature).ToArray())
+        },
+        ManagementApplicationApiCapabilityPage page => page with
+        {
+            Items = Array.AsReadOnly(page.Items.Select(item => item with { Feature = FreezeFeature(item.Feature) }).ToArray())
+        },
         ManagementServiceInfo service => service with
         {
             ProtocolMajors = Copy(service.ProtocolMajors),

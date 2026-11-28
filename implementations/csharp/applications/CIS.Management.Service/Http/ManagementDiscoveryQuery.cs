@@ -15,6 +15,20 @@ internal static class ManagementDiscoveryQuery
 {
     private static readonly UTF8Encoding StrictUtf8 = new(false, true);
 
+    internal static bool TryReadApiFeatures(HttpContext context, out int size, out string? cursor)
+    {
+        size = 32;
+        cursor = null;
+        if (!TryReadValues(context, ["pageSize", "cursor"], out Dictionary<string, string> values)
+            || values.TryGetValue("pageSize", out string? rawSize)
+                && (!int.TryParse(rawSize, NumberStyles.None, CultureInfo.InvariantCulture, out size) || size is < 1 or > 64))
+        {
+            return false;
+        }
+        values.TryGetValue("cursor", out cursor);
+        return ManagementWire.IsPageRequest(new(size, cursor));
+    }
+
     internal static bool TryRead(HttpContext context, bool filters, out ManagementApplicationQuery query,
         out int size, out string? cursor)
     {

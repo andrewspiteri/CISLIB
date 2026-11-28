@@ -57,6 +57,11 @@ internal sealed class ManagementDatabase(IServiceScopeFactory scopes, Management
         await using AsyncServiceScope scope = scopes.CreateAsyncScope();
         IManagementBackend backend = scope.ServiceProvider.GetRequiredService<IManagementBackend>();
         _ = await backend.ProbeAsync(cancellationToken);
+        if (options.Configuration?.Manifest.RuleEngine is { Count: > 0 })
+        {
+            _ = await scope.ServiceProvider.GetRequiredService<PostgreSqlManagementStore>()
+                .ProjectRuleEngineCountersAsync(Math.Min(16, options.Persistence.CleanupBatchSize), cancellationToken);
+        }
         if (clock.GetElapsedTime(lastCleanup) >= TimeSpan.FromMinutes(1))
         {
             lastCleanup = clock.GetTimestamp();

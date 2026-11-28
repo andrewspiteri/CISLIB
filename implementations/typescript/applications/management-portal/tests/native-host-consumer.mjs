@@ -23,9 +23,12 @@ const configurationBoundary = input.configurationBoundary;
 const instanceStatusBoundaries = input.instanceStatusBoundaries;
 const configurationMenus = input.configurationMenus;
 const editorRefresh = input.editorRefresh;
+const ruleEngineWorkflow = input.ruleEngineWorkflow;
+const ruleEngineInspection = input.ruleEngineInspection;
 const expectedApplicationsA = configurationBoundary?.scenario === "Predeployment"
   ? [input.applicationA, configurationBoundary.applicationId] : [input.applicationA];
-const hasBoundaryJourney = configurationBoundary != null || instanceStatusBoundaries != null || configurationMenus != null || editorRefresh != null || input.sessionTabs === true;
+const hasBoundaryJourney = configurationBoundary != null || instanceStatusBoundaries != null || configurationMenus != null || editorRefresh != null
+  || input.sessionTabs === true || ruleEngineWorkflow != null;
 const manual = captureManualSession(input.manual);
 if (manual !== undefined) {
   assert.match(input.continuityOperator, /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u);
@@ -35,8 +38,9 @@ const fixtureSubjects = Object.freeze(manual === undefined ? [input.operatorA, i
   ...(input.refreshOperator == null ? [] : [input.refreshOperator])]
   : [input.operatorA, input.operatorB, input.continuityOperator]);
 const portalDirectory = dirname(dirname(fileURLToPath(import.meta.url)));
-const evidenceDirectory = join(resolve(portalDirectory, "../../../.."), ".artifacts", "management-portal", "CIS-0029",
-  manual === undefined ? "WORK-004" : "WORK-006", "native-host-" + randomUUID());
+const evidenceDirectory = join(resolve(portalDirectory, "../../../.."), ".artifacts", "management-portal",
+  ruleEngineInspection == null ? "CIS-0029" : "CIS-0031",
+  ruleEngineInspection != null ? "WORK-012" : manual === undefined ? "WORK-004" : "WORK-006", "native-host-" + randomUUID());
 mkdirSync(evidenceDirectory, { recursive: true });
 const signing = createPrivateKey(await readFile(join(directory, "oidc.key")));
 const jwk = { ...createPublicKey(signing).export({ format: "jwk" }), kid: "rm09-portal-owned-key", alg: "RS256", use: "sig" };
@@ -91,6 +95,8 @@ let instanceStatusBoundariesProof;
 let configurationMenusProof;
 let sessionTabsProof;
 let editorRefreshProof;
+let ruleEngineWorkflowProof;
+let ruleEngineInspectionProof;
 recordPhase("preparation");
 if (manual !== undefined) { await publishManualStatus("starting"); }
 const ownerStore = createSessionStore(captureStoreConfig({ CIS_PORTAL_SESSION_DATABASE: input.sessionOwnerUrl,
@@ -324,15 +330,20 @@ try {
         refreshOperatorContext = await newContext(origin);
         await login(refreshOperatorContext, idp, origin, input.refreshOperator);
       }
+      // This browser signs out in the inspection journey. Keep it on an
+      // independently issued cookie so native expiry checks still own a's row.
+      const browserOperatorA = ruleEngineInspection == null ? a : await newContext(origin);
+      if (browserOperatorA !== a) { await login(browserOperatorA, idp, origin, input.operatorA); }
       const { verifyBrowser } = await import("./native-browser-checks.mjs");
       const desktop = await verifyBrowser({ origin, applicationA: input.applicationA, applicationB: input.applicationB,
-        registrationA: input.registrationA, operatorAContext: a, operatorBContext: b, lookupOperatorContext: lookupProof.lookup,
+        registrationA: input.registrationA, operatorAContext: browserOperatorA, operatorBContext: b, lookupOperatorContext: lookupProof.lookup,
         directory, rollout: input.rollout, adoptionObservations: input.adoptionObservations, r08: input.r08 === true,
         reviewCorrections: input.reviewCorrections === true, versionWorkflow: input.versionWorkflow === true,
         instanceStatus: input.instanceStatus === true, firstVersion: input.firstVersion === true,
         newSaveRecovery: input.newSaveRecovery === true, releaseConflict: input.releaseConflict === true,
         configurationDeploy: input.configurationDeploy, configurationBoundary, instanceStatusBoundaries,
-        configurationMenus, sessionTabsContexts, editorRefresh, refreshOperatorContext });
+        configurationMenus, sessionTabsContexts, editorRefresh, refreshOperatorContext, ruleEngineWorkflow, ruleEngineInspection });
+      if (ruleEngineWorkflow != null) { cases.push(...desktop.cases); }
       metadataAppliedKeys.push(...desktop.metadataAppliedKeys);
       metadataConflictKeys.push(...desktop.metadataConflictKeys);
       configurationProof = desktop.configuration;
@@ -350,6 +361,8 @@ try {
       configurationMenusProof = desktop.configurationMenus;
       sessionTabsProof = desktop.sessionTabs;
       editorRefreshProof = desktop.editorRefresh;
+      ruleEngineWorkflowProof = desktop.ruleEngineWorkflow;
+      ruleEngineInspectionProof = desktop.ruleEngineInspection;
     }
     // Exercise this changed UI first while retaining every legacy API assertion
     // below. A later native crash still fails the test, but cannot erase saved
@@ -545,6 +558,8 @@ if (failures.length !== 0) {
     ...(configurationMenusProof === undefined ? {} : { configurationMenus: configurationMenusProof }),
     ...(sessionTabsProof === undefined ? {} : { sessionTabs: sessionTabsProof }),
     ...(editorRefreshProof === undefined ? {} : { editorRefresh: editorRefreshProof }),
+    ...(ruleEngineWorkflowProof === undefined ? {} : { ruleEngineWorkflow: ruleEngineWorkflowProof }),
+    ...(ruleEngineInspectionProof === undefined ? {} : { ruleEngineInspection: ruleEngineInspectionProof }),
     hostClosed, socketsDrained: true, browserChecked: manual === undefined && input.browser,
     ...(manual === undefined ? {} : { manualSession: true, manualStopReason, manualTokenExchanges, manualBrowserClosed }) };
   writeFileSync(join(evidenceDirectory, "report.json"), JSON.stringify(report, null, 2));
@@ -726,8 +741,9 @@ function writePhase() {
 function rememberFailure(error) { firstFailurePhase ??= phase; failures.push(error); writePhase(); }
 function fixtureFailure(error) {
   const knownKinds = ["Error", "TypeError", "SyntaxError", "AssertionError", "TimeoutError", "AbortError", "AggregateError"];
-  const frame = error instanceof Error ? /(native-host-consumer|native-host-cancel-consumer|native-config-save-consumer|native-config-deploy-consumer|native-configuration-menu-checks|native-deploy-session-checks|native-session-tabs-checks|native-configuration-refresh-checks|native-instance-status-boundaries-checks|native-configuration-boundaries-checks|native-instance-status-checks|native-configuration-versions-checks|native-configuration-checks|native-r08-checks|native-rollout-checks|native-browser-checks|native-session-store-consumer)\.mjs:(\d{1,6}):(\d{1,6})/u.exec(error.stack ?? "") : null;
+  const frame = error instanceof Error ? /(native-rule-engine-inspection-checks|native-rule-engine-checks|native-host-consumer|native-host-cancel-consumer|native-config-save-consumer|native-config-deploy-consumer|native-configuration-menu-checks|native-deploy-session-checks|native-session-tabs-checks|native-configuration-refresh-checks|native-instance-status-boundaries-checks|native-configuration-boundaries-checks|native-instance-status-checks|native-configuration-versions-checks|native-configuration-checks|native-r08-checks|native-rollout-checks|native-browser-checks|native-session-store-consumer)\.mjs:(\d{1,6}):(\d{1,6})/u.exec(error.stack ?? "") : null;
   return { kind: error instanceof Error && knownKinds.includes(error.name) ? error.name : "Other",
+    ruleEngineStage: error?.ruleEngineStage,
     sourceFile: frame === null ? null : frame[1] + ".mjs", sourceLine: frame === null ? null : Number(frame[2]), sourceColumn: frame === null ? null : Number(frame[3]) };
 }
 

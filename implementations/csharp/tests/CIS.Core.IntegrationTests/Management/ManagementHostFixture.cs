@@ -18,6 +18,7 @@ using CIS.Management.Service.Metadata;
 using CIS.Management.Service.Backends;
 using CIS.Management.Service.Configuration;
 using CIS.Management.Service.Security;
+using CIS.Messaging;
 using CIS.Messaging.RabbitMQ;
 using CIS.Metrics.OpenTelemetry;
 using CIS.RestClient;
@@ -70,6 +71,7 @@ internal sealed class ManagementHostFixture : IAsyncDisposable
     private readonly List<RestHttpTransport> clientTransports = [];
 
     internal ManagementServiceOptions Options { get; private set; } = null!;
+    internal ILocalTransactionFactory Transactions => setup!.GetRequiredService<ILocalTransactionFactory>();
 
     internal PostgreSqlManagementStore CreateSetupStore()
     {
@@ -93,9 +95,22 @@ internal sealed class ManagementHostFixture : IAsyncDisposable
         return path;
     }
 
+    internal async Task PublishRuleAuditAsync(EncodedMessage message, bool trusted = true)
+    {
+        OwnedRabbitService owned = broker ?? throw new InvalidOperationException("The fixture has no owned RabbitMQ broker.");
+        RabbitMqSettings settings = Options.Delivery!.Broker;
+        RabbitFixturePrincipal sender = owned.CaptureInformation().Principals[trusted ? "other" : "rogue"];
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        await using IConnection connection = await owned.CreateConnectionFactory(sender).CreateConnectionAsync(deadline.Token);
+        await using IChannel channel = await connection.CreateChannelAsync(new CreateChannelOptions(true, true), deadline.Token);
+        await channel.BasicPublishAsync(RabbitMqTopology.GetRouteExchange(settings, ManagementDeliveryOptions.RuleEngineAuditRoute),
+            "", true, new BasicProperties { Persistent = true, UserId = sender.User }, message.CopyBytes(), deadline.Token);
+    }
+
     internal static async Task<ManagementHostFixture> CreateAsync(int replicas = 2, bool start = true,
         long maximumRetainedEnvelopeBytes = 64L * 1024 * 1024, ManagementBackendOptions? backendOptions = null,
-        ManagementConfigurationOptions? configuration = null, string? initialInstanceNameA = null, string? initialInstanceNameB = null)
+        ManagementConfigurationOptions? configuration = null, string? initialInstanceNameA = null, string? initialInstanceNameB = null,
+        string? ruleAuditManagedApplication = null)
     {
         var fixture = new ManagementHostFixture();
         try
@@ -123,7 +138,9 @@ internal sealed class ManagementHostFixture : IAsyncDisposable
                 SecurityProfile = ManagementDeliveryOptions.BrokerScheme,
                 TrustedRootCertificatePem = broker.RootPem,
                 EndpointNamespaces = [new(EnvironmentOptions.ApplicationName, EnvironmentOptions.EnvironmentName, "management")]
-            }, maximumRetainedEnvelopeBytes: maximumRetainedEnvelopeBytes);
+            }, ruleAuditManagedApplication is null ? [] : [new(information.Principals["other"].User,
+                EnvironmentOptions.ApplicationName, EnvironmentOptions.EnvironmentName, ruleAuditManagedApplication)],
+                maximumRetainedEnvelopeBytes: maximumRetainedEnvelopeBytes);
             RabbitMqOptions setupBroker = delivery.CreateBrokerOptions();
             setupBroker.UserName = information.Principals["setup"].User;
             setupBroker.Password = information.Principals["setup"].Password;

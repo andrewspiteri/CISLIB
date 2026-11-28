@@ -28,7 +28,7 @@ using Npgsql;
 
 namespace CIS.Tests.MessagingCrashFixture;
 
-internal static class Program
+internal static partial class Program
 {
     private static readonly JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true };
 
@@ -36,6 +36,14 @@ internal static class Program
     {
         try
         {
+            Task? native = null;
+            SelectRuleEngineAuditCommand(args, ref native);
+            SelectCountryDataCommand(args, ref native);
+            if (native is not null)
+            {
+                await native;
+                return 0;
+            }
             if (args.Length != 1)
             {
                 throw new InvalidDataException("Select one owned descriptor.");
@@ -291,6 +299,10 @@ internal static class Program
             return 2;
         }
     }
+
+    // Public package proof also compiles this file without the native-only fixture commands.
+    static partial void SelectRuleEngineAuditCommand(string[] args, ref Task? command);
+    static partial void SelectCountryDataCommand(string[] args, ref Task? command);
 
     // Public package/process proof reuses this existing entry. No Docker, schema installation or alternate application mode escapes the fixture.
     private static async Task RunCoordinationAsync(CrashDescriptor descriptor, NpgsqlDataSource source,

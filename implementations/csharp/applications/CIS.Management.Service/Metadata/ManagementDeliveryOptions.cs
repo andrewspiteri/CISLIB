@@ -1,8 +1,13 @@
 using CIS.Messaging.RabbitMQ;
 using CIS.Messaging;
 using CIS.Audit;
+using CIS.Management.Service.Configuration;
 
 namespace CIS.Management.Service.Metadata;
+
+/// <summary>Maps a configured native broker producer to one trusted Management application scope.</summary>
+public sealed record ManagementRuleEngineAuditSource(string BrokerUserName, string ProducerApplication, string ProducerEnvironment,
+    string ManagedApplication);
 
 /// <summary>Explicit immutable selection of the existing durable Audit delivery provider.</summary>
 public sealed class ManagementDeliveryOptions
@@ -12,10 +17,17 @@ public sealed class ManagementDeliveryOptions
     private readonly string? trustedRootCertificatePem;
 
     public const string AuditRoute = "management-audit";
+    public const string RuleEngineAuditRoute = "rule-engine-audit";
     public const string BrokerScheme = "management-broker";
 
     public ManagementDeliveryOptions(RabbitMqOptions broker, bool requireLiveBrokerForReadiness = false,
         long maximumRetainedEnvelopeBytes = 64L * 1024 * 1024)
+        : this(broker, [], requireLiveBrokerForReadiness, maximumRetainedEnvelopeBytes)
+    {
+    }
+
+    public ManagementDeliveryOptions(RabbitMqOptions broker, IEnumerable<ManagementRuleEngineAuditSource> ruleEngineAuditSources,
+        bool requireLiveBrokerForReadiness = false, long maximumRetainedEnvelopeBytes = 64L * 1024 * 1024)
     {
         ArgumentNullException.ThrowIfNull(broker);
         if (maximumRetainedEnvelopeBytes is < 1 or > 1024L * 1024 * 1024)
@@ -33,6 +45,7 @@ public sealed class ManagementDeliveryOptions
         }
         RequireLiveBrokerForReadiness = requireLiveBrokerForReadiness;
         MaximumRetainedEnvelopeBytes = maximumRetainedEnvelopeBytes;
+        RuleEngineAuditSources = ManagementRuleEngineAuditIngress.Capture(ruleEngineAuditSources, Broker.UserName);
     }
 
     public RabbitMqSettings Broker
@@ -48,6 +61,8 @@ public sealed class ManagementDeliveryOptions
         get;
     }
 
+    public IReadOnlyList<ManagementRuleEngineAuditSource> RuleEngineAuditSources { get; }
+
     public AuditOptions CreateAuditOptions() => new(AuditRoute);
 
     public MessagingOptions CreateMessagingOptions() => new()
@@ -56,10 +71,15 @@ public sealed class ManagementDeliveryOptions
         RequireLiveBrokerForReadiness = RequireLiveBrokerForReadiness
     };
 
-    /// <summary>The same finite producer graph used by explicit topology provisioning and ordinary runtime validation.</summary>
-    public MessagingSnapshot CreateMessagingSnapshot() => new(CreateMessagingOptions(),
-        [new MessageRouteDefinition<AuditRecord>(AuditRoute, MessageKind.Event, new AuditRecordCodec(CreateAuditOptions().Limits))],
-        [new MessageStoreDefinition("management", "management")]);
+    /// <summary>The same finite delivery graph used by explicit topology provisioning and ordinary runtime validation.</summary>
+    public MessagingSnapshot CreateMessagingSnapshot()
+    {
+        var admin = new MessageRouteDefinition<AuditRecord>(AuditRoute, MessageKind.Event, new AuditRecordCodec(CreateAuditOptions().Limits));
+        return RuleEngineAuditSources.Count == 0
+            ? new(CreateMessagingOptions(), [admin], [new("management", "management")])
+            : new(CreateMessagingOptions(), [admin, ManagementRuleEngineAuditIngress.Route()], [new("management", "management")],
+                [ManagementRuleEngineAuditIngress.Subscription(this)]);
+    }
 
     /// <summary>Explicit deployment action; callers deliberately select setup credentials, never runtime auto-provisioning.</summary>
     public Task InstallTopologyAsync(CancellationToken cancellationToken = default)
@@ -121,7 +141,10 @@ public sealed class ManagementDeliveryOptions
             SafeDeadLetteringVerified = broker.GetValue("SafeDeadLetteringVerified", false),
             ValidateTopologyEquivalence = true
         };
-        return new(selected, configuration.GetValue("RequireLiveBrokerForReadiness", false),
+        IEnumerable<ManagementRuleEngineAuditSource> sources = configuration.GetSection("RuleEngineAuditSources").GetChildren().Select(source =>
+            new ManagementRuleEngineAuditSource(Required(source, "BrokerUserName"), Required(source, "ProducerApplication"),
+                Required(source, "ProducerEnvironment"), Required(source, "ManagedApplication")));
+        return new(selected, sources, configuration.GetValue("RequireLiveBrokerForReadiness", false),
             configuration.GetValue("MaximumRetainedEnvelopeBytes", 64L * 1024 * 1024));
     }
 

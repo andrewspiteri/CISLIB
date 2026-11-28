@@ -11,8 +11,10 @@
     <PackageReference Include="Testcontainers.PostgreSql" PrivateAssets="all" />
     <PackageReference Include="Testcontainers.RabbitMq" PrivateAssets="all" />
     <Compile Remove="Messaging/CrashHost/**/*.cs" />
+    <Compile Remove="Management/RuleEngineHostFixture/**/*.cs" />
     <Compile Include="Messaging/CrashHost/Contracts.cs" Link="Messaging/CrashContracts.cs" />
     <ProjectReference Include="Messaging/CrashHost/CrashHost.csproj" ReferenceOutputAssembly="false" Private="false" PrivateAssets="all" />
+    <ProjectReference Include="Management/RuleEngineHostFixture/CIS.RuleEngine.HostFixture.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="../CIS.Core.UnitTests/RestClient/RestHttpTestSupport.cs" Link="RestClient/RestHttpTestSupport.cs" />

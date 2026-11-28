@@ -58,6 +58,12 @@ public sealed record ManagementFeature(string OperationId, int Version, string M
 public sealed record ManagementServiceInfo(string ServiceVersion, IReadOnlyList<int> ProtocolMajors,
     IReadOnlyList<ManagementFeature> Features)
 {
+    /// <summary>Gets the optional complete API discovery version. Only version one selects complete-v1.</summary>
+    public int? ApiDiscoveryVersion
+    {
+        get; init;
+    }
+
     /// <summary>Gets the server's effective complete-inventory request byte bound, when advertised by this v1 server.</summary>
     public int? MaximumInventoryRequestBytes
     {
@@ -75,7 +81,14 @@ public sealed record ManagementOperationHint(string OperationId, bool Allowed);
 /// <param name="ImplementedApis">Installed APIs, distinct from reported instance features.</param>
 /// <param name="CallerHints">Advisory current operation hints.</param>
 public sealed record ManagementCapabilities(string ApplicationId, IReadOnlyList<ManagementFeature> ImplementedApis,
-    IReadOnlyList<ManagementOperationHint> CallerHints);
+    IReadOnlyList<ManagementOperationHint> CallerHints)
+{
+    /// <summary>Gets the optional complete API discovery version; legacy arrays remain the legacy-v1 profile.</summary>
+    public int? ApiDiscoveryVersion
+    {
+        get; init;
+    }
+}
 
 /// <summary>Immutable reported registration facts; none replaces credential identity.</summary>
 /// <param name="ProtocolMajor">The selected supported protocol major, initially one.</param>

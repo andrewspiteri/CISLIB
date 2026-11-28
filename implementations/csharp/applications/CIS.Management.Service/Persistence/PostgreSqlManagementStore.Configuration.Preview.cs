@@ -19,6 +19,10 @@ public sealed partial class PostgreSqlManagementStore
         return RunCoreAsync(async (context, authoritySnapshot, token) => await context.UseAdoNetAsync(async (connection, transaction, sqlToken) =>
         {
             _ = await LockConfigurationQuotaAsync(connection, transaction, sqlToken, write: false);
+            if (await IsRuleEngineConfigurationAsync(connection, transaction, binding.ApplicationId, binding.Environment, binding.ConfigurationId, sqlToken))
+            {
+                return Candidate<ManagementConfigurationPreview>.Refused("management.configuration.not_found");
+            }
             ManagementConfigurationAssignmentMap current = await ReadConfigurationMapAsync(connection, transaction, binding, sqlToken);
             if (expectedMapETag is not null && current.ETag != expectedMapETag)
             {

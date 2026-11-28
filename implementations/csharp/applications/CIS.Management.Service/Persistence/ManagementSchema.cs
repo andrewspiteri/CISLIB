@@ -5,9 +5,9 @@ using CIS.Management.Service.Backends;
 namespace CIS.Management.Service.Persistence;
 
 /// <summary>Explicit application deployment migration and read-only schema readiness.</summary>
-public static class ManagementSchema
+public static partial class ManagementSchema
 {
-    public const int Version = 4;
+    public const int Version = 11;
 
     /// <summary>Explicitly installs or upgrades version one without changing retained metadata, results or audit intent.</summary>
     public static Task InstallAsync(ILocalTransactionContext context, string schema,
@@ -36,7 +36,7 @@ public static class ManagementSchema
                         $"SELECT COUNT(*)::integer,COALESCE(min(version),0) FROM {T("management_schema_version")}");
                     await using var reader = await version.ExecuteReaderAsync(token).ConfigureAwait(false);
                     if (!await reader.ReadAsync(token).ConfigureAwait(false) || reader.GetInt32(0) != 1
-                        || reader.GetInt32(1) is not (1 or 2 or 3 or Version))
+                        || reader.GetInt32(1) is not (1 or 2 or 3 or 4 or 5 or 6 or 7 or 8 or 9 or 10 or Version))
                     {
                         throw new ManagementSchemaException("An existing management schema has an unsupported version.");
                     }
@@ -56,7 +56,7 @@ public static class ManagementSchema
                     throw new ManagementSchemaException("The installed authority must be reconciled explicitly, not reset by migration.");
                 }
                 await reader.DisposeAsync();
-                if (existingVersion == Version)
+                if (existingVersion >= 3)
                 {
                     await using var catalog = ManagementSql.Command(connection, transaction,
                         $"SELECT catalog_id,revision FROM {T("configuration_catalog")} WHERE singleton=true");
@@ -66,6 +66,10 @@ public static class ManagementSchema
                     {
                         throw new ManagementSchemaException("The installed configuration catalog requires explicit recovery.");
                     }
+                    await catalogReader.DisposeAsync();
+                }
+                if (existingVersion == Version)
+                {
                     return;
                 }
             }
@@ -134,10 +138,34 @@ public static class ManagementSchema
             {
                 await provenance.ExecuteNonQueryAsync(token).ConfigureAwait(false);
             }
+            if (existingVersion < 6)
+            {
+                await InstallRuleEngineAsync(connection, transaction, schema, token).ConfigureAwait(false);
+            }
+            if (existingVersion < 7)
+            {
+                await InstallRuleEngineDeploymentAsync(connection, transaction, schema, token).ConfigureAwait(false);
+            }
+            if (existingVersion < 8)
+            {
+                await InstallRuleEngineReleaseHistoryAsync(connection, transaction, schema, token).ConfigureAwait(false);
+            }
+            if (existingVersion < 9)
+            {
+                await InstallRuleEngineVersionMetadataAsync(connection, transaction, schema, token).ConfigureAwait(false);
+            }
+            if (existingVersion < 10)
+            {
+                await InstallRuleEngineExecutionsAsync(connection, transaction, schema, token).ConfigureAwait(false);
+            }
+            if (existingVersion < 11)
+            {
+                await InstallRuleEngineCountersAsync(connection, transaction, schema, token).ConfigureAwait(false);
+            }
             await using var advance = ManagementSql.Command(connection, transaction, $"""
                 ALTER TABLE {T("management_schema_version")} DROP CONSTRAINT IF EXISTS management_schema_version_version_check;
-                UPDATE {T("management_schema_version")} SET version=4;
-                ALTER TABLE {T("management_schema_version")} ADD CONSTRAINT management_schema_version_version_check CHECK(version=4)
+                UPDATE {T("management_schema_version")} SET version={Version};
+                ALTER TABLE {T("management_schema_version")} ADD CONSTRAINT management_schema_version_version_check CHECK(version={Version})
                 """);
             await advance.ExecuteNonQueryAsync(token).ConfigureAwait(false);
         }, cancellationToken);

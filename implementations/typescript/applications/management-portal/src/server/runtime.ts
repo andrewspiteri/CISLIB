@@ -1,7 +1,7 @@
 import { open } from "node:fs/promises";
 import type { Pool } from "pg";
 import { createNodeHttpsTransport, createNodeManagementClient, createNodeManagementConfigurationClient } from "@cislib/management-client/server";
-import { ManagementConfigurationAdministrationClient } from "@cislib/management-client";
+import { ManagementConfigurationAdministrationClient, ManagementRuleEngineClient } from "@cislib/management-client";
 import type { ManagementClient, ManagementConfigurationClient } from "@cislib/management-client";
 import type { PortalConfig } from "./config.ts";
 import { OidcHttpAgent } from "./oidc-http.ts";
@@ -18,6 +18,7 @@ export class PortalRuntime {
   readonly management: ManagementClient;
   readonly configuration: ManagementConfigurationClient;
   readonly configurationAdministration: ManagementConfigurationAdministrationClient;
+  readonly ruleEngine: ManagementRuleEngineClient;
   private readonly stop = new AbortController();
   private disposal: Promise<void> | undefined;
   private activeRequests = 0;
@@ -30,8 +31,9 @@ export class PortalRuntime {
     const options = { baseUrl: config.managementUrl, ...(ca === undefined ? {} : { ca }), timeoutMs: 30000 };
     this.management = createNodeManagementClient(options);
     this.configuration = createNodeManagementConfigurationClient(options);
-    this.configurationAdministration = new ManagementConfigurationAdministrationClient({ baseUrl: config.managementUrl, timeoutMs: 30000,
-      transport: createNodeHttpsTransport({ origin: new URL(config.managementUrl).origin, ...(ca === undefined ? {} : { ca }) }) });
+    const transport = createNodeHttpsTransport({ origin: new URL(config.managementUrl).origin, ...(ca === undefined ? {} : { ca }) });
+    this.configurationAdministration = new ManagementConfigurationAdministrationClient({ baseUrl: config.managementUrl, timeoutMs: 30000, transport });
+    this.ruleEngine = new ManagementRuleEngineClient({ baseUrl: config.managementUrl, timeoutMs: 30000, transport });
     this.pool.on("error", () => { console.error("[Portal] Session store connection failed."); });
   }
 

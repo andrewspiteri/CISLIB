@@ -207,6 +207,7 @@ public static partial class ManagementWire
         bool supportedRequest = type == typeof(ManagementRegistrationRequest) || type == typeof(ManagementObservation)
             || type == typeof(ManagementInventorySnapshot) || type == typeof(ManagementMetadataCommand);
         bool supportedResponse = type == typeof(ManagementApplication) || type == typeof(ManagementServiceInfo)
+            || type == typeof(ManagementServiceFeaturePage) || type == typeof(ManagementApplicationApiCapabilityPage)
             || type == typeof(ManagementCapabilities) || type == typeof(ManagementRegistrationReceipt)
             || type == typeof(ManagementControlConfirmation)
             || type == typeof(ManagementReportReceipt) || type == typeof(ManagementCloseReceipt)

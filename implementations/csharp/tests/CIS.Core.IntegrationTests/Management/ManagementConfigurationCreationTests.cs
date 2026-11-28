@@ -358,6 +358,7 @@ public sealed partial class ManagementConfigurationCreationTests
             return ((Guid)(await query.ExecuteScalarAsync(token))!).ToString("D");
         });
         await fixture.SqlAsync($"""
+            {ManagementDatabaseFixture.DropRuleEngineTables(fixture.Table)}
             ALTER TABLE {fixture.Table("configuration_binding")} DROP COLUMN predeployment_created;
             ALTER TABLE {fixture.Table("configuration_binding")} DROP COLUMN manifest_managed;
             ALTER TABLE {fixture.Table("configuration_definition")} DROP COLUMN manifest_managed;
@@ -371,7 +372,7 @@ public sealed partial class ManagementConfigurationCreationTests
             await ManagementSchema.InstallAsync(owner.Context, fixture.Options.Schema, fixture.Options);
             Assert.AreEqual(TransactionOutcome.Committed, (await owner.CommitAsync()).Outcome);
         }
-        Assert.AreEqual(4L, await fixture.ScalarAsync($"SELECT version FROM {fixture.Table("management_schema_version")}"));
+        Assert.AreEqual((long)ManagementSchema.Version, await fixture.ScalarAsync($"SELECT version FROM {fixture.Table("management_schema_version")}"));
         Assert.AreEqual(1L, await fixture.ScalarAsync($"SELECT count(*) FROM {fixture.Table("management_authority")} WHERE authority_id='{authority}'::uuid"));
         Assert.AreEqual(3L, await fixture.ScalarAsync($"""
             SELECT count(*) FROM information_schema.columns WHERE table_schema='{fixture.Options.Schema}'

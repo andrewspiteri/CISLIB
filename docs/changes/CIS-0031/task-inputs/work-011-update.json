@@ -1,0 +1,20 @@
+{
+  "tasks": [
+    {
+      "title": "RM11 portal grid and version deployment workflows",
+      "scopeIds": ["RM11-BACKOFFICE", "RM11-MANAGEMENT"],
+      "category": "frontend",
+      "complexity": "medium",
+      "paths": [
+        "implementations/typescript/applications/management-portal",
+        "implementations/typescript/packages/management-client",
+        "implementations/csharp/applications/CIS.Management.Service",
+        "implementations/csharp/src/CIS.Core/Management",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests"
+      ],
+      "acceptanceCriteria": "Connect the reviewed grid to real Management APIs for typed row and rule editing, previous versions, Save, Deploy and rollback, and instance adoption visibility. Preserve validation/conflict drafts and exact decimals throughout. Own RM11-AC12 and supply AC29 editing/deployment evidence.",
+      "validation": "Run portal browser journeys against the native service for typed cells, markers, add/copy/remove/reorder, row fields and mode, older-version editing, conflict retention, saved-only state, deployment and rejected/pending instances.",
+      "dependsOn": ["WORK-003", "WORK-004", "WORK-005", "WORK-010"]
+    }
+  ]
+}

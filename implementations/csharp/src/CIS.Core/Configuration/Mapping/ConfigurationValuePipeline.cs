@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using CIS.RuleEngine;
 
 namespace CIS.Configuration;
 
@@ -77,9 +78,14 @@ internal sealed class ConfigurationValuePipeline(Action<Type, string>? diagnosti
             }
         }
         catch (Exception) { throw Error(entry, "Configuration.Mapping", "A detached candidate setter failed; configuration properties must be passive and nonthrowing."); }
+        PreparedRuleDefinition? preparedRule = null;
         try
         {
             entry.Validator?.Invoke(candidate);
+            if (entry.Enrollment is not null && entry.Instance is RuleEngineConfiguration rules)
+            {
+                preparedRule = rules.PrepareSnapshot(common, application);
+            }
         }
         catch (Exception) { throw Error(entry, "Configuration.Validation", "The complete detached configuration candidate failed application validation."); }
 
@@ -108,7 +114,8 @@ internal sealed class ConfigurationValuePipeline(Action<Type, string>? diagnosti
         string checksum = Convert.ToHexStringLower(SHA256.HashData(canonical));
         return new(checksum, preparation.Assignments(effective))
         {
-            Ownership = ownership
+            Ownership = ownership,
+            RuleDefinition = preparedRule
         };
     }
 
@@ -151,6 +158,7 @@ internal sealed class ConfigurationValuePipeline(Action<Type, string>? diagnosti
                 ? ConfigurationAcceptanceOutcome.Applied : ConfigurationAcceptanceOutcome.AppliedUnchanged,
                 provenance.Desired, provenance, entry.Revision, true,
                 notificationFailureCode: changed ? null : entry.Acceptance?.NotificationFailureCode);
+            entry.AcceptedRuleDefinition = prepared.RuleDefinition;
             entry.Acceptance = acceptance;
             return new(changed, acceptance);
         }

@@ -130,6 +130,10 @@ public sealed partial class PostgreSqlManagementStore
                     p.sha256,p.actor,p.created_at,p.reason,p.payload
                 FROM {Table("configuration_publication")} p JOIN {Table("configuration_source")} s ON s.source_id=p.source_id
                 JOIN {Table("configuration_definition")} d ON d.definition_id=s.definition_id WHERE p.publication_id=@id
+                    AND NOT EXISTS(SELECT 1 FROM {Table("rule_engine_ruleset")} r
+                        JOIN {Table("management_application")} a ON a.application_id=r.application_id
+                        WHERE r.configuration_id=d.configuration_id AND a.environment=s.environment
+                          AND (s.application_id IS NULL OR a.application_id=s.application_id))
                 """, ("id", id));
             await using DbDataReader reader = await command.ExecuteReaderAsync(sqlToken);
             if (!await reader.ReadAsync(sqlToken))

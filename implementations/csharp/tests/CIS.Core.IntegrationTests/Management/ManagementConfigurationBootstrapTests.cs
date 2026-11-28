@@ -376,7 +376,7 @@ public sealed class ManagementConfigurationBootstrapTests
 
         internal static async Task<NativePreparation> CreateAsync(ManagementHostFixture fixture, string assertion,
             HttpPipelineTransport transport, ManagementClientOptions management, ManagementConfigurationClientOptions configuration,
-            CancellationToken token)
+            CancellationToken token, TimeProvider? clock = null)
         {
             LocalApplicationIdentity local = LocalApplicationIdentity.Capture();
             var policy = new SecurityOptions { PolicyVersion = "configuration-bootstrap-native-v1" };
@@ -395,7 +395,7 @@ public sealed class ManagementConfigurationBootstrapTests
                     Scope = "api://management-native-service/.default",
                     Transport = transport
                 }
-            }, cancellationToken: token);
+            }, clock: clock, cancellationToken: token);
             try
             {
                 return new(prepared, fixture, management, configuration);

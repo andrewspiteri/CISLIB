@@ -29,6 +29,10 @@ public sealed partial class PostgreSqlManagementStore
             {
                 return ConfigurationEffect.Reject("management.configuration.binding_unavailable");
             }
+            if (await IsRuleEngineConfigurationAsync(connection, transaction, binding.ApplicationId, binding.Environment, binding.ConfigurationId, token))
+            {
+                return ConfigurationEffect.Reject("management.configuration.rule_engine_managed");
+            }
             ManagementConfigurationAssignmentMap before = await ReadConfigurationMapAsync(connection, transaction, binding, token, write: true);
             if (before.ETag != input.IfMatch)
             {
@@ -60,19 +64,8 @@ public sealed partial class PostgreSqlManagementStore
             {
                 return ConfigurationEffect.Reject("management.configuration.capacity_exceeded", before.ETag, before);
             }
-            string timestamp;
-            await using (DbCommand replace = ManagementSql.Command(connection, transaction, $"""
-                UPDATE {Table("configuration_assignment")} SET revision=revision+1,generation=@generation,default_release_id=@release
-                WHERE binding_id=@id RETURNING clock_timestamp()
-                """, ("id", Guid.Parse(binding.BindingId)), ("generation", generation + 1), ("release", Guid.Parse(input.Command.DefaultReleaseId))))
-            {
-                timestamp = ManagementSql.Timestamp((DateTime)(await replace.ExecuteScalarAsync(token))!);
-            }
-            await using (DbCommand remove = ManagementSql.Command(connection, transaction,
-                $"DELETE FROM {Table("configuration_override")} WHERE binding_id=@id", ("id", Guid.Parse(binding.BindingId))))
-            {
-                await remove.ExecuteNonQueryAsync(token);
-            }
+            string timestamp = await ResetConfigurationAssignmentAsync(connection, transaction, Guid.Parse(binding.BindingId),
+                generation + 1, Guid.Parse(input.Command.DefaultReleaseId), token);
             foreach (ManagementConfigurationOverride entry in input.Command.Overrides.OrderBy(item => item.CohortId, StringComparer.Ordinal))
             {
                 await using DbCommand insert = ManagementSql.Command(connection, transaction, $"""
@@ -90,6 +83,23 @@ public sealed partial class PostgreSqlManagementStore
                 Generation: after.Generation, ETag: after.ETag, Intent: input.Command.Intent, Assignment: after),
                 PreviousETag: before.ETag, BeforeAssignment: before);
         }, cancellationToken);
+    }
+
+    private async Task<string> ResetConfigurationAssignmentAsync(DbConnection connection, DbTransaction transaction,
+        Guid binding, long generation, Guid release, CancellationToken token)
+    {
+        string timestamp;
+        await using (DbCommand replace = ManagementSql.Command(connection, transaction, $"""
+            UPDATE {Table("configuration_assignment")} SET revision=revision+1,generation=@generation,default_release_id=@release
+            WHERE binding_id=@id RETURNING clock_timestamp()
+            """, ("id", binding), ("generation", generation), ("release", release)))
+        {
+            timestamp = ManagementSql.Timestamp((DateTime)(await replace.ExecuteScalarAsync(token))!);
+        }
+        await using DbCommand remove = ManagementSql.Command(connection, transaction,
+            $"DELETE FROM {Table("configuration_override")} WHERE binding_id=@id", ("id", binding));
+        await remove.ExecuteNonQueryAsync(token);
+        return timestamp;
     }
 
     private async Task ValidateConfigurationAssignmentAsync(DbConnection connection, DbTransaction transaction,

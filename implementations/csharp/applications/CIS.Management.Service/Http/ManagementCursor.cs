@@ -14,6 +14,15 @@ internal sealed class ManagementCursor(ManagementServiceOptions options, Func<Ma
     internal string Encode(string endpoint, string actor, int size, string last)
         => EncodeCore(endpoint, actor, size, last, "uuid-ordinal");
 
+    internal string EncodeApiFeature(string endpoint, string actor, int size, string last)
+    {
+        if (!ManagementWire.IsOperationKey(last))
+        {
+            throw new ArgumentException("Use an exact disclosed API operation position.", nameof(last));
+        }
+        return EncodeCore(endpoint, actor, size, last, "api-feature-operation-ordinal");
+    }
+
     internal string EncodeEnvironment(string endpoint, string actor, int size, string last)
     {
         if (!ManagementWire.IsScalarText(last, 255))
@@ -22,6 +31,21 @@ internal sealed class ManagementCursor(ManagementServiceOptions options, Func<Ma
         }
         return EncodeCore(endpoint, actor, size, last, "environment-utf8-ordinal");
     }
+
+    internal string EncodeRuleEngineRuleset(string endpoint, string actor, int size, string last)
+    {
+        if (!ManagementRuleEngineWire.IsRuleId(last))
+        {
+            throw new ArgumentException("Supply the exact disclosed ruleset position.", nameof(last));
+        }
+        return EncodeCore(endpoint, actor, size, last, "rule-engine-ruleset-utf8-ordinal");
+    }
+
+    internal string EncodeRuleEngineExecution(string endpoint, string actor, int size, RuleEngineExecutionPosition last)
+        => EncodeCore(endpoint, actor, size, last.CursorKey, "rule-engine-execution-start-desc");
+
+    internal string EncodeRuleEngineCounter(string endpoint, string actor, int size, string last)
+        => EncodeCore(endpoint, actor, size, last, "rule-engine-counter-rule-ordinal");
 
     internal string EncodeConfigurationAdoption(string endpoint, string actor, int size, string last)
     {
@@ -61,8 +85,25 @@ internal sealed class ManagementCursor(ManagementServiceOptions options, Func<Ma
     internal bool TryDecode(string? value, string endpoint, string actor, int size, out string? after)
         => TryDecodeCore(value, endpoint, actor, size, "uuid-ordinal", out after);
 
+    internal bool TryDecodeApiFeature(string? value, string endpoint, string actor, int size, out string? after)
+        => TryDecodeCore(value, endpoint, actor, size, "api-feature-operation-ordinal", out after);
+
     internal bool TryDecodeEnvironment(string? value, string endpoint, string actor, int size, out string? after)
         => TryDecodeCore(value, endpoint, actor, size, "environment-utf8-ordinal", out after);
+
+    internal bool TryDecodeRuleEngineRuleset(string? value, string endpoint, string actor, int size, out string? after)
+        => TryDecodeCore(value, endpoint, actor, size, "rule-engine-ruleset-utf8-ordinal", out after);
+
+    internal bool TryDecodeRuleEngineExecution(string? value, string endpoint, string actor, int size,
+        out RuleEngineExecutionPosition? after)
+    {
+        after = null;
+        return TryDecodeCore(value, endpoint, actor, size, "rule-engine-execution-start-desc", out string? raw)
+            && (raw is null || RuleEngineExecutionPosition.TryRead(raw, out after));
+    }
+
+    internal bool TryDecodeRuleEngineCounter(string? value, string endpoint, string actor, int size, out string? after)
+        => TryDecodeCore(value, endpoint, actor, size, "rule-engine-counter-rule-ordinal", out after);
 
     internal bool TryDecodeConfigurationAdoption(string? value, string endpoint, string actor, int size, out string? after)
         => TryDecodeCore(value, endpoint, actor, size, "configuration-adoption-ordinal", out after);
@@ -119,10 +160,14 @@ internal sealed class ManagementCursor(ManagementServiceOptions options, Func<Ma
 
     private static bool ValidPosition(string order, string last) => order switch
     {
+        "api-feature-operation-ordinal" => ManagementWire.IsOperationKey(last),
         "configuration-adoption-ordinal" => IsAdoptionPosition(last),
         "configuration-cohort-ordinal" => ManagementWire.IsOperationKey(last),
         "configuration-release-created-desc" => ManagementConfigurationReleasePosition.TryRead(last, out _, out _),
         "environment-utf8-ordinal" => ManagementWire.IsScalarText(last, 255),
+        "rule-engine-ruleset-utf8-ordinal" => ManagementRuleEngineWire.IsRuleId(last),
+        "rule-engine-execution-start-desc" => RuleEngineExecutionPosition.TryRead(last, out _),
+        "rule-engine-counter-rule-ordinal" => ManagementRuleEngineWire.IsRuleId(last),
         _ => ManagementWire.IsUuid(last)
     };
 

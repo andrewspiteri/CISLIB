@@ -7,7 +7,8 @@ using CIS.RestClient.Http;
 namespace CIS.Management;
 
 /// <summary>Typed configuration calls over one borrowed native REST/security owner, without background work.</summary>
-public sealed partial class ManagementConfigurationClient : IManagementConfigurationClient, IManagementConfigurationEditorClient
+public sealed partial class ManagementConfigurationClient : IManagementConfigurationClient, IManagementConfigurationEditorClient,
+    IManagementRuleWorkloadClient
 {
     internal const string OperationAlias = "configuration";
     private readonly IRestClient rest;
@@ -213,7 +214,7 @@ public sealed partial class ManagementConfigurationClient : IManagementConfigura
             ConfigureRequest = configure,
             DisableConfigureRequest = configure is null,
             ResponseMapper = mapper,
-            RetryPolicy = method == "GET" && !mapper.IsSnapshot
+            RetryPolicy = method == "GET" && !mapper.UsesWorkloadTarget
                 ? SelectReadPolicy(options?.ReadRetryPolicy ?? settings.ReadRetryPolicy) : RestRetrySelection.None,
             Body = Body(body)
         };
@@ -289,7 +290,7 @@ public sealed partial class ManagementConfigurationClient : IManagementConfigura
     private static string Binding(string application, string configuration)
         => "applications/" + Uuid(application) + "/configuration/" + Identifier(configuration);
 
-    private static void ValidateTarget(ManagementConfigurationSnapshotTarget target)
+    internal static void ValidateTarget(ManagementConfigurationSnapshotTarget target)
     {
         ArgumentNullException.ThrowIfNull(target);
         if (!ManagementWire.IsUuid(target.AuthorityId) || !ManagementWire.IsUuid(target.ApplicationId) || !ManagementWire.IsUuid(target.RegistrationId)
@@ -462,10 +463,10 @@ public sealed partial class ManagementConfigurationClient : IManagementConfigura
 
     private sealed class ConfigurationMapper(ManagementConfigurationWireLimits limits,
         ManagementConfigurationSnapshotTarget? expected = null, ManagementConfigurationSnapshot? retained = null,
-        ExpectedResponse? responseBinding = null) : IRestResponseMapper
+        ExpectedResponse? responseBinding = null, ExpectedRuleWorkloadVersion? workloadVersion = null) : IRestResponseMapper
     {
         private bool retainedValidated;
-        internal bool IsSnapshot => expected is not null;
+        internal bool UsesWorkloadTarget => expected is not null || workloadVersion is not null;
         internal ManagementConfigurationSnapshotRead? Read
         {
             get; private set;
@@ -546,6 +547,7 @@ public sealed partial class ManagementConfigurationClient : IManagementConfigura
             if (response.HttpStatusCode is >= 200 and <= 299)
             {
                 responseBinding?.Check(response.Decoded.Value);
+                workloadVersion?.Check(response.Decoded.Value);
             }
             if (response.HttpStatusCode is >= 200 and <= 299 || error is null
                 || error.Bytes.Count > ManagementWire.MaximumErrorBodyBytes

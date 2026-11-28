@@ -13,6 +13,42 @@ namespace CIS.Tests.IntegrationTests.Management;
 public sealed class ManagementDiscoveryBoundaryTests
 {
     [TestMethod]
+    public void ApiDiscoveryHasAnIndependentDefaultAndSignedOperationPosition()
+    {
+        var context = new DefaultHttpContext();
+        Assert.IsTrue(ManagementDiscoveryQuery.TryReadApiFeatures(context, out int size, out string? cursor));
+        Assert.AreEqual(32, size);
+        Assert.IsNull(cursor);
+        foreach (string query in new[] { "?pageSize=65", "?pageSize=100", "?pageSize=0", "?pageSize=1&pageSize=2", "?profile=complete-v1", "?cursor=%C0%AF" })
+        {
+            context.Request.QueryString = new(query);
+            Assert.IsFalse(ManagementDiscoveryQuery.TryReadApiFeatures(context, out _, out _), query);
+        }
+        var options = new ManagementServiceOptions("Host=localhost;Database=unused", Enumerable.Range(0, 32).Select(value => (byte)value).ToArray());
+        var authority = new ManagementAuthoritySnapshot("management", "33333333-3333-4333-8333-333333333333", "v1", 1, false);
+        using var cursors = new ManagementCursor(options, () => authority);
+        string scope = ManagementDiscoveryQuery.Scope(Caller("policy-v1"), principal: Principal("reader", "one")) + ":complete-v1:inventory-a";
+        string encoded = cursors.EncodeApiFeature("service-features", scope, 1, "listApplications");
+        Assert.IsTrue(cursors.TryDecodeApiFeature(encoded, "service-features", scope, 1, out string? after));
+        Assert.AreEqual("listApplications", after);
+        Assert.IsFalse(cursors.TryDecodeApiFeature(encoded, "application-api-capabilities", scope, 1, out _));
+        Assert.IsFalse(cursors.TryDecodeApiFeature(encoded, "service-features", scope + "changed-inventory", 1, out _));
+        Assert.IsFalse(cursors.TryDecodeApiFeature(encoded, "service-features", scope, 2, out _));
+        Assert.IsFalse(cursors.TryDecode(encoded, "service-features", scope, 1, out _));
+        string applicationScope = ManagementDiscoveryQuery.Scope(Caller("policy-v1"), "11111111-1111-4111-8111-111111111111",
+            principal: Principal("reader", "one")) + ":complete-v1:inventory-a";
+        string anotherApplication = ManagementDiscoveryQuery.Scope(Caller("policy-v1"), "22222222-2222-4222-8222-222222222222",
+            principal: Principal("reader", "one")) + ":complete-v1:inventory-a";
+        string applicationCursor = cursors.EncodeApiFeature("application-api-capabilities", applicationScope, 1, "listApplications");
+        Assert.IsFalse(cursors.TryDecodeApiFeature(applicationCursor, "application-api-capabilities", anotherApplication, 1, out _));
+        authority = authority with
+        {
+            RecoveryEpoch = 2
+        };
+        Assert.IsFalse(cursors.TryDecodeApiFeature(encoded, "service-features", scope, 1, out _));
+    }
+
+    [TestMethod]
     [DataRow("?query=%C0%AF")]
     [DataRow("?query=%E2%82")]
     [DataRow("?query=%ED%A0%80")]

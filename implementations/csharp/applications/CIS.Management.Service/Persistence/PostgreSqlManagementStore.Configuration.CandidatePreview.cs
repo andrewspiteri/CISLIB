@@ -39,6 +39,10 @@ public sealed partial class PostgreSqlManagementStore
             {
                 return Candidate<ManagementConfigurationCandidatePreview>.Refused("management.configuration.not_found");
             }
+            if (await IsRuleEngineConfigurationAsync(connection, transaction, actual.ApplicationId, actual.Environment, actual.ConfigurationId, sqlToken))
+            {
+                return Candidate<ManagementConfigurationCandidatePreview>.Refused("management.configuration.not_found");
+            }
             string? sourceId = command.SelectedSource == "common" ? actual.CommonSourceId : actual.ApplicationSourceId;
             if (sourceId != command.SourceId)
             {

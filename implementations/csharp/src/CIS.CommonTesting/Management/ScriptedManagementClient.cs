@@ -31,7 +31,11 @@ public enum ScriptedManagementCallKind
     /// <summary>Original-key result lookup.</summary>
     MetadataOperation,
     /// <summary>Current authoritative control confirmation, without native authority or freshness evaluation.</summary>
-    Control
+    Control,
+    /// <summary>One complete installed-API discovery page.</summary>
+    ServiceFeatures,
+    /// <summary>One complete application API eligibility page.</summary>
+    ApplicationApiCapabilities
 }
 
 /// <summary>Detached safe call metadata, without credentials, payloads, ETags, options or caller contexts.</summary>
@@ -79,7 +83,7 @@ public sealed class PendingManagementCall
 }
 
 /// <summary>A finite ordered management script with bounded safe call records; it proves no native authority or durability.</summary>
-public sealed class ScriptedManagementClient : IManagementClient
+public sealed class ScriptedManagementClient : IManagementClient, IManagementApiDiscoveryClient
 {
     private readonly object gate = new();
     private readonly Queue<Step> steps = new();
@@ -145,6 +149,28 @@ public sealed class ScriptedManagementClient : IManagementClient
     /// <inheritdoc />
     public Task<ManagementCallResult<ManagementServiceInfo>> GetServiceInfoAsync(ManagementCallOptions? options = null, CancellationToken cancellationToken = default)
         => Dispatch<ManagementServiceInfo>(new(ScriptedManagementCallKind.ServiceInfo), cancellationToken);
+
+    /// <inheritdoc />
+    public Task<ManagementCallResult<ManagementServiceFeaturePage>> ListServiceFeaturesAsync(ManagementPageRequest? page = null,
+        ManagementCallOptions? options = null, CancellationToken cancellationToken = default)
+        => DiscoveryDispatch<ManagementServiceFeaturePage>(new(ScriptedManagementCallKind.ServiceFeatures), page, cancellationToken);
+
+    /// <inheritdoc />
+    public Task<ManagementCallResult<ManagementApplicationApiCapabilityPage>> ListApplicationApiCapabilitiesAsync(string applicationId,
+        ManagementPageRequest? page = null, ManagementCallOptions? options = null, CancellationToken cancellationToken = default)
+        => DiscoveryDispatch<ManagementApplicationApiCapabilityPage>(new(ScriptedManagementCallKind.ApplicationApiCapabilities,
+            ApplicationId: applicationId), page, cancellationToken);
+
+    private Task<ManagementCallResult<T>> DiscoveryDispatch<T>(ScriptedManagementCall call, ManagementPageRequest? page,
+        CancellationToken cancellationToken)
+    {
+        ManagementPageRequest selected = page ?? new(32);
+        if (!ManagementWire.IsPageRequest(selected) || selected.PageSize > 64)
+        {
+            return Task.FromException<ManagementCallResult<T>>(new ArgumentException("Use one through 64 discovery rows.", nameof(page)));
+        }
+        return Dispatch<T>(call, cancellationToken);
+    }
     /// <inheritdoc />
     public Task<ManagementCallResult<ManagementRegistrationReceipt>> RegisterAsync(string registrationId, ManagementRegistrationRequest request,
         ManagementCallOptions? options = null, CancellationToken cancellationToken = default)
@@ -222,7 +248,8 @@ public sealed class ScriptedManagementClient : IManagementClient
         }
         bool applicationRequired = call.Kind is ScriptedManagementCallKind.Application or ScriptedManagementCallKind.Instances
             or ScriptedManagementCallKind.Inventory or ScriptedManagementCallKind.Capabilities
-            or ScriptedManagementCallKind.MetadataReplace or ScriptedManagementCallKind.MetadataOperation;
+            or ScriptedManagementCallKind.MetadataReplace or ScriptedManagementCallKind.MetadataOperation
+            or ScriptedManagementCallKind.ApplicationApiCapabilities;
         bool registrationRequired = call.Kind is ScriptedManagementCallKind.Registration or ScriptedManagementCallKind.Observation
             or ScriptedManagementCallKind.InventoryReport or ScriptedManagementCallKind.RegistrationClose or ScriptedManagementCallKind.Control;
         bool keyRequired = call.Kind is ScriptedManagementCallKind.MetadataReplace or ScriptedManagementCallKind.MetadataOperation;

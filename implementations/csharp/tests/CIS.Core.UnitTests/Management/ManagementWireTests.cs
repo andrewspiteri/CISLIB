@@ -44,6 +44,9 @@ public sealed class ManagementWireTests
             ("Problem", "response") => ManagementWire.DecodeResponse<ManagementProblem>(bytes),
             ("ControlConfirmation", "response") => ManagementWire.DecodeResponse<ManagementControlConfirmation>(bytes),
             ("ServiceInfo", "response") => ManagementWire.DecodeResponse<ManagementServiceInfo>(bytes),
+            ("Capabilities", "response") => ManagementWire.DecodeResponse<ManagementCapabilities>(bytes),
+            ("ServiceFeaturePage", "response") => ManagementWire.DecodeResponse<ManagementServiceFeaturePage>(bytes),
+            ("ApplicationApiCapabilityPage", "response") => ManagementWire.DecodeResponse<ManagementApplicationApiCapabilityPage>(bytes),
             _ => throw new InvalidDataException("The independent catalog has a new shape requiring an explicit consumer.")
         };
 

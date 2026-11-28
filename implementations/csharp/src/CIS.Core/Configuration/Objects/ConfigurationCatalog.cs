@@ -1,5 +1,7 @@
 using System.Reflection;
 using System.Text.Json;
+using CIS.Management;
+using CIS.RuleEngine;
 using CIS.TypeManagement;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -76,6 +78,7 @@ internal sealed class ConfigurationCatalog
         }
 
         var entries = new List<ConfigurationEntry>();
+        var engineRulesets = new HashSet<string>(StringComparer.Ordinal);
         foreach ((Type type, string identity) in definitions)
         {
             bool custom = factories.TryGetValue(type, out Func<IConfigurationObject>? selected);
@@ -119,6 +122,13 @@ internal sealed class ConfigurationCatalog
                 throw ConfigurationDiagnostics.Error(type, "Configuration.EventWiring", "Validating ConfigurationChanged accessors failed; use passive ConfigurationEvents forwarding accessors.");
             }
             settings.Enrollments.TryGetValue(type, out ConfigurationEnrollment? enrollment);
+            if (enrollment is not null && instance is RuleEngineConfiguration rules
+                && (settings.Store is not ManagementConfigurationStore || enrollment.UpdateMode != ConfigurationUpdateMode.HotReload
+                    || !engineRulesets.Add(rules.RulesetId)))
+            {
+                throw ConfigurationDiagnostics.Error(type, "Configuration.Enrollment",
+                    "Enroll each Rule Engine ruleset once with the native Management store and HotReload.");
+            }
             ConfigurationShape shape = ConfigurationShape.Create(type, factory, instance,
                 enrollment is null ? null : settings.ByteBudget);
             JsonElement defaults = shape.DeclaredDefaults;
@@ -205,6 +215,10 @@ internal sealed class ConfigurationEntry(Type type, IConfigurationObject instanc
         get; set;
     }
     internal ConfigurationAcceptanceStatus? Acceptance
+    {
+        get; set;
+    }
+    internal PreparedRuleDefinition? AcceptedRuleDefinition
     {
         get; set;
     }

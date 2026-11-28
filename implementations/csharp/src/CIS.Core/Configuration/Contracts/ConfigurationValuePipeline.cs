@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text.Json;
+using CIS.RuleEngine;
 
 namespace CIS.Configuration;
 
@@ -19,6 +20,11 @@ internal sealed record ConfigurationAssignment(PropertyInfo Property, object? Va
 
 internal sealed record ConfigurationPreparedValues(string Checksum, IReadOnlyList<ConfigurationAssignment> Assignments)
 {
+    internal PreparedRuleDefinition? RuleDefinition
+    {
+        get; init;
+    }
+
     internal IDisposable? Ownership
     {
         get; init;

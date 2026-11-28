@@ -1,6 +1,8 @@
 using CIS.Healthcheck;
 using CIS.Heartbeat;
+using CIS.Management;
 using CIS.Metrics;
+using CIS.RuleEngine;
 using CIS.TypeManagement;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -68,6 +70,12 @@ public sealed class ConfigurationRuntime : IAsyncDisposable
         };
 
     internal void AttachMetrics(MetricsRuntime runtime) => refresh.AttachMetrics(runtime);
+
+    internal ManagementConfigurationStore? RuleEngineStore => catalog.Settings.Store as ManagementConfigurationStore;
+
+    internal ConfigurationEntry? FindRuleEngineBinding(string rulesetId)
+        => catalog.Entries.FirstOrDefault(entry => entry.Enrollment is not null
+            && entry.Instance is RuleEngineConfiguration rules && rules.RulesetId == rulesetId);
 
     /// <summary>Copies at most 32 recent bounded name-only mapping warnings, including warnings observed before DI logging existed.</summary>
     public IReadOnlyList<ConfigurationIssue> CaptureDiagnostics()

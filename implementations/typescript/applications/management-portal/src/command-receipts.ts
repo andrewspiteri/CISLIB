@@ -1,4 +1,5 @@
 import { OpaqueJsonObject, isOperationKey, isOrderedInteger, isScalarText, isUuid } from "@cislib/management-client";
+import { isRuleSelector } from "./rule-engine-draft.ts";
 
 export const commandReceiptLimits = Object.freeze({ maximumReceipts: 16, maximumStorageBytes: 32768, maximumAgeMs: 86400000 });
 const storageKey = "cis.management.command-receipts.v1";
@@ -14,7 +15,9 @@ export type CommandReceiptIntent =
       readonly target: { readonly applicationId: string; readonly configurationId: string; readonly schemaVersion: string } }
   | { readonly family: "management.scheduler.trigger.write"; readonly target: { readonly applicationId: string; readonly triggerId: string } }
   | { readonly family: "management.scheduler.task.write"; readonly target: { readonly applicationId: string; readonly taskId: string } }
-  | { readonly family: "management.scheduler.run.write"; readonly target: { readonly applicationId: string; readonly runId: string } };
+  | { readonly family: "management.scheduler.run.write"; readonly target: { readonly applicationId: string; readonly runId: string } }
+  | { readonly family: "management.rule-engine.version.save" | "management.rule-engine.deployment.request" | "management.rule-engine.counter.reset";
+      readonly target: { readonly applicationId: string; readonly rulesetId: string } };
 export type CommandReceipt = CommandReceiptIntent & CommandReceiptContext & { readonly key: string; readonly createdAtMs: number };
 type StoredReceipt = CommandReceiptIntent & { readonly key: string; readonly createdAtMs: number };
 interface Envelope extends CommandReceiptContext { readonly version: 1; readonly receipts: readonly StoredReceipt[]; }
@@ -230,6 +233,9 @@ function captureIntent(value: unknown): CommandReceiptIntent | undefined {
     case "management.scheduler.run.write":
       return shape(target, ["applicationId", "runId"]) && isUuid(target.applicationId) && isUuid(target.runId)
         ? Object.freeze({ family: value.family, target: Object.freeze({ applicationId: target.applicationId as string, runId: target.runId as string }) }) : undefined;
+    case "management.rule-engine.version.save": case "management.rule-engine.deployment.request": case "management.rule-engine.counter.reset":
+      return shape(target, ["applicationId", "rulesetId"]) && isUuid(target.applicationId) && isRuleSelector(target.rulesetId)
+        ? Object.freeze({ family: value.family, target: Object.freeze({ applicationId: target.applicationId, rulesetId: target.rulesetId }) }) : undefined;
     default: return undefined;
   }
 }

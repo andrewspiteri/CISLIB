@@ -152,7 +152,7 @@ export function parseWireJson(text: string, maximumDepth: number, capturePaths: 
 // Capture only fields that a declared DTO can use as a bounded JSON integer.
 // Unknown numbers, including opaque module data, are not reinterpreted.
 function integerTokenPath(path: string): boolean {
-  return /\/(?:protocolMajor|commandVersion|status|version|validForMs|maximumInventoryRequestBytes|definitionCount|sourceCount|bindingCount|quotaBytes|usedBytes|maximumAttempts|maximumCatchUp|order|runCount|count|envelopeVersion|schemaVersion)$/u.test(path)
+  return /\/(?:protocolMajor|commandVersion|status|version|validForMs|maximumInventoryRequestBytes|apiDiscoveryVersion|definitionCount|sourceCount|bindingCount|quotaBytes|usedBytes|maximumAttempts|maximumCatchUp|order|runCount|count|envelopeVersion|schemaVersion|returnedMatchCount)$/u.test(path)
     || /\/(?:protocolMajors|weekdays)\/[0-9]+$/u.test(path);
 }
 
